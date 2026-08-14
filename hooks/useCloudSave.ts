@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useGameStore } from '@/store/gameStore';
+import { useAchievementStore } from '@/store/achievementStore';
 import { saveGameToFirestore, loadGameFromFirestore } from '@/lib/firebase/saveGame';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 
@@ -43,8 +44,32 @@ function getSerializableState() {
     dailyShop:          s.dailyShop,
     starterPackClaimed: s.starterPackClaimed,
     username:           s.username,
+    // Succès déjà réclamés — stockés dans un store séparé (achievementStore),
+    // qui a son propre localStorage jamais synchronisé avec Firestore. Sans
+    // ça, un succès déjà débloqué redevient "réclamable" sur tout nouvel
+    // appareil (ses conditions sont recalculées depuis les stats, elles,
+    // bien synchronisées) et redonne ses gemmes une deuxième fois.
+    achievementsClaimed: useAchievementStore.getState().claimed,
     savedAt:            Date.now(),
   };
+}
+
+// Fusionne les succès réclamés vus sur cet appareil, en localStorage et sur
+// Firebase — jamais un simple "dernier gagne", car un claim ne doit JAMAIS
+// pouvoir redisparaître (sinon la fenêtre de double-claim rouvre) ni être
+// perdu si la source la plus récente vient d'un appareil qui ignore encore
+// un claim fait ailleurs.
+function mergeClaimedAchievements(
+  remote: Record<string, unknown> | null,
+  local: Record<string, unknown> | null
+): Record<string, boolean> {
+  const merged: Record<string, boolean> = { ...useAchievementStore.getState().claimed };
+  for (const source of [remote, local]) {
+    const claimed = source?.achievementsClaimed as Record<string, boolean> | undefined;
+    if (!claimed) continue;
+    for (const id of Object.keys(claimed)) if (claimed[id]) merged[id] = true;
+  }
+  return merged;
 }
 
 // ── localStorage (backup local, aucun quota) ───────────────────────────────
@@ -96,6 +121,15 @@ async function loadAndApply(userId: string) {
       // Allow effects to settle, then re-enable toasts.
       setTimeout(() => { try { useGameStore.setState({ suppressToasts: false }); } catch {} }, 200);
     }
+
+    // Fusion des succès réclamés — TOUJOURS, indépendamment de la source
+    // "la plus récente" choisie ci-dessus (un claim ne doit jamais dépendre
+    // d'un timestamp : voir mergeClaimedAchievements).
+    const mergedClaimed = mergeClaimedAchievements(
+      remote as Record<string, unknown> | null,
+      local as Record<string, unknown> | null
+    );
+    useAchievementStore.setState({ claimed: mergedClaimed });
   } catch (e) {
     console.error('[CloudSave] Erreur loadAndApply:', e);
   }
