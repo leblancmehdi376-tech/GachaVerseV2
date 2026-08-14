@@ -189,6 +189,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ce('nekoz', 'NekoZ', 'T', 15525, 'Chill&Cool', [
     f('nekoz_base', 'NekoZ',             'nekoz', 100, 1),
     f('nekoz_evo1', 'NekoZ — Mode Divin','nekoz', 200, 11),
+    f('nekoz_evo2', 'NekoZ — Transcendance Totale','nekoz', 300, 30),
   ]),
 
 
@@ -554,6 +555,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ce('qin_shi_huang', 'Qin Shi Huang', 'T', 59616, 'Valkyrie Apocalypse', [
     f('qin_shi_base',    'Qin Shi Huang',        'qin_shi_huang', 100, 1),
     f('qin_shi_roi',     'Roi de Chine',         'qin_shi_huang', 200, 10),
+    f('qin_shi_immortel','Empereur Immortel',    'qin_shi_huang', 300, 35),
   ]),
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -586,6 +588,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('shanks_base',      'Shanks le Roux',      'shanks', 100, 1),
     f('shanks_conqueror', 'Haki du Conquérant',  'shanks', 200, 10),
     f('shanks_god',       'Dieu du Haki',        'shanks', 300, 28),
+    f('shanks_pirateking','Roi des Pirates',     'shanks', 400, 75),
   ]),
 ];
 
