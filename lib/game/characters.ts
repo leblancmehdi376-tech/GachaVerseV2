@@ -150,10 +150,10 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('gilgamesh_base', 'Gilgamesh',               'gilgamesh', 100, 1),
     f('gilgamesh_evo1', 'Gilgamesh — Roi des Héros','gilgamesh', 200, 9.5),
   ]),
-  ce('link_midona', 'Link & Midona', 'CO', 2236, 'The Legend of Zelda', [
+  ce('link_midona', 'Link & Midona', 'CO', 2836, 'The Legend of Zelda', [
     f('link_midona_base', 'Link & Midona',                     'link_midona', 100, 1),
-    f('link_midona_evo1', 'Link Loup & Midona',                'link_midona', 200, 7),
-    f('link_midona_evo2', 'Link & Midona — Princesse Twili',   'link_midona', 300, 16),
+    f('link_midona_evo1', 'Link Loup & Midona',                'link_midona', 200, 7.5),
+    f('link_midona_evo2', 'Link & Midona — Princesse Twili',   'link_midona', 300, 20),
   ]),
   ce('jinwoo', 'Sung Jin Woo', 'CO', 2949, 'Solo Leveling', [
     f('jinwoo_base', 'Sung Jin Woo',                     'jinwoo', 100, 1),
