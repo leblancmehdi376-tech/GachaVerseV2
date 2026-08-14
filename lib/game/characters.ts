@@ -122,13 +122,13 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   c('dazai', 'Dazai',        'M', 696, 'Bungou Stray Dogs'),
 
   // ── STELLAIRES ───────────────────────────────────────────────────────────
-  ce('naruto', 'Naruto', 'S', 972, 'Naruto', [
+  ce('naruto', 'Naruto', 'S', 1972, 'Naruto', [
     f('naruto_base', 'Naruto',                 'naruto', 100, 1),
     f('naruto_evo1', 'Naruto — Mode Sage',     'naruto', 200, 5),
     f('naruto_evo2', 'Naruto — Chakra Kyuubi', 'naruto', 300, 18),
     f('naruto_evo3', 'Naruto — Mode Baryon',   'naruto', 400, 65),
   ]),
-  ce('luffy', 'Luffy', 'S', 1296, 'One Piece', [
+  ce('luffy', 'Luffy', 'S', 2296, 'One Piece', [
     f('luffy_base', 'Luffy',          'luffy', 100, 1),
     f('luffy_evo1', 'Luffy — Gear 2', 'luffy', 200, 5),
     f('luffy_evo2', 'Luffy — Gear 4', 'luffy', 300, 18),
@@ -136,40 +136,40 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ]),
 
   // ── COSMIQUES ────────────────────────────────────────────────────────────
-  ce('vegeta', 'Végéta', 'CO', 3105, 'Dragon Ball Z', [
+  ce('vegeta', 'Végéta', 'CO', 6105, 'Dragon Ball Z', [
     f('vegeta_base', 'Végéta',            'vegeta', 100, 1),
     f('vegeta_evo1', 'Végéta SS',         'vegeta', 200, 8),
     f('vegeta_evo2', 'Végéta SS Divin',   'vegeta', 300, 26),
     f('vegeta_evo3', 'Végéta SS Blue',    'vegeta', 400, 90),
   ]),
-  ce('minato', 'Minato', 'CO', 2360, 'Naruto', [
+  ce('minato', 'Minato', 'CO', 5360, 'Naruto', [
     f('minato_base', 'Minato',              'minato', 100, 1),
     f('minato_evo1', 'Minato — 4ème Hokage','minato', 200, 6.5),
   ]),
-  ce('gilgamesh', 'Gilgamesh', 'CO', 2547, 'Fate', [
+  ce('gilgamesh', 'Gilgamesh', 'CO', 6547, 'Fate', [
     f('gilgamesh_base', 'Gilgamesh',               'gilgamesh', 100, 1),
     f('gilgamesh_evo1', 'Gilgamesh — Roi des Héros','gilgamesh', 200, 9.5),
   ]),
-  ce('link_midona', 'Link & Midona', 'CO', 2836, 'The Legend of Zelda', [
+  ce('link_midona', 'Link & Midona', 'CO', 5836, 'The Legend of Zelda', [
     f('link_midona_base', 'Link & Midona',                     'link_midona', 100, 1),
     f('link_midona_evo1', 'Link Loup & Midona',                'link_midona', 200, 7.5),
     f('link_midona_evo2', 'Link & Midona — Princesse Twili',   'link_midona', 300, 20),
   ]),
-  ce('jinwoo', 'Sung Jin Woo', 'CO', 2949, 'Solo Leveling', [
+  ce('jinwoo', 'Sung Jin Woo', 'CO', 5949, 'Solo Leveling', [
     f('jinwoo_base', 'Sung Jin Woo',                     'jinwoo', 100, 1),
     f('jinwoo_evo1', 'Sung Jin Woo — Monarque Éveillé',  'jinwoo', 200, 7,  'elixir_vie'),
     f('jinwoo_evo2', 'Sung Jin Woo — Seigneur des Ombres','jinwoo', 300, 16, 'manteau_ombre'),
     f('jinwoo_evo3', 'Sung Jin Woo — Monarque des Ombres','jinwoo', 400, 50, 'beru'),
   ]),
 
-  ce('cid_kagenou', 'Cid Kagenou', 'CO', 2981, 'The Eminence in Shadow', [
+  ce('cid_kagenou', 'Cid Kagenou', 'CO', 6981, 'The Eminence in Shadow', [
     f('cid_kagenou_base', 'Cid Kagenou', 'cid_kagenou', 100, 1),
     f('cid_kagenou_evo1', 'Shadow',      'cid_kagenou', 200, 7,  'masque_cid'),
     f('cid_kagenou_evo2', 'John Smith',  'cid_kagenou', 300, 16, 'epee_slime'),
   ]),
 
   // ── PRIMORDIAUX ──────────────────────────────────────────────────────────
-  ce('goku', 'Goku', 'P', 8247, 'Dragon Ball Z', [
+  ce('goku', 'Goku', 'P', 10247, 'Dragon Ball Z', [
     f('goku_base', 'Goku',                'goku', 100,  1),
     f('goku_evo1', 'Goku Super Saiyen',   'goku', 200,  7),
     f('goku_evo2', 'Goku Super Saiyen 3', 'goku', 300,  38),
@@ -178,7 +178,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('goku_evo5', 'Goku Signe UI',       'goku', 600,  170),
     f('goku_evo6', 'Goku Ultra Instinct', 'goku', 700,  400),
   ]),
-  ce('limule', 'Limule', 'P', 8197, 'Tensei Slime', [
+  ce('limule', 'Limule', 'P', 12197, 'Tensei Slime', [
     f('limule_base', 'Limule',            'limule', 100,  1),
     f('limule_evo1', 'Limule Évoluée',    'limule', 200,  7),
     f('limule_evo2', 'Limule Ancestrale', 'limule', 300, 65),
@@ -505,7 +505,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('zorua_zoroark',   'Zoroark',              'zorua', 300, 17),
     f('zorua_hisui2',    "Zoroark d'Hisui",      'zorua', 400, 55),
   ]),
-  ce('brume', 'Brume', 'P', 8247, 'Nos Animaux', [
+  ce('brume', 'Brume', 'P', 6247, 'Nos Animaux', [
     f('brume_base',      'Brume',                'brume', 100, 1),
     f('brume_sacree',    'Brume Sacrée',         'brume', 200, 7),
     f('brume_ultime',    'Brume Ultime',         'brume', 300, 30),
