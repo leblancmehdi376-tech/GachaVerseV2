@@ -140,10 +140,18 @@ export const useExpeditionStore = create<ExpeditionStore>()(
           ? Math.floor(def.rewards.gemsMin + Math.random() * ((def.rewards.gemsMax ?? def.rewards.gemsMin) - def.rewards.gemsMin))
           : 0;
 
-        // Drop spécial
+        // Drop spécial — bonus si l'équipe dépasse largement le score requis
+        // (jusqu'à x3), pour récompenser le fait de suréquiper l'expédition.
         let dropGained = 0;
         if (def.rewards.dropId && Math.random() < (def.rewards.dropChance ?? 0)) {
-          dropGained = def.rewards.dropQuantity ?? 1;
+          const teamScore = exp.characterIds.reduce((sum, cid) => {
+            const tpl = CHARACTER_POOL.find(c => c.id === cid);
+            return tpl ? sum + (RARITY_SCORE[tpl.rarity] ?? 1) : sum;
+          }, 0);
+          const overkillMult = def.minRarityScore > 0
+            ? Math.max(1, Math.min(3, Math.floor(teamScore / def.minRarityScore)))
+            : 1;
+          dropGained = (def.rewards.dropQuantity ?? 1) * overkillMult;
         }
 
         // Appliquer les récompenses monétaires
