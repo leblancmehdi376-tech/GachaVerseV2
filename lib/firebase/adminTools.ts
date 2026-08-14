@@ -210,7 +210,7 @@ export async function addPlayerCharacter(
       copies: existing?.copies ?? 1,
       currentForm: existing?.currentForm ?? 0,
       xp: existing?.xp ?? 0,
-      equippedItems: existing?.equippedItems,
+      ...(existing?.equippedItems ? { equippedItems: existing.equippedItems } : {}),
     };
     await updateDoc(doc(db, 'saves', uid), { collection: collectionData, lastSaved: Date.now(), adminCorrectionAt: Date.now() });
     return { ok: true };
