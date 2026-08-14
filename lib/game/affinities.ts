@@ -60,9 +60,15 @@ function hashStr(s: string): number {
   return Math.abs(h | 0);
 }
 
+// Types forcés pour certains persos (prioritaires sur le hash automatique) —
+// utile quand le lore/design veut un type précis plutôt que le tirage déterministe.
+const AFFINITY_OVERRIDES: Partial<Record<string, Affinity>> = {
+  vegeta: 'ordre',
+};
+
 /** Type déterministe à partir d'un identifiant (perso ou nom d'ennemi). */
 export function getAffinityForId(id: string): Affinity {
-  return AFFINITY_ORDER[hashStr(id || '') % N];
+  return AFFINITY_OVERRIDES[id] ?? AFFINITY_ORDER[hashStr(id || '') % N];
 }
 
 /** Libellé court de l'avantage : 'strong' | 'weak' | 'neutral'. */
