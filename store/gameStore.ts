@@ -5,7 +5,7 @@ import {
   GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
   calcCharDps, calcHeroDpc, xpToNextLevel, levelUpCost, heroLevelUpCost,
   calcBaseDpc, calcClickUpgradeCost,
-  evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG,
+  evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG, Rarity,
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/gacha';
@@ -217,6 +217,7 @@ interface GameStore extends GameState {
   buyGemsWithOrbs: (packId: string) => void;
   buyEquipmentChest: (tier: 'common' | 'rare' | 'epic') => string | null;
   recycleChampion:   (templateId: string) => void;
+  recycleChampionsByRarity: (rarity: Rarity) => { count: number; orbs: number };
   removeChampion:    (templateId: string) => void; // pour HdV
   // Pack de démarrage Early Access
   starterPackClaimed: boolean;
@@ -647,6 +648,25 @@ export const useGameStore = create<GameStore>()(
           else inv[templateId] -= 1;
           return { championInventory: inv, voidOrbs: state.voidOrbs + orbs };
         });
+      },
+
+      recycleChampionsByRarity: (rarity) => {
+        const inv = get().championInventory;
+        const orbsPerUnit = getVoidOrbsForRarity(rarity);
+        let count = 0;
+        let orbs = 0;
+        const nextInv = { ...inv };
+        for (const [templateId, qty] of Object.entries(inv)) {
+          if ((qty ?? 0) <= 0) continue;
+          if (getCharacterById(templateId)?.rarity !== rarity) continue;
+          count += qty;
+          orbs += qty * orbsPerUnit;
+          delete nextInv[templateId];
+        }
+        if (count > 0) {
+          set(state => ({ championInventory: nextInv, voidOrbs: state.voidOrbs + orbs }));
+        }
+        return { count, orbs };
       },
 
       removeChampion: (templateId) => {

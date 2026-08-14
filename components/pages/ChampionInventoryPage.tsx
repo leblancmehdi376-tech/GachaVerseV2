@@ -4,7 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { getCharacterById } from '@/lib/game/characters';
 import { auth } from '@/lib/firebase/config';
 import { formatNumber } from '@/lib/game/format';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { getVoidOrbsForRarity } from '@/lib/game/shop';
 import { createListing, ListingCurrency } from '@/lib/firebase/marketplace';
 
@@ -20,6 +20,8 @@ export function ChampionInventoryPage() {
   const [sellPrice,  setSellPrice]  = useState('');
   const [sellCurr,   setSellCurr]   = useState<ListingCurrency>('coins');
   const [sellLoading,setSellLoading]= useState(false);
+  // Recyclage groupé par rareté (double-clic pour confirmer)
+  const [confirmRarity, setConfirmRarity] = useState<Rarity | null>(null);
 
   const showMsg = (ok:boolean, msg:string) => {
     setFeedback({ ok, msg });
@@ -36,6 +38,28 @@ export function ChampionInventoryPage() {
     const orbs = tpl ? getVoidOrbsForRarity(tpl.rarity) : 1;
     store.recycleChampion(id);
     showMsg(true, `+${orbs} Orbe(s) du Néant 🔮`);
+  };
+
+  // Groupes par rareté (pour le recyclage en masse)
+  const rarityGroups = Object.values(
+    champions.reduce((acc, c) => {
+      const rarity = c.tpl!.rarity;
+      if (!acc[rarity]) acc[rarity] = { rarity, count: 0, orbs: 0 };
+      acc[rarity].count += c.qty;
+      acc[rarity].orbs  += c.qty * getVoidOrbsForRarity(rarity);
+      return acc;
+    }, {} as Record<Rarity, { rarity: Rarity; count: number; orbs: number }>)
+  );
+
+  const handleRecycleRarity = (rarity: Rarity) => {
+    if (confirmRarity !== rarity) {
+      setConfirmRarity(rarity);
+      setTimeout(() => setConfirmRarity(r => (r === rarity ? null : r)), 4000);
+      return;
+    }
+    setConfirmRarity(null);
+    const { count, orbs } = store.recycleChampionsByRarity(rarity);
+    if (count > 0) showMsg(true, `${count} doublon(s) ${RARITY_CONFIG[rarity].label} recyclé(s) — +${orbs} Orbe(s) du Néant 🔮`);
   };
 
   const handleSell = async (id: string) => {
@@ -86,6 +110,27 @@ export function ChampionInventoryPage() {
           color: feedback.ok?'#4ade80':'#f87171',
         }}>
           {feedback.ok?'✅':'❌'} {feedback.msg}
+        </div>
+      )}
+
+      {/* Recyclage groupé par rareté */}
+      {rarityGroups.length > 0 && (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
+          {rarityGroups.map(({ rarity, count, orbs }) => {
+            const cfg = RARITY_CONFIG[rarity];
+            const armed = confirmRarity === rarity;
+            return (
+              <button key={rarity} onClick={() => handleRecycleRarity(rarity)}
+                style={{
+                  padding:'8px 14px', borderRadius:'8px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px',
+                  background: armed ? 'rgba(239,68,68,0.15)' : `${cfg.color}18`,
+                  border:`1px solid ${armed ? 'rgba(239,68,68,0.5)' : `${cfg.color}44`}`,
+                  color: armed ? '#f87171' : cfg.color,
+                }}>
+                {armed ? `⚠ Confirmer : recycler ${count} ${cfg.label} (+${orbs} 🔮) ?` : `🔮 Recycler tout ${cfg.label} (×${count} → +${orbs})`}
+              </button>
+            );
+          })}
         </div>
       )}
 
