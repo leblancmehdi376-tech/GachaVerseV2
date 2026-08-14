@@ -7,7 +7,7 @@ import { redeemGiftCode } from '@/lib/firebase/giftCodes';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 
-export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<void> }) {
+export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<boolean> }) {
   const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, clickUpgradeLevel, musicVolume, musicMuted, setMusicVolume, toggleMusicMuted, username, setUsername } = useGameStore();
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
@@ -17,6 +17,7 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<void
   const [resetDone, setResetDone]       = useState(false);
   const [saving,    setSaving]          = useState(false);
   const [saveOk,    setSaveOk]          = useState(false);
+  const [saveError, setSaveError]       = useState(false);
 
   // ── Code cadeau ──────────────────────────────────────────────────────
   const [nameInput,   setNameInput]   = useState(username);
@@ -177,25 +178,26 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<void
             {user && onForceSave && (
               <button
                 onClick={async () => {
-                  setSaving(true); setSaveOk(false);
-                  await onForceSave();
-                  setSaving(false); setSaveOk(true);
-                  setTimeout(() => setSaveOk(false), 3000);
+                  setSaving(true); setSaveOk(false); setSaveError(false);
+                  const ok = await onForceSave();
+                  setSaving(false);
+                  setSaveOk(ok); setSaveError(!ok);
+                  setTimeout(() => { setSaveOk(false); setSaveError(false); }, ok ? 3000 : 6000);
                 }}
                 disabled={saving}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '10px 16px', width: 'fit-content',
-                  background: saveOk ? 'rgba(74,222,128,0.1)' : 'rgba(99,102,241,0.1)',
-                  border: `1px solid ${saveOk ? 'rgba(74,222,128,0.4)' : 'rgba(99,102,241,0.4)'}`,
+                  background: saveError ? 'rgba(248,113,113,0.1)' : saveOk ? 'rgba(74,222,128,0.1)' : 'rgba(99,102,241,0.1)',
+                  border: `1px solid ${saveError ? 'rgba(248,113,113,0.4)' : saveOk ? 'rgba(74,222,128,0.4)' : 'rgba(99,102,241,0.4)'}`,
                   borderRadius: '8px', cursor: saving ? 'wait' : 'pointer',
                   fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: '12px',
-                  color: saveOk ? '#4ade80' : '#a5b4fc',
+                  color: saveError ? '#f87171' : saveOk ? '#4ade80' : '#a5b4fc',
                   transition: 'all 0.3s',
                 }}
               >
-                <span>{saving ? '⏳' : saveOk ? '✅' : '☁️'}</span>
-                <span>{saving ? 'SAUVEGARDE...' : saveOk ? 'SAUVEGARDÉ !' : 'FORCER LA SAUVEGARDE'}</span>
+                <span>{saving ? '⏳' : saveError ? '⚠️' : saveOk ? '✅' : '☁️'}</span>
+                <span>{saving ? 'SAUVEGARDE...' : saveError ? 'ÉCHEC — réessaie ou vérifie ta connexion' : saveOk ? 'SAUVEGARDÉ !' : 'FORCER LA SAUVEGARDE'}</span>
               </button>
             )}
           </div>

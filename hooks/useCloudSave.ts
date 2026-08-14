@@ -102,7 +102,13 @@ async function loadAndApply(userId: string) {
 }
 
 // ── Firebase (avec gestion quota + timeout 5s) ────────────────────────────
-async function saveToFirebase(userId: string) {
+// Renvoie true seulement si l'écriture a réellement atteint Firestore — un
+// appelant (ex. le bouton "Forcer la sauvegarde") ne doit jamais afficher un
+// succès si la donnée n'a en fait jamais quitté la machine (quota, timeout,
+// réseau d'entreprise qui bloque Firestore, etc.) : sinon le joueur pense
+// être sauvegardé dans le cloud alors que seul le localStorage local l'a,
+// et il perd sa progression en se reconnectant depuis un autre appareil.
+async function saveToFirebase(userId: string): Promise<boolean> {
   try {
     const s    = useGameStore.getState();
     const data = getSerializableState();
@@ -131,8 +137,10 @@ async function saveToFirebase(userId: string) {
     ]);
 
     console.log('[CloudSave] Firebase OK —', new Date().toLocaleTimeString());
+    return true;
   } catch (e) {
     console.warn('[CloudSave] Firebase indisponible (quota ou timeout), données conservées en localStorage:', e);
+    return false;
   }
 }
 
@@ -213,11 +221,12 @@ export function useCloudSave(userId: string | null) {
     return () => document.removeEventListener('visibilitychange', onHide);
   }, [userId]);
 
-  // Sauvegarde manuelle (bouton)
-  const forceSave = async (): Promise<void> => {
-    if (!userId || !loadedRef.current) return;
+  // Sauvegarde manuelle (bouton) — renvoie si l'écriture Firestore a vraiment
+  // abouti, pour que le bouton n'affiche jamais "Sauvegardé !" à tort.
+  const forceSave = async (): Promise<boolean> => {
+    if (!userId || !loadedRef.current) return false;
     saveToLocal();
-    await saveToFirebase(userId);
+    return saveToFirebase(userId);
   };
 
   return { forceSave };
