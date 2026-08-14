@@ -327,8 +327,14 @@ export default function AdminPage() {
               <div style={{ padding: '18px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)' }}>
                 <div style={{ color: '#fff', fontWeight: 800, fontSize: 15, marginBottom: 2 }}>{foundPlayer.username}</div>
                 <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, marginBottom: 4 }}>{foundPlayer.email}</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 16 }}>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 4 }}>
                   Dernière sauvegarde : {playerSave.lastSaved ? new Date(playerSave.lastSaved).toLocaleString('fr-FR') : 'jamais'}
+                </div>
+                <div style={{ color: '#c084fc', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
+                  💎 Total de gemmes dépensées : {playerSave.totalGemsSpent.toLocaleString('fr-FR')}
+                </div>
+                <div style={{ color: '#22d3ee', fontSize: 12, fontWeight: 700, marginBottom: 16 }}>
+                  ✦ Total d&apos;invocations (gacha) : {playerSave.totalGachaPulls.toLocaleString('fr-FR')}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>

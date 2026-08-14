@@ -12,6 +12,8 @@ export interface PlayerLookup {
 export interface PlayerSaveSummary {
   pixelCoins: number;
   nekoGems: number;
+  totalGemsSpent: number;
+  totalGachaPulls: number;
   bossCrowns: number;
   palier: number;
   wave: number;
@@ -76,6 +78,8 @@ export async function getPlayerSave(uid: string): Promise<PlayerSaveSummary | nu
     return {
       pixelCoins:       d.pixelCoins ?? 0,
       nekoGems:         d.nekoGems ?? 0,
+      totalGemsSpent:   d.totalGemsSpent ?? 0,
+      totalGachaPulls:  d.totalGachaPulls ?? 0,
       bossCrowns:       d.bossCrowns ?? 0,
       palier:           d.palier ?? 1,
       wave:             d.wave ?? 1,

@@ -17,6 +17,8 @@ function getSerializableState() {
   return {
     pixelCoins:         s.pixelCoins,
     nekoGems:           s.nekoGems,
+    totalGemsSpent:     s.totalGemsSpent ?? 0,
+    totalGachaPulls:    s.totalGachaPulls ?? 0,
     totalClicks:        s.totalClicks,
     wave:               s.wave,
     palier:             s.palier,

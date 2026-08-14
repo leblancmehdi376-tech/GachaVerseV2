@@ -297,7 +297,7 @@ interface GameStore extends GameState {
 
 const makeInitial = () => ({
   pixelCoins: 0, nekoGems: 10, totalClicks: 0,
-  totalKills: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0, totalGachaPulls: 0, totalBossKills: 0,
+  totalKills: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0, totalGachaPulls: 0, totalBossKills: 0, totalGemsSpent: 0,
   wave: 1, palier: 1, maxPalierReached: 1,
   currentEnemy: generateEnemy(1, 1),
   baseDpc: 1, clickUpgradeLevel: 0, goldUpgradeLevel: 0,
@@ -592,7 +592,7 @@ export const useGameStore = create<GameStore>()(
         if (!pack || get().nekoGems < pack.gems) return;
         const palierMult = Math.pow(1.45, get().palier - 1);
         const scaledCoins = Math.floor(pack.coins * palierMult);
-        set(state => ({ nekoGems: state.nekoGems - pack.gems, pixelCoins: state.pixelCoins + scaledCoins }));
+        set(state => ({ nekoGems: state.nekoGems - pack.gems, pixelCoins: state.pixelCoins + scaledCoins, totalGemsSpent: (state.totalGemsSpent ?? 0) + pack.gems }));
       },
 
       // ─── Boutique : Orbe du Néant (persos + gemmes) ─────────────────────
@@ -627,6 +627,7 @@ export const useGameStore = create<GameStore>()(
         const itemId = rollEquipmentChest(tier);
         set(state => ({
           nekoGems: state.nekoGems - def.gems,
+          totalGemsSpent: (state.totalGemsSpent ?? 0) + def.gems,
           equipmentInventory: {
             ...state.equipmentInventory,
             [itemId]: (state.equipmentInventory[itemId] ?? 0) + 1,
@@ -983,7 +984,7 @@ export const useGameStore = create<GameStore>()(
       // ─── Gacha ────────────────────────────────────────────────────────
       pullSingle: () => {
         if (get().nekoGems < GACHA_COSTS.single) return null;
-        set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.single }));
+        set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.single, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.single }));
         const id = rollCharacter(get().maxPalierReached);
         const edition = get().addToCollection(id);
         get().bumpQuestProgress('w_gacha_10', 1);
@@ -993,7 +994,7 @@ export const useGameStore = create<GameStore>()(
       },
       pullMulti: () => {
         if (get().nekoGems < GACHA_COSTS.multi10) return null;
-        set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi10 }));
+        set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi10, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi10 }));
         const ids = rollMulti(get().maxPalierReached);
         const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
         get().bumpQuestProgress('w_gacha_10', ids.length);
@@ -1003,7 +1004,7 @@ export const useGameStore = create<GameStore>()(
       },
       pullMulti100: () => {
         if (get().nekoGems < GACHA_COSTS.multi100) return null;
-        set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi100 }));
+        set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi100, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi100 }));
         const ids = rollMulti100(get().maxPalierReached);
         const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
         get().bumpQuestProgress('w_gacha_10', ids.length);
@@ -1338,7 +1339,7 @@ export const useGameStore = create<GameStore>()(
       name: 'nekoz-world-v7',
       partialize: (s) => ({
         pixelCoins:s.pixelCoins, nekoGems:s.nekoGems, totalClicks:s.totalClicks,
-        totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0,
+        totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0, totalGemsSpent:s.totalGemsSpent ?? 0,
         wave:s.wave, palier:s.palier, maxPalierReached:s.maxPalierReached,
         currentEnemy:s.currentEnemy, baseDpc:s.baseDpc, clickUpgradeLevel:s.clickUpgradeLevel,
         equippedTeam:s.equippedTeam, collection:s.collection, hero:s.hero, goldUpgradeLevel:s.goldUpgradeLevel ?? 0,
