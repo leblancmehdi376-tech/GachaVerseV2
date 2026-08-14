@@ -482,12 +482,12 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ce('yami', 'Yami', 'CO', 6210, 'Black Clover', [
     f('yami_base',       'Yami',                 'yami', 100, 1),
     f('yami_adult',      'Yami Adulte',          'yami', 200, 7),
-    f('yami_slash',      'Dimensional Slash',    'yami', 300, 30),
+    f('yami_slash',      'Dimensional Slash',    'yami', 300, 28),
   ]),
   ce('aizen', 'Aizen', 'CO', 6831, 'Bleach', [
     f('aizen_base',      'Aizen',                'aizen', 100, 1),
     f('aizen_shikai',    'Aizen Shikai',         'aizen', 200, 6),
-    f('aizen_bankai',    'Aizen Bankai',         'aizen', 300, 16),
+    f('aizen_bankai',    'Aizen Bankai',         'aizen', 300, 19),
     f('aizen_hogyoku',   'Aizen Hogyoku',        'aizen', 400, 60),
   ]),
   ce('shinra', 'Shinra', 'CO', 6210, 'Fire Force', [
@@ -498,6 +498,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ce('jin_tekken', 'Jin Kazama', 'CO', 6458, 'Tekken', [
     f('jin_tekken_base', 'Jin Kazama',           'jin_tekken', 100, 1),
     f('jin_tekken_evil', 'Jin — Evil',           'jin_tekken', 200, 9.5),
+    f('jin_tekken_devil', 'Devil Jin',           'jin_tekken', 300, 26),
   ]),
   ce('zorua', 'Zorua', 'CO', 6831, 'Pokémon', [
     f('zorua_base',      'Zorua',                'zorua', 100, 1),
@@ -505,10 +506,10 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('zorua_zoroark',   'Zoroark',              'zorua', 300, 17),
     f('zorua_hisui2',    "Zoroark d'Hisui",      'zorua', 400, 55),
   ]),
-  ce('brume', 'Brume', 'P', 6247, 'Nos Animaux', [
+  ce('brume', 'Brume', 'P', 6547, 'Nos Animaux', [
     f('brume_base',      'Brume',                'brume', 100, 1),
     f('brume_sacree',    'Brume Sacrée',         'brume', 200, 7),
-    f('brume_ultime',    'Brume Ultime',         'brume', 300, 30),
+    f('brume_ultime',    'Brume Ultime',         'brume', 300, 31),
   ]),
 
   // ── PRIMORDIAUX V2 ──────────────────────────────────────────────────────
@@ -523,7 +524,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ]),
   ce('benimaru', 'Benimaru', 'P', 9237, 'Fire Force', [
     f('benimaru_base',   'Benimaru',             'benimaru', 100, 1),
-    f('benimaru_prime',  'Benimaru — Prime',     'benimaru', 200, 9),
+    f('benimaru_prime',  'Benimaru — Prime',     'benimaru', 200, 14),
   ]),
   ce('aatrox_lol', 'Aatrox', 'P', 9337, 'League of Legends', [
     f('aatrox_lol_base', 'Aatrox',              'aatrox_lol', 100, 1),
@@ -544,7 +545,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ]),
   ce('rayquaza', 'Rayquaza', 'P', 9337, 'Pokémon', [
     f('rayquaza_base',   'Rayquaza',             'rayquaza', 100, 1),
-    f('rayquaza_mega',   'Méga Rayquaza',        'rayquaza', 200, 9),
+    f('rayquaza_mega',   'Méga Rayquaza',        'rayquaza', 200, 15),
   ]),
   ce('ouchuu', 'Ouchuu', 'P', 9138, "Chill&Cool", [
     f('ouchuu_base',     'Ouchuu',               'ouchuu', 100, 1),
