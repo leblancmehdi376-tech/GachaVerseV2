@@ -381,10 +381,10 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   c('celeste_drp',       'Celeste',              'M', 562, 'Danganronpa'),
 
   // ── STELLAIRES V2 ───────────────────────────────────────────────────────
-  ce('zoro', 'Zoro', 'S', 1512, 'One Piece', [
+  ce('zoro', 'Zoro', 'S', 1612, 'One Piece', [
     f('zoro_base',       'Zoro',                 'zoro', 100, 1),
-    f('zoro_eclipse',    'Post Éclipse',         'zoro', 200, 4.5),
-    f('zoro_wano',       'Post Wano',            'zoro', 300, 12),
+    f('zoro_eclipse',    'Post Éclipse',         'zoro', 200, 6.5),
+    f('zoro_wano',       'Post Wano',            'zoro', 300, 17),
   ]),
   ce('madara', 'Madara', 'S', 1620, 'Naruto', [
     f('madara_base',     'Madara',               'madara', 100, 1),
@@ -411,25 +411,25 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ]),
   ce('pomni', 'Pomni', 'S', 1458, 'Digital Circus', [
     f('pomni_base',      'Pomni',                'pomni', 100, 1),
-    f('pomni_prime',     'Pomni — Prime',        'pomni', 200, 5),
+    f('pomni_prime',     'Pomni — Prime',        'pomni', 200, 6),
   ]),
   ce('alice_sao', 'Alice', 'S', 1666, 'Sword Art Online', [
     f('alice_sao_base',  'Alice',                'alice_sao', 100, 1),
-    f('alice_sao_armor', 'Armure Légendaire',    'alice_sao', 200, 4.5),
-    f('alice_sao_max',   'Puissance Maximale',   'alice_sao', 300, 17),
+    f('alice_sao_armor', 'Armure Légendaire',    'alice_sao', 200, 6.5),
+    f('alice_sao_max',   'Puissance Maximale',   'alice_sao', 300, 20),
   ]),
-  ce('atsushi',           'Atsushi',              'S', 1420, 'Bungou Stray Dogs', [
+  ce('atsushi',           'Atsushi',              'S', 1470, 'Bungou Stray Dogs', [
     f('atsushi_base', 'Atsushi', 'atsushi', 100, 1),
-    f('atsushi_evo1', 'Atsushi — Bête', 'atsushi', 200, 6),
+    f('atsushi_evo1', 'Atsushi — Bête', 'atsushi', 200, 7.5),
   ]),
-  ce('mao_mao_ap', 'Mao Mao', 'S', 1490, "Les Carnets de l'Apothicaire", [
+  ce('mao_mao_ap', 'Mao Mao', 'S', 1590, "Les Carnets de l'Apothicaire", [
     f('mao_mao_ap_base', 'Mao Mao',             'mao_mao_ap', 100, 1),
-    f('mao_mao_ap_maqui','Maquillage',          'mao_mao_ap', 200, 5),
+    f('mao_mao_ap_maqui','Maquillage',          'mao_mao_ap', 200, 7),
   ]),
-  ce('denji', 'Denji', 'S', 1620, 'Chainsaw Man', [
+  ce('denji', 'Denji', 'S', 1640, 'Chainsaw Man', [
     f('denji_base',      'Denji',                'denji', 100, 1),
     f('denji_pochita',   'Pochita',              'denji', 200, 4.5),
-    f('denji_chainsaw',  'Chainsaw Devil',       'denji', 300, 12),
+    f('denji_chainsaw',  'Chainsaw Devil',       'denji', 300, 13.5),
   ]),
   ce('loid', 'Loid Forger', 'S', 1534, 'Spy x Family', [
     f('loid_base',       'Loid Forger',          'loid', 100, 1),
@@ -438,12 +438,12 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ce('tanjiro', 'Tanjiro', 'S', 1620, 'Demon Slayer', [
     f('tanjiro_base',    'Tanjiro',              'tanjiro', 100, 1),
     f('tanjiro_eau',     "Forme de l'Eau",       'tanjiro', 200, 4.5),
-    f('tanjiro_feu',     'Forme du Feu',         'tanjiro', 300, 12),
+    f('tanjiro_feu',     'Forme du Feu',         'tanjiro', 300, 13),
   ]),
   ce('edward', 'Edward', 'S', 1566, 'Fullmetal Alchemist Brotherhood', [
     f('edward_base',     'Edward',               'edward', 100, 1),
     f('edward_alchi',    'Alchimiste',           'edward', 200, 4.5),
-    f('edward_automail', 'Automail',             'edward', 300, 11),
+    f('edward_automail', 'Automail',             'edward', 300, 12),
   ]),
   ce('roy', 'Roy Mustang', 'S', 1512, 'Fullmetal Alchemist Brotherhood', [
     f('roy_base',        'Roy Mustang',          'roy', 100, 1),
@@ -470,40 +470,40 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('pichu_base',      'Pichu',                'pichu', 100, 1),
     f('pichu_pikachu',   'Pikachu',              'pichu', 200, 3.5),
     f('pichu_raichu',    'Raichu',               'pichu', 300, 8),
-    f('pichu_mega',      'Méga Raichu',          'pichu', 400, 20),
+    f('pichu_mega',      'Méga Raichu',          'pichu', 400, 45),
   ]),
 
   // ── COSMIQUES V2 ────────────────────────────────────────────────────────
   ce('yami', 'Yami', 'CO', 6210, 'Black Clover', [
     f('yami_base',       'Yami',                 'yami', 100, 1),
     f('yami_adult',      'Yami Adulte',          'yami', 200, 7),
-    f('yami_slash',      'Dimensional Slash',    'yami', 300, 20),
+    f('yami_slash',      'Dimensional Slash',    'yami', 300, 30),
   ]),
   ce('aizen', 'Aizen', 'CO', 6831, 'Bleach', [
     f('aizen_base',      'Aizen',                'aizen', 100, 1),
     f('aizen_shikai',    'Aizen Shikai',         'aizen', 200, 6),
     f('aizen_bankai',    'Aizen Bankai',         'aizen', 300, 16),
-    f('aizen_hogyoku',   'Aizen Hogyoku',        'aizen', 400, 40),
+    f('aizen_hogyoku',   'Aizen Hogyoku',        'aizen', 400, 60),
   ]),
   ce('shinra', 'Shinra', 'CO', 6210, 'Fire Force', [
     f('shinra_base',     'Shinra',               'shinra', 100, 1),
     f('shinra_8e',       '8ème Brigade',         'shinra', 200, 7),
-    f('shinra_adora',    'Adora Burst',          'shinra', 300, 20),
+    f('shinra_adora',    'Adora Burst',          'shinra', 300, 30),
   ]),
   ce('jin_tekken', 'Jin Kazama', 'CO', 6458, 'Tekken', [
     f('jin_tekken_base', 'Jin Kazama',           'jin_tekken', 100, 1),
-    f('jin_tekken_evil', 'Jin — Evil',           'jin_tekken', 200, 7.5),
+    f('jin_tekken_evil', 'Jin — Evil',           'jin_tekken', 200, 9.5),
   ]),
   ce('zorua', 'Zorua', 'CO', 6831, 'Pokémon', [
     f('zorua_base',      'Zorua',                'zorua', 100, 1),
     f('zorua_hisui',     "Zorua d'Hisui",        'zorua', 200, 5),
-    f('zorua_zoroark',   'Zoroark',              'zorua', 300, 14),
-    f('zorua_hisui2',    "Zoroark d'Hisui",      'zorua', 400, 35),
+    f('zorua_zoroark',   'Zoroark',              'zorua', 300, 17),
+    f('zorua_hisui2',    "Zoroark d'Hisui",      'zorua', 400, 55),
   ]),
   ce('brume', 'Brume', 'P', 8247, 'Nos Animaux', [
     f('brume_base',      'Brume',                'brume', 100, 1),
     f('brume_sacree',    'Brume Sacrée',         'brume', 200, 7),
-    f('brume_ultime',    'Brume Ultime',         'brume', 300, 20),
+    f('brume_ultime',    'Brume Ultime',         'brume', 300, 30),
   ]),
 
   // ── PRIMORDIAUX V2 ──────────────────────────────────────────────────────
