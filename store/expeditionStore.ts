@@ -208,10 +208,14 @@ export const useExpeditionStore = create<ExpeditionStore>()(
             if (have < ing.quantity)
               missing.push(`${ing.label} (${have}/${ing.quantity})`);
           } else {
-            // champion_dupe : besoin de N+1 exemplaires (garder au moins 1)
+            // champion_dupe : le champion doit être maxé (7★) ET avoir des
+            // doublons en attente dans championInventory (obtenu une fois de plus après le max)
             const owned = gs.collection[ing.id];
-            if (!owned || (owned.copies ?? 0) < ing.quantity)
-              missing.push(`${ing.label} (doublons insuffisants)`);
+            const spares = gs.championInventory[ing.id] ?? 0;
+            if (!owned || owned.rank < 7)
+              missing.push(`${ing.label} (champion non maxé 7★)`);
+            else if (spares < ing.quantity)
+              missing.push(`${ing.label} (doublons insuffisants : ${spares}/${ing.quantity})`);
           }
         }
 
@@ -232,7 +236,6 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         }
 
         const recipe = CRAFT_RECIPES.find(r => r.id === recipeId)!;
-        const gs = useGameStore.getState();
 
         // Consommer les ingrédients
         const newDropInv = { ...get().dropInventory };
@@ -240,15 +243,9 @@ export const useExpeditionStore = create<ExpeditionStore>()(
           if (ing.type === 'drop') {
             newDropInv[ing.id] = (newDropInv[ing.id] ?? 0) - ing.quantity;
           } else {
-            // Consommer un doublon champion
-            const owned = gs.collection[ing.id];
-            if (owned) {
-              useGameStore.setState(s => ({
-                collection: {
-                  ...s.collection,
-                  [ing.id]: { ...owned, dupes: Math.max(0, (owned.copies ?? 0) - ing.quantity) },
-                },
-              }));
+            // Consommer les doublons champion (maxés 7★, en attente dans championInventory)
+            for (let i = 0; i < ing.quantity; i++) {
+              useGameStore.getState().removeChampion(ing.id);
             }
           }
         }

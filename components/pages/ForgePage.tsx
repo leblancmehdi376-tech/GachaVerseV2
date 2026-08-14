@@ -8,17 +8,19 @@ import { RARITY_CONFIG } from '@/types/game';
 
 function IngredientRow({ type, id, quantity, label }: { type: string; id: string; quantity: number; label: string }) {
   const { dropInventory } = useExpeditionStore();
-  const { collection } = useGameStore();
+  const { collection, championInventory } = useGameStore();
 
   let have = 0;
   let ok = false;
+  let maxed = true;
   if (type === 'drop') {
     have = dropInventory[id] ?? 0;
     ok = have >= quantity;
   } else {
     const owned = collection[id];
-    have = owned ? (owned.copies ?? 0) : 0;
-    ok = have >= quantity;
+    maxed = !!owned && owned.rank >= 7;
+    have = championInventory[id] ?? 0;
+    ok = maxed && have >= quantity;
   }
 
   return (
@@ -31,13 +33,18 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
             {PALIER_DROPS.find(d => d.id === id)?.description}
           </div>
         )}
+        {type !== 'drop' && !maxed && (
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:10, color:'#f87171' }}>
+            Nécessite le champion maxé (7★)
+          </div>
+        )}
       </div>
       <div style={{ textAlign:'right', flexShrink:0 }}>
         <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16, color: ok ? '#4ade80' : '#f87171' }}>
           {have} / {quantity}
         </div>
         <div style={{ fontFamily:'var(--f-ui)', fontSize:9, color: ok ? '#4ade80' : '#f87171', fontWeight:700 }}>
-          {ok ? '✓ OK' : '✗ INSUFFISANT'}
+          {ok ? '✓ OK' : (maxed ? '✗ INSUFFISANT' : '✗ NON MAXÉ')}
         </div>
       </div>
     </div>
