@@ -4,7 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { getCharacterById } from '@/lib/game/characters';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, CardEdition } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import {
   CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
@@ -41,6 +41,7 @@ export function ShopPage() {
 
   const [, setTick] = useState(0);
   const [chestResult, setChestResult] = useState<{ itemId: string; tier: string } | null>(null);
+  const [starterResult, setStarterResult] = useState<{ templateId: string; edition: CardEdition } | null>(null);
   useEffect(() => {
     ensureDailyShop();
     const id = setInterval(() => setTick(t => t + 1), 1000);
@@ -69,7 +70,7 @@ export function ShopPage() {
             <div style={{ display:'flex', gap:'14px', marginBottom:'16px' }}>
               {[
                 { icon:'💎', val:STARTER_PACK_REWARDS.gems,       label:'Gemmes' },
-                { icon:'🔮', val:STARTER_PACK_REWARDS.voidOrbs,   label:'Orbes du Néant' },
+                { icon:'✦',  val:STARTER_PACK_REWARDS.stellaire,  label:'Perso. Stellaire aléatoire' },
               ].map(r => (
                 <div key={r.label} style={{ flex:1, background:'rgba(0,0,0,0.25)', borderRadius:'10px', padding:'10px', textAlign:'center' }}>
                   <div style={{ fontSize:'22px' }}>{r.icon}</div>
@@ -78,13 +79,31 @@ export function ShopPage() {
                 </div>
               ))}
             </div>
-            <button onClick={claimStarterPack}
+            <button onClick={() => {
+                const result = claimStarterPack();
+                if (result) setStarterResult(result);
+              }}
               style={{ width:'100%', padding:'12px', background:'linear-gradient(135deg,#a855f7,#7c3aed)', border:'none', borderRadius:'9px', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'15px', color:'white', cursor:'pointer', letterSpacing:'0.5px', boxShadow:'0 4px 16px rgba(168,85,247,0.4)' }}>
               RÉCLAMER GRATUITEMENT
             </button>
           </div>
         )}
-        {starterPackClaimed && (
+        {starterResult && (() => {
+          const tpl = getCharacterById(starterResult.templateId);
+          if (!tpl) return null;
+          return (
+            <div style={{ background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:'10px', padding:'14px 16px', display:'flex', alignItems:'center', gap:'14px' }}>
+              <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} edition={starterResult.edition} width={56} height={78} />
+              <div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:'#4ade80', marginBottom:'4px' }}>Personnage obtenu !</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'15px', color:'white', marginBottom:'4px' }}>{tpl.name}</div>
+                <RarityBadge rarity={tpl.rarity} size="xs" />
+              </div>
+              <button onClick={() => setStarterResult(null)} style={{ marginLeft:'auto', alignSelf:'flex-start', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'16px' }}>✕</button>
+            </div>
+          );
+        })()}
+        {starterPackClaimed && !starterResult && (
           <div style={{ background:'rgba(74,222,128,0.06)', border:'1px solid rgba(74,222,128,0.25)', borderRadius:'10px', padding:'10px 16px', fontFamily:'var(--f-ui)', fontSize:'12px', color:'#4ade80', textAlign:'center' }}>
             ✓ Pack de bienvenue déjà réclamé
           </div>

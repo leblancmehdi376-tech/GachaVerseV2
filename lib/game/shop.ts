@@ -106,10 +106,10 @@ export function generateDailyShopCharacters(): string[] {
 
 // ── Pack de démarrage Early Access ────────────────────────────────────────
 // ⚠️ À AJUSTER : remplacer par l'horodatage réel de mise en ligne sur Vercel.
-// ⚠️ Lancement : 00h01 le 19 juin 2026 heure française (UTC+2 en été = 22h01 UTC le 18 juin)
-export const LAUNCH_TIMESTAMP = new Date('2026-06-18T22:01:00Z').getTime();
+// ⚠️ Lancement : 00h00 le 14 août 2026 heure française (UTC+2 en été = 22h00 UTC le 13 août)
+export const LAUNCH_TIMESTAMP = new Date('2026-08-13T22:00:00Z').getTime();
 export const STARTER_PACK_WINDOW_MS = 24 * 60 * 60 * 1000; // 24h après le lancement
-export const STARTER_PACK_REWARDS = { gems: 10, voidOrbs: 1 };
+export const STARTER_PACK_REWARDS = { gems: 1800, stellaire: 1 };
 
 // ── Coffres d'équipement (achetés en gemmes) ──────────────────────────────
 export interface EquipmentChestDef {

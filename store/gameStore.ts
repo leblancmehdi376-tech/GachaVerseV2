@@ -9,7 +9,7 @@ import {
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/gacha';
-import { getCharacterById, HERO_TEMPLATE } from '@/lib/game/characters';
+import { getCharacterById, HERO_TEMPLATE, BANNER_POOL } from '@/lib/game/characters';
 import { ITEM_DEFS, rollEquipmentChest } from '@/lib/game/items';
 import { EQUIPMENT_CHESTS } from '@/lib/game/shop';
 import { computeActiveSynergies, calcDpsWithSynergies } from '@/lib/game/synergies';
@@ -221,7 +221,7 @@ interface GameStore extends GameState {
   // Pack de démarrage Early Access
   starterPackClaimed: boolean;
   isStarterPackAvailable: () => boolean;
-  claimStarterPack: () => void;
+  claimStarterPack: () => { templateId: string; edition: CardEdition } | null;
   // Pause (anti-autoclick)
   gamePaused: boolean;
   setGamePaused: (v: boolean) => void;
@@ -664,12 +664,15 @@ export const useGameStore = create<GameStore>()(
         return now >= LAUNCH_TIMESTAMP && now < LAUNCH_TIMESTAMP + STARTER_PACK_WINDOW_MS;
       },
       claimStarterPack: () => {
-        if (!get().isStarterPackAvailable()) return;
+        if (!get().isStarterPackAvailable()) return null;
+        const stellairePool = BANNER_POOL.filter(c => c.rarity === 'S');
+        const templateId = stellairePool[Math.floor(Math.random() * stellairePool.length)].id;
+        const edition = get().addToCollection(templateId);
         set(state => ({
           starterPackClaimed: true,
-          nekoGems:   state.nekoGems   + STARTER_PACK_REWARDS.gems,
-          voidOrbs:   state.voidOrbs   + STARTER_PACK_REWARDS.voidOrbs,
+          nekoGems: state.nekoGems + STARTER_PACK_REWARDS.gems,
         }));
+        return { templateId, edition };
       },
 
       // ─── Pause (anti-autoclick) ────────────────────────────────────────
