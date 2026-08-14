@@ -33,9 +33,11 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
             {PALIER_DROPS.find(d => d.id === id)?.description}
           </div>
         )}
-        {type !== 'drop' && !maxed && (
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:10, color:'#f87171' }}>
-            Nécessite le champion maxé (7★)
+        {type !== 'drop' && (
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:10, color: maxed ? 'var(--text-dim)' : '#f87171' }}>
+            {maxed
+              ? 'Consommé depuis l\'inventaire champions — ton exemplaire 7★ reste dans ta collection'
+              : 'Nécessite le champion maxé (7★) dans ta collection'}
           </div>
         )}
       </div>

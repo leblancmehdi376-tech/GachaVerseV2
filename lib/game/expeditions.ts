@@ -69,8 +69,8 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     palierRequired: 24,
     ingredients: [
       { type:'drop',          id:'potala',  quantity:2, label:'Boucle Potara × 2'       },
-      { type:'champion_dupe', id:'goku',    quantity:1, label:'Champion Goku (×2 dans l\'inventaire)' },
-      { type:'champion_dupe', id:'vegeta',  quantity:1, label:'Champion Végéta (×2 dans l\'inventaire)' },
+      { type:'champion_dupe', id:'goku',    quantity:1, label:'Doublon Goku maxé (inv. champions)' },
+      { type:'champion_dupe', id:'vegeta',  quantity:1, label:'Doublon Végéta maxé (inv. champions)' },
     ],
     reward: { type:'character', characterId:'vegeto', rarity:'P', label:'Végéto', icon:'💫' },
   },
@@ -84,8 +84,8 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     ingredients: [
       { type:'drop',          id:'saiyen_power', quantity:5, label:'Puissance Saiyen × 5'  },
       { type:'drop',          id:'ore_kame',     quantity:3, label:'Pierre de Kame × 3'    },
-      { type:'champion_dupe', id:'goku',         quantity:1, label:'Champion Goku (×2)'    },
-      { type:'champion_dupe', id:'vegeta',       quantity:1, label:'Champion Végéta (×2)'  },
+      { type:'champion_dupe', id:'goku',         quantity:1, label:'Doublon Goku maxé (inv. champions)'    },
+      { type:'champion_dupe', id:'vegeta',       quantity:1, label:'Doublon Végéta maxé (inv. champions)'  },
     ],
     reward: { type:'character', characterId:'gogeta', rarity:'P', label:'Gogeta', icon:'⚡' },
   },
@@ -99,7 +99,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     palierRequired: 12,
     ingredients: [
       { type:'drop',          id:'hogyoku', quantity:5, label:'Fragment d\'Hogyoku × 5'  },
-      { type:'champion_dupe', id:'aizen',   quantity:1, label:'Champion Aizen (×2)'      },
+      { type:'champion_dupe', id:'aizen',   quantity:1, label:'Doublon Aizen maxé (inv. champions)'      },
     ],
     reward: { type:'character', characterId:'aizen_t', rarity:'P', label:'Aizen Transcendant', icon:'💠' },
   },
@@ -113,7 +113,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     palierRequired: 25,
     ingredients: [
       { type:'drop',          id:'ore_soleil',  quantity:7, label:'Minerai du Soleil × 7'  },
-      { type:'champion_dupe', id:'tanjiro',     quantity:1, label:'Champion Tanjiro (×2)'  },
+      { type:'champion_dupe', id:'tanjiro',     quantity:1, label:'Doublon Tanjiro maxé (inv. champions)'  },
     ],
     reward: { type:'character', characterId:'yoriichi', rarity:'P', label:'Yoriichi Tsugikuni', icon:'🌅' },
   },
@@ -140,7 +140,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     palierRequired: 38,
     ingredients: [
       { type:'drop',          id:'ame_humaine', quantity:6, label:'Âme Humaine × 6'       },
-      { type:'champion_dupe', id:'flowey_ut',   quantity:1, label:'Champion Flowey (×2)'  },
+      { type:'champion_dupe', id:'flowey_ut',   quantity:1, label:'Doublon Flowey maxé (inv. champions)'  },
     ],
     reward: { type:'character', characterId:'chara', rarity:'P', label:'Chara', icon:'🔪' },
   },
@@ -154,7 +154,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     palierRequired: 2,
     ingredients: [
       { type:'drop',          id:'sea_fragment', quantity:8,  label:'Fragment Océanique × 8'          },
-      { type:'champion_dupe', id:'zoro',         quantity:1,  label:'Champion Zoro (×2 dans l\'inv.)' },
+      { type:'champion_dupe', id:'zoro',         quantity:1,  label:'Doublon Zoro maxé (inv. champions)' },
     ],
     reward: { type:'character', characterId:'shanks', rarity:'T', label:'Shanks le Roux', icon:'⚔' },
   },
