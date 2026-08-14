@@ -71,6 +71,14 @@ export const GIFT_CODES: GiftCodeDef[] = [
     code:       'YAMI-CADEAU',
     characters: ['yami'],
   },
+  {
+    code:       'LUFFY-CADEAU',
+    characters: ['luffy'],
+  },
+  {
+    code:       'POWER-CADEAU',
+    characters: ['power_csm'],
+  },
 ];
 
 // Normalise une saisie utilisateur (espaces, casse) pour la comparaison
