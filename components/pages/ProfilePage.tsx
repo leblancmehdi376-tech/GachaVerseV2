@@ -6,6 +6,7 @@ import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, calcCharDps, getPalierConfig, Rarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
+import { ACHIEVEMENTS } from '@/lib/game/achievements';
 
 const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
@@ -60,7 +61,7 @@ export function ProfilePage() {
     { label:'VOID ORBS',          val: String(voidOrbs),                color:'#a78bfa',            num:true  },
     { label:'PERSONNAGES',        val: `${ownedChars.length} / ${CHARACTER_POOL.length}`, color:'#60a5fa', num:true },
     { label:'ÉQUIPE ACTIVE',      val: `${equippedCount} / 4`,          color:'#34d399',            num:true  },
-    { label:'SUCCÈS',             val: `${unlockedCount()} / 32`,       color:'#fbbf24',            num:true  },
+    { label:'SUCCÈS',             val: `${unlockedCount()} / ${ACHIEVEMENTS.length}`,       color:'#fbbf24',            num:true  },
   ];
 
   return (
