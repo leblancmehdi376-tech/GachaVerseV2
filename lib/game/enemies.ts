@@ -557,10 +557,11 @@ export function generateEnemy(wave: number, palier: number, maxPalierReached: nu
   // Ajustement global (tous paliers, mobs ET boss confondus) : -25%, puis
   // encore -15% en plus (cumulés = -36,25% par rapport à la courbe d'origine).
   const globalHpAdjust = 0.75 * 0.85;
-  // À partir du palier 15 : -8% de PV supplémentaires par palier, pour TOUS
+  // À partir du palier 13 : -31% de PV supplémentaires par palier, pour TOUS
   // les ennemis (mobs et boss) — la courbe de base devenait trop lourde à
-  // ce stade du jeu par rapport à la puissance réelle des joueurs.
-  const lateGameHpReduction = palier >= 15 ? Math.pow(0.92, palier - 14) : 1;
+  // ce stade du jeu par rapport à la puissance réelle des joueurs. Calibré
+  // pour que le boss du palier 13 tombe à ~700M PV (au lieu de ~1,01Md).
+  const lateGameHpReduction = palier >= 13 ? Math.pow(0.69, palier - 12) : 1;
   const maxHp  = Math.floor(baseHp * hpMult * globalHpAdjust * lateGameHpReduction);
 
   // Coins : base × growth^(global-1), boss × bossMult

@@ -106,20 +106,24 @@ export function canEvolveHero(forms: EvoForm[], hero: HeroState): boolean {
   return hero.level >= cap && hero.currentForm < forms.length - 1;
 }
 
+// Buff global des dégâts (tous persos + héros), en contrepartie du nerf de PV
+// des ennemis à partir du palier 13.
+export const GLOBAL_DMG_SCALE = 1.2;
+
 export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): number {
   const formMult   = tpl.forms?.[owned.currentForm]?.dpsFormMult ?? 1;
   // Croissance par niveau : +10% (était +6%) — perso plus impactant à monter
   const levelMult  = 1 + (owned.level - 1) * 0.10;
   const rankMult   = [1, 1.4, 1.9, 2.6, 3.5, 5.5, 9.0][Math.min(owned.rank - 1, 6)];
   const editionMult = getEditionStatMult(owned.edition); // ×1 base / ×1.2 or / ×1.5 diamant
-  return Math.floor(tpl.baseDps * formMult * levelMult * rankMult * editionMult);
+  return Math.floor(tpl.baseDps * formMult * levelMult * rankMult * editionMult * GLOBAL_DMG_SCALE);
 }
 
 export function calcHeroDpc(hero: HeroState, forms: EvoForm[], baseClick: number): number {
   const formMult  = forms[hero.currentForm]?.dpsFormMult ?? 1;
   // +2.5% par niveau au lieu de 1.5% — rend le héros plus utile à haut niveau
   const levelMult = 1 + (hero.level - 1) * 0.025;
-  return Math.floor(baseClick * formMult * levelMult);
+  return Math.floor(baseClick * formMult * levelMult * GLOBAL_DMG_SCALE);
 }
 
 // ── Griffes Aiguisées : courbe DPC & coûts centralisés ───────────────────
