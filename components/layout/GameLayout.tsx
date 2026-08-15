@@ -101,7 +101,7 @@ export function GameLayout() {
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
   const [victory, setVictory] = useState<{ palier: number; gems: number; coins: number } | null>(null);
-  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory } = useGameStore();
+  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, ensureWeeklyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory } = useGameStore();
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
   const { forceSave, loaded: cloudLoaded } = useCloudSave(user?.uid ?? null);
 
@@ -113,8 +113,29 @@ export function GameLayout() {
   // Quêtes réclamables
   const claimable = (quests ?? []).filter((q: { current: number; target: number; done: boolean }) => q.current >= q.target && !q.done).length;
 
-  // Vérifie/réinitialise les quêtes quotidiennes une fois au montage (couvre toutes les pages)
-  useEffect(() => { ensureDailyQuests(); }, [ensureDailyQuests]);
+  // ── Réhydratation locale (Zustand persist / localStorage) ─────────────────
+  const [hasHydrated, setHasHydrated] = useState(() => useGameStore.persist?.hasHydrated?.() ?? false);
+  useEffect(() => {
+    if (hasHydrated) return;
+    if (!useGameStore.persist) { setHasHydrated(true); return; } // pas de persist (SSR/fallback) : ne bloque rien
+    const unsub = useGameStore.persist.onFinishHydration(() => setHasHydrated(true));
+    // Sécurité : si la réhydratation était déjà finie entre le calcul initial
+    // du useState et le montage de cet effet, on ne resterait pas bloqué.
+    if (useGameStore.persist.hasHydrated()) setHasHydrated(true);
+    return unsub;
+  }, [hasHydrated]);
+
+  // Vérifie/réinitialise les quêtes quotidiennes et hebdomadaires une fois au montage
+  // (couvre toutes les pages). IMPORTANT : on attend hasHydrated ET cloudLoaded avant
+  // de comparer questsDayKey à la date du jour — sinon, sur un appareil qui a déjà une
+  // sauvegarde locale périmée (questsDayKey d'hier), ce check se déclenche AVANT que la
+  // vraie progression cloud n'ait été appliquée, réinitialise les quêtes localement, et
+  // ce reset est ensuite re-synchronisé vers le cloud en écrasant la progression réelle.
+  useEffect(() => {
+    if (!hasHydrated || !cloudLoaded) return;
+    ensureDailyQuests();
+    ensureWeeklyQuests();
+  }, [hasHydrated, cloudLoaded, ensureDailyQuests, ensureWeeklyQuests]);
 
   // ── Gains hors-ligne : calcul unique une fois le splash terminé ───────────
   // IMPORTANT : on attend aussi la fin de la réhydratation Zustand (localStorage),
@@ -126,17 +147,7 @@ export function GameLayout() {
   // loadAndApply si celui-ci résout après coup — le joueur voyait alors la
   // popup de récompense sans jamais recevoir le gain affiché.
   const [offlineGain, setOfflineGain] = useState<OfflineGain | null>(null);
-  const [hasHydrated, setHasHydrated] = useState(() => useGameStore.persist?.hasHydrated?.() ?? false);
   const offlineClaimedRef = useRef(false);
-  useEffect(() => {
-    if (hasHydrated) return;
-    if (!useGameStore.persist) { setHasHydrated(true); return; } // pas de persist (SSR/fallback) : ne bloque rien
-    const unsub = useGameStore.persist.onFinishHydration(() => setHasHydrated(true));
-    // Sécurité : si la réhydratation était déjà finie entre le calcul initial
-    // du useState et le montage de cet effet, on ne resterait pas bloqué.
-    if (useGameStore.persist.hasHydrated()) setHasHydrated(true);
-    return unsub;
-  }, [hasHydrated]);
   useEffect(() => {
     if (!hasHydrated || !cloudLoaded || offlineClaimedRef.current) return;
     offlineClaimedRef.current = true;

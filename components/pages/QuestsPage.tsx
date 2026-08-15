@@ -104,17 +104,14 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
 export function QuestsPage() {
   const {
     quests, claimQuest,
-    weeklyQuests, claimWeeklyQuest, ensureWeeklyQuests,
+    weeklyQuests, claimWeeklyQuest,
     eventQuests, claimEventQuest,
-    ensureDailyQuests,
   } = useGameStore();
 
+  // Le reset quotidien/hebdomadaire (ensureDailyQuests/ensureWeeklyQuests) est géré une
+  // seule fois par GameLayout, une fois la réhydratation locale ET le chargement cloud
+  // terminés — pas ici, pour ne pas redéclencher le reset avant que le cloud soit prêt.
   const [tab, setTab] = useState<Tab>('daily');
-
-  useEffect(() => {
-    ensureDailyQuests();
-    ensureWeeklyQuests();
-  }, [ensureDailyQuests, ensureWeeklyQuests]);
 
   const dailyDone   = (quests       ?? []).filter(q => q.done).length;
   const weeklyDone  = (weeklyQuests ?? []).filter(q => q.done).length;
