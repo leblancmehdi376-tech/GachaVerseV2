@@ -1371,6 +1371,7 @@ export const useGameStore = create<GameStore>()(
         bossCrowns:s.bossCrowns, voidOrbs:s.voidOrbs,
         inventory:s.inventory,
         equipmentInventory:s.equipmentInventory,
+        championInventory:s.championInventory ?? {},
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         username:s.username,

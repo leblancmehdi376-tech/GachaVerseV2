@@ -1,9 +1,11 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useGameStore } from '@/store/gameStore';
 import { useAchievementStore } from '@/store/achievementStore';
+import { useExpeditionStore } from '@/store/expeditionStore';
+import { usePrestigeStore } from '@/store/prestigeStore';
 import { saveGameToFirestore, loadGameFromFirestore } from '@/lib/firebase/saveGame';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 
@@ -13,13 +15,19 @@ const LOCAL_STORAGE_KEY    = 'gachaverse_save';
 
 // ── Sérialisation ──────────────────────────────────────────────────────────
 function getSerializableState() {
-  const s = useGameStore.getState();
+  const s  = useGameStore.getState();
+  const es = useExpeditionStore.getState();
+  const ps = usePrestigeStore.getState();
   return {
     pixelCoins:         s.pixelCoins,
     nekoGems:           s.nekoGems,
     totalGemsSpent:     s.totalGemsSpent ?? 0,
     totalGachaPulls:    s.totalGachaPulls ?? 0,
     totalClicks:        s.totalClicks,
+    totalKills:             s.totalKills ?? 0,
+    totalBossKills:         s.totalBossKills ?? 0,
+    totalQuestsCompleted:   s.totalQuestsCompleted ?? 0,
+    totalUpgradesPerformed: s.totalUpgradesPerformed ?? 0,
     wave:               s.wave,
     palier:             s.palier,
     maxPalierReached:   s.maxPalierReached,
@@ -34,6 +42,9 @@ function getSerializableState() {
     bossTimeLeft:       s.bossTimeLeft,
     quests:             s.quests,
     questsDayKey:       s.questsDayKey,
+    weeklyQuests:       s.weeklyQuests,
+    weeklyQuestsDayKey: s.weeklyQuestsDayKey,
+    eventQuests:        s.eventQuests,
     musicVolume:        s.musicVolume,
     musicMuted:         s.musicMuted,
     bossCrowns:         s.bossCrowns,
@@ -46,12 +57,26 @@ function getSerializableState() {
     dailyShop:          s.dailyShop,
     starterPackClaimed: s.starterPackClaimed,
     username:           s.username,
+    offlineMultLevel:   s.offlineMultLevel,
+    offlineCapLevel:    s.offlineCapLevel,
+    lastActiveAt:       s.lastActiveAt,
+    lastOfflineGain:    s.lastOfflineGain,
     // Succès déjà réclamés — stockés dans un store séparé (achievementStore),
     // qui a son propre localStorage jamais synchronisé avec Firestore. Sans
     // ça, un succès déjà débloqué redevient "réclamable" sur tout nouvel
     // appareil (ses conditions sont recalculées depuis les stats, elles,
     // bien synchronisées) et redonne ses gemmes une deuxième fois.
     achievementsClaimed: useAchievementStore.getState().claimed,
+    // Expéditions et forge — store séparé (expeditionStore), jamais synchronisé
+    // avant ce correctif : les drops et expéditions en cours disparaissaient
+    // sur tout nouvel appareil.
+    expeditionActive:         es.active,
+    expeditionDropInventory:  es.dropInventory,
+    expeditionCraftedRecipes: es.craftedRecipes,
+    // Prestige — store séparé (prestigeStore), même problème.
+    prestigeLevel:     ps.level,
+    prestigePoints:    ps.points,
+    prestigePurchased: ps.purchased,
     savedAt:            Date.now(),
   };
 }
@@ -119,7 +144,28 @@ async function loadAndApply(userId: string) {
       // Suppress toasts/notifications while applying remote state to avoid
       // duplicate achievement/quest toasts when the player logs in on another device.
       try { useGameStore.setState({ suppressToasts: true }); } catch {}
-      useGameStore.setState(best.data as Parameters<typeof useGameStore.setState>[0]);
+
+      // Les champs expedition*/prestige* n'appartiennent pas à gameStore —
+      // on les extrait avant de fusionner le reste, et on les applique à
+      // leurs stores respectifs (sinon ils n'y arriveraient jamais).
+      const data = { ...(best.data as Record<string, unknown>) };
+      const expeditionPatch: Record<string, unknown> = {};
+      if ('expeditionActive' in data)         { expeditionPatch.active         = data.expeditionActive;         delete data.expeditionActive; }
+      if ('expeditionDropInventory' in data)  { expeditionPatch.dropInventory  = data.expeditionDropInventory;  delete data.expeditionDropInventory; }
+      if ('expeditionCraftedRecipes' in data) { expeditionPatch.craftedRecipes = data.expeditionCraftedRecipes; delete data.expeditionCraftedRecipes; }
+      if (Object.keys(expeditionPatch).length) {
+        useExpeditionStore.setState(expeditionPatch as unknown as Parameters<typeof useExpeditionStore.setState>[0]);
+      }
+
+      const prestigePatch: Record<string, unknown> = {};
+      if ('prestigeLevel' in data)     { prestigePatch.level     = data.prestigeLevel;     delete data.prestigeLevel; }
+      if ('prestigePoints' in data)    { prestigePatch.points    = data.prestigePoints;    delete data.prestigePoints; }
+      if ('prestigePurchased' in data) { prestigePatch.purchased = data.prestigePurchased; delete data.prestigePurchased; }
+      if (Object.keys(prestigePatch).length) {
+        usePrestigeStore.setState(prestigePatch as unknown as Parameters<typeof usePrestigeStore.setState>[0]);
+      }
+
+      useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);
       // Allow effects to settle, then re-enable toasts.
       setTimeout(() => { try { useGameStore.setState({ suppressToasts: false }); } catch {} }, 200);
     }
@@ -185,14 +231,20 @@ export function useCloudSave(userId: string | null) {
   const loadedRef = useRef(false);
   const userIdRef = useRef<string | null>(null);
   const lastCorrectionRef = useRef(0);
+  // Reflète loadedRef en state pour que les appelants (ex: le calcul des gains
+  // AFK) puissent attendre la fin du chargement cloud avant de créditer quoi
+  // que ce soit — sans ça, un chargement cloud lent peut écraser un gain déjà
+  // crédité localement (voir claimOfflineEarnings).
+  const [loaded, setLoaded] = useState(!userId);
 
   // Chargement au login
   useEffect(() => {
-    if (!userId) { loadedRef.current = false; userIdRef.current = null; return; }
+    if (!userId) { loadedRef.current = false; userIdRef.current = null; setLoaded(true); return; }
     if (userId === userIdRef.current) return;
     userIdRef.current = userId;
     loadedRef.current = false;
-    loadAndApply(userId).finally(() => { loadedRef.current = true; });
+    setLoaded(false);
+    loadAndApply(userId).finally(() => { loadedRef.current = true; setLoaded(true); });
   }, [userId]);
 
   // Écoute EN DIRECT les corrections admin (solde rééquilibré) pendant que
@@ -265,5 +317,5 @@ export function useCloudSave(userId: string | null) {
     return saveToFirebase(userId);
   };
 
-  return { forceSave };
+  return { forceSave, loaded };
 }

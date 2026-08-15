@@ -166,7 +166,7 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
             </div>
             {nameFeedback && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{nameFeedback}</div>}
             {user ? (
-              <button onClick={logout}
+              <button onClick={async () => { if (onForceSave) await onForceSave(); await logout(); }}
                 style={{ padding:'10px 16px', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--red)', cursor:'pointer', width:'fit-content' }}>
                 DÉCONNEXION
               </button>

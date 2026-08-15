@@ -170,3 +170,29 @@ export function clearLocalSession(): void {
     localStorage.removeItem(LOCAL_SESSION_KEY);
   } catch {}
 }
+
+// Libère le verrou Firestore à la déconnexion (à appeler AVANT clearLocalSession
+// et AVANT signOut, tant que ce navigateur est encore authentifié). Sans ça,
+// une déconnexion propre laisse le doc "active:true" pointer sur cet appareil
+// jusqu'à expiration du TTL (150s) — le nouvel appareil peut alors se faire
+// kicker par sa propre écoute watchSession avant que son claimSession n'ait
+// eu le temps d'écraser ce verrou périmé.
+export async function releaseSession(uid: string): Promise<void> {
+  if (!db || !uid || typeof window === 'undefined') return;
+
+  const browserId = getBrowserId();
+  const sessionToken = getSessionToken();
+  const ref = doc(db, 'sessions', uid);
+
+  try {
+    const current = await getDoc(ref);
+    const data = current.data() as Partial<SessionClaim> | undefined;
+    // Ne libère que si ce navigateur est bien le détenteur actuel du verrou —
+    // sinon on risquerait de désactiver la session d'un autre appareil qui
+    // aurait déjà repris la main entre-temps (ex: après un kick).
+    if (!data || data.browserId !== browserId || data.sessionToken !== sessionToken) return;
+    await updateDoc(ref, { active: false });
+  } catch (error) {
+    console.error('[Session] releaseSession failed:', error);
+  }
+}

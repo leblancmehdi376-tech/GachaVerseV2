@@ -544,8 +544,9 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('eren_originel',   'Titan Originel',       'eren', 400, 55),
   ]),
   ce('rayquaza', 'Rayquaza', 'P', 9337, 'Pokémon', [
-    f('rayquaza_base',   'Rayquaza',             'rayquaza', 100, 1),
-    f('rayquaza_mega',   'Méga Rayquaza',        'rayquaza', 200, 15),
+    f('rayquaza_base',      'Rayquaza',                    'rayquaza', 100, 1),
+    f('rayquaza_mega',      'Méga Rayquaza',               'rayquaza', 200, 15),
+    f('rayquaza_ascension', 'Rayquaza — Ascension Céleste','rayquaza', 300, 32),
   ]),
   ce('ouchuu', 'Ouchuu', 'P', 9138, "Chill&Cool", [
     f('ouchuu_base',     'Ouchuu',               'ouchuu', 100, 1),

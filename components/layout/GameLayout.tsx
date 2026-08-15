@@ -103,7 +103,7 @@ export function GameLayout() {
   const [victory, setVictory] = useState<{ palier: number; gems: number; coins: number } | null>(null);
   const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory } = useGameStore();
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
-  const { forceSave } = useCloudSave(user?.uid ?? null);
+  const { forceSave, loaded: cloudLoaded } = useCloudSave(user?.uid ?? null);
 
   const cfg = getPalierConfig(palier);
   const isCombat = COMBAT_PAGES.includes(page);
@@ -121,6 +121,10 @@ export function GameLayout() {
   // sinon lastActiveAt peut encore valoir sa valeur par défaut ("maintenant") au
   // lieu de la vraie dernière session — le calcul croirait alors qu'on vient de
   // jouer il y a une seconde, et ne renverrait jamais de récap.
+  // On attend AUSSI la fin du chargement cloud (cloudLoaded) : sinon le crédit
+  // hors-ligne (pixelCoins/nekoGems) peut être écrasé juste après par
+  // loadAndApply si celui-ci résout après coup — le joueur voyait alors la
+  // popup de récompense sans jamais recevoir le gain affiché.
   const [offlineGain, setOfflineGain] = useState<OfflineGain | null>(null);
   const [hasHydrated, setHasHydrated] = useState(() => useGameStore.persist?.hasHydrated?.() ?? false);
   const offlineClaimedRef = useRef(false);
@@ -134,11 +138,11 @@ export function GameLayout() {
     return unsub;
   }, [hasHydrated]);
   useEffect(() => {
-    if (!hasHydrated || offlineClaimedRef.current) return;
+    if (!hasHydrated || !cloudLoaded || offlineClaimedRef.current) return;
     offlineClaimedRef.current = true;
     const g = useGameStore.getState().claimOfflineEarnings();
     if (g && (g.coins > 0 || g.gems > 0 || g.kills > 0)) setOfflineGain(g);
-  }, [hasHydrated]);
+  }, [hasHydrated, cloudLoaded]);
 
   // Écran de victoire : piloté par un VRAI événement de kill de boss émis par le
   // store (et non par une surveillance du palier, qui se déclenchait à tort au

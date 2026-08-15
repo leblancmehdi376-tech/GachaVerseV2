@@ -11,7 +11,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { logAudit } from '@/lib/firebase/audit';
-import { claimSession, watchSession, clearLocalSession } from '@/lib/firebase/session';
+import { claimSession, watchSession, clearLocalSession, releaseSession } from '@/lib/firebase/session';
 import { createAccessRequest, ensureUserDoc } from '@/lib/firebase/accessRequests';
 
 interface AuthContextType {
@@ -34,15 +34,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!auth) { setLoading(false); return; }
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        // Réclame le verrou de session ICI, AVANT setUser — c'est ce qui arme
+        // watchSession juste en dessous ([user] en dépendance). Si on laissait
+        // signIn/signInGoogle réclamer le verrou de leur côté (en parallèle de
+        // ce listener), watchSession pouvait démarrer et voir le doc encore
+        // frais de l'ancien appareil AVANT que la transaction de claimSession
+        // n'ait fini de l'écraser — kickant à tort l'appareil qui vient
+        // pourtant de se connecter légitimement (typiquement en changeant
+        // rapidement de PC à téléphone). En attendant la fin du claim ici,
+        // watchSession ne démarre qu'une fois le doc à jour.
+        const ok = await claimSession(u.uid);
+        if (!ok) console.warn('[Auth] claimSession a échoué (verrou de session non posé), connexion autorisée quand même.');
+        // Rattrape aussi les sessions déjà ouvertes (Firebase reconnecte
+        // automatiquement l'utilisateur sans repasser par signIn/signInGoogle) :
+        // sans ça, les comptes qui n'ont pas de fiche "users" restent bloqués
+        // (permissions Firestore) sur tout ce qui vérifie leur statut "approved",
+        // comme la lecture du classement — même après le correctif précédent.
+        await ensureUserDoc(u.uid, u.email ?? '', u.displayName ?? '');
+      }
       setUser(u);
       setLoading(false);
-      // Rattrape aussi les sessions déjà ouvertes (Firebase reconnecte
-      // automatiquement l'utilisateur sans repasser par signIn/signInGoogle) :
-      // sans ça, les comptes qui n'ont pas de fiche "users" restent bloqués
-      // (permissions Firestore) sur tout ce qui vérifie leur statut "approved",
-      // comme la lecture du classement — même après le correctif précédent.
-      if (u) ensureUserDoc(u.uid, u.email ?? '', u.displayName ?? '');
     });
     return unsub;
   }, []);
@@ -63,18 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     if (!auth) throw new Error('Firebase non configuré');
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    // IMPORTANT : ne JAMAIS bloquer la connexion si claimSession échoue —
-    // dans la logique actuelle de session.ts, un échec est TOUJOURS une
-    // erreur technique (permissions Firestore, réseau...), jamais un vrai
-    // refus volontaire. Avant ce correctif, la moindre erreur déconnectait
-    // l'utilisateur immédiatement avec un message trompeur ("déjà connecté
-    // ailleurs"), ce qui a fini par bloquer TOUT LE MONDE (admin compris).
-    const ok = await claimSession(cred.user.uid);
-    if (!ok) console.warn('[Auth] claimSession a échoué (verrou de session non posé), connexion autorisée quand même.');
-    // Rattrape les comptes qui n'auraient pas (encore) de fiche dans "users"
-    // (ex: comptes créés avant ce système) pour qu'ils apparaissent dans le panel admin.
-    await ensureUserDoc(cred.user.uid, cred.user.email ?? email, cred.user.displayName ?? '');
-    // Log sign in
+    // Le verrou de session et la fiche "users" sont désormais réclamés de
+    // façon centralisée dans le listener onAuthStateChanged ci-dessus (avant
+    // setUser), pour éviter la course avec watchSession — voir son commentaire.
     logAudit(cred.user.uid, 'auth:signIn', { method: 'password', email });
   };
 
@@ -91,18 +95,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!auth) throw new Error('Firebase non configuré');
     const provider = new GoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
-    const ok = await claimSession(cred.user.uid);
-    if (!ok) console.warn('[Auth] claimSession a échoué (verrou de session non posé), connexion autorisée quand même.');
-    // Les comptes Google ne passent jamais par createAccessRequest : sans ça,
-    // ils n'ont jamais de fiche "users" et n'apparaissent jamais dans le panel admin.
-    await ensureUserDoc(cred.user.uid, cred.user.email ?? '', cred.user.displayName ?? '');
+    // Idem signIn() ci-dessus : verrou de session + fiche "users" gérés
+    // centralement dans le listener onAuthStateChanged.
     logAudit(cred.user.uid, 'auth:signIn', { method: 'google' });
   };
 
   const logout = async () => {
-    clearLocalSession();
-    if (!auth) return;
+    if (!auth) { clearLocalSession(); return; }
     const uid = auth.currentUser?.uid ?? null;
+    // Libère le verrou Firestore AVANT signOut (tant qu'on est encore
+    // authentifié, sinon les règles Firestore refuseraient l'écriture) —
+    // sinon un nouvel appareil doit attendre jusqu'à 150s (TTL) que ce verrou
+    // périmé expire avant de pouvoir se connecter sans se faire kicker.
+    if (uid) await releaseSession(uid).catch(() => {});
+    clearLocalSession();
     await signOut(auth);
     logAudit(uid, 'auth:signOut');
   };
