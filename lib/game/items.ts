@@ -244,8 +244,8 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
   },
   weapon_primordial_antidepresseur: {
     id: 'weapon_primordial_antidepresseur', name: 'Antidépresseur', slot:'weapon', rarity:'P', icon:'💊', color:'#ff6b35',
-    description:"Un remède à la mélancolie... ou une arme redoutable. Bonus si équipé par Ouchuu.", dpsMultiplier:1.55, recycleValue:7100000,
-    bonusFor:{ templateId:'ouchuu', multiplier:1.30, description:'Bonus si équipé par Ouchuu' },
+    description:"Un remède à la mélancolie... ou une arme redoutable. Bonus si équipé par Ouchuu.", dpsMultiplier:1.95, recycleValue:7100000,
+    bonusFor:{ templateId:'ouchuu', multiplier:1.40, description:'Bonus si équipé par Ouchuu' },
   },
   weapon_cosmic_pourfenda: {
     id: 'weapon_cosmic_pourfenda', name: 'Pourfenda', slot:'weapon', rarity:'CO', icon:'⚔️', color:'#34d399',
