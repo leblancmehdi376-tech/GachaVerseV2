@@ -191,7 +191,7 @@ export default function AdminPage() {
           <button onClick={() => { setShowTab('requests'); load(); }} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
             {refreshing ? 'Actualisation…' : '🔄 Requests'}
           </button>
-          <button onClick={() => { setShowTab('accounts'); load(); }} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+          <button onClick={() => setShowTab('accounts')} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
             👥 Comptes ({allUsers.length})
           </button>
           <button onClick={() => { setShowTab('logs'); loadLogs(); }} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='logs' ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', color: '#a78bfa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
