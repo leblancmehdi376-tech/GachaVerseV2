@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsx *)",
+      "Bash(ls -la /tmp/claude-1000/-workspaces-GachaVerseV2/9c73be34-3462-4980-840f-d5b778361a1b/ 2>&1; echo \"---\"; ls -la /tmp/claude-1000/-workspaces-GachaVerseV2/ 2>&1)",
+      "Read(//tmp/claude-1000/-workspaces-GachaVerseV2/**)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}
