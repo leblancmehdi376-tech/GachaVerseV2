@@ -3,7 +3,7 @@ import { db } from './config';
 
 const LOCAL_SESSION_KEY = 'nekoz_session_claim';
 const SESSION_TTL_MS = 420_000;        // 7min de marge (large, car le battement est désormais plus espacé + suspendu en arrière-plan)
-const SESSION_HEARTBEAT_MS = 180_000;  // 15s -> 60s -> 3min : le battement restait le plus gros poste d'écriture Firestore, largement devant la sauvegarde cloud elle-même
+const SESSION_HEARTBEAT_MS = 185_000;  // 15s -> 60s -> 3min : le battement restait le plus gros poste d'écriture Firestore, largement devant la sauvegarde cloud elle-même
 
 export interface SessionClaim {
   uid: string;
