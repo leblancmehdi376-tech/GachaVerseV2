@@ -2,8 +2,8 @@ import { doc, getDoc, onSnapshot, runTransaction, updateDoc } from 'firebase/fir
 import { db } from './config';
 
 const LOCAL_SESSION_KEY = 'nekoz_session_claim';
-const SESSION_TTL_MS = 150_000;       // était 30s, passé à 2min30 (marge = 2.5x le battement)
-const SESSION_HEARTBEAT_MS = 60_000;  // était 15s — réduit la charge Firestore (÷4)
+const SESSION_TTL_MS = 420_000;        // 7min de marge (large, car le battement est désormais plus espacé + suspendu en arrière-plan)
+const SESSION_HEARTBEAT_MS = 180_000;  // 15s -> 60s -> 3min : le battement restait le plus gros poste d'écriture Firestore, largement devant la sauvegarde cloud elle-même
 
 export interface SessionClaim {
   uid: string;
@@ -155,13 +155,31 @@ export function watchSession(uid: string, onConflict: () => void): () => void {
     }
   });
 
-  const interval = window.setInterval(() => {
-    heartbeatSession(uid).catch(() => {});
-  }, SESSION_HEARTBEAT_MS);
+  // Le battement ne tourne QUE quand l'onglet est visible/actif — beaucoup de
+  // joueurs laissent le jeu ouvert en arrière-plan pendant des heures sans y
+  // jouer ; ça évite d'écrire pour rien tout ce temps-là, gros poste d'économie.
+  let interval: number | null = null;
+  const startHeartbeat = () => {
+    if (interval) return;
+    heartbeatSession(uid).catch(() => {}); // battement immédiat au retour au premier plan
+    interval = window.setInterval(() => {
+      heartbeatSession(uid).catch(() => {});
+    }, SESSION_HEARTBEAT_MS);
+  };
+  const stopHeartbeat = () => {
+    if (interval) { window.clearInterval(interval); interval = null; }
+  };
+  const handleVisibility = () => {
+    if (document.visibilityState === 'visible') startHeartbeat();
+    else stopHeartbeat();
+  };
+  document.addEventListener('visibilitychange', handleVisibility);
+  if (document.visibilityState === 'visible') startHeartbeat();
 
   return () => {
     unsub();
-    window.clearInterval(interval);
+    stopHeartbeat();
+    document.removeEventListener('visibilitychange', handleVisibility);
   };
 }
 
