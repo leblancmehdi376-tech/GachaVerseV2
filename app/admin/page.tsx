@@ -4,11 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { getPendingRequests, getApprovedUsers, getAllUsers, approveUser, AccessRequest } from '@/lib/firebase/accessRequests';
 import { findPlayer, getPlayerSave, correctPlayerBalance, correctPlayerProgress, getPlayerCollection, removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, PlayerLookup, PlayerSaveSummary, OwnedCharacterSummary } from '@/lib/firebase/adminTools';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
 import { isAdminEmail } from '@/lib/admin';
 
-type Audit = { userId: string | null; type: string; payload: Record<string, any>; createdAt: number };
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -17,10 +14,9 @@ export default function AdminPage() {
   const [approvedList, setApprovedList] = useState<AccessRequest[]>([]);
   const [allUsers, setAllUsers]   = useState<AccessRequest[]>([]);
   const [accountSearch, setAccountSearch] = useState('');
-  const [logs, setLogs] = useState<Audit[]>([]);
   const [busy, setBusy]           = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [showTab, setShowTab] = useState<'requests'|'accounts'|'logs'|'balance'>('requests');
+  const [showTab, setShowTab] = useState<'requests'|'accounts'|'balance'>('requests');
 
   // ── Correction de solde (onglet "Rééquilibrer un compte") ─────────────
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,18 +136,6 @@ export default function AdminPage() {
     setRefreshing(false);
   };
 
-  const loadLogs = async () => {
-    if (!db) return;
-    try {
-      const q = query(collection(db, 'auditLogs'), orderBy('createdAt', 'desc'), limit(200));
-      const snap = await getDocs(q);
-      const out: Audit[] = snap.docs.map(d => d.data() as Audit);
-      setLogs(out);
-    } catch (e) {
-      console.error('Failed to load logs', e);
-    }
-  };
-
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
   const handleApprove = async (uid: string) => {
@@ -194,9 +178,7 @@ export default function AdminPage() {
           <button onClick={() => setShowTab('accounts')} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
             👥 Comptes ({allUsers.length})
           </button>
-          <button onClick={() => { setShowTab('logs'); loadLogs(); }} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='logs' ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', color: '#a78bfa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-            Logs
-          </button>
+
           <button onClick={() => setShowTab('balance')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='balance' ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(251,191,36,0.14)', color: '#fbbf24', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
             ⚖️ Rééquilibrer un compte
           </button>
@@ -265,22 +247,6 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
-            </div>
-          </>
-        )}
-
-        {showTab === 'logs' && (
-          <>
-            <h2 style={{ color: '#60a5fa', fontSize: 15, fontWeight: 800, marginBottom: 12 }}>Événements récents</h2>
-            <div style={{ maxHeight: 600, overflow: 'auto', marginBottom: 20 }}>
-              {logs.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>Aucun log.</div>}
-              {logs.map((l, i) => (
-                <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', marginBottom:6, fontSize:12 }}>
-                  <div style={{ color: 'rgba(255,255,255,0.8)', fontWeight:700 }}>{l.type}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.45)', marginTop:4 }}>{l.userId ?? 'anon'} · {new Date(l.createdAt).toLocaleString()}</div>
-                  <pre style={{ color: 'rgba(255,255,255,0.35)', marginTop:6, whiteSpace:'pre-wrap' }}>{JSON.stringify(l.payload)}</pre>
-                </div>
-              ))}
             </div>
           </>
         )}

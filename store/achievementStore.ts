@@ -96,9 +96,7 @@ export const useAchievementStore = create<AchievementState>()(
 
         // Audit log
         try {
-          const { logAudit } = require('@/lib/firebase/audit');
           const uid = require('@/lib/firebase/config').auth?.currentUser?.uid ?? null;
-          logAudit(uid, 'achievement:claim', { achievementId: id });
         } catch {}
 
         const rewardMsg = achiev.reward

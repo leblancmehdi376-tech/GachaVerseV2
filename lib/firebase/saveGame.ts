@@ -7,10 +7,6 @@ export async function saveGameToFirestore(userId: string, state: Partial<GameSta
   try {
     const ref = doc(db, 'saves', userId);
     await setDoc(ref, { ...state, lastSaved: Date.now() }, { merge: true });
-    try {
-      const { logAudit } = require('@/lib/firebase/audit');
-      logAudit(userId, 'save:toFirestore', { savedAt: Date.now() });
-    } catch {}
   } catch (e) {
     console.error('Save error:', e);
   }

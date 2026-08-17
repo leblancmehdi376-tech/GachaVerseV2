@@ -10,7 +10,6 @@ import {
   signOut,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
-import { logAudit } from '@/lib/firebase/audit';
 import { claimSession, watchSession, clearLocalSession, releaseSession } from '@/lib/firebase/session';
 import { createAccessRequest, ensureUserDoc } from '@/lib/firebase/accessRequests';
 
@@ -79,7 +78,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Le verrou de session et la fiche "users" sont désormais réclamés de
     // façon centralisée dans le listener onAuthStateChanged ci-dessus (avant
     // setUser), pour éviter la course avec watchSession — voir son commentaire.
-    logAudit(cred.user.uid, 'auth:signIn', { method: 'password', email });
   };
 
   const signUp = async (email: string, password: string, username: string, discordUsername: string) => {
@@ -88,7 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Compte créé mais PAS de session/accès automatique : il reste "en attente"
     // tant que le pseudo Discord n'a pas été vérifié manuellement.
     await createAccessRequest(cred.user.uid, email, username, discordUsername);
-    logAudit(cred.user.uid, 'auth:signUp', { email, username, discordUsername });
   };
 
   const signInGoogle = async () => {
@@ -97,7 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const cred = await signInWithPopup(auth, provider);
     // Idem signIn() ci-dessus : verrou de session + fiche "users" gérés
     // centralement dans le listener onAuthStateChanged.
-    logAudit(cred.user.uid, 'auth:signIn', { method: 'google' });
   };
 
   const logout = async () => {
@@ -110,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (uid) await releaseSession(uid).catch(() => {});
     clearLocalSession();
     await signOut(auth);
-    logAudit(uid, 'auth:signOut');
   };
 
   const dismissKickedOut = () => setKickedOut(false);
