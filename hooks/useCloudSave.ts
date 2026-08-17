@@ -7,7 +7,6 @@ import { useAchievementStore } from '@/store/achievementStore';
 import { useExpeditionStore } from '@/store/expeditionStore';
 import { usePrestigeStore } from '@/store/prestigeStore';
 import { saveGameToFirestore, loadGameFromFirestore } from '@/lib/firebase/saveGame';
-import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
 const LOCAL_INTERVAL_MS    =  30_000; // localStorage toutes les 30s (gratuit, illimité)
@@ -195,28 +194,27 @@ async function saveToFirebase(userId: string): Promise<boolean> {
     const s    = useGameStore.getState();
     const data = getSerializableState();
 
+    let totalDps = 0;
+    try { totalDps = s.getTotalDps?.() ?? 0; } catch { /* ignore */ }
+
+    // Un seul setDoc (fusionné avec les champs du classement) au lieu de deux
+    // écritures séparées sur le MÊME document 'saves/{uid}' — saveGameToFirestore
+    // puis updatePlayerScore doublaient inutilement le coût en écritures Firestore
+    // à chaque autosave (toutes les 10min pour chaque joueur connecté).
+    const payload = {
+      ...data,
+      username: s.username || 'Joueur',
+      totalDps,
+      score: s.palier * 100 + s.wave,
+    };
+
     // Timeout 5s — si Firebase est bloqué (quota), on n'attend pas indéfiniment
     await Promise.race([
-      saveGameToFirestore(userId, data),
+      saveGameToFirestore(userId, payload),
       new Promise<void>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
 
     useGameStore.setState({ savedAt: data.savedAt });
-
-    let totalDps = 0;
-    try { totalDps = s.getTotalDps?.() ?? 0; } catch { /* ignore */ }
-
-    await Promise.race([
-      updatePlayerScore(userId, {
-        username:    s.username    || 'Joueur',
-        palier:      s.palier,
-        wave:        s.wave,
-        pixelCoins:  s.pixelCoins,
-        totalClicks: s.totalClicks,
-        totalDps,
-      }),
-      new Promise<void>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-    ]);
 
     console.log('[CloudSave] Firebase OK —', new Date().toLocaleTimeString());
     return true;

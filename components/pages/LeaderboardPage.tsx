@@ -5,7 +5,7 @@ import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { getTopLeaderboard, updatePlayerScore, LeaderboardEntry } from '@/lib/firebase/leaderboard';
 
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 90_000;
 
 const RANK_COLORS = ['#fbbf24', '#94a3b8', '#b45309', '#a855f7', '#6366f1'];
 const RANK_ICONS  = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
@@ -36,9 +36,13 @@ export function LeaderboardPage() {
   // Chargement initial
   useEffect(() => { loadEntries(); }, []);
 
-  // Auto-refresh toutes les 30s
+  // Auto-refresh périodique — mis en pause si l'onglet n'est pas visible,
+  // sinon un onglet Classement oublié en arrière-plan continue de facturer
+  // des lectures Firestore indéfiniment (voir getTopLeaderboard).
   useEffect(() => {
-    const id = setInterval(loadEntries, REFRESH_INTERVAL_MS);
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') loadEntries();
+    }, REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
   }, []);
 

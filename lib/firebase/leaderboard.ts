@@ -15,9 +15,13 @@ export interface LeaderboardEntry {
 export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEntry[]> {
   if (!db) return [];
   try {
-    // Récupère tous les documents et trie côté client — évite les problèmes
+    // Récupère un lot de documents et trie côté client — évite les problèmes
     // d'index manquant ou de champs absents dans les vieilles sauvegardes.
-    const snapshot = await getDocs(query(collection(db, 'saves'), limit(200)));
+    // Limité à 100 (au lieu de 200) : chaque appel facture 1 lecture Firestore
+    // par document, et cette fonction est ré-appelée toutes les 30-90s tant
+    // que la page Classement reste ouverte — un fetch trop large ici épuise
+    // le quota gratuit très vite.
+    const snapshot = await getDocs(query(collection(db, 'saves'), limit(100)));
     const entries: LeaderboardEntry[] = snapshot.docs.map(docSnap => {
       const data = docSnap.data() as Record<string, unknown>;
       const palier      = typeof data.palier      === 'number' ? data.palier      : 0;
