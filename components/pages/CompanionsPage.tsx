@@ -5,7 +5,7 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
-import { ITEM_DEFS, getEquipmentDef } from '@/lib/game/items';
+import { ITEM_DEFS, getEquipmentDef, type EquipmentDef } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { calculateEquippedTeamDps, calculateCharacterEquippedDps, getEquipmentMultiplier } from '@/lib/game/dpsCalculation';
 import { calcCharDps, EQUIPMENT_SLOT_LABELS, EQUIPMENT_SLOTS } from '@/types/game';
@@ -21,6 +21,17 @@ import { CollectionFilters, COLLECTION_RARITY_ORDER, type CollectionFilterMode, 
 const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
 };
+
+// Reflète exactement getEquipmentMultiplier (dpsCalculation.ts) : le bonus de personnage
+// n'est appliqué que sur le slot arme, seul cas géré par le calcul de DPS réel.
+function getEquipScore(def: EquipmentDef, templateId: string): number {
+  const bonusFor = def.bonusFor;
+  const matchesTemplate = bonusFor
+    ? Array.isArray(bonusFor.templateId) ? bonusFor.templateId.includes(templateId) : bonusFor.templateId === templateId
+    : false;
+  const bonusMult = def.slot === 'weapon' && matchesTemplate ? bonusFor!.multiplier : 1;
+  return def.dpsMultiplier * bonusMult;
+}
 
 export function CompanionsPage() {
   const {
@@ -87,6 +98,27 @@ export function CompanionsPage() {
   });
   const ownedItems = Object.entries(inventory).filter(([, qty]) => qty > 0);
   const ownedEquipment = Object.entries(equipmentInventory).filter(([, qty]) => qty > 0);
+
+  const handleEquipBest = () => {
+    if (!selectedCharacterId || !selectedTpl || !selectedCharacter) return;
+    for (const slot of EQUIPMENT_SLOTS) {
+      const equippedId = selectedCharacter.equippedItems?.[slot] ?? null;
+      const equippedDef = equippedId ? getEquipmentDef(equippedId) : null;
+      let bestId: string | null = null;
+      let bestScore = equippedDef ? getEquipScore(equippedDef, selectedTpl.id) : 0;
+      for (const [equipmentId, qty] of ownedEquipment) {
+        if (qty <= 0) continue;
+        const def = getEquipmentDef(equipmentId);
+        if (!def || def.slot !== slot) continue;
+        const score = getEquipScore(def, selectedTpl.id);
+        if (score > bestScore) {
+          bestScore = score;
+          bestId = equipmentId;
+        }
+      }
+      if (bestId) equipItem(selectedCharacterId, slot, bestId);
+    }
+  };
   const selectedCharacter = selectedCharacterId ? collection[selectedCharacterId] : null;
   const selectedTpl = selectedCharacter ? getCharacterById(selectedCharacter.templateId) : null;
   const activeSynergies = computeActiveSynergies(equippedTeam);
@@ -344,6 +376,15 @@ export function CompanionsPage() {
 
               <div className="companion-equip-grid">
                 <div className="companion-card-hero">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Équipement</div>
+                    <button
+                      className="companion-button companion-button--primary"
+                      onClick={handleEquipBest}
+                    >
+                      Équiper le meilleur
+                    </button>
+                  </div>
                   {EQUIPMENT_SLOTS.map((slot) => {
                     const equippedId = selectedCharacter.equippedItems?.[slot] ?? null;
                     const equippedDef = equippedId ? getEquipmentDef(equippedId) : null;
