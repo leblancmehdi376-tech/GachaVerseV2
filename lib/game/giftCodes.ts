@@ -10,6 +10,7 @@ export interface GiftCodeDef {
   characters?: string[];  // IDs de personnages à ajouter à la collection (édition tirée normalement)
   maxCharacters?: string[]; // IDs de personnages octroyés déjà MAX (7★, dernière évo, niveau max, édition Diamant)
   items?: string[];       // IDs d'items à ajouter à l'inventaire (optionnel)
+  equipment?: string[];   // IDs d'équipements (armes/armures) à ajouter à l'équipementInventaire (optionnel)
 }
 
 export const GIFT_CODES: GiftCodeDef[] = [
@@ -78,6 +79,10 @@ export const GIFT_CODES: GiftCodeDef[] = [
   {
     code:       'POWER-CADEAU',
     characters: ['power_csm'],
+  },
+  {
+    code:      'EPEE-AUBE',
+    equipment: ['weapon_primordial_dawn'],
   },
 ];
 

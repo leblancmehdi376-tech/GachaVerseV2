@@ -68,12 +68,17 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
         const { addItem } = useGameStore.getState();
         result.items.forEach(id => addItem(id, 1));
       }
+      if (result.equipment && result.equipment.length > 0) {
+        const { addEquipment } = useGameStore.getState();
+        result.equipment.forEach(id => addEquipment(id, 1));
+      }
       const parts: string[] = [];
       if (result.gems              > 0) parts.push(`+${result.gems} 💎`);
       if (result.pixelCoins        > 0) parts.push(`+${result.pixelCoins.toLocaleString()} 🪙`);
       if (result.characters?.length > 0) parts.push(`${result.characters.length} personnage(s) 🧬`);
       if (result.maxCharacters?.length > 0) parts.push(`${result.maxCharacters.length} personnage(s) 💎 MAX`);
       if (result.items?.length      > 0) parts.push(`${result.items.length} item(s) 🎁`);
+      if (result.equipment?.length  > 0) parts.push(`${result.equipment.length} équipement(s) ⚔️`);
       setGiftFeedback({ ok: true, msg: `${parts.join('  ')} ajoutés !` });
       setGiftInput('');
     } else {

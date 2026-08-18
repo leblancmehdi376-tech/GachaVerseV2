@@ -3,7 +3,7 @@ import { db } from './config';
 import { findGiftCode, normalizeGiftCode } from '@/lib/game/giftCodes';
 
 export type RedeemResult =
-  | { success: true;  gems: number; pixelCoins: number; characters: string[]; maxCharacters: string[]; items: string[] }
+  | { success: true;  gems: number; pixelCoins: number; characters: string[]; maxCharacters: string[]; items: string[]; equipment: string[] }
   | { success: false; reason: 'invalid' | 'already_used' | 'not_logged_in' | 'error' };
 
 const LOCAL_USED_CODES_KEY = 'gachaverse_used_codes';
@@ -47,6 +47,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
       characters: def.characters ?? [],
       maxCharacters: def.maxCharacters ?? [],
       items:      def.items      ?? [],
+      equipment:  def.equipment  ?? [],
     };
   }
 
@@ -85,6 +86,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
           characters: def.characters ?? [],
           maxCharacters: def.maxCharacters ?? [],
           items:      def.items      ?? [],
+          equipment:  def.equipment  ?? [],
         }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('timeout')), 5000)
@@ -99,6 +101,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
         characters: def.characters ?? [],
         maxCharacters: def.maxCharacters ?? [],
         items:      def.items      ?? [],
+        equipment:  def.equipment  ?? [],
       };
 
     } catch (e) {
@@ -112,6 +115,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
         characters: def.characters ?? [],
         maxCharacters: def.maxCharacters ?? [],
         items:      def.items      ?? [],
+        equipment:  def.equipment  ?? [],
       };
     }
   }
@@ -125,5 +129,6 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
     characters: def.characters ?? [],
     maxCharacters: def.maxCharacters ?? [],
     items:      def.items      ?? [],
+    equipment:  def.equipment  ?? [],
   };
 }
