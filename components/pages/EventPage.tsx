@@ -11,7 +11,6 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { formatNumber } from '@/lib/game/format';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
 import { EventMusicPlayer } from '@/components/game/EventMusicPlayer';
-import { useAntiAutoclick } from '@/hooks/useAntiAutoclick';
 
 function EventBg({ boss }: { boss: EventBossDef }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(boss.bgImagePath));
@@ -70,33 +69,6 @@ function DropPopup({ drop, onClose }: { drop: DropResult; onClose: () => void })
 }
 
 interface Dmg { id: number; x: number; y: number; val: number; crit: boolean; }
-
-function ApologyOverlayEvent({ strikeLevel, onSubmit }: { strikeLevel: number; detectionReason: string; onSubmit: (t: string) => Promise<void> }) {
-  const [text, setText] = useState(''); const [sending, setSending] = useState(false); const [error, setError] = useState('');
-  const MIN = 80; const strikeColor = strikeLevel >= 3 ? '#f87171' : strikeLevel === 2 ? '#fb923c' : '#fbbf24';
-  const handleSubmit = async () => {
-    if (text.trim().length < MIN) { setError(`Au moins ${MIN} caractères.`); return; }
-    setSending(true); await onSubmit(text); setSending(false);
-  };
-  return (
-    <div style={{ position:'absolute', inset:0, zIndex:30, background:'rgba(4,3,16,0.98)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:0, padding:'24px 20px', overflowY:'auto' }}>
-      <div style={{ fontSize:40, marginBottom:10 }}>🤖</div>
-      <div style={{ fontFamily:'var(--f-title)', fontSize:17, fontWeight:800, color:'#f87171', letterSpacing:2, marginBottom:6 }}>AUTOCLICK DÉTECTÉ</div>
-      <div style={{ display:'inline-flex', alignItems:'center', gap:6, marginBottom:14, background:`${strikeColor}18`, border:`1px solid ${strikeColor}66`, borderRadius:8, padding:'4px 14px' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:11, color:strikeColor, letterSpacing:1 }}>STRIKE {strikeLevel}</span>
-      </div>
-      <div style={{ width:'100%', maxWidth:420, marginBottom:10 }}>
-        <textarea value={text} onChange={e => { setText(e.target.value); setError(''); }} placeholder="Bonjour, je reconnais avoir utilisé un autoclick..." rows={5}
-          style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.04)', border:`1px solid ${error?'rgba(239,68,68,0.6)':'rgba(255,255,255,0.12)'}`, borderRadius:8, padding:'10px 12px', resize:'vertical', fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.85)', lineHeight:1.6, outline:'none' }} />
-        {error && <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'#f87171', marginTop:6 }}>{error}</div>}
-      </div>
-      <button onClick={handleSubmit} disabled={sending || text.trim().length < MIN} className="btn-primary"
-        style={{ width:'100%', maxWidth:420, padding:'12px 20px', opacity:(sending||text.trim().length<MIN)?0.45:1, cursor:(sending||text.trim().length<MIN)?'not-allowed':'pointer' }}>
-        {sending ? '⏳ ENVOI...' : '✉️ ENVOYER MES EXCUSES'}
-      </button>
-    </div>
-  );
-}
 
 const COMING_SOON_EVENTS = [
   { id:'coming_3', name:'COMING SOON', subtitle:'Prochain événement à venir...', accentColor:'rgba(255,255,255,0.2)', bgGradient:'linear-gradient(135deg,#0a0a14,#14101e)' },
@@ -210,32 +182,42 @@ function EventLobby({ onSelect }: { onSelect: (id: string) => void }) {
 }
 
 function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
-  const { getHeroDpc, addItem, nekoGems, bossCrowns, collection, equippedTeam } = useGameStore();
-  const { registerClick, getClickDpcMultiplier, consumeNextClickMultiplier, getActiveEnemyDamageTakenMultiplier } = useUltimateStore();
-  const { checkClick, isBlocked, strikeLevel, detectionReason, submitApology } = useAntiAutoclick();
+  const { addItem, nekoGems, bossCrowns, collection, equippedTeam } = useGameStore();
+  const { getActiveEnemyDamageTakenMultiplier } = useUltimateStore();
 
   const boss = useMemo(() => EVENT_BOSSES.find(b => b.id === bossId) ?? EVENT_BOSSES[0], [bossId]);
   const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection), [equippedTeam, collection]);
-  
-  const [maxHp, setMaxHp] = useState(() => getEventBossMaxHp(boss, getHeroDpc() + totalEquippedDps));
+
+  const [maxHp, setMaxHp] = useState(() => getEventBossMaxHp(boss, totalEquippedDps));
   const [hp, setHp] = useState(maxHp);
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
-  const [hit, setHit] = useState(false);
   const [drop, setDrop] = useState<DropResult | null>(null);
   const [dead, setDead] = useState(false);
   const [kills, setKills] = useState(0);
   const now = Date.now();
 
   useEffect(() => {
-    const freshMax = getEventBossMaxHp(boss, getHeroDpc() + totalEquippedDps);
+    const freshMax = getEventBossMaxHp(boss, totalEquippedDps);
     setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrop(null);
-  }, [boss, getHeroDpc, totalEquippedDps]);
+  }, [boss, totalEquippedDps]);
 
+  // ── Combat automatique : dégâts du DPS d'équipe chaque seconde, avec
+  // un pop-up de dégâts flottant pour le retour visuel (plus de clic).
   useEffect(() => {
     if (dead) return;
+    const dps = totalEquippedDps * getActiveEnemyDamageTakenMultiplier();
+    if (dps <= 0) return;
     const id = setInterval(() => {
-      const dps = totalEquippedDps * getActiveEnemyDamageTakenMultiplier();
-      if (dps > 0) setHp(h => Math.max(0, h - dps));
+      setHp(h => Math.max(0, h - dps));
+      const d: Dmg = {
+        id: Date.now() + Math.random(),
+        x: 60 + Math.random() * 120,
+        y: 40 + Math.random() * 120,
+        val: Math.floor(dps),
+        crit: false,
+      };
+      setDmgs(p => [...p, d]);
+      setTimeout(() => setDmgs(p => p.filter(x => x.id !== d.id)), 800);
     }, 1000);
     return () => clearInterval(id);
   }, [dead, totalEquippedDps, getActiveEnemyDamageTakenMultiplier]);
@@ -261,23 +243,8 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
     }
   }, [hp, dead, addItem, boss]);
 
-  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (dead) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    if (!checkClick(pos)) return;
-    registerClick();
-    const finalDmg = Math.max(1, Math.floor(getHeroDpc() * getClickDpcMultiplier() * consumeNextClickMultiplier() * getActiveEnemyDamageTakenMultiplier() * (Math.random() < 0.08 ? 1.5 : 1)));
-    const crit = Math.random() < 0.08;
-    setHp(h => Math.max(0, h - finalDmg));
-    setHit(true); setTimeout(() => setHit(false), 150);
-    const d: Dmg = { id: Date.now() + Math.random(), x: pos.x, y: pos.y, val: finalDmg, crit };
-    setDmgs(p => [...p, d]);
-    setTimeout(() => setDmgs(p => p.filter(x => x.id !== d.id)), 800);
-  }, [dead, checkClick, getHeroDpc, getClickDpcMultiplier, consumeNextClickMultiplier, getActiveEnemyDamageTakenMultiplier, registerClick]);
-
   const respawn = () => {
-    const freshMax = getEventBossMaxHp(boss, getHeroDpc() + totalEquippedDps);
+    const freshMax = getEventBossMaxHp(boss, totalEquippedDps);
     setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrop(null); setKills(k => k + 1);
   };
 
@@ -319,7 +286,6 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
       </div>
 
       <div style={{ position:'relative', flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 24px', gap:24, overflow:'hidden' }}>
-        {isBlocked && <ApologyOverlayEvent strikeLevel={strikeLevel} detectionReason={detectionReason} onSubmit={submitApology} />}
         <div style={{ width:'100%', maxWidth:600 }}>
           <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
             <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13, color:'white' }}>{boss.name}</span>
@@ -329,14 +295,13 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
             <div style={{ height:'100%', width:`${hpPct}%`, background:`linear-gradient(90deg,${hpColor}aa,${hpColor})`, borderRadius:8, transition:'width 0.3s ease', boxShadow:`0 0 12px ${hpColor}66` }} />
           </div>
         </div>
-        <div onClick={handleClick} style={{ position:'relative', cursor:dead?'default':'crosshair', userSelect:'none', filter: hit?'brightness(2) saturate(0)':dead?'grayscale(1) brightness(0.3)':'none', transition:'filter 0.1s' }}>
+        <div style={{ position:'relative', userSelect:'none', filter: dead?'grayscale(1) brightness(0.3)':'none', transition:'filter 0.1s' }}>
           <BossSprite boss={boss} deadStyle={dead} />
           {dmgs.map(d => (
             <div key={d.id} style={{ position:'absolute', left:d.x, top:d.y, pointerEvents:'none', fontFamily:'var(--f-ui)', fontWeight:900, fontSize:d.crit?20:14, color:d.crit?'#fbbf24':'#c084fc', textShadow:d.crit?'0 0 10px #fbbf24':'0 0 6px #c084fc', animation:'floatUp 0.8s ease forwards', whiteSpace:'nowrap', zIndex:10 }}>
               {d.crit ? '⚡ ' : ''}{formatNumber(d.val)}
             </div>
           ))}
-          {hit && <div style={{ position:'absolute', inset:0, borderRadius:16, background:'rgba(255,0,0,0.3)', pointerEvents:'none' }} />}
           {dead && (
             <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8 }}>
               <div style={{ fontFamily:'var(--f-title)', fontWeight:900, fontSize:22, color:'#c084fc', textShadow:'0 0 20px #c084fc', letterSpacing:2 }}>VAINCU</div>
@@ -344,7 +309,7 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
           )}
         </div>
         {dead && !drop && <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13, color:'rgba(255,255,255,0.5)', animation:'pulse 1s infinite' }}>Calcul des récompenses...</div>}
-        {!dead && <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.3)', textAlign:'center' }}>Clique sur le boss · Tes alliés attaquent automatiquement</div>}
+        {!dead && <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.3)', textAlign:'center' }}>Tes alliés attaquent automatiquement</div>}
       </div>
 
       <div style={{ position:'relative', padding:'10px 24px 14px', borderTop:'1px solid rgba(255,255,255,0.05)', background:'rgba(0,0,0,0.3)', flexShrink:0 }}>

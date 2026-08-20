@@ -16,32 +16,18 @@ interface UltState {
   activeUlts: ActiveUlt[];               // effets en cours
   animating:  string | null;             // templateId en cours d'animation
 
-  // Etat des effets "par clic"
-  clickStacks:                Record<string, number>; // stackPerClickPct : nb de stacks accumulés
-  comboMultipliers:            Record<string, number>; // comboGrowthPct : multiplicateur courant
-  pendingNextClickMultiplier:  number;                  // nextClickMultiplier en attente (1 = aucun)
-
   startCooldown: (templateId: string, duration: number) => void;
   activateUlt:   (templateId: string, formIndex: number, equippedTeam?: (string | null)[]) => void;
   tick:          () => void;
 
-  // Hooks "par clic" — appelés depuis gameStore.clickEnemy()
-  registerClick:              () => void;
-  consumeNextClickMultiplier: () => number;
-  rollClickCoinBursts:        () => number;
-
   // Sélecteurs de combat — utilisés par gameStore pour calculer les dégâts réels
-  getClickDpcMultiplier:               () => number;
   getDpsMultiplierFor:                 (templateId: string) => number;
   getActiveCritChance:                 () => number | null;
   getActiveEnemyDamageTakenMultiplier: () => number;
-  getActiveBonusDpsFlat:               (heroDpc: number, teamDps: number) => number;
+  getActiveBonusDpsFlat:               (teamDps: number) => number;
   getActiveDamageToCoinPct:            () => number;
   resetUltimates: () => void;
 }
-
-const STACK_CAP = 30;   // plafond de stacks (stackPerClickPct)
-const COMBO_CAP = 50;   // plafond multiplicateur (comboGrowthPct) — sécurité anti-explosion numérique
 
 export const useUltimateStore = create<UltState>()(
   persist(
@@ -49,14 +35,10 @@ export const useUltimateStore = create<UltState>()(
   cooldowns:  {},
   activeUlts: [],
   animating:  null,
-  clickStacks: {},
-  comboMultipliers: {},
-  pendingNextClickMultiplier: 1,
 
   // Remet les cooldowns/effets à zéro (utilisé par "Réinitialiser mon compte").
   resetUltimates: () => set({
     cooldowns: {}, activeUlts: [], animating: null,
-    clickStacks: {}, comboMultipliers: {}, pendingNextClickMultiplier: 1,
   }),
 
   startCooldown: (id, dur) =>
@@ -69,14 +51,8 @@ export const useUltimateStore = create<UltState>()(
     const eff = def.effect;
 
     // ── 1 SEULE ULT ACTIVE À LA FOIS : on annule l'ult en cours ──────────
-    const currentActive = get().activeUlts[0];
-    if (currentActive) {
-      const prevId = currentActive.templateId;
-      set(s => {
-        const cs = { ...s.clickStacks }; delete cs[prevId];
-        const cm = { ...s.comboMultipliers }; delete cm[prevId];
-        return { activeUlts: [], clickStacks: cs, comboMultipliers: cm };
-      });
+    if (get().activeUlts[0]) {
+      set({ activeUlts: [] });
     }
 
     set(() => ({ animating: templateId }));
@@ -98,28 +74,16 @@ export const useUltimateStore = create<UltState>()(
         if (bestId) newCooldowns[bestId] = 0;
       }
 
-      const clickStacks = { ...s.clickStacks };
-      const comboMultipliers = { ...s.comboMultipliers };
-      if (eff.stackPerClickPct) clickStacks[templateId] = 0;
-      if (eff.comboGrowthPct)   comboMultipliers[templateId] = 1;
-
       return {
         cooldowns: newCooldowns,
-        clickStacks, comboMultipliers,
-        pendingNextClickMultiplier: eff.nextClickMultiplier ?? s.pendingNextClickMultiplier,
         activeUlts: [{ templateId, formIndex, endsAt: now + def.duration * 1000, effect: eff }],
       };
     });
 
     setTimeout(() => {
-      set(s => {
-        const cs = { ...s.clickStacks }; delete cs[templateId];
-        const cm = { ...s.comboMultipliers }; delete cm[templateId];
-        return {
-          activeUlts: s.activeUlts.filter(a => a.templateId !== templateId),
-          clickStacks: cs, comboMultipliers: cm,
-        };
-      });
+      set(s => ({
+        activeUlts: s.activeUlts.filter(a => a.templateId !== templateId),
+      }));
     }, def.duration * 1000);
   },
 
@@ -130,45 +94,6 @@ export const useUltimateStore = create<UltState>()(
     const activeUlts = s.activeUlts.filter(a => a.endsAt > now);
     return { cooldowns: newCds, activeUlts };
   }),
-
-  registerClick: () => set(s => {
-    const clickStacks = { ...s.clickStacks };
-    const comboMultipliers = { ...s.comboMultipliers };
-    for (const a of s.activeUlts) {
-      if (a.effect.stackPerClickPct) clickStacks[a.templateId] = Math.min((clickStacks[a.templateId] ?? 0) + 1, STACK_CAP);
-      if (a.effect.comboGrowthPct) {
-        const cur = comboMultipliers[a.templateId] ?? 1;
-        comboMultipliers[a.templateId] = Math.min(cur * (1 + a.effect.comboGrowthPct / 100), COMBO_CAP);
-      }
-    }
-    return { clickStacks, comboMultipliers };
-  }),
-
-  consumeNextClickMultiplier: () => {
-    const val = get().pendingNextClickMultiplier;
-    if (val !== 1) set({ pendingNextClickMultiplier: 1 });
-    return val;
-  },
-
-  rollClickCoinBursts: () => {
-    let total = 0;
-    for (const a of get().activeUlts) {
-      const b = a.effect.chancePerClickCoinBurst;
-      if (b && Math.random() * 100 < b.chancePct) total += b.coinFlat;
-    }
-    return total;
-  },
-
-  getClickDpcMultiplier: () => {
-    const { activeUlts, clickStacks, comboMultipliers } = get();
-    let mult = 1;
-    for (const a of activeUlts) {
-      if (a.effect.dpcMultiplier) mult *= a.effect.dpcMultiplier;
-      if (a.effect.stackPerClickPct) mult *= 1 + ((clickStacks[a.templateId] ?? 0) * a.effect.stackPerClickPct / 100);
-      if (a.effect.comboGrowthPct)   mult *= comboMultipliers[a.templateId] ?? 1;
-    }
-    return mult;
-  },
 
   getDpsMultiplierFor: (templateId) => {
     let mult = 1;
@@ -190,14 +115,12 @@ export const useUltimateStore = create<UltState>()(
   getActiveEnemyDamageTakenMultiplier: () =>
     get().activeUlts.reduce((m, a) => a.effect.enemyDamageTakenBonusPct ? m * (1 + a.effect.enemyDamageTakenBonusPct / 100) : m, 1),
 
-  getActiveBonusDpsFlat: (heroDpc, teamDps) => {
+  getActiveBonusDpsFlat: (teamDps) => {
     let bonus = 0;
     for (const a of get().activeUlts) {
-      if (a.effect.poisonDpsPctOfDpc) bonus += heroDpc * (a.effect.poisonDpsPctOfDpc / 100);
       if (a.effect.autoStrikes) {
-        const { perSecond, source, value } = a.effect.autoStrikes;
-        const perStrike = source === 'dpc' ? heroDpc * value : teamDps * (value / 100);
-        bonus += perSecond * perStrike;
+        const { perSecond, value } = a.effect.autoStrikes;
+        bonus += perSecond * teamDps * (value / 100);
       }
     }
     return bonus;

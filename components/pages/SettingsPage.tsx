@@ -8,7 +8,7 @@ import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 
 export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<boolean> }) {
-  const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, clickUpgradeLevel, musicVolume, musicMuted, setMusicVolume, toggleMusicMuted, username, setUsername } = useGameStore();
+  const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, musicVolume, musicMuted, setMusicVolume, toggleMusicMuted, username, setUsername } = useGameStore();
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
@@ -116,7 +116,6 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
     'Vague actuelle':     String(wave),
     'Palier max atteint': String(maxPalierReached),
     'Alliés obtenus':     String(Object.keys(collection).length),
-    'Niveau upgrade clic':String(clickUpgradeLevel),
   };
 
   return (

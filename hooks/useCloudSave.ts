@@ -31,8 +31,6 @@ function getSerializableState() {
     palier:             s.palier,
     maxPalierReached:   s.maxPalierReached,
     currentEnemy:       s.currentEnemy,
-    baseDpc:            s.baseDpc,
-    clickUpgradeLevel:  s.clickUpgradeLevel,
     goldUpgradeLevel:   s.goldUpgradeLevel ?? 0,
     equippedTeam:       s.equippedTeam,
     collection:         s.collection,

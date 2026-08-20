@@ -24,7 +24,6 @@ interface PrestigeStore {
   getShopBonuses: () => ActivePrestigeBonuses;
   getTotalDpsMult:  () => number;  // passif + shop
   getTotalCoinsMult:() => number;
-  getTotalDpcMult:  () => number;
   getStartGems:     () => number;
   getStartPalier:   () => number;
   getUpgradeDiscount: () => number;
@@ -89,7 +88,6 @@ export const usePrestigeStore = create<PrestigeStore>()(
         return passive * get().getShopBonuses().coinsMult;
       },
 
-      getTotalDpcMult:      () => get().getShopBonuses().dpcMult,
       getStartGems:         () => get().getShopBonuses().startGems,
       getStartPalier:       () => get().getShopBonuses().startPalier,
       getUpgradeDiscount:   () => get().getShopBonuses().upgradeDiscount,
@@ -113,7 +111,7 @@ export const usePrestigeStore = create<PrestigeStore>()(
 let _pbLevel = -1;
 let _pbPurchased: unknown = null;
 let _pbValue: {
-  dpsMult: number; dpcMult: number; coinsMult: number;
+  dpsMult: number; coinsMult: number;
   startGems: number; startPalier: number; upgradeDiscount: number;
 } | null = null;
 
@@ -123,7 +121,6 @@ export function getPrestigeBonuses() {
 
   _pbValue = {
     dpsMult:          s.getTotalDpsMult(),
-    dpcMult:          s.getTotalDpcMult(),
     coinsMult:        s.getTotalCoinsMult(),
     startGems:        s.getStartGems(),
     startPalier:      s.getStartPalier(),

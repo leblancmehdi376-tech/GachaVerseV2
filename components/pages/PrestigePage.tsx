@@ -73,7 +73,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel }: {
 }
 
 export function PrestigePage() {
-  const { level, points, purchased, buyUpgrade, canPrestige, getTotalDpsMult, getTotalCoinsMult, getTotalDpcMult, getUpgradeDiscount, getStartGems, getStartPalier } = usePrestigeStore();
+  const { level, points, purchased, buyUpgrade, canPrestige, getTotalDpsMult, getTotalCoinsMult, getUpgradeDiscount, getStartGems, getStartPalier } = usePrestigeStore();
   const { maxPalierReached, doPrestige } = useGameStore();
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -88,7 +88,6 @@ export function PrestigePage() {
     { label:'Niveau de Prestige',    val:`⭐ ${level}`,                              color:'var(--purple-glow)' },
     { label:'Points disponibles',    val:`${points} pts`,                            color:'#fbbf24'            },
     { label:'Bonus DPS total',       val:`×${getTotalDpsMult().toFixed(2)}`,         color:'var(--green)'       },
-    { label:'Bonus DPC total',       val:`×${getTotalDpcMult().toFixed(2)}`,         color:'#fb923c'            },
     { label:'Bonus coins total',     val:`×${getTotalCoinsMult().toFixed(2)}`,       color:'var(--gold)'        },
     { label:'Gemmes de départ',      val:`+${getStartGems()} 💎`,                    color:'var(--cyan-hi)'     },
     { label:'Palier de départ',      val:`Palier ${getStartPalier()}`,               color:'#c084fc'            },

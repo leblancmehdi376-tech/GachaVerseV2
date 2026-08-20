@@ -118,8 +118,8 @@ export function rollEventDrop(bossId: string): DropResult {
 
 // ── Calibrage de la difficulté ──────────────────────────────────────────
 // Le boss est dimensionné par rapport à la puissance ACTUELLE du joueur
-// (DPC + DPS d'équipe), pas par un chiffre fixe — ça reste équilibré même
-// si l'économie du jeu (DPC, ultimates...) est rééquilibrée plus tard.
+// (DPS d'équipe), pas par un chiffre fixe — ça reste équilibré même
+// si l'économie du jeu (ultimates...) est rééquilibrée plus tard.
 const FIGHT_TARGET_SECONDS = 240;       // durée visée d'un combat via DPS passif seul (~4 min) pour un joueur déjà puissant
 const MIN_POWER_FLOOR      = 50;        // évite un calcul à 0 pour un joueur sans équipe
 const MINIMUM_BOSS_HP      = 800_000;   // plancher absolu — même un joueur tout frais doit affronter un vrai combat

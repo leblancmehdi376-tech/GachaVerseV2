@@ -3,14 +3,12 @@ import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 
 export function UpgradesPanel() {
-  const { getHeroDpc, getTotalDps, pixelCoins } = useGameStore();
-  const dpc = getHeroDpc();
+  const { getTotalDps, pixelCoins } = useGameStore();
   const dps = getTotalDps();
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'6px', height:'100%' }}>
       {[
-        { icon:'⚡', label:'Dégâts de Clic', sub:'Héros — voir Améliorations', val: formatNumber(dpc) },
         { icon:'🔥', label:'DPS Passif',     sub:'Alliés équipés',             val: formatNumber(dps) },
       ].map(r => (
         <div key={r.label} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 10px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'6px' }}>

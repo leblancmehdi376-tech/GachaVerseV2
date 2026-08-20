@@ -62,7 +62,6 @@ export const useRandomEventStore = create<RandomEventState>((set, get) => ({
       // programmée n'avance pas — l'event tombera juste après la fin du boss.
       if (bossReached()) { st.endForBoss(); return; }
       if (st.active) return;                         // un event est déjà en cours
-      if (useGameStore.getState().gamePaused) return;
       if (Date.now() < st.nextEventAt) return;        // pas encore l'heure
 
       const roll = Math.random();

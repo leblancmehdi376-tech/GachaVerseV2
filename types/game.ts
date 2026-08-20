@@ -152,36 +152,6 @@ export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): numb
   return prevDps;
 }
 
-export function calcHeroDpc(hero: HeroState, forms: EvoForm[], baseClick: number): number {
-  const formMult  = hero.currentForm + 1;
-  // +2.5% par niveau au lieu de 1.5% — rend le héros plus utile à haut niveau
-  const levelMult = 1 + (hero.level - 1) * 0.025;
-  // Palier tous les 100 niveaux : ARRONDI(niveau/100)+1
-  const tierMult  = Math.round(hero.level / 100) + 1;
-  return Math.floor(baseClick * formMult * levelMult * tierMult);
-}
-
-// ── Griffes Aiguisées : courbe DPC & coûts centralisés ───────────────────
-/**
- * DPC de base selon le niveau de l'upgrade "Griffes Aiguisées".
- * Courbe puissance (exposant 1.75, base +2) :
- *   lv 0 → 3   lv 5 → 30   lv 10 → 77   lv 20 → 223   lv 50 → 1007
- * Nettement plus puissant tôt, suit mieux la montée des HP ennemis.
- */
-export function calcBaseDpc(level: number): number {
-  return Math.max(1, Math.round(Math.pow(level + 2, 1.75)));
-}
-
-/**
- * Coût en PixelCoins pour acheter le prochain niveau de DPC.
- * Courbe 60 × 1.38^level — moins punitive (était 80 × 1.5^level) :
- *   lv 0 → 60   lv 5 → 300   lv 10 → 1 502   lv 20 → 37 647   lv 50 → 591M
- */
-export function calcClickUpgradeCost(level: number): number {
-  // Augmenté : base plus élevée et croissance légèrement augmentée
-  return Math.floor(90 * Math.pow(1.45, level));
-}
-
 // ── Coûts de niveau ───────────────────────────────────────────────────────
 // Excel : =ARRONDI(H$1*H$2^(E5-1))  —  H$1 = base (60), H$2 = pow (1.05), E5 = niveau.
 // Coût identique pour toutes les raretés (ne dépend que du niveau).
@@ -270,7 +240,7 @@ export interface GameState {
   pixelCoins: number; nekoGems: number; totalClicks: number;
   totalKills: number; totalQuestsCompleted: number; totalUpgradesPerformed: number; totalGachaPulls: number; totalBossKills: number; totalGemsSpent: number;
   wave: number; palier: number; maxPalierReached: number;
-  currentEnemy: Enemy; baseDpc: number; clickUpgradeLevel: number;
+  currentEnemy: Enemy;
   equippedTeam: (string | null)[];
   goldUpgradeLevel: number;
   collection: Record<string, OwnedCharacter>;

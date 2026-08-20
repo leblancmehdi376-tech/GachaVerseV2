@@ -3,8 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
-  calcCharDps, calcHeroDpc, xpToNextLevel, levelUpCost, heroLevelUpCost,
-  calcBaseDpc, calcClickUpgradeCost,
+  calcCharDps, xpToNextLevel, levelUpCost, heroLevelUpCost,
   evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG, Rarity, getNextRarity,
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
@@ -123,12 +122,6 @@ export const MOB_GEM_DROP_CHANCE = 0.005;  // 0.5% de chance de looter 1 gemme b
 // Taux de drop d'équipement en mode farm (palier < maxPalierReached) : ×0.25 = 4× plus lent.
 export const FARM_EQUIP_DROP_RATE = 0.25;
 
-// Cooldown anti-spam entre deux mobs : après un clic qui TUE un ennemi, les clics
-// suivants sont ignorés pendant ce court délai (évite qu'un très gros CPS enchaîne
-// 15-20 mobs/seconde sur un palier bas et fasse buguer le spawn).
-const SPAWN_COOLDOWN_MS = 80;
-let clickSpawnLockUntil = 0;
-
 // Idle : plancher de DPS pour qu'un joueur SANS compagnon progresse quand même
 // (lentement) en début de partie. Exprimé en fraction des PV de l'ennemi courant
 // → temps de kill ~constant, mais trop faible pour battre un boss dans les temps.
@@ -155,12 +148,6 @@ export interface OfflineGain {
   capped: boolean;    // true si l'absence a dépassé le plafond
   at: number;         // timestamp du calcul
 }
-
-// Critique de base (hors ultimates) — Canarticho/The Dress peuvent le surcharger temporairement
-const BASE_CRIT_CHANCE  = 0.08;
-const CRIT_DAMAGE_BONUS = 0.5; // +50% de dégâts sur un coup critique
-
-export interface ClickResult { dmg: number; crit: boolean; }
 
 interface GameStore extends GameState {
   quests: Quest[];
@@ -230,15 +217,11 @@ interface GameStore extends GameState {
   starterPackClaimed: boolean;
   isStarterPackAvailable: () => boolean;
   claimStarterPack: () => { templateId: string; edition: CardEdition } | null;
-  // Pause (anti-autoclick)
-  gamePaused: boolean;
-  setGamePaused: (v: boolean) => void;
   // Timestamp de la dernière sauvegarde locale (anti-rollback)
   savedAt: number;
   // Flag to temporarily suppress toasts/notifications during state restore
   suppressToasts: boolean;
   // Combat
-  clickEnemy: () => ClickResult;
   retreatFromBoss: () => void;
   challengeBoss: () => void;
   travelToPalier: (palier: number) => void;
@@ -250,9 +233,6 @@ interface GameStore extends GameState {
   // Héros
   levelUpHero: () => void;
   evolveHero: () => void;
-  getHeroDpc: () => number;
-  getClickUpgradeCost: () => number;
-  upgradeClick: () => void;
   upgradeGold: () => void;
   getGoldMultiplier: () => number;
   getGoldUpgradeCost: () => number;
@@ -308,7 +288,7 @@ const makeInitial = () => ({
   totalKills: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0, totalGachaPulls: 0, totalBossKills: 0, totalGemsSpent: 0,
   wave: 1, palier: 1, maxPalierReached: 1,
   currentEnemy: generateEnemy(1, 1),
-  baseDpc: 1, clickUpgradeLevel: 0, goldUpgradeLevel: 0,
+  goldUpgradeLevel: 0,
   equippedTeam: [null, null, null, null] as (string|null)[],
   collection: {} as Record<string, OwnedCharacter>,
   hero: { level: 1, currentForm: 0, xp: 0 } as HeroState,
@@ -344,7 +324,6 @@ const makeInitial = () => ({
   collectionAffinity: 'all',
   collectionSort: 'rarity',
   starterPackClaimed: false,
-  gamePaused: false,
   savedAt: 0,
 });
 
@@ -404,53 +383,10 @@ export const useGameStore = create<GameStore>()(
         });
       },
 
-      clickEnemy: () => {
-        // Cooldown de spawn : on ignore les clics juste après un kill.
-        if (Date.now() < clickSpawnLockUntil) return { dmg: 0, crit: false };
-
-        const ult = useUltimateStore.getState();
-        ult.registerClick();
-
-        const baseDpc       = get().getHeroDpc();
-        const dpcMult        = ult.getClickDpcMultiplier();
-        const nextClickMult  = ult.consumeNextClickMultiplier();
-        const enemyMult       = ult.getActiveEnemyDamageTakenMultiplier();
-        const critChance       = ult.getActiveCritChance() ?? BASE_CRIT_CHANCE;
-        const crit              = Math.random() < critChance;
-        const critMult           = crit ? (1 + CRIT_DAMAGE_BONUS) : 1;
-
-        const finalDmg = Math.max(1, Math.floor(baseDpc * dpcMult * nextClickMult * enemyMult * critMult));
-
-        const coinBurst        = ult.rollClickCoinBursts();
-        const damageToCoinPct  = ult.getActiveDamageToCoinPct();
-        const bonusCoins       = Math.floor(finalDmg * damageToCoinPct / 100) + coinBurst;
-
-        // Ce clic va-t-il tuer l'ennemi ? (pour armer le cooldown de spawn)
-        const willKill = get().currentEnemy.currentHp - finalDmg <= 0;
-
-        set(state => {
-          const newHp  = Math.max(0, state.currentEnemy.currentHp - finalDmg);
-          const clicks = state.totalClicks + 1;
-          const quests = state.quests.map(q =>
-            q.id === 'd_clicks_1000' && !q.done ? { ...q, current: Math.min(q.current+1, q.target) } : q
-          );
-          const withCoins = bonusCoins > 0 ? { pixelCoins: state.pixelCoins + bonusCoins } : {};
-          if (newHp <= 0) {
-            return { totalClicks: clicks, quests, ...withCoins, ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], eventQuests: state.eventQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
-          }
-          return { totalClicks: clicks, quests, ...withCoins, currentEnemy: { ...state.currentEnemy, currentHp: newHp } };
-        });
-
-        if (willKill) clickSpawnLockUntil = Date.now() + SPAWN_COOLDOWN_MS;
-
-        return { dmg: finalDmg, crit };
-      },
-
       tickDps: () => {
         const ult         = useUltimateStore.getState();
-        const heroDpc      = get().getHeroDpc();
         const baseTeamDps   = get().getTotalDps(); // inclut déjà dpsMultiplier/selfDpsMultiplier par perso
-        const bonusFlat      = ult.getActiveBonusDpsFlat(heroDpc, baseTeamDps);
+        const bonusFlat      = ult.getActiveBonusDpsFlat(baseTeamDps);
         const enemyMult       = ult.getActiveEnemyDamageTakenMultiplier();
         const damageToCoinPct  = ult.getActiveDamageToCoinPct();
 
@@ -501,7 +437,6 @@ export const useGameStore = create<GameStore>()(
 
         const eff   = def.effect;
         const state = get();
-        const heroDpc   = state.getHeroDpc();
         const teamDps   = state.getTotalDps();
         const ownedSelf = state.collection[templateId];
         const tplSelf   = getCharacterById(pureId);
@@ -509,7 +444,6 @@ export const useGameStore = create<GameStore>()(
 
         // ── Dégâts instantanés (one-shot, calculés à l'activation) ────────
         let instantDmg = 0;
-        if (eff.instantClicks)           instantDmg += eff.instantClicks * heroDpc;
         if (eff.instantDamagePctSelfDps) instantDmg += selfDps * (eff.instantDamagePctSelfDps / 100);
         if (eff.instantDamagePctTeamDps) instantDmg += teamDps * (eff.instantDamagePctTeamDps / 100);
         if (eff.instantDamagePctMaxHp)   instantDmg += state.currentEnemy.maxHp * (eff.instantDamagePctMaxHp / 100);
@@ -703,43 +637,6 @@ export const useGameStore = create<GameStore>()(
           nekoGems: state.nekoGems + STARTER_PACK_REWARDS.gems,
         }));
         return { templateId, edition };
-      },
-
-      // ─── Pause (anti-autoclick) ────────────────────────────────────────
-      setGamePaused: (v: boolean) => set({ gamePaused: v }),
-
-      // ─── Héros ────────────────────────────────────────────────────────
-      getHeroDpc: () => {
-        const { hero, clickUpgradeLevel } = get();
-        // On dérive toujours le baseDpc depuis le niveau pour garantir la cohérence
-        // même pour les sauvegardes existantes.
-        const baseDpc = calcBaseDpc(clickUpgradeLevel);
-        const dpc = calcHeroDpc(hero, HERO_TEMPLATE.forms ?? [], baseDpc);
-        // Bonus de Prestige (shop "Éveil du Héros") appliqué au DPC final
-        return dpc * getPrestigeBonuses().dpcMult;
-      },
-
-      // Coût d'amélioration du clic, remise de Prestige incluse ("Fusion Parfaite").
-      // Source unique de vérité : utilisé par upgradeClick() ET l'affichage (UpgradesPage).
-      getClickUpgradeCost: () => {
-        const level = get().clickUpgradeLevel;
-        const base  = calcClickUpgradeCost(level);
-        const discount = getPrestigeBonuses().upgradeDiscount; // ex: 0.64 = -36%
-        return Math.max(1, Math.ceil(base * discount));
-      },
-
-      upgradeClick: () => {
-        const level = get().clickUpgradeLevel;
-        const cost  = get().getClickUpgradeCost(); // formule centralisée = même valeur que l'UI
-        if (!get().spendPixelCoins(cost)) return;
-        const newLevel = level + 1;
-        set(state => ({
-          clickUpgradeLevel: newLevel,
-          baseDpc: calcBaseDpc(newLevel), // courbe puissance, stocké pour les sauvegardes
-        }));
-        get().bumpQuestProgress('d_upgrade_10', 1);
-        get().bumpQuestProgress('w_upgrade_50', 1);
-        set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
       },
 
       upgradeGold: () => {
@@ -1268,8 +1165,6 @@ export const useGameStore = create<GameStore>()(
           pixelCoins:        0,
           wave:              1,
           palier:            startPalier,
-          baseDpc:           calcBaseDpc(0),
-          clickUpgradeLevel: 0,
           goldUpgradeLevel:  0,
           hero:              { level: 1, currentForm: 0, xp: 0 },
           currentEnemy:      generateEnemy(1, startPalier, state.maxPalierReached),
@@ -1400,7 +1295,7 @@ export const useGameStore = create<GameStore>()(
         pixelCoins:s.pixelCoins, nekoGems:s.nekoGems, totalClicks:s.totalClicks,
         totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0, totalGemsSpent:s.totalGemsSpent ?? 0,
         wave:s.wave, palier:s.palier, maxPalierReached:s.maxPalierReached,
-        currentEnemy:s.currentEnemy, baseDpc:s.baseDpc, clickUpgradeLevel:s.clickUpgradeLevel,
+        currentEnemy:s.currentEnemy,
         equippedTeam:s.equippedTeam, collection:s.collection, hero:s.hero, goldUpgradeLevel:s.goldUpgradeLevel ?? 0,
         bossActive:s.bossActive, bossTimeLeft:s.bossTimeLeft,
         quests:s.quests, questsDayKey:s.questsDayKey,
@@ -1459,7 +1354,7 @@ function bumpCoinQuests(quests: Quest[], weeklyQuests: Quest[], amount: number):
 
 function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & QuestState> {
   // Garde-fou : ne résout la mort que si currentEnemy.currentHp <= 0 a bien été
-  // appliqué par l'appelant (voir clickEnemy/tickDps/activateCharacterUltimate,
+  // appliqué par l'appelant (voir tickDps/activateCharacterUltimate,
   // qui fusionnent { currentHp: newHp } avant d'appeler cette fonction).
   if (state.currentEnemy.currentHp > 0) return {};
 

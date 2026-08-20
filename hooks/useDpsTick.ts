@@ -8,15 +8,13 @@ export function useDpsTick() {
   const tickBossTimer = useGameStore(s => s.tickBossTimer);
   const bossActive    = useGameStore(s => s.bossActive);
   const tickUlt       = useUltimateStore(s => s.tick);
-  const gamePaused    = useGameStore(s => s.gamePaused);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (gamePaused) return; // ⏸ Anti-autoclick : jeu en pause
       tickDps();
       if (bossActive) tickBossTimer();
       tickUlt();
     }, 1000);
     return () => clearInterval(interval);
-  }, [tickDps, tickBossTimer, bossActive, tickUlt, gamePaused]);
+  }, [tickDps, tickBossTimer, bossActive, tickUlt]);
 }

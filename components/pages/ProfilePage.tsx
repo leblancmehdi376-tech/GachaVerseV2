@@ -15,7 +15,7 @@ export function ProfilePage() {
   const { activeTitle, unlockedCount, unlockedTitles } = useAchievementStore();
   const {
     username, pixelCoins, nekoGems, totalClicks, palier, maxPalierReached,
-    bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps, getHeroDpc,
+    bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps,
   } = store;
 
   const cfg = getPalierConfig(palier);
@@ -25,7 +25,6 @@ export function ProfilePage() {
     CHARACTER_POOL.filter(c => !!collection[c.id]), [collection]);
 
   const totalDps = getTotalDps();
-  const heroDpc  = getHeroDpc();
 
   const rarityBreakdown = useMemo(() => {
     const counts: Partial<Record<Rarity, number>> = {};
@@ -54,7 +53,6 @@ export function ProfilePage() {
     { label:'TOTAL CLICS',        val: formatNumber(totalClicks),       color:'#fb923c',            num:true  },
     { label:'BOSS VAINCUS',       val: String(bossCrowns),              color:'#fbbf24',            num:true  },
     { label:'DPS TOTAL',          val: formatNumber(totalDps) + '/s',   color:'var(--green)',       num:true  },
-    { label:'DPC HÉROS',          val: formatNumber(heroDpc),           color:'#fb923c',            num:true  },
     { label:'PIXEL-COINS',        val: formatNumber(pixelCoins),        color:'var(--gold)',        num:true  },
     { label:'NEKO-GEMMES',        val: formatNumber(nekoGems),          color:'var(--cyan-hi)',     num:true  },
     { label:'BOSS CROWNS',        val: String(bossCrowns),              color:'#fbbf24',            num:true  },

@@ -8,18 +8,12 @@ export interface PrestigeUpgrade {
   cost:        number;   // Points de prestige
   maxLevel:    number;   // 1 = unique, N = empilable
   effect: {
-    type:  'dpc' | 'dps' | 'coins' | 'startGems' | 'startPalier' | 'upgradeDiscount';
+    type:  'dps' | 'coins' | 'startGems' | 'startPalier' | 'upgradeDiscount';
     value: number;  // multiplicateur ou bonus flat
   };
 }
 
 export const PRESTIGE_UPGRADES: PrestigeUpgrade[] = [
-  {
-    id:'dpc_boost', name:'Éveil du Héros', icon:'⚡',
-    description:'Augmente ton DPC de base de +25% de façon permanente, même après chaque prestige.',
-    cost:2, maxLevel:5,
-    effect:{ type:'dpc', value:1.25 },
-  },
   {
     id:'coins_boost', name:'Fortune Ancestrale', icon:'🪙',
     description:'+30% de coins gagnés par ennemi vaincu, pour toujours.',
@@ -53,7 +47,6 @@ export const PRESTIGE_UPGRADES: PrestigeUpgrade[] = [
 ];
 
 export interface ActivePrestigeBonuses {
-  dpcMult:         number;  // ex: 1.5 = +50%
   dpsMult:         number;
   coinsMult:       number;
   startGems:       number;
@@ -64,7 +57,6 @@ export interface ActivePrestigeBonuses {
 export function calcPrestigeBonuses(
   purchased: Record<string, number>  // id → level acheté
 ): ActivePrestigeBonuses {
-  let dpcMult         = 1;
   let dpsMult         = 1;
   let coinsMult       = 1;
   let startGems       = 0;
@@ -75,7 +67,6 @@ export function calcPrestigeBonuses(
     const level = purchased[upg.id] ?? 0;
     if (level <= 0) continue;
     const { type, value } = upg.effect;
-    if (type === 'dpc')             dpcMult         *= Math.pow(value, level);
     if (type === 'dps')             dpsMult         *= Math.pow(value, level);
     if (type === 'coins')           coinsMult       *= Math.pow(value, level);
     if (type === 'startGems')       startGems       += value * level;
@@ -83,7 +74,7 @@ export function calcPrestigeBonuses(
     if (type === 'upgradeDiscount') upgradeDiscount *= Math.pow(value, level);
   }
 
-  return { dpcMult, dpsMult, coinsMult, startGems, startPalier, upgradeDiscount };
+  return { dpsMult, coinsMult, startGems, startPalier, upgradeDiscount };
 }
 
 // Bonus DPS passif par niveau de prestige (en plus du shop)
