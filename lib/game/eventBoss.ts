@@ -49,6 +49,7 @@ export const SHADOW_MONARCH_BOSS: EventBossDef = {
   bgGradient:  'linear-gradient(180deg,#0a0014,#05000a)',
   accentColor: '#c084fc',
   availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
+  targetSeconds: 300,
   characterId: 'jinwoo',
   coinItemId:  'coin_jinwoo',
   buyCost:     100,
@@ -65,10 +66,10 @@ export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
   bgGradient:  'linear-gradient(180deg,#071b2a,#081115)',
   accentColor: '#fbbf24',
   availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
-  targetSeconds: 300,
+  targetSeconds: 420,
   characterId: 'arthur_leywin',
   coinItemId:  'coin_arthur_leywin',
-  buyCost:     200,
+  buyCost:     300,
   dropTable: buildEventDropTable(['cristal_ether', 'epee_ether', 'sylvia']),
 };
 
@@ -82,10 +83,10 @@ export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   bgGradient:  'linear-gradient(180deg,#100a24,#05030d)',
   accentColor: '#a78bfa',
   availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
-  targetSeconds: 300,
+  targetSeconds: 360,
   characterId: 'cid_kagenou',
   coinItemId:  'coin_cid_kagenou',
-  buyCost:     300,
+  buyCost:     200,
   dropTable: buildEventDropTable(['masque_cid', 'epee_slime', 'slime_eminence']),
 };
 
@@ -117,7 +118,7 @@ export function rollEventDrop(bossId: string): DropResult[] {
 // Le boss est dimensionné par rapport à la puissance ACTUELLE du joueur
 // (DPS d'équipe), pas par un chiffre fixe — ça reste équilibré même
 // si l'économie du jeu (ultimates...) est rééquilibrée plus tard.
-const FIGHT_TARGET_SECONDS = 240;       // durée visée d'un combat via DPS passif seul (~4 min) pour un joueur déjà puissant
+const FIGHT_TARGET_SECONDS = 300;       // durée visée d'un combat via DPS passif seul (~4 min) pour un joueur déjà puissant
 const MIN_POWER_FLOOR      = 50;        // évite un calcul à 0 pour un joueur sans équipe
 
 export function getEventBossMaxHp(boss: EventBossDef, currentPower: number): number {

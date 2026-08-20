@@ -13,11 +13,11 @@ type Symbol = {
 };
 
 const SYMBOLS: Symbol[] = [
-  { key:'seven',  icon:'7️⃣', label:'JACKPOT 777', weight: 1,  coinMult: 500, gems: 150, crowns: 5 },
+  { key:'seven',  icon:'7️⃣', label:'JACKPOT 777', weight: 1,  coinMult: 40, gems: 150, crowns: 5 },
   { key:'gem',    icon:'💎', label:'Gemmes',       weight: 4,  gems: 100 },
   { key:'crown',  icon:'👑', label:'Couronne',     weight: 3,  crowns: 10 },
-  { key:'coin',   icon:'🪙', label:'Pièces',       weight: 6,  coinMult: 100 },
-  { key:'clover', icon:'🍀', label:'Trèfle',       weight: 5,  coinMult: 85, gems: 10 },
+  { key:'coin',   icon:'🪙', label:'Pièces',       weight: 6,  coinMult: 10 },
+  { key:'clover', icon:'🍀', label:'Trèfle',       weight: 5,  coinMult: 8, gems: 10 },
   { key:'bomb',   icon:'💀', label:'Malus',        weight: 3,  malusDivide: 3 },
   // Très rare (~5% des triples, ~2,25% de tous les tirages) — vide TOUS les
   // Pixel-Coins du joueur. Poids calculé pour tomber pile sur 5% du pool.
