@@ -23,20 +23,20 @@ export function defaultEquippedItems(): EquippedItems {
 }
 
 export const RARITY_CONFIG: Record<Rarity, {
-  label: string; color: string; glow: string; chance: number; dpsMultiplier: number;
+  label: string; color: string; glow: string; dpsMultiplier: number;
 }> = {
   // dpsMultiplier = base de croissance par niveau (Math.pow(base, level-1) dans calcCharDps),
   // pas un multiplicateur plat : 1.024 + 0.001 par palier de rareté.
-  C:  { label:'Commun',      color:'#9ca3af', glow:'#9ca3af', chance:50.0, dpsMultiplier:1.024, },
-  U:  { label:'Uncommun',    color:'#86efac', glow:'#22c55e', chance:20.0, dpsMultiplier:1.025, },
-  R:  { label:'Rare',        color:'#60a5fa', glow:'#3b82f6', chance:12.5, dpsMultiplier:1.026, },
-  E:  { label:'Épique',      color:'#c084fc', glow:'#a855f7', chance:8.0,  dpsMultiplier:1.027, },
-  L:  { label:'Légendaire',  color:'#fbbf24', glow:'#f59e0b', chance:4.5,  dpsMultiplier:1.028, },
-  M:  { label:'Mythique',    color:'#f87171', glow:'#ef4444', chance:2.5,  dpsMultiplier:1.029, },
-  S:  { label:'Stellaire',   color:'#ffffff', glow:'#fbbf24', chance:1.2,  dpsMultiplier:1.030, },
-  CO: { label:'Cosmique',    color:'#34d399', glow:'#10b981', chance:0.8,  dpsMultiplier:1.031, },
-  P:  { label:'Primordial',  color:'#ff6b35', glow:'#ff4500', chance:0.3,  dpsMultiplier:1.032, },
-  T:  { label:'Transcendant',color:'#e879f9', glow:'#d946ef', chance:0.2,  dpsMultiplier:1.033, },
+  C:  { label:'Commun',      color:'#9ca3af', glow:'#9ca3af', dpsMultiplier:1.024, },
+  U:  { label:'Uncommun',    color:'#86efac', glow:'#22c55e', dpsMultiplier:1.025, },
+  R:  { label:'Rare',        color:'#60a5fa', glow:'#3b82f6', dpsMultiplier:1.026, },
+  E:  { label:'Épique',      color:'#c084fc', glow:'#a855f7', dpsMultiplier:1.027, },
+  L:  { label:'Légendaire',  color:'#fbbf24', glow:'#f59e0b', dpsMultiplier:1.028, },
+  M:  { label:'Mythique',    color:'#f87171', glow:'#ef4444', dpsMultiplier:1.029, },
+  S:  { label:'Stellaire',   color:'#ffffff', glow:'#fbbf24', dpsMultiplier:1.030, },
+  CO: { label:'Cosmique',    color:'#34d399', glow:'#10b981', dpsMultiplier:1.031, },
+  P:  { label:'Primordial',  color:'#ff6b35', glow:'#ff4500', dpsMultiplier:1.032, },
+  T:  { label:'Transcendant',color:'#e879f9', glow:'#d946ef', dpsMultiplier:1.033, },
 };
 
 // ── Forme d'évolution d'un personnage ─────────────────────────────────────

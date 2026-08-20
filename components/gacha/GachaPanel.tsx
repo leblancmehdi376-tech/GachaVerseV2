@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { getCharacterById } from '@/lib/game/characters';
-import { GACHA_COSTS } from '@/lib/game/gacha';
+import { GACHA_COSTS, getDynamicRates } from '@/lib/game/gacha';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 
 type Phase = 'idle' | 'video' | 'cards';
@@ -273,11 +273,12 @@ function GachaRevealOverlay({ results, onClose }: { results: PullResult[]; onClo
 
 // ── Panel principal ──────────────────────────────────────────────────────
 export function GachaMiniPanel() {
-  const { nekoGems, pullSingle, pullMulti, collection } = useGameStore();
+  const { nekoGems, pullSingle, pullMulti, collection, maxPalierReached } = useGameStore();
   const [results,  setResults]  = useState<PullResult[]>([]);
   const [pulling,  setPulling]  = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [showRate, setShowRate] = useState(false);
+  const rates = getDynamicRates(maxPalierReached);
   const canS = nekoGems >= GACHA_COSTS.single;
   const canM = nekoGems >= GACHA_COSTS.multi10;
 
@@ -356,15 +357,18 @@ export function GachaMiniPanel() {
 
         {showRate && (
           <div style={{ background:'rgba(0,0,0,0.3)', border:'1px solid var(--border)', borderRadius:'8px', padding:'10px', display:'flex', flexDirection:'column', gap:'6px' }}>
-            {(Object.entries(RARITY_CONFIG) as [Rarity, typeof RARITY_CONFIG[Rarity]][]).sort((a,b) => b[1].chance - a[1].chance).map(([r, cfg]) => (
+            {(Object.entries(rates) as [Rarity, number][]).sort((a,b) => b[1] - a[1]).map(([r, rate]) => {
+              const cfg = RARITY_CONFIG[r];
+              return (
               <div key={r} style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                 <div style={{ width:'76px', flexShrink:0 }}><RarityBadge rarity={r} size="xs" /></div>
                 <div style={{ flex:1, height:'5px', background:'rgba(255,255,255,0.05)', borderRadius:'3px', overflow:'hidden' }}>
-                  <div style={{ height:'100%', width:`${Math.min(cfg.chance,65)/65*100}%`, background:cfg.color, boxShadow:`0 0 5px ${cfg.glow}`, borderRadius:'3px' }} />
+                  <div style={{ height:'100%', width:`${Math.min(rate,65)/65*100}%`, background:cfg.color, boxShadow:`0 0 5px ${cfg.glow}`, borderRadius:'3px' }} />
                 </div>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:cfg.color, minWidth:'38px', textAlign:'right' }}>{cfg.chance}%</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:cfg.color, minWidth:'38px', textAlign:'right' }}>{rate}%</span>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
