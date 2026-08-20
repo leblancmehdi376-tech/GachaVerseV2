@@ -177,6 +177,15 @@ export function IconMedal({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconShield({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      <path d="M10 2l7 3v5c0 4.5-3 7-7 8-4-1-7-3.5-7-8V5l7-3z" />
+      <path d="M7 10l2 2 4-4" />
+    </svg>
+  );
+}
+
 export function IconGear({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
@@ -199,6 +208,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   achievements: IconAchievement,
   expeditions:  IconExpedition,
   forge:        IconForge,
+  equipment:    IconShield,
   prestige:     IconPrestige,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,

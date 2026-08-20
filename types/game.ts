@@ -39,6 +39,19 @@ export const RARITY_CONFIG: Record<Rarity, {
   T:  { label:'Transcendant',color:'#e879f9', glow:'#d946ef', dpsMultiplier:1.033, },
 };
 
+// Ordre croissant C→T, dérivé de RARITY_CONFIG (déjà ordonné dans ce sens).
+export const RARITY_ORDER_ASC = Object.keys(RARITY_CONFIG) as Rarity[];
+
+export function getNextRarity(r: Rarity): Rarity | null {
+  const i = RARITY_ORDER_ASC.indexOf(r);
+  return i >= 0 && i < RARITY_ORDER_ASC.length - 1 ? RARITY_ORDER_ASC[i + 1] : null;
+}
+
+export function getPrevRarity(r: Rarity): Rarity | null {
+  const i = RARITY_ORDER_ASC.indexOf(r);
+  return i > 0 ? RARITY_ORDER_ASC[i - 1] : null;
+}
+
 // ── Forme d'évolution d'un personnage ─────────────────────────────────────
 export interface EvoForm {
   formId:      string;
@@ -269,4 +282,5 @@ export interface GameState {
   equipmentInventory: Record<string, number>;
   championInventory:  Record<string, number>; // doublons 7★ en attente
   lastEquipmentDrop: string | null;
+  unlockedEquipDropRarities: Rarity[];
 }

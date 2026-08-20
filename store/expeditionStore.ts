@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { EXPEDITION_DEFS, CRAFT_RECIPES, RARITY_SCORE, ExpeditionDef } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { useGameStore } from '@/store/gameStore';
 import { toast } from '@/hooks/useToast';
 
@@ -80,6 +80,21 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         const gs = useGameStore.getState();
         if (gs.maxPalierReached < def.palierRequired)
           return { ok:false, reason:`Palier ${def.palierRequired} requis` };
+
+        // Déblocages d'équipement (fusion / drop) : impossible de sauter une
+        // rareté, il faut avoir terminé l'expédition de la rareté précédente.
+        if (def.unlocksEquipRarity) {
+          const prev = getPrevRarity(def.unlocksEquipRarity);
+          if (prev && !gs.unlockedEquipRarities.includes(prev)) {
+            return { ok:false, reason:`Termine d'abord l'atelier de rareté ${RARITY_CONFIG[prev].label}` };
+          }
+        }
+        if (def.unlocksEquipDropRarity) {
+          const prev = getPrevRarity(def.unlocksEquipDropRarity);
+          if (prev && !gs.unlockedEquipDropRarities.includes(prev)) {
+            return { ok:false, reason:`Termine d'abord la chasse de rareté ${RARITY_CONFIG[prev].label}` };
+          }
+        }
 
         if (characterIds.length < 1)
           return { ok:false, reason:'Sélectionne au moins 1 personnage' };
@@ -182,10 +197,22 @@ export const useExpeditionStore = create<ExpeditionStore>()(
           active: s.active.filter(e => e.id !== instanceId),
         }));
 
+        // Déblocage de la fusion et/ou du drop d'équipement pour cette rareté
+        // (voir EQUIP_UNLOCK_EXPEDITIONS / EQUIP_DROP_UNLOCK_EXPEDITIONS dans
+        // lib/game/expeditions.ts).
+        if (def.unlocksEquipRarity) {
+          useGameStore.getState().unlockEquipRarity(def.unlocksEquipRarity);
+        }
+        if (def.unlocksEquipDropRarity) {
+          useGameStore.getState().unlockEquipDropRarity(def.unlocksEquipDropRarity);
+        }
+
         // Toast de résultat
         const parts = [`🪙 +${(coins / 1_000_000).toFixed(1)}M`];
         if (gems > 0)       parts.push(`💎 +${gems}`);
         if (dropGained > 0) parts.push(`${dropGained > 0 ? '✦ ' : ''}+${dropGained} drop`);
+        if (def.unlocksEquipRarity)     parts.push(`🔓 Fusion ${RARITY_CONFIG[def.unlocksEquipRarity].label} débloquée`);
+        if (def.unlocksEquipDropRarity) parts.push(`🔓 Drop ${RARITY_CONFIG[def.unlocksEquipDropRarity].label} débloqué`);
         toast.loot(`${def.icon} ${def.name} terminée !`, parts.join('  '));
       },
 

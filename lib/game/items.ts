@@ -476,15 +476,46 @@ export function getEquipmentForSlot(slot: EquipmentDef['slot']): EquipmentDef[] 
   return Object.values(EQUIPMENT_DEFS).filter(item => item.slot === slot);
 }
 
+// Tous les objets d'un slot+rareté donnés (générique + variantes personnalisées
+// "bonusFor" le cas échéant). Sert à la fois de pool de fodder et de pool de
+// sortie pour la fusion d'équipement (upgradeEquipment dans gameStore.ts).
+export function getEquipmentGroup(slot: EquipmentDef['slot'], rarity: string): EquipmentDef[] {
+  return Object.values(EQUIPMENT_DEFS).filter(item => item.slot === slot && item.rarity === rarity);
+}
+
+// Tirage pondéré du résultat d'une fusion d'équipement (10 → 1 rareté sup.) :
+// l'objet générique (sans bonusFor) est nettement plus probable que chaque
+// variante personnalisée liée à un perso précis.
+const UPGRADE_GENERIC_WEIGHT = 6;
+const UPGRADE_PERSONALIZED_WEIGHT = 1;
+
+export function pickEquipmentUpgradeOutput(slot: EquipmentDef['slot'], nextRarity: string): EquipmentDef | null {
+  const pool = getEquipmentGroup(slot, nextRarity);
+  if (pool.length === 0) return null;
+  const weighted = pool.map(item => ({ item, weight: item.bonusFor ? UPGRADE_PERSONALIZED_WEIGHT : UPGRADE_GENERIC_WEIGHT }));
+  const total = weighted.reduce((sum, w) => sum + w.weight, 0);
+  let roll = Math.random() * total;
+  for (const w of weighted) {
+    roll -= w.weight;
+    if (roll <= 0) return w.item;
+  }
+  return weighted[weighted.length - 1].item;
+}
+
 // ── Drop d'équipement en combat ──────────────────────────────────────────
-// Le loot scale avec le palier : chaque rareté a un palier minimum pour tomber,
-// donc farmer un palier bas ne peut jamais lâcher de haut-tier (option 1).
-// `rateMult` réduit le taux global (utilisé en mode farm, option 3).
-const EQUIP_RARITY_MIN_PALIER: Record<string, number> = {
-  C: 1, U: 3, R: 6, E: 11, L: 17, M: 23, S: 29, CO: 35, P: 41, T: 47,
+// Le déblocage du drop de chaque rareté ne dépend plus directement du palier :
+// il faut avoir terminé l'expédition "Chasse — Rareté X" correspondante
+// (voir EQUIP_DROP_UNLOCK_EXPEDITIONS dans lib/game/expeditions.ts et
+// gameStore.unlockedEquipDropRarities/unlockEquipDropRarity).
+// EQUIP_RARITY_MIN_PALIER sert désormais uniquement de palierRequired pour
+// POUVOIR TENTER ces expéditions de déblocage (et celles de fusion) — pas
+// pour le drop lui-même.
+export const EQUIP_RARITY_MIN_PALIER: Record<string, number> = {
+  C: 1, U: 3, R: 5, E: 7, L: 9, M: 11, S: 13, CO: 15, P: 17, T: 19,
 };
-// Probabilité de base par rareté (en % par kill), autorisée seulement si le
-// palier atteint son minimum. Décroissant du plus commun au plus rare.
+// Probabilité de base par rareté (en % par kill), autorisée seulement si la
+// rareté a été débloquée via son expédition. Décroissant du plus commun au
+// plus rare.
 const EQUIP_RARITY_WEIGHT: Record<string, number> = {
   C: 5.90, U: 2.20, R: 0.80, E: 0.30, L: 0.12, M: 0.05, S: 0.02, CO: 0.008, P: 0.003, T: 0.0008,
 };
@@ -492,11 +523,11 @@ const EQUIP_RARITY_WEIGHT: Record<string, number> = {
 // Aligné sur RARITY_ORDER des personnages (gacha.ts) : T > P > CO > S > M > L > E > R > U > C.
 const EQUIP_RARITY_ORDER = ['T', 'P', 'CO', 'S', 'M', 'L', 'E', 'R', 'U', 'C'] as const;
 
-export function getEquipmentDrop(palier = 1, rateMult = 1): string | null {
+export function getEquipmentDrop(unlockedDropRarities: string[], rateMult = 1): string | null {
   const roll = Math.random() * 100;
   let acc = 0;
   for (const r of EQUIP_RARITY_ORDER) {
-    if (palier < EQUIP_RARITY_MIN_PALIER[r]) continue; // rareté verrouillée à ce palier
+    if (!unlockedDropRarities.includes(r)) continue; // rareté non débloquée (expédition non faite)
     acc += EQUIP_RARITY_WEIGHT[r] * rateMult;
     if (roll < acc) {
       const pool = Object.values(EQUIPMENT_DEFS).filter(item => item.rarity === r);

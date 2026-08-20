@@ -1,6 +1,7 @@
 // lib/game/expeditions.ts
 
-import { Rarity } from '@/types/game';
+import { Rarity, RARITY_CONFIG } from '@/types/game';
+import { EQUIP_RARITY_MIN_PALIER } from '@/lib/game/items';
 
 // ── Drops spéciaux par palier ────────────────────────────────────────────
 export interface PalierDrop {
@@ -195,9 +196,71 @@ export interface ExpeditionDef {
   };
   isFarming?:     boolean;    // expédition de retour-palier
   farmingPalier?: number;
+  unlocksEquipRarity?: Rarity;     // débloque la fusion d'équipement vers cette rareté au claim
+  unlocksEquipDropRarity?: Rarity; // débloque le drop en combat de cette rareté au claim
 }
 
+// Poids de rareté pour calculer le score d'une équipe (utilisé aussi par les
+// expéditions de déblocage d'équipement générées plus bas).
+export const RARITY_SCORE: Record<string, number> = {
+  C:1, U:2, R:4, E:8, L:15, M:25, S:40, CO:60, P:90, T:150,
+};
+
 const H = 3600;
+
+// ── Ateliers de déblocage d'équipement (générées par rareté) ──────────────
+const EQUIP_UNLOCK_TIER_ORDER: Rarity[] = ['U','R','E','L','M','S','CO','P','T'];
+
+const EQUIP_UNLOCK_DURATION: Record<string, number> = {
+  U: 15*60,   R: 30*60,   E: 1*H,     L: 1.5*H,   M: 2.5*H,
+  S: 4.5*H,   CO: 7.5*H,  P: 13*H,    T: 24*H,
+};
+const EQUIP_UNLOCK_SLOTS: Record<string, number> = {
+  U:1, R:1, E:1, L:2, M:2, S:2, CO:3, P:3, T:4,
+};
+const EQUIP_UNLOCK_REWARDS: Record<string, ExpeditionDef['rewards']> = {
+  U:  { coinsMin:20_000,    coinsMax:60_000,     gemsMin:1,  gemsMax:2  },
+  R:  { coinsMin:60_000,    coinsMax:150_000,    gemsMin:1,  gemsMax:3  },
+  E:  { coinsMin:150_000,   coinsMax:400_000,    gemsMin:2,  gemsMax:5  },
+  L:  { coinsMin:300_000,   coinsMax:800_000,    gemsMin:3,  gemsMax:8  },
+  M:  { coinsMin:600_000,   coinsMax:1_500_000,  gemsMin:5,  gemsMax:12 },
+  S:  { coinsMin:1_200_000, coinsMax:3_000_000,  gemsMin:8,  gemsMax:20 },
+  CO: { coinsMin:2_500_000, coinsMax:6_000_000,  gemsMin:12, gemsMax:30 },
+  P:  { coinsMin:5_000_000, coinsMax:12_000_000, gemsMin:20, gemsMax:50 },
+  T:  { coinsMin:10_000_000,coinsMax:25_000_000, gemsMin:30, gemsMax:80 },
+};
+
+const EQUIP_UNLOCK_EXPEDITIONS: ExpeditionDef[] = EQUIP_UNLOCK_TIER_ORDER.map(r => ({
+  id: `equip_unlock_${r}`,
+  name: `Atelier — Rareté ${RARITY_CONFIG[r].label}`,
+  icon: '🛠️',
+  description: `Débloque la fusion d'équipement vers la rareté ${RARITY_CONFIG[r].label}.`,
+  universe: 'Atelier',
+  duration: EQUIP_UNLOCK_DURATION[r],
+  slots: EQUIP_UNLOCK_SLOTS[r],
+  palierRequired: EQUIP_RARITY_MIN_PALIER[r],
+  minRarityScore: RARITY_SCORE[r],
+  rewards: EQUIP_UNLOCK_REWARDS[r],
+  unlocksEquipRarity: r,
+}));
+
+// ── Chasses — déblocage du DROP d'équipement en combat (par rareté) ───────
+// Même barème (durée/slots/récompenses) que les ateliers de fusion, mais
+// débloque cette fois le droit d'obtenir la rareté en drop de combat
+// (getEquipmentDrop dans lib/game/items.ts) plutôt que la fusion.
+const EQUIP_DROP_UNLOCK_EXPEDITIONS: ExpeditionDef[] = EQUIP_UNLOCK_TIER_ORDER.map(r => ({
+  id: `equip_drop_unlock_${r}`,
+  name: `Chasse — Rareté ${RARITY_CONFIG[r].label}`,
+  icon: '🏹',
+  description: `Débloque le drop en combat d'équipement de rareté ${RARITY_CONFIG[r].label}.`,
+  universe: 'Chasse',
+  duration: EQUIP_UNLOCK_DURATION[r],
+  slots: EQUIP_UNLOCK_SLOTS[r],
+  palierRequired: EQUIP_RARITY_MIN_PALIER[r],
+  minRarityScore: RARITY_SCORE[r],
+  rewards: EQUIP_UNLOCK_REWARDS[r],
+  unlocksEquipDropRarity: r,
+}));
 
 export const EXPEDITION_DEFS: ExpeditionDef[] = [
   // ── Courtes (2-4h) ──────────────────────────────────────────────────────
@@ -287,9 +350,10 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     isFarming:true, farmingPalier:40,
     rewards:{ coinsMin:10_000_000, coinsMax:25_000_000, gemsMin:30, gemsMax:80, dropId:'rune_ancestrale', dropChance:0.5, dropQuantity:2 },
   },
+  // ── Ateliers — déblocage de la fusion d'équipement par rareté ────────────
+  // Une expédition dédiée par rareté (Peu Commun → Transcendant, Commun étant
+  // débloqué par défaut) : la terminer débloque la fusion "10 → 1" vers cette
+  // rareté dans la page Équipement (voir gameStore.unlockEquipRarity).
+  ...EQUIP_UNLOCK_EXPEDITIONS,
+  ...EQUIP_DROP_UNLOCK_EXPEDITIONS,
 ];
-
-// Poids de rareté pour calculer le score d'une équipe
-export const RARITY_SCORE: Record<string, number> = {
-  C:1, U:2, R:4, E:8, L:15, M:25, S:40, CO:60, P:90, T:150,
-};

@@ -5,7 +5,7 @@ import {
   GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
   calcCharDps, calcHeroDpc, xpToNextLevel, levelUpCost, heroLevelUpCost,
   calcBaseDpc, calcClickUpgradeCost,
-  evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG, Rarity,
+  evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG, Rarity, getNextRarity,
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, RARITY_GATES } from '@/lib/game/gacha';
@@ -22,7 +22,7 @@ import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
 import { rollCardEdition, makeInstanceKey, parseInstanceKey, CardEdition } from '@/lib/game/editions';
 import { useAchievementStore } from '@/store/achievementStore';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
-import { getEquipmentDrop, getEquipmentDef } from '@/lib/game/items';
+import { getEquipmentDrop, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput } from '@/lib/game/items';
 import {
   CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
   getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, getThisWeekKey, generateDailyShopCharacters,
@@ -204,6 +204,13 @@ interface GameStore extends GameState {
   equipItem: (templateId: string, slot: EquipmentSlot, equipmentId: string) => void;
   unequipItem: (templateId: string, slot: EquipmentSlot) => void;
   setLastEquipmentDrop: (id: string | null) => void;
+  // Fusion d'équipement (10 items d'un slot+rareté → 1 de la rareté suivante)
+  unlockedEquipRarities: Rarity[];
+  unlockEquipRarity: (rarity: Rarity) => void;
+  upgradeEquipment: (slot: EquipmentSlot, rarity: Rarity) => { ok: boolean; reason?: string; resultId?: string };
+  // Déblocage du drop d'équipement par rareté (via expédition "Chasse — Rareté X")
+  unlockedEquipDropRarities: Rarity[];
+  unlockEquipDropRarity: (rarity: Rarity) => void;
   // Filtres de collection persistants entre les pages / onglets
   collectionFilter: string;
   collectionUniverse: string | 'all';
@@ -327,6 +334,8 @@ const makeInitial = () => ({
   equipmentInventory: {} as Record<string, number>,
   championInventory:  {} as Record<string, number>,
   lastEquipmentDrop: null,
+  unlockedEquipRarities: ['C'] as Rarity[],
+  unlockedEquipDropRarities: ['C'] as Rarity[],
   dpsBoostEndsAt: 0, goldBoostEndsAt: 0,
   eventDpsMult: 1, eventDpsMultEndsAt: 0,
   dailyShop: { dayKey: '', characterIds: [] as string[], purchased: [] as string[] },
@@ -813,6 +822,43 @@ export const useGameStore = create<GameStore>()(
             pixelCoins: s.pixelCoins + def.recycleValue * removed,
           };
         });
+      },
+      unlockEquipRarity: (rarity) => set(s =>
+        s.unlockedEquipRarities.includes(rarity) ? {} : { unlockedEquipRarities: [...s.unlockedEquipRarities, rarity] }
+      ),
+      unlockEquipDropRarity: (rarity) => set(s =>
+        s.unlockedEquipDropRarities.includes(rarity) ? {} : { unlockedEquipDropRarities: [...s.unlockedEquipDropRarities, rarity] }
+      ),
+      upgradeEquipment: (slot, rarity) => {
+        const nextRarity = getNextRarity(rarity);
+        if (!nextRarity) return { ok: false, reason: 'Rareté maximale atteinte' };
+        if (!get().unlockedEquipRarities.includes(nextRarity)) {
+          return { ok: false, reason: 'Fusion non débloquée pour cette rareté' };
+        }
+
+        const fodderGroup = getEquipmentGroup(slot, rarity);
+        const inv = get().equipmentInventory;
+        const totalOwned = fodderGroup.reduce((sum, item) => sum + (inv[item.id] ?? 0), 0);
+        if (totalOwned < 10) return { ok: false, reason: 'Pas assez d’objets (10 requis)' };
+
+        const output = pickEquipmentUpgradeOutput(slot, nextRarity);
+        if (!output) return { ok: false, reason: 'Aucun objet disponible à cette rareté' };
+
+        set(s => {
+          let toConsume = 10;
+          const newInv = { ...s.equipmentInventory };
+          for (const item of fodderGroup) {
+            if (toConsume <= 0) break;
+            const have = newInv[item.id] ?? 0;
+            const take = Math.min(have, toConsume);
+            newInv[item.id] = have - take;
+            toConsume -= take;
+          }
+          newInv[output.id] = (newInv[output.id] ?? 0) + 1;
+          return { equipmentInventory: newInv };
+        });
+
+        return { ok: true, resultId: output.id };
       },
       equipItem: (templateId, slot, equipmentId) => {
         const owned = get().collection[templateId];
@@ -1364,6 +1410,8 @@ export const useGameStore = create<GameStore>()(
         bossCrowns:s.bossCrowns, voidOrbs:s.voidOrbs,
         inventory:s.inventory,
         equipmentInventory:s.equipmentInventory,
+        unlockedEquipRarities:s.unlockedEquipRarities,
+        unlockedEquipDropRarities:s.unlockedEquipDropRarities,
         championInventory:s.championInventory ?? {},
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
@@ -1486,7 +1534,7 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
     return { pixelCoins:coins, nekoGems:gems, quests:coinQuestUpdate.quests, weeklyQuests:coinQuestUpdate.weeklyQuests, eventQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,state.maxPalierReached), totalKills: (state.totalKills ?? 0) + 1 };
   }
   const equipDrop = getEquipmentDrop(
-    state.palier,
+    state.unlockedEquipDropRarities ?? ['C'],
     state.palier < state.maxPalierReached ? FARM_EQUIP_DROP_RATE : 1,
   );
   const newEquipmentInventory = equipDrop

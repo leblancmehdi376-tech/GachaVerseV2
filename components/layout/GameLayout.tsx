@@ -19,6 +19,7 @@ import { AchievementsPage } from '@/components/pages/AchievementsPage';
 import { ProfilePage } from '@/components/pages/ProfilePage';
 import { ExpeditionsPage } from '@/components/pages/ExpeditionsPage';
 import { ForgePage } from '@/components/pages/ForgePage';
+import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
 import { PrestigePage } from '@/components/pages/PrestigePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
@@ -41,7 +42,7 @@ import { toast } from '@/hooks/useToast';
 import { useAchievementStore, trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection, trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige, trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax } from '@/store/achievementStore';
 import { makeInstanceKey } from '@/lib/game/editions';
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -70,6 +71,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'ÉCHANGES', items: [
     { id:'shop',         label:'BOUTIQUE',        accent:'#4ade80'            },
     { id:'forge',        label:'FORGE',           accent:'#e879f9'            },
+    { id:'equipment',    label:'ÉQUIPEMENT',      accent:'#93c5fd'            },
     { id:'marketplace',  label:'HÔTEL DE VILLE',  accent:'#f97316'            },
   ]},
   { title:'COMPTE', items: [
@@ -488,6 +490,7 @@ export function GameLayout() {
                   {page === 'achievements' && <AchievementsPage />}
                   {page === 'expeditions' && <ExpeditionsPage />}
                   {page === 'forge'       && <ForgePage />}
+                  {page === 'equipment'   && <EquipmentUpgradePage />}
                   {page === 'prestige'    && <PrestigePage />}
                   {page === 'profile'     && <ProfilePage />}
                 </PageTransition>

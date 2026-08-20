@@ -4,7 +4,7 @@ import { useExpeditionStore, ActiveExpedition, MAX_ACTIVE_EXPEDITIONS } from '@/
 import { useGameStore } from '@/store/gameStore';
 import { EXPEDITION_DEFS, RARITY_SCORE, ExpeditionDef } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { makeInstanceKey } from '@/lib/game/editions';
 
@@ -202,8 +202,21 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
 
 /* ── Carte expédition disponible ────────────────────────────────────────── */
 function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect: () => void; busy: boolean }) {
-  const { maxPalierReached } = useGameStore();
-  const locked = maxPalierReached < def.palierRequired;
+  const { maxPalierReached, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
+  const palierLocked = maxPalierReached < def.palierRequired;
+
+  // Déblocages d'équipement (fusion/drop) : rareté suivante inaccessible tant
+  // que la précédente n'est pas terminée (voir expeditionStore.canStart).
+  let sequenceLockReason: string | null = null;
+  if (def.unlocksEquipRarity) {
+    const prev = getPrevRarity(def.unlocksEquipRarity);
+    if (prev && !unlockedEquipRarities.includes(prev)) sequenceLockReason = `Atelier ${RARITY_CONFIG[prev].label} requis`;
+  } else if (def.unlocksEquipDropRarity) {
+    const prev = getPrevRarity(def.unlocksEquipDropRarity);
+    if (prev && !unlockedEquipDropRarities.includes(prev)) sequenceLockReason = `Chasse ${RARITY_CONFIG[prev].label} requise`;
+  }
+
+  const locked = palierLocked || !!sequenceLockReason;
   const dimmed = locked || busy;
 
   return (
@@ -250,7 +263,9 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
             )}
           </div>
           {locked
-            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-muted)', fontWeight:700 }}>🔒 Palier {def.palierRequired} requis</div>
+            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-muted)', fontWeight:700 }}>
+                🔒 {palierLocked ? `Palier ${def.palierRequired} requis` : sequenceLockReason}
+              </div>
             : busy
               ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-muted)', fontWeight:700 }}>⏳ Une expédition est déjà en cours</div>
               : <button onClick={onSelect} className="btn-primary" style={{ padding:'9px 20px', fontSize:13 }}>ENVOYER ✦</button>
@@ -265,14 +280,17 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
 export function ExpeditionsPage() {
   const { active, getFinished } = useExpeditionStore();
   const [selectedDef, setSelectedDef] = useState<ExpeditionDef | null>(null);
-  const [filter, setFilter] = useState<'all' | 'farming'>('all');
+  const [filter, setFilter] = useState<'all' | 'farming' | 'equipment'>('all');
 
   const runningExp = active.filter(e => !e.claimed);
   const finished   = getFinished();
 
-  const filtered = EXPEDITION_DEFS.filter(d =>
-    filter === 'all' ? true : d.isFarming
-  );
+  const isEquipUnlock = (d: ExpeditionDef) => !!d.unlocksEquipRarity || !!d.unlocksEquipDropRarity;
+  const filtered = EXPEDITION_DEFS.filter(d => {
+    if (filter === 'farming')   return d.isFarming;
+    if (filter === 'equipment') return isEquipUnlock(d);
+    return !isEquipUnlock(d); // "Toutes" = expéditions classiques, sans les ateliers/chasses
+  });
 
   return (
     <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
@@ -325,8 +343,9 @@ export function ExpeditionsPage() {
         {/* Filtres */}
         <div style={{ display:'flex', gap:8 }}>
           {[
-            { k:'all'     as const, label:'TOUTES'         },
-            { k:'farming' as const, label:'♻ RETOUR PALIER' },
+            { k:'all'       as const, label:'TOUTES'            },
+            { k:'farming'   as const, label:'♻ RETOUR PALIER'   },
+            { k:'equipment' as const, label:'🛠️ ATELIERS ÉQUIP.' },
           ].map(f => (
             <button key={f.k} onClick={() => setFilter(f.k)}
               style={{ padding:'7px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, letterSpacing:0.5, transition:'all 0.15s',
