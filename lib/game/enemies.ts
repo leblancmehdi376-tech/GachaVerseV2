@@ -552,32 +552,20 @@ export function generateEnemy(wave: number, palier: number, maxPalierReached: nu
   const hpMult = def.hpMult ?? 1;
   const global = (palier - 1) * 10 + wave;
 
-  // HP : 50 × 1.12^(global-1)
-  const baseHp = Math.floor(50 * Math.pow(1.12, global - 1));
-  // Ajustement global (tous paliers, mobs ET boss confondus) : -25%, puis
-  // encore -15% en plus (cumulés = -36,25% par rapport à la courbe d'origine).
-  const globalHpAdjust = 0.75 * 0.85;
-  // À partir du palier 13 : -31% de PV supplémentaires par palier, pour TOUS
-  // les ennemis (mobs et boss) — la courbe de base devenait trop lourde à
-  // ce stade du jeu par rapport à la puissance réelle des joueurs. Calibré
-  // pour que le boss du palier 13 tombe à ~700M PV (au lieu de ~1,01Md).
-  const lateGameHpReduction = palier >= 13 ? Math.pow(0.69, palier - 12) : 1;
-  const maxHp  = Math.floor(baseHp * hpMult * globalHpAdjust * lateGameHpReduction);
+  // HP : 1000 × 1.12^(global-1)
+  const baseHp = Math.floor(1000 * Math.pow(1.12, global - 1));
+  const maxHp  = Math.floor(baseHp * hpMult);
 
   // Coins : base × growth^(global-1), boss × bossMult
   // On applique en plus un scale global pour calibrer la vitesse d'obtention des coins.
   const COIN_BASE = 60;
   const COIN_GROWTH = 1.13;
   const COIN_BOSS_MULT = 12;
-  const COIN_SCALE = 0.9; // +20% par rapport à la valeur précédente (0.75 -> 0.90)
-  // À partir du palier 19 : -10% d'or supplémentaires par palier (tous les
-  // ennemis, pas que les boss), pour freiner l'inflation de fin de partie.
-  const lateCoinReduction = palier >= 19 ? Math.pow(0.90, palier - 18) : 1;
 
   const rawCoins = isBoss
     ? Math.floor(COIN_BASE * Math.pow(COIN_GROWTH, global - 1) * COIN_BOSS_MULT)
     : Math.floor(COIN_BASE * Math.pow(COIN_GROWTH, global - 1));
-  const pixelCoins = Math.max(0, Math.floor(rawCoins * COIN_SCALE * lateCoinReduction));
+  const pixelCoins = Math.max(0, Math.floor(rawCoins));
 
   // Gemme garantie du "mini-boss" (vague 5) : uniquement lors d'une vraie
   // progression, jamais en re-farmant un palier déjà validé — sinon c'est un
