@@ -22,6 +22,7 @@ import { rollCardEdition, makeInstanceKey, parseInstanceKey, CardEdition } from 
 import { useAchievementStore } from '@/store/achievementStore';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { getEquipmentDrop, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput } from '@/lib/game/items';
+import { EVENT_BOSSES } from '@/lib/game/eventBoss';
 import {
   CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
   getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, getThisWeekKey, generateDailyShopCharacters,
@@ -252,6 +253,8 @@ interface GameStore extends GameState {
   pullMulti100: () => { templateId: string; edition: CardEdition }[] | null;
   addToCollection: (id: string) => CardEdition;
   grantMaxedCharacter: (templateId: string, edition?: CardEdition) => void;
+  // Boutique — achat d'un perso d'événement contre ses pièces (voir lib/game/eventBoss.ts)
+  buyEventCharacter: (bossId: string) => boolean;
   // Quêtes
   bumpQuestProgress: (id: string, by?: number) => void;
   setQuestProgress: (id: string, value: number) => void;
@@ -1012,6 +1015,18 @@ export const useGameStore = create<GameStore>()(
         ).size;
         get().setQuestProgress('e_collection_20', uniqueOwned);
         return edition;
+      },
+
+      buyEventCharacter: (bossId) => {
+        const boss = EVENT_BOSSES.find(b => b.id === bossId);
+        if (!boss) return false;
+        const owned = get().inventory[boss.coinItemId] ?? 0;
+        if (owned < boss.buyCost) return false;
+        set(state => ({
+          inventory: { ...state.inventory, [boss.coinItemId]: owned - boss.buyCost },
+        }));
+        get().addToCollection(boss.characterId);
+        return true;
       },
 
       // Octroi déterministe (codes cadeaux "cheat") : rang 7★, dernière évolution,

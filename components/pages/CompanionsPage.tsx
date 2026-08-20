@@ -98,7 +98,7 @@ export function CompanionsPage() {
     }
     return aTpl.name.localeCompare(bTpl.name);
   });
-  const ownedItems = Object.entries(inventory).filter(([, qty]) => qty > 0);
+  const ownedItems = Object.entries(inventory).filter(([id, qty]) => qty > 0 && !ITEM_DEFS[id]?.isCoin);
   const ownedEquipment = Object.entries(equipmentInventory).filter(([, qty]) => qty > 0);
 
   const handleEquipBest = () => {

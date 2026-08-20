@@ -1,13 +1,10 @@
 'use client';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useGameStore, bumpBossQuests } from '@/store/gameStore';
 import { useUltimateStore } from '@/store/ultimateStore';
 import { EVENT_BOSSES, rollEventDrop, getEventBossMaxHp, EventBossDef, DropResult } from '@/lib/game/eventBoss';
-import { getItemDef, getEquipmentDef } from '@/lib/game/items';
-import { getCharacterById } from '@/lib/game/characters';
-import { RARITY_CONFIG } from '@/types/game';
+import { getItemDef } from '@/lib/game/items';
 import { calculateEquippedTeamDps } from '@/lib/game/dpsCalculation';
-import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { formatNumber } from '@/lib/game/format';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
 import { EventMusicPlayer } from '@/components/game/EventMusicPlayer';
@@ -40,28 +37,37 @@ function BossSprite({ boss, deadStyle }: { boss: EventBossDef; deadStyle: boolea
   );
 }
 
-function DropPopup({ drop, onClose }: { drop: DropResult; onClose: () => void }) {
+function describeDrop(drop: DropResult): { icon: string; title: string; sub: string; color: string } {
+  if (drop.type === 'item' && drop.id) {
+    const item = getItemDef(drop.id);
+    const qty = drop.qty ?? 1;
+    return {
+      icon: item?.icon ?? '📦',
+      title: item?.isCoin ? `+${qty} ${item.name}` : (item?.name ?? drop.id),
+      sub: item?.isCoin ? "Monnaie d'événement" : "Objet d'évolution",
+      color: item?.color ?? '#c084fc',
+    };
+  }
+  if (drop.type === 'gems') return { icon: '💎', title: `+${drop.qty} Gemmes`, sub: '', color: 'var(--cyan)' };
+  if (drop.type === 'bossCrowns') return { icon: '👑', title: `+${drop.qty} BossCrowns`, sub: '', color: '#fbbf24' };
+  return { icon: '💨', title: 'Rien cette fois...', sub: '', color: 'var(--text-dim)' };
+}
+
+function DropPopup({ drops, onClose }: { drops: DropResult[]; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 5000); return () => clearTimeout(t); }, [onClose]);
-  let icon = '💨', title = 'Rien cette fois...', sub = '', color = 'var(--text-dim)';
-  if (drop.type === 'character' && drop.id) {
-    const tpl = getCharacterById(drop.id); const cfg = tpl ? RARITY_CONFIG[tpl.rarity] : RARITY_CONFIG['C'];
-    icon = '🃏'; title = tpl?.name ?? drop.id; sub = cfg.label; color = cfg.color;
-  } else if (drop.type === 'item' && drop.id) {
-    const item = getItemDef(drop.id); icon = item?.icon ?? '📦'; title = item?.name ?? drop.id; sub = "Objet d'évolution"; color = item?.color ?? '#c084fc';
-  } else if (drop.type === 'gems') { icon = '💎'; title = `+${drop.qty} Gemmes`; color = 'var(--cyan)';
-  } else if (drop.type === 'bossCrowns') { icon = '👑'; title = `+${drop.qty} BossCrowns`; color = '#fbbf24'; }
+  const rewards = drops.map(describeDrop);
+  const mainColor = rewards[0]?.color ?? '#c084fc';
   return (
     <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.85)', animation:'fadeIn 0.3s ease' }} onClick={onClose}>
-      <div style={{ background:`linear-gradient(135deg,#0d0720,${color}22)`, border:`2px solid ${color}`, borderRadius:16, padding:'32px 40px', textAlign:'center', boxShadow:`0 0 50px ${color}66`, animation:'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
-        <div style={{ fontSize:56, marginBottom:12 }}>{icon}</div>
-        {drop.type === 'character' && drop.id && getCharacterById(drop.id) && (
-          <div style={{ display:'flex', justifyContent:'center', marginBottom:12 }}>
-            <CharacterCardThumb templateId={drop.id} name={getCharacterById(drop.id)!.name} rarity={getCharacterById(drop.id)!.rarity} width={100} height={140} />
+      <div style={{ background:`linear-gradient(135deg,#0d0720,${mainColor}22)`, border:`2px solid ${mainColor}`, borderRadius:16, padding:'32px 40px', textAlign:'center', boxShadow:`0 0 50px ${mainColor}66`, animation:'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1)', display:'flex', flexDirection:'column', gap:18 }}>
+        {rewards.map((r, i) => (
+          <div key={i}>
+            <div style={{ fontSize:i===0?56:36, marginBottom:8 }}>{r.icon}</div>
+            <div style={{ fontFamily:'var(--f-title)', fontWeight:900, fontSize:i===0?22:16, color:r.color, marginBottom:4 }}>{r.title}</div>
+            {r.sub && <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.5)' }}>{r.sub}</div>}
           </div>
-        )}
-        <div style={{ fontFamily:'var(--f-title)', fontWeight:900, fontSize:22, color, marginBottom:6 }}>{title}</div>
-        {sub && <div style={{ fontFamily:'var(--f-ui)', fontSize:13, color:'rgba(255,255,255,0.5)' }}>{sub}</div>}
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:16 }}>Cliquez pour fermer</div>
+        ))}
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.3)' }}>Cliquez pour fermer</div>
       </div>
       <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes scaleIn{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:scale(1)}}`}</style>
     </div>
@@ -141,14 +147,13 @@ function EventLobby({ onSelect }: { onSelect: (id: string) => void }) {
                     <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                       {event.dropTable.filter(e => e.result.type !== 'nothing').slice(0,4).map((entry, i) => {
                         const r = entry.result;
-                        const tpl = r.type==='character'&&r.id ? getCharacterById(r.id) : null;
-                        const cfg = tpl ? RARITY_CONFIG[tpl.rarity] : null;
-                        const icon = r.type==='gems'?'💎':r.type==='bossCrowns'?'👑':r.type==='character'?'🃏':'📦';
-                        const label = tpl?.name ?? (r.type==='gems'?`${r.qty}💎`:r.type==='bossCrowns'?`${r.qty}👑`:'Objet');
+                        const item = r.type==='item'&&r.id ? getItemDef(r.id) : null;
+                        const icon = r.type==='gems'?'💎':r.type==='bossCrowns'?'👑':(item?.icon ?? '📦');
+                        const label = item?.name ?? (r.type==='gems'?`${r.qty}💎`:r.type==='bossCrowns'?`${r.qty}👑`:'Objet');
                         return (
-                          <div key={i} style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.08)', border:`1px solid ${cfg?cfg.color+'44':'rgba(255,255,255,0.12)'}`, borderRadius:6, padding:'3px 8px' }}>
+                          <div key={i} style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.08)', border:`1px solid ${item?item.color+'44':'rgba(255,255,255,0.12)'}`, borderRadius:6, padding:'3px 8px' }}>
                             <span style={{ fontSize:11 }}>{icon}</span>
-                            <span style={{ fontFamily:'var(--f-ui)', fontSize:10, fontWeight:700, color: cfg?cfg.color:'rgba(255,255,255,0.7)' }}>{label}</span>
+                            <span style={{ fontFamily:'var(--f-ui)', fontSize:10, fontWeight:700, color: item?item.color:'rgba(255,255,255,0.7)' }}>{label}</span>
                           </div>
                         );
                       })}
@@ -191,14 +196,14 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
   const [maxHp, setMaxHp] = useState(() => getEventBossMaxHp(boss, totalEquippedDps));
   const [hp, setHp] = useState(maxHp);
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
-  const [drop, setDrop] = useState<DropResult | null>(null);
+  const [drops, setDrops] = useState<DropResult[] | null>(null);
   const [dead, setDead] = useState(false);
   const [kills, setKills] = useState(0);
   const now = Date.now();
 
   useEffect(() => {
     const freshMax = getEventBossMaxHp(boss, totalEquippedDps);
-    setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrop(null);
+    setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null);
   }, [boss, totalEquippedDps]);
 
   // ── Combat automatique : dégâts du DPS d'équipe chaque seconde, avec
@@ -225,7 +230,9 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
   useEffect(() => {
     if (hp <= 0 && !dead) {
       setDead(true);
-      const result = rollEventDrop(boss.id);
+      const results = rollEventDrop(boss.id);
+      const gemsGained  = results.filter(r => r.type === 'gems').reduce((s, r) => s + (r.qty ?? 0), 0);
+      const crownsGained = results.filter(r => r.type === 'bossCrowns').reduce((s, r) => s + (r.qty ?? 0), 0);
       useGameStore.setState(s => {
         const questUpdate = bumpBossQuests(s.quests, s.weeklyQuests, s.eventQuests);
         return {
@@ -233,19 +240,20 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
           weeklyQuests: questUpdate.weeklyQuests,
           eventQuests: questUpdate.eventQuests,
           totalBossKills: s.totalBossKills + 1,
-          ...(result.type === 'gems' ? { nekoGems: s.nekoGems + (result.qty ?? 0) } : {}),
-          ...(result.type === 'bossCrowns' ? { bossCrowns: s.bossCrowns + (result.qty ?? 0) } : {}),
+          nekoGems: s.nekoGems + gemsGained,
+          bossCrowns: s.bossCrowns + crownsGained,
         };
       });
-      if (result.type === 'character' && result.id) useGameStore.getState().addToCollection(result.id);
-      else if (result.type === 'item' && result.id) addItem(result.id, result.qty ?? 1);
-      setTimeout(() => setDrop(result), 800);
+      for (const r of results) {
+        if (r.type === 'item' && r.id) addItem(r.id, r.qty ?? 1);
+      }
+      setTimeout(() => setDrops(results), 800);
     }
   }, [hp, dead, addItem, boss]);
 
   const respawn = () => {
     const freshMax = getEventBossMaxHp(boss, totalEquippedDps);
-    setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrop(null); setKills(k => k + 1);
+    setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null); setKills(k => k + 1);
   };
 
   const hpPct   = Math.max(0, hp / maxHp * 100);
@@ -255,7 +263,7 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
     <div style={{ height:'100%', overflow:'hidden', position:'relative', display:'flex', flexDirection:'column' }}>
       <EventBg boss={boss} />
       <EventMusicPlayer />
-      {drop && <DropPopup drop={drop} onClose={() => { setDrop(null); respawn(); }} />}
+      {drops && <DropPopup drops={drops} onClose={() => { setDrops(null); respawn(); }} />}
 
       <div style={{ position:'relative', padding:'10px 16px', borderBottom:'1px solid rgba(192,132,252,0.12)', background:'rgba(0,0,0,0.45)', flexShrink:0, display:'flex', alignItems:'center', gap:14 }}>
         <button onClick={onBack}
@@ -308,7 +316,7 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
             </div>
           )}
         </div>
-        {dead && !drop && <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13, color:'rgba(255,255,255,0.5)', animation:'pulse 1s infinite' }}>Calcul des récompenses...</div>}
+        {dead && !drops && <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13, color:'rgba(255,255,255,0.5)', animation:'pulse 1s infinite' }}>Calcul des récompenses...</div>}
         {!dead && <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.3)', textAlign:'center' }}>Tes alliés attaquent automatiquement</div>}
       </div>
 
@@ -319,15 +327,15 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
             const totalWeight = boss.dropTable.reduce((s, x) => s + x.weight, 0);
             const rate = `${Math.round(entry.weight / totalWeight * 1000) / 10}%`;
             const r = entry.result;
-            const tpl = r.type==='character'&&r.id ? getCharacterById(r.id) : null;
-            const icon = r.type==='gems'?'💎':r.type==='bossCrowns'?'👑':r.type==='character'?'🃏':'📦';
-            const label = tpl?.name ?? (r.type==='gems'?`Gemmes ×${r.qty}`:r.type==='bossCrowns'?`Crowns ×${r.qty}`:'Objet');
-            const color = tpl ? RARITY_CONFIG[tpl.rarity]?.color : r.type==='gems'?'var(--cyan-hi)':r.type==='bossCrowns'?'#fbbf24':'#c084fc';
+            const item = r.type==='item'&&r.id ? getItemDef(r.id) : null;
+            const icon = r.type==='gems'?'💎':r.type==='bossCrowns'?'👑':(item?.icon ?? '📦');
+            const label = item?.name ?? (r.type==='gems'?`Gemmes ×${r.qty}`:r.type==='bossCrowns'?`Crowns ×${r.qty}`:'Objet');
+            const color = r.type==='gems'?'var(--cyan-hi)':r.type==='bossCrowns'?'#fbbf24':(item?.color ?? '#c084fc');
             return (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:5, background:'rgba(255,255,255,0.04)', borderRadius:8, padding:'4px 10px', border:`1px solid ${color}33` }}>
                 <span style={{ fontSize:14 }}>{icon}</span>
                 <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color: color ?? '#c084fc' }}>{label}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontSize:10, color:'rgba(255,255,255,0.3)' }}>{rate}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:10, color:'rgba(255,255,255,0.3)' }}>{rate} · 🪙+{entry.coinQty}</span>
               </div>
             );
           })}
