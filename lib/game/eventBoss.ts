@@ -11,13 +11,32 @@ export interface EventBossDef {
   accentColor: string;
   availableUntil: number;
   targetSeconds?: number;
+  characterId: string;   // perso obtenu via coinItemId en Boutique (plus de drop direct)
+  coinItemId: string;    // ItemDef de la pièce d'événement (lib/game/items.ts)
+  buyCost: number;       // nb de pièces requises pour acheter characterId en Boutique
   dropTable: DropEntry[];
 }
 
 export interface DropResult {
-  type: 'character' | 'item' | 'gems' | 'bossCrowns' | 'nothing';
+  type: 'item' | 'gems' | 'bossCrowns' | 'nothing';
   id?: string;
   qty?: number;
+}
+
+// Table de drop partagée par tous les boss d'événement : seuls les 3 objets
+// d'évolution (evoItems) et la pièce (coinItemId) diffèrent d'un boss à
+// l'autre. Chaque entrée porte son propre coinQty : chaque kill donne
+// TOUJOURS le lot principal ET des pièces en même temps (voir rollEventDrop).
+function buildEventDropTable(evoItems: [string, string, string]): DropEntry[] {
+  return [
+    { weight: 50.0, coinQty: 1, result: { type: 'gems', qty: 10 } },
+    { weight: 24.3, coinQty: 2, result: { type: 'gems', qty: 20 } },
+    { weight: 13.4, coinQty: 2, result: { type: 'gems', qty: 30 } },
+    { weight: 10.0, coinQty: 2, result: { type: 'bossCrowns', qty: 3 } },
+    { weight: 1.0,  coinQty: 3, result: { type: 'item', id: evoItems[0], qty: 1 } },
+    { weight: 0.8,  coinQty: 3, result: { type: 'item', id: evoItems[1], qty: 1 } },
+    { weight: 0.5,  coinQty: 3, result: { type: 'item', id: evoItems[2], qty: 1 } },
+  ];
 }
 
 export const SHADOW_MONARCH_BOSS: EventBossDef = {
@@ -30,19 +49,10 @@ export const SHADOW_MONARCH_BOSS: EventBossDef = {
   bgGradient:  'linear-gradient(180deg,#0a0014,#05000a)',
   accentColor: '#c084fc',
   availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
-  dropTable: [
-    // Objets spéciaux — 2.75 % au total
-    { weight: 0.50, result: { type:'character', id:'jinwoo'                } },
-    { weight: 0.50, result: { type:'item',      id:'beru',            qty:1 } },
-    { weight: 0.75, result: { type:'item',      id:'manteau_ombre',   qty:1 } },
-    { weight: 1.00, result: { type:'item',      id:'elixir_vie',      qty:1 } },
-    // Couronnes — 10 %
-    { weight: 10.0, result: { type:'bossCrowns',                      qty:2  } },
-    // Gemmes — 87.25 %
-    { weight: 50.00, result: { type:'gems',                           qty:10 } },
-    { weight: 24.25, result: { type:'gems',                           qty:20 } },
-    { weight: 13.00, result: { type:'gems',                           qty:30 } },
-  ],
+  characterId: 'jinwoo',
+  coinItemId:  'coin_jinwoo',
+  buyCost:     100,
+  dropTable: buildEventDropTable(['elixir_vie', 'manteau_ombre', 'beru']),
 };
 
 export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
@@ -56,19 +66,10 @@ export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
   accentColor: '#fbbf24',
   availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
   targetSeconds: 300,
-  dropTable: [
-    // Objets spéciaux — 2.75 % au total
-    { weight: 0.50, result: { type:'character', id:'arthur_leywin'        } },
-    { weight: 0.50, result: { type:'item',      id:'sylvia',         qty:1 } },
-    { weight: 0.75, result: { type:'item',      id:'epee_ether',     qty:1 } },
-    { weight: 1.00, result: { type:'item',      id:'cristal_ether',  qty:1 } },
-    // Couronnes — 10 %
-    { weight: 10.0, result: { type:'bossCrowns',                      qty:2  } },
-    // Gemmes — 87.25 %
-    { weight: 50.00, result: { type:'gems',                           qty:10 } },
-    { weight: 24.25, result: { type:'gems',                           qty:20 } },
-    { weight: 13.00, result: { type:'gems',                           qty:30 } },
-  ],
+  characterId: 'arthur_leywin',
+  coinItemId:  'coin_arthur_leywin',
+  buyCost:     200,
+  dropTable: buildEventDropTable(['cristal_ether', 'epee_ether', 'sylvia']),
 };
 
 export const EMINENCE_SHADOW_BOSS: EventBossDef = {
@@ -82,38 +83,34 @@ export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   accentColor: '#a78bfa',
   availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
   targetSeconds: 300,
-  dropTable: [
-    // Objets spéciaux — 2.75 % au total
-    { weight: 0.50, result: { type:'character', id:'cid_kagenou'          } },
-    { weight: 0.50, result: { type:'item',      id:'slime_eminence', qty:1 } },
-    { weight: 0.75, result: { type:'item',      id:'epee_slime',     qty:1 } },
-    { weight: 1.00, result: { type:'item',      id:'masque_cid',     qty:1 } },
-    // Couronnes — 10 %
-    { weight: 10.0, result: { type:'bossCrowns',                      qty:2  } },
-    // Gemmes — 87.25 %
-    { weight: 50.00, result: { type:'gems',                           qty:10 } },
-    { weight: 24.25, result: { type:'gems',                           qty:20 } },
-    { weight: 13.00, result: { type:'gems',                           qty:30 } },
-  ],
+  characterId: 'cid_kagenou',
+  coinItemId:  'coin_cid_kagenou',
+  buyCost:     300,
+  dropTable: buildEventDropTable(['masque_cid', 'epee_slime', 'slime_eminence']),
 };
 
 export const EVENT_BOSSES: EventBossDef[] = [SHADOW_MONARCH_BOSS, ARTHUR_LEYWIN_BOSS, EMINENCE_SHADOW_BOSS];
 
 export interface DropEntry {
   weight: number;
+  coinQty: number;
   result: DropResult;
 }
 
-export function rollEventDrop(bossId: string): DropResult {
+// Retourne le lot principal ET les pièces de personnage gagnées en même
+// temps (deux résultats simultanés à chaque kill, voir buildEventDropTable).
+export function rollEventDrop(bossId: string): DropResult[] {
   const boss = EVENT_BOSSES.find(b => b.id === bossId);
-  if (!boss) return { type: 'nothing' };
+  if (!boss) return [{ type: 'nothing' }];
   const totalWeight = boss.dropTable.reduce((s, e) => s + e.weight, 0);
   let roll = Math.random() * totalWeight;
   for (const entry of boss.dropTable) {
     roll -= entry.weight;
-    if (roll <= 0) return entry.result;
+    if (roll <= 0) {
+      return [entry.result, { type: 'item', id: boss.coinItemId, qty: entry.coinQty }];
+    }
   }
-  return { type: 'nothing' };
+  return [{ type: 'nothing' }];
 }
 
 // ── Calibrage de la difficulté ──────────────────────────────────────────

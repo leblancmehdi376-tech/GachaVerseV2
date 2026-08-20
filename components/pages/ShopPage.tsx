@@ -11,7 +11,8 @@ import {
   SHOP_CHAR_PRICE_ORBS, LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS,
   EQUIPMENT_CHESTS,
 } from '@/lib/game/shop';
-import { getEquipmentDef } from '@/lib/game/items';
+import { getEquipmentDef, getItemDef } from '@/lib/game/items';
+import { EVENT_BOSSES } from '@/lib/game/eventBoss';
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return '00:00';
@@ -32,11 +33,11 @@ function msUntilNextMidnight(): number {
 
 export function ShopPage() {
   const {
-    nekoGems, bossCrowns, voidOrbs, palier,
+    nekoGems, bossCrowns, voidOrbs, palier, inventory,
     dpsBoostEndsAt, goldBoostEndsAt, isDpsBoostActive, isGoldBoostActive,
     buyDpsBoost, buyGoldBoost, buyGemsWithCrowns, buyGoldWithGems,
     dailyShop, ensureDailyShop, buyShopCharacter, buyGemsWithOrbs, buyEquipmentChest,
-    starterPackClaimed, isStarterPackAvailable, claimStarterPack,
+    starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyEventCharacter,
   } = useGameStore();
 
   const [, setTick] = useState(0);
@@ -258,6 +259,41 @@ export function ShopPage() {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* ══ PERSONNAGES D'ÉVÉNEMENT ═════════════════════════════════════ */}
+        <div>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'14px' }}>
+            <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:'2px', boxShadow:'0 0 8px #fbbf24' }} />
+            <span style={{ fontFamily:'var(--f-title)', fontSize:'14px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>PERSONNAGES D&apos;ÉVÉNEMENT</span>
+          </div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'11px', color:'var(--text-muted)', marginBottom:'14px' }}>
+            Échange les pièces gagnées en combattant les boss d&apos;événement contre leur personnage exclusif.
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
+            {EVENT_BOSSES.map(boss => {
+              const tpl = getCharacterById(boss.characterId);
+              if (!tpl) return null;
+              const cfg   = RARITY_CONFIG[tpl.rarity];
+              const coin  = getItemDef(boss.coinItemId);
+              const owned = inventory[boss.coinItemId] ?? 0;
+              const canBuy = owned >= boss.buyCost;
+              return (
+                <div key={boss.id} style={{ background:`${cfg.color}0c`, border:`1px solid ${cfg.color}55`, borderRadius:'12px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'8px' }}>
+                  <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:'var(--text)', textAlign:'center' }}>{tpl.name}</span>
+                  <RarityBadge rarity={tpl.rarity} />
+                  <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12px', color: canBuy?'#fbbf24':'var(--text-muted)' }}>
+                    {coin?.icon ?? '🪙'} {formatNumber(owned)} / {formatNumber(boss.buyCost)}
+                  </span>
+                  <button onClick={() => buyEventCharacter(boss.id)} disabled={!canBuy}
+                    style={{ width:'100%', padding:'8px', background:canBuy?'rgba(251,191,36,0.18)':'rgba(255,255,255,0.03)', border:`1px solid ${canBuy?'#fbbf2466':'var(--border)'}`, borderRadius:'7px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:canBuy?'#fbbf24':'var(--text-muted)', cursor:canBuy?'pointer':'not-allowed' }}>
+                    ACHETER
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
 

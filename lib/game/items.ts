@@ -10,6 +10,7 @@ export interface ItemDef {
   icon: string;
   color: string;
   sellGems: number; // Gemmes obtenues au recyclage
+  isCoin?: boolean; // Monnaie d'événement (échangée en Boutique) — exclue du recyclage générique
 }
 
 export const ITEM_DEFS: Record<string, ItemDef> = {
@@ -57,6 +58,26 @@ export const ITEM_DEFS: Record<string, ItemDef> = {
     id: 'slime_eminence', name: 'Slime', icon: '🫧', color: '#67e8f9',
     description: "Armure de slime de l'Éminence de l'Ombre — trophée rare.",
     sellGems: 250,
+  },
+
+  // ── Pièces de personnage d'événement ────────────────────────────────────
+  // Accumulées en combattant le boss d'événement correspondant, échangées
+  // contre le personnage exclusif dans la Boutique (voir ShopPage.tsx et
+  // gameStore.buyEventCharacter).
+  coin_jinwoo: {
+    id: 'coin_jinwoo', name: 'Pièce — Monarque des Ombres', icon: '🪙', color: '#c084fc',
+    description: "Échangeable en Boutique contre Sung Jin Woo.",
+    sellGems: 0, isCoin: true,
+  },
+  coin_arthur_leywin: {
+    id: 'coin_arthur_leywin', name: "Pièce — Arthur Leywin", icon: '🪙', color: '#fbbf24',
+    description: "Échangeable en Boutique contre Arthur Leywin.",
+    sellGems: 0, isCoin: true,
+  },
+  coin_cid_kagenou: {
+    id: 'coin_cid_kagenou', name: "Pièce — Éminence de l'Ombre", icon: '🪙', color: '#a78bfa',
+    description: "Échangeable en Boutique contre Cid Kagenou.",
+    sellGems: 0, isCoin: true,
   },
 };
 

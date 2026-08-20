@@ -155,7 +155,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('link_midona_evo1', 'Link Loup & Midona',                'link_midona', 200, 7.5),
     f('link_midona_evo2', 'Link & Midona — Princesse Twili',   'link_midona', 300, 20),
   ]),
-  ce('jinwoo', 'Sung Jin Woo', 'CO', 77, 'Solo Leveling', [
+  ce('jinwoo', 'Sung Jin Woo', 'S', 71, 'Solo Leveling', [
     f('jinwoo_base', 'Sung Jin Woo',                     'jinwoo', 100, 1),
     f('jinwoo_evo1', 'Sung Jin Woo — Monarque Éveillé',  'jinwoo', 200, 7,  'elixir_vie'),
     f('jinwoo_evo2', 'Sung Jin Woo — Seigneur des Ombres','jinwoo', 300, 16, 'manteau_ombre'),
