@@ -25,16 +25,18 @@ export function defaultEquippedItems(): EquippedItems {
 export const RARITY_CONFIG: Record<Rarity, {
   label: string; color: string; glow: string; chance: number; dpsMultiplier: number;
 }> = {
-  C:  { label:'Commun',      color:'#9ca3af', glow:'#9ca3af', chance:50.0, dpsMultiplier:1,    },
-  U:  { label:'Uncommun',    color:'#86efac', glow:'#22c55e', chance:20.0, dpsMultiplier:1.8,  },
-  R:  { label:'Rare',        color:'#60a5fa', glow:'#3b82f6', chance:12.5, dpsMultiplier:3,    },
-  E:  { label:'Épique',      color:'#c084fc', glow:'#a855f7', chance:8.0,  dpsMultiplier:7,    },
-  L:  { label:'Légendaire',  color:'#fbbf24', glow:'#f59e0b', chance:4.5,  dpsMultiplier:15,   },
-  M:  { label:'Mythique',    color:'#f87171', glow:'#ef4444', chance:2.5,  dpsMultiplier:40,   },
-  S:  { label:'Stellaire',   color:'#ffffff', glow:'#fbbf24', chance:1.2,  dpsMultiplier:100,  },
-  CO: { label:'Cosmique',    color:'#34d399', glow:'#10b981', chance:0.8,  dpsMultiplier:300,  },
-  P:  { label:'Primordial',  color:'#ff6b35', glow:'#ff4500', chance:0.3,  dpsMultiplier:800,  },
-  T:  { label:'Transcendant',color:'#e879f9', glow:'#d946ef', chance:0.2,  dpsMultiplier:2000, },
+  // dpsMultiplier = base de croissance par niveau (Math.pow(base, level-1) dans calcCharDps),
+  // pas un multiplicateur plat : 1.024 + 0.001 par palier de rareté.
+  C:  { label:'Commun',      color:'#9ca3af', glow:'#9ca3af', chance:50.0, dpsMultiplier:1.024, },
+  U:  { label:'Uncommun',    color:'#86efac', glow:'#22c55e', chance:20.0, dpsMultiplier:1.025, },
+  R:  { label:'Rare',        color:'#60a5fa', glow:'#3b82f6', chance:12.5, dpsMultiplier:1.026, },
+  E:  { label:'Épique',      color:'#c084fc', glow:'#a855f7', chance:8.0,  dpsMultiplier:1.027, },
+  L:  { label:'Légendaire',  color:'#fbbf24', glow:'#f59e0b', chance:4.5,  dpsMultiplier:1.028, },
+  M:  { label:'Mythique',    color:'#f87171', glow:'#ef4444', chance:2.5,  dpsMultiplier:1.029, },
+  S:  { label:'Stellaire',   color:'#ffffff', glow:'#fbbf24', chance:1.2,  dpsMultiplier:1.030, },
+  CO: { label:'Cosmique',    color:'#34d399', glow:'#10b981', chance:0.8,  dpsMultiplier:1.031, },
+  P:  { label:'Primordial',  color:'#ff6b35', glow:'#ff4500', chance:0.3,  dpsMultiplier:1.032, },
+  T:  { label:'Transcendant',color:'#e879f9', glow:'#d946ef', chance:0.2,  dpsMultiplier:1.033, },
 };
 
 // ── Forme d'évolution d'un personnage ─────────────────────────────────────
@@ -103,21 +105,38 @@ export function canEvolveHero(forms: EvoForm[], hero: HeroState): boolean {
   return hero.currentForm < forms.length - 1;
 }
 
-// Buff global des dégâts (tous persos + héros), en contrepartie du nerf de PV
-// des ennemis à partir du palier 13.
-export const GLOBAL_DMG_SCALE = 1.2;
-
+// ── Courbe de DPS perso (retranscrite du Google Sheet de simulation) ─────
+// Excel : =ARRONDI(MAX((F$1*F$2^(E5-1)*(ARRONDI(E5/100)+1)*$B$42);(F4+1)))
+//   F$1 = baseDps (rareté)     F$2 = pow (rareté, RARITY_CONFIG.dpsMultiplier)
+//   E5  = niveau du perso      B42 = numéro de forme
+//   F4  = DPS calculé au niveau précédent (garantit au moins +1 DPS/niveau,
+//         même quand la courbe exponentielle est encore trop plate en début de jeu)
 export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): number {
   // Le niveau n'est plus plafonné : le numéro de forme sert de multiplicateur
   // (base = ×1, evo1 = ×2, evo2 = ×3, etc.).
-  const formMult   = owned.currentForm + 1;
-  // Croissance par niveau : +10% (était +6%) — perso plus impactant à monter
-  const levelMult  = 1 + (owned.level - 1) * 0.10;
-  // Palier tous les 100 niveaux : ARRONDI(niveau/100)+1 (×1 avant le niveau 100)
-  const tierMult   = Math.round(owned.level / 100) + 1;
-  const rankMult   = [1, 1.4, 1.9, 2.6, 3.5, 5.5, 9.0][Math.min(owned.rank - 1, 6)];
+  const formMult    = owned.currentForm + 1;
+  const rankMult    = [1, 1.4, 1.9, 2.6, 3.5, 5.5, 9.0][Math.min(owned.rank - 1, 6)];
   const editionMult = getEditionStatMult(owned.edition); // ×1 base / ×1.2 or / ×1.5 diamant
-  return Math.floor(tpl.baseDps * formMult * levelMult * tierMult * rankMult * editionMult * GLOBAL_DMG_SCALE);
+  const pow         = RARITY_CONFIG[tpl.rarity].dpsMultiplier; // 1.024 + 0.001 par palier de rareté
+  const otherMults  = formMult * rankMult * editionMult;
+
+  const rawDpsAtLevel = (lvl: number) => {
+    const tierMult = Math.round(lvl / 100) + 1; // palier tous les 100 niveaux
+    return tpl.baseDps * Math.pow(pow, lvl - 1) * tierMult * otherMults;
+  };
+
+  let prevDps = Math.round(rawDpsAtLevel(1));
+  for (let lvl = 2; lvl <= owned.level; lvl++) {
+    const raw = rawDpsAtLevel(lvl);
+    if (raw >= prevDps + 1) {
+      // La courbe exponentielle dépasse désormais le palier "+1/niveau" et le
+      // dépassera pour tous les niveaux suivants (croissance strictement
+      // croissante) : plus besoin de repasser par le MAX, calcul direct.
+      return Math.round(rawDpsAtLevel(owned.level));
+    }
+    prevDps = prevDps + 1; // MAX(raw, prevDps+1) avec raw < prevDps+1
+  }
+  return prevDps;
 }
 
 export function calcHeroDpc(hero: HeroState, forms: EvoForm[], baseClick: number): number {
@@ -126,7 +145,7 @@ export function calcHeroDpc(hero: HeroState, forms: EvoForm[], baseClick: number
   const levelMult = 1 + (hero.level - 1) * 0.025;
   // Palier tous les 100 niveaux : ARRONDI(niveau/100)+1
   const tierMult  = Math.round(hero.level / 100) + 1;
-  return Math.floor(baseClick * formMult * levelMult * tierMult * GLOBAL_DMG_SCALE);
+  return Math.floor(baseClick * formMult * levelMult * tierMult);
 }
 
 // ── Griffes Aiguisées : courbe DPC & coûts centralisés ───────────────────
