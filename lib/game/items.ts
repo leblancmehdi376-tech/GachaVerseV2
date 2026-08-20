@@ -517,7 +517,7 @@ export const EQUIP_RARITY_MIN_PALIER: Record<string, number> = {
 // rareté a été débloquée via son expédition. Décroissant du plus commun au
 // plus rare.
 const EQUIP_RARITY_WEIGHT: Record<string, number> = {
-  C: 5.90, U: 2.20, R: 0.80, E: 0.30, L: 0.12, M: 0.05, S: 0.02, CO: 0.008, P: 0.003, T: 0.0008,
+  C: 33, U: 5, R: 2, E: 1, L: 0.5, M: 0.25, S: 0.125, CO: 0.0625, P: 0.03125, T: 0.015625,
 };
 // Du plus rare au plus commun (ordre de test des bandes cumulées).
 // Aligné sur RARITY_ORDER des personnages (gacha.ts) : T > P > CO > S > M > L > E > R > U > C.
