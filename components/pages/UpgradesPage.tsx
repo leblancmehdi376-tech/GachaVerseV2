@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useGameStore, GOLD_UPGRADE_COSTS, GOLD_MULTIPLIERS } from '@/store/gameStore';
+import { useGameStore, getGoldChestCost, getGoldChestMultiplier } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { levelUpCost, evoCost, canEvolve, calcCharDps, RARITY_CONFIG } from '@/types/game';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
@@ -41,35 +41,27 @@ function LevelBar({ level, color }: { level: number; color: string }) {
   );
 }
 
-// ── Carte : Coffre d'Or (niveaux dynamiques depuis le store) ─────────────
-const GOLD_COLORS = ['#fbbf24','#f59e0b','#d97706','#f97316','#ef4444','#a78bfa'];
-// Un palier = une amélioration achetable (niveau 1..N). Le bonus AFFICHÉ est celui
-// qu'on ATTEINT (MULTIPLIERS[i+1]) et le coût est celui pour l'atteindre (COSTS[i]).
-// Le niveau 0 (×1.00, +0%) est l'état de départ et n'est donc pas un palier.
-const GOLD_LEVELS = GOLD_UPGRADE_COSTS.map((cost, i) => {
-  const pct = Math.round((GOLD_MULTIPLIERS[i + 1] - 1) * 100);
-  return {
-    bonus: `+${pct}%`,
-    cost,
-    desc: `${pct}% de coins en plus`,
-    color: GOLD_COLORS[i % GOLD_COLORS.length],
-  };
-});
-
+// ── Carte : Coffre d'Or (un niveau débloqué par palier atteint) ──────────
+// Bonus = ×1.2^niveau (formule fixe), coût = 6000 × 1.13^niveau (même taux
+// que la progression naturelle des golds par palier). Le niveau achetable
+// max suit maxPalierReached — pas de plafond fixe, il grandit avec la
+// progression du joueur.
 function GoldUpgradeCard() {
-  const { goldUpgradeLevel, upgradeGold, pixelCoins, getGoldMultiplier } = useGameStore();
-  const level     = goldUpgradeLevel ?? 0;
-  const mult      = getGoldMultiplier();
-  const maxed     = level >= GOLD_LEVELS.length;
-  const nextLevel = GOLD_LEVELS[level];
-  const canAfford = nextLevel && pixelCoins >= nextLevel.cost;
+  const { goldUpgradeLevel, upgradeGold, pixelCoins, getGoldMultiplier, maxPalierReached } = useGameStore();
+  const level      = goldUpgradeLevel ?? 0;
+  const maxLevel   = maxPalierReached ?? 1;
+  const mult       = getGoldMultiplier();
+  const locked     = level >= maxLevel;
+  const nextCost   = getGoldChestCost(level);
+  const nextPct    = Math.round((getGoldChestMultiplier(level + 1) - 1) * 100);
+  const canAfford  = !locked && pixelCoins >= nextCost;
 
   return (
-    <div className="panel" style={{ borderColor:canAfford?'#4ade80':maxed?'rgba(74,222,128,0.4)':'var(--border)', padding:16, transition:'all 0.2s', boxShadow:canAfford?'0 0 24px rgba(74,222,128,0.14)':maxed?'0 0 12px rgba(74,222,128,0.08)':'none' }}>
+    <div className="panel" style={{ borderColor:canAfford?'#4ade80':'var(--border)', padding:16, transition:'all 0.2s', boxShadow:canAfford?'0 0 24px rgba(74,222,128,0.14)':'none' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
         <div>
           <div style={{ fontFamily:'var(--f-title)', fontSize:13, color:'#4ade80', marginBottom:8 }}>🪙 COFFRE D&apos;OR</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu.</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu. Chaque palier atteint débloque un niveau supplémentaire.</div>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:10, color:'var(--text-dim)' }}>Bonus actuel :</span>
             <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16, color:'#4ade80' }}>×{mult.toFixed(2)}</span>
@@ -77,31 +69,19 @@ function GoldUpgradeCard() {
         </div>
         <div style={{ background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:8, padding:'8px 14px', textAlign:'center', flexShrink:0 }}>
           <span style={{ fontFamily:'var(--f-ui)', fontSize:8, color:'rgba(74,222,128,0.6)', display:'block', letterSpacing:1 }}>NIV.</span>
-          <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26, color:'#4ade80', lineHeight:1 }}>{level}/{GOLD_LEVELS.length}</span>
+          <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26, color:'#4ade80', lineHeight:1 }}>{level}/{maxLevel}</span>
         </div>
       </div>
 
-      {/* Étapes visuelles */}
-      <div style={{ display:'grid', gridTemplateColumns:`repeat(${GOLD_LEVELS.length},minmax(0,1fr))`, gap:6, marginBottom:12 }}>
-        {GOLD_LEVELS.map((g, i) => (
-          <div key={i} style={{ padding:'8px 4px', background: i < level ? `${g.color}20` : 'rgba(255,255,255,0.03)', border:`1px solid ${i < level ? g.color+'55' : i === level ? g.color+'33' : 'var(--border)'}`, borderRadius:7, textAlign:'center', position:'relative', overflow:'hidden', minWidth:0 }}>
-            {i < level && <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:g.color, boxShadow:`0 0 6px ${g.color}` }} />}
-            <div style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:12, color:i < level ? g.color : 'var(--text-muted)', whiteSpace:'nowrap' }}>{g.bonus}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:8, color:'var(--text-dim)', marginTop:2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{formatNumber(g.cost)}</div>
-            {i < level && <div style={{ fontSize:11, marginTop:2 }}>✅</div>}
-          </div>
-        ))}
-      </div>
-
-      {maxed ? (
-        <div style={{ padding:'10px', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.25)', borderRadius:8, textAlign:'center', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13, color:'#4ade80' }}>
-          ✅ NIVEAU MAXIMUM ATTEINT — {GOLD_LEVELS[GOLD_LEVELS.length-1].bonus} coins
+      {locked ? (
+        <div style={{ padding:'10px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:8, textAlign:'center', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)' }}>
+          🔒 Prochain niveau débloqué au palier {level + 1}
         </div>
       ) : (
         <button onClick={() => upgradeGold()} disabled={!canAfford} className={canAfford?'btn-primary':'btn-secondary'}
           style={{ width:'100%', padding:'10px', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:10, background:canAfford?undefined:'rgba(255,255,255,0.03)' }}>
-          <span>AMÉLIORER → {nextLevel?.bonus}</span>
-          <span style={{ fontFamily:'var(--f-num)', color:'#4ade80' }}>{formatNumber(nextLevel?.cost ?? 0)} 🪙</span>
+          <span>AMÉLIORER → +{nextPct}%</span>
+          <span style={{ fontFamily:'var(--f-num)', color:'#4ade80' }}>{formatNumber(nextCost)} 🪙</span>
         </button>
       )}
     </div>

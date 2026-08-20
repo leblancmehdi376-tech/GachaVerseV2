@@ -66,18 +66,19 @@ const EVENT_QUESTS: Omit<Quest,'current'|'done'>[] = [
 ];
 
 // Coût et multiplicateur du Coffre d'Or — partagés entre upgradeGold() et resolveEnemyDeath()
-// 8 niveaux, multiplicateur max ×5 (était ×2 en 6 niveaux)
-export const GOLD_UPGRADE_COSTS = [
-  6_000,       // lv1 (≈×1.5)
-  30_000,      // lv2
-  120_000,     // lv3
-  450_000,     // lv4
-  1_200_000,   // lv5
-  4_500_000,   // lv6
-  18_000_000,  // lv7
-  75_000_000,  // lv8
-];
-export const GOLD_MULTIPLIERS = [1, 1.25, 1.55, 1.90, 2.35, 2.90, 3.75, 4.50, 5.00];
+// Chaque palier atteint débloque un niveau de coffre achetable (niveau max
+// achetable = maxPalierReached) ; le multiplicateur et le coût sont désormais
+// des formules fixes, plus des paliers manuels plafonnés.
+export const GOLD_CHEST_COST_BASE   = 6_000;
+export const GOLD_CHEST_COST_GROWTH = 1.13; // même taux que la progression naturelle des golds par palier
+export const GOLD_CHEST_MULT_GROWTH = 1.2;  // boost golds ×1.2^niveau_du_coffre
+
+export function getGoldChestCost(level: number): number {
+  return Math.round(GOLD_CHEST_COST_BASE * Math.pow(GOLD_CHEST_COST_GROWTH, level));
+}
+export function getGoldChestMultiplier(level: number): number {
+  return Math.pow(GOLD_CHEST_MULT_GROWTH, level);
+}
 
 // ── Anti-exploit multi-onglets ─────────────────────────────────────────────
 const LOCAL_STORAGE_KEY = 'gachaverse_save';
@@ -644,8 +645,9 @@ export const useGameStore = create<GameStore>()(
 
       upgradeGold: () => {
         const level = get().goldUpgradeLevel ?? 0;
-        if (level >= GOLD_UPGRADE_COSTS.length) return;
-        const cost = GOLD_UPGRADE_COSTS[level];
+        const maxLevel = get().maxPalierReached ?? 1;
+        if (level >= maxLevel) return; // pas encore débloqué par la progression de palier
+        const cost = getGoldChestCost(level);
         if (!get().spendPixelCoins(cost)) return;
         set(state => ({
           goldUpgradeLevel: (state.goldUpgradeLevel ?? 0) + 1,
@@ -657,14 +659,15 @@ export const useGameStore = create<GameStore>()(
 
       getGoldMultiplier: () => {
         const level = get().goldUpgradeLevel ?? 0;
-        const chestMult = GOLD_MULTIPLIERS[Math.min(level, GOLD_MULTIPLIERS.length - 1)];
+        const chestMult = getGoldChestMultiplier(level);
         const titleMult = getTitleGoldMultiplier(useAchievementStore.getState().activeTitle);
         return chestMult * titleMult;
       },
 
       getGoldUpgradeCost: () => {
         const level = get().goldUpgradeLevel ?? 0;
-        return level >= GOLD_UPGRADE_COSTS.length ? 0 : GOLD_UPGRADE_COSTS[level];
+        const maxLevel = get().maxPalierReached ?? 1;
+        return level >= maxLevel ? 0 : getGoldChestCost(level);
       },
 
       levelUpHero: () => {
@@ -1374,7 +1377,7 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
   if (state.currentEnemy.currentHp > 0) return {};
 
   // Multiplicateurs de coins (or + ult + boost BossCrown)
-  const chestMult    = GOLD_MULTIPLIERS[Math.min((state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0, GOLD_MULTIPLIERS.length - 1)];
+  const chestMult    = getGoldChestMultiplier((state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0);
   const titleMult    = getTitleGoldMultiplier(useAchievementStore.getState().activeTitle);
   const goldMult     = chestMult * titleMult;
   const ultCoinMult  = getActiveCoinMultiplier(useUltimateStore.getState());
