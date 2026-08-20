@@ -24,7 +24,7 @@ import { PrestigePage } from '@/components/pages/PrestigePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
 import { MusicPlayer } from '@/components/game/MusicPlayer';
-import { useGameStore, PALIER_PASS_GEMS } from '@/store/gameStore';
+import { useGameStore, getPalierPassGems } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { useDpsTick } from '@/hooks/useDpsTick';
@@ -529,7 +529,7 @@ function ProgressCard({ palier, wave, progressPct, cfg }: { palier: number; wave
       </div>
       <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid var(--border)', borderRadius:'6px', padding:'6px 10px', display:'flex', alignItems:'center', gap:'8px' }}>
         <span style={{ fontFamily:'var(--f-ui)', fontSize:'11px', color:'var(--text-dim)' }}>Récompense :</span>
-        <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13px', color:'var(--cyan-hi)' }}>💎 ×{PALIER_PASS_GEMS}</span>
+        <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13px', color:'var(--cyan-hi)' }}>💎 ×{getPalierPassGems(palier)}</span>
       </div>
     </div>
   );

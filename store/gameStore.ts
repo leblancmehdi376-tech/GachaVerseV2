@@ -119,7 +119,11 @@ if (BROADCAST_CHANNEL) {
 }
 
 // Récompenses de progression
-export const PALIER_PASS_GEMS    = 20;     // gemmes données à chaque palier franchi (mort du boss)
+// Gemmes données à chaque palier franchi (mort du boss) — récompense de fin
+// de palier, distincte du butin par ennemi (gemsReward dans enemies.ts).
+export function getPalierPassGems(palier: number): number {
+  return palier * 10;
+}
 export const MOB_GEM_DROP_CHANCE = 0.005;  // 0.5% de chance de looter 1 gemme bonus sur N'IMPORTE QUEL ennemi tué
 // Taux de drop d'équipement en mode farm (palier < maxPalierReached) : ×0.25 = 4× plus lent.
 export const FARM_EQUIP_DROP_RATE = 0.25;
@@ -1419,9 +1423,9 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
         pixelCoins: coins,
       }).catch(() => {});
     }
-    // +20 gemmes et +1 couronne de boss : réservés à une vraie progression
-    // (sinon re-farmer un boss trivial = robinet infini de gemmes/couronnes).
-    const passGems     = isNewProgress ? PALIER_PASS_GEMS : 0;
+    // Gemmes (palier×10) et +1 couronne de boss : réservées à une vraie
+    // progression (sinon re-farmer un boss trivial = robinet infini).
+    const passGems     = isNewProgress ? getPalierPassGems(state.palier) : 0;
     const crownGain    = isNewProgress ? 1 : 0;
     // Événement de victoire (source de vérité pour l'écran de victoire).
     const bossVictory = { palier: next, gems: passGems, coins: baseCoins, crowns: crownGain, at: Date.now() };
