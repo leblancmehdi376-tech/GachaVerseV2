@@ -16,8 +16,10 @@ import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { RandomEventOverlay } from '@/components/game/events/RandomEventOverlay';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getEquipmentDef } from '@/lib/game/items';
+import { getUltimateDef } from '@/lib/game/ultimates';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { BattleParticles } from '@/components/game/BattleParticles';
+import { SkillTooltip } from '@/components/ui/SkillTooltip';
 
 
 interface Dmg { id: number; x: number; y: number; val: number; crit: boolean; }
@@ -63,7 +65,8 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
   const formIdx  = owned.currentForm;
   const name     = getCharFormName(tpl, formIdx);
 
-  const rc = RARITY_CONFIG[tpl.rarity];
+  const rc  = RARITY_CONFIG[tpl.rarity];
+  const ult = getUltimateDef(pureId);
   const { base, typeMult, final } = getCharDpsBreakdown(templateId);
   const strong = typeMult > 1, weak = typeMult < 1;
   const multCol = strong ? '#4ade80' : weak ? '#f87171' : 'rgba(255,255,255,0.5)';
@@ -78,30 +81,32 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
       boxShadow: isActive ? '0 0 14px #c084fc77' : ready ? `0 0 10px ${rc.glow}44` : '0 3px 12px rgba(0,0,0,0.5)',
       transition: 'box-shadow 0.2s, border-color 0.2s',
     }}>
-      {/* Illustration (le nom est déjà sur la carte) — cliquable pour l'ult */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '306 / 517', cursor: ready ? 'pointer' : 'default' }}
-        onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}>
-        <CharacterCardThumb templateId={pureId} formIndex={formIdx} name={name} rarity={tpl.rarity} edition={owned.edition}
-          width={88} height={149} style={{ border: 'none', boxShadow: 'none', borderRadius: 0, objectFit: 'contain', width: '100%', height: '100%' }} />
+      {/* Illustration (le nom est déjà sur la carte) — cliquable pour l'ult, survol = compétence */}
+      <SkillTooltip ult={ult}>
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '306 / 517', cursor: ready ? 'pointer' : 'default' }}
+          onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}>
+          <CharacterCardThumb templateId={pureId} formIndex={formIdx} name={name} rarity={tpl.rarity} edition={owned.edition}
+            width={88} height={149} style={{ border: 'none', boxShadow: 'none', borderRadius: 0, objectFit: 'contain', width: '100%', height: '100%' }} />
 
-        {/* Niveau + rang — overlay haut-gauche */}
-        <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 8, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px' }}>LV{owned.level}</span>
-          {owned.rank > 0 && <span style={{ fontFamily: 'var(--f-num)', fontSize: 8, fontWeight: 800, color: '#fbbf24', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 4, padding: '1px 4px' }}>★{owned.rank}</span>}
+          {/* Niveau + rang — overlay haut-gauche */}
+          <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ fontFamily: 'var(--f-num)', fontSize: 8, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px' }}>LV{owned.level}</span>
+            {owned.rank > 0 && <span style={{ fontFamily: 'var(--f-num)', fontSize: 8, fontWeight: 800, color: '#fbbf24', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 4, padding: '1px 4px' }}>★{owned.rank}</span>}
+          </div>
+
+          {/* Ult — overlay haut-droit */}
+          <div style={{ position: 'absolute', top: 4, right: 4, display: 'flex', alignItems: 'center', gap: 2,
+            background: ready ? 'rgba(88,28,135,0.92)' : 'rgba(0,0,0,0.72)',
+            border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 4, padding: '1px 4px' }}>
+            <span style={{ fontSize: 7 }}>{ready ? '⚡' : '⏳'}</span>
+            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 7, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3 }}>
+              {ready ? 'PRÊT' : ultLabel}
+            </span>
+          </div>
+
         </div>
-
-        {/* Ult — overlay haut-droit */}
-        <div style={{ position: 'absolute', top: 4, right: 4, display: 'flex', alignItems: 'center', gap: 2,
-          background: ready ? 'rgba(88,28,135,0.92)' : 'rgba(0,0,0,0.72)',
-          border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.15)',
-          borderRadius: 4, padding: '1px 4px' }}>
-          <span style={{ fontSize: 7 }}>{ready ? '⚡' : '⏳'}</span>
-          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 7, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3 }}>
-            {ready ? 'PRÊT' : ultLabel}
-          </span>
-        </div>
-
-      </div>
+      </SkillTooltip>
 
       {/* Pied : BASE | TYPE | DPS */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', padding: '5px 4px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22`, gap: 2 }}>
