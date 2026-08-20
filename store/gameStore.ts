@@ -870,7 +870,7 @@ export const useGameStore = create<GameStore>()(
         if (!owned) return;
         const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
         if (!tpl) return;
-        const cost = levelUpCost(owned.level, tpl.rarity);
+        const cost = levelUpCost(owned.level);
         if (!get().spendPixelCoins(cost)) return;
         set(state => ({
           collection: {

@@ -128,7 +128,7 @@ function CharCard({ templateId }: { templateId: string }) {
   const tpl   = getCharacterById(pureId);
   if (!owned || !tpl) return null;
   const canEvo_  = canEvolve(tpl, owned, inventory);
-  const lvCost   = levelUpCost(owned.level, tpl.rarity);
+  const lvCost   = levelUpCost(owned.level);
   const evoCostV = evoCost(tpl.rarity, owned.currentForm);
   const dps      = calcCharDps(tpl, owned);
   const cfg      = RARITY_CONFIG[tpl.rarity];

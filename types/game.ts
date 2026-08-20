@@ -170,13 +170,10 @@ export function calcClickUpgradeCost(level: number): number {
 }
 
 // ── Coûts de niveau ───────────────────────────────────────────────────────
-export function levelUpCost(level: number, rarity: Rarity): number {
-  const rarityBase: Record<Rarity, number> = {
-    C:16, U:30, R:50, E:120, L:300, M:800, S:2400, CO:20000, P:110000, T:140000,
-  };
-  // Légère augmentation de la croissance pour rendre les montées de niveau
-  // un peu plus coûteuses (1.08 au lieu de 1.07)
-  return Math.floor(rarityBase[rarity] * Math.pow(1.08, level - 1));
+// Excel : =ARRONDI(H$1*H$2^(E5-1))  —  H$1 = base (60), H$2 = pow (1.05), E5 = niveau.
+// Coût identique pour toutes les raretés (ne dépend que du niveau).
+export function levelUpCost(level: number): number {
+  return Math.round(60 * Math.pow(1.05, level - 1));
 }
 
 export function heroLevelUpCost(level: number): number {
