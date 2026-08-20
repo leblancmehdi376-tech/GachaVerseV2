@@ -571,7 +571,7 @@ export function generateEnemy(wave: number, palier: number, maxPalierReached: nu
   // progression, jamais en re-farmant un palier déjà validé — sinon c'est un
   // robinet infini de gemmes en boucle.
   const isFarming = palier < maxPalierReached;
-  const gemsReward = isBoss ? palier : (wave === 5 && !isFarming ? 1 : 0);
+  const gemsReward = isBoss ? palier * 10 : (wave === 5 && !isFarming ? 1 : 0);
 
   return {
     id:    `p${palier}_w${wave}`,
