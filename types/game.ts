@@ -58,7 +58,7 @@ export interface EvoForm {
   name:        string;
   spritePath:  string;
   levelCap:    number;
-  dpsFormMult: number;
+  dpsFormMult: number; // toujours = position de la forme (1, 2, 3...), fixé par ce() — jamais un réglage par personnage
   description: string;
   requiredItemId?: string; // objet d'évolution requis (consommé) pour débloquer cette forme
 }

@@ -15,7 +15,11 @@ function c(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDp
   return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png` };
 }
 function ce(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDps: number, universe: string, forms: EvoForm[]): CharacterTemplate {
-  return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png`, forms };
+  // Le multiplicateur de forme ne dépend plus du personnage : c'est toujours
+  // sa position (forme 1 = ×1, forme 2 = ×2, ...), quelle que soit la valeur
+  // passée à f() — voir calcCharDps() dans types/game.ts.
+  const numberedForms = forms.map((form, i) => ({ ...form, dpsFormMult: i + 1 }));
+  return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png`, forms: numberedForms };
 }
 function f(formId: string, name: string, id: string, levelCap: number, mult: number, requiredItemId?: string): EvoForm {
   const tag = formId.replace(`${id}_`, '');
