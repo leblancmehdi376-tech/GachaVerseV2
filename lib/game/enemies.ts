@@ -552,8 +552,8 @@ export function generateEnemy(wave: number, palier: number, maxPalierReached: nu
   const hpMult = def.hpMult ?? 1;
   const global = (palier - 1) * 10 + wave;
 
-  // HP : 1000 × 1.12^(global-1)
-  const baseHp = Math.floor(1000 * Math.pow(1.12, global - 1));
+  // HP : 200 × 1.12^(global-1)
+  const baseHp = Math.floor(200 * Math.pow(1.12, global - 1));
   const maxHp  = Math.floor(baseHp * hpMult);
 
   // Coins : base × growth^(global-1), boss × bossMult
