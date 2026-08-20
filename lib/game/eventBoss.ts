@@ -119,10 +119,9 @@ export function rollEventDrop(bossId: string): DropResult[] {
 // si l'économie du jeu (ultimates...) est rééquilibrée plus tard.
 const FIGHT_TARGET_SECONDS = 240;       // durée visée d'un combat via DPS passif seul (~4 min) pour un joueur déjà puissant
 const MIN_POWER_FLOOR      = 50;        // évite un calcul à 0 pour un joueur sans équipe
-const MINIMUM_BOSS_HP      = 800_000;   // plancher absolu — même un joueur tout frais doit affronter un vrai combat
 
 export function getEventBossMaxHp(boss: EventBossDef, currentPower: number): number {
   const power = Math.max(currentPower, MIN_POWER_FLOOR);
   const targetSeconds = boss.targetSeconds ?? FIGHT_TARGET_SECONDS;
-  return Math.max(Math.floor(power * targetSeconds), MINIMUM_BOSS_HP);
+  return Math.floor(power * targetSeconds);
 }
