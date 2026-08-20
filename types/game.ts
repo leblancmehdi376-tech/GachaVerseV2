@@ -92,8 +92,6 @@ export function getLevelCap(character: CharacterTemplate, formIndex: number): nu
 
 export function canEvolve(character: CharacterTemplate, owned: OwnedCharacter, inventory: Record<string, number> = {}): boolean {
   if (!character.forms || character.forms.length === 0) return false;
-  const cap = getLevelCap(character, owned.currentForm);
-  if (owned.level < cap) return false;
   if (owned.currentForm >= character.forms.length - 1) return false;
   const nextForm = character.forms[owned.currentForm + 1];
   if (nextForm.requiredItemId && (inventory[nextForm.requiredItemId] ?? 0) < 1) return false;
@@ -102,8 +100,7 @@ export function canEvolve(character: CharacterTemplate, owned: OwnedCharacter, i
 
 export function canEvolveHero(forms: EvoForm[], hero: HeroState): boolean {
   if (!forms || forms.length === 0) return false;
-  const cap = forms[hero.currentForm]?.levelCap ?? 100;
-  return hero.level >= cap && hero.currentForm < forms.length - 1;
+  return hero.currentForm < forms.length - 1;
 }
 
 // Buff global des dégâts (tous persos + héros), en contrepartie du nerf de PV
@@ -111,19 +108,25 @@ export function canEvolveHero(forms: EvoForm[], hero: HeroState): boolean {
 export const GLOBAL_DMG_SCALE = 1.2;
 
 export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): number {
-  const formMult   = tpl.forms?.[owned.currentForm]?.dpsFormMult ?? 1;
+  // Le niveau n'est plus plafonné : le numéro de forme sert de multiplicateur
+  // (base = ×1, evo1 = ×2, evo2 = ×3, etc.).
+  const formMult   = owned.currentForm + 1;
   // Croissance par niveau : +10% (était +6%) — perso plus impactant à monter
   const levelMult  = 1 + (owned.level - 1) * 0.10;
+  // Palier tous les 100 niveaux : ARRONDI(niveau/100)+1 (×1 avant le niveau 100)
+  const tierMult   = Math.round(owned.level / 100) + 1;
   const rankMult   = [1, 1.4, 1.9, 2.6, 3.5, 5.5, 9.0][Math.min(owned.rank - 1, 6)];
   const editionMult = getEditionStatMult(owned.edition); // ×1 base / ×1.2 or / ×1.5 diamant
-  return Math.floor(tpl.baseDps * formMult * levelMult * rankMult * editionMult * GLOBAL_DMG_SCALE);
+  return Math.floor(tpl.baseDps * formMult * levelMult * tierMult * rankMult * editionMult * GLOBAL_DMG_SCALE);
 }
 
 export function calcHeroDpc(hero: HeroState, forms: EvoForm[], baseClick: number): number {
-  const formMult  = forms[hero.currentForm]?.dpsFormMult ?? 1;
+  const formMult  = hero.currentForm + 1;
   // +2.5% par niveau au lieu de 1.5% — rend le héros plus utile à haut niveau
   const levelMult = 1 + (hero.level - 1) * 0.025;
-  return Math.floor(baseClick * formMult * levelMult * GLOBAL_DMG_SCALE);
+  // Palier tous les 100 niveaux : ARRONDI(niveau/100)+1
+  const tierMult  = Math.round(hero.level / 100) + 1;
+  return Math.floor(baseClick * formMult * levelMult * tierMult * GLOBAL_DMG_SCALE);
 }
 
 // ── Griffes Aiguisées : courbe DPC & coûts centralisés ───────────────────

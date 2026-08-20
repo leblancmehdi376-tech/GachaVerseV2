@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useGameStore, GOLD_UPGRADE_COSTS, GOLD_MULTIPLIERS } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
-import { levelUpCost, evoCost, canEvolve, getLevelCap, calcCharDps, RARITY_CONFIG } from '@/types/game';
+import { levelUpCost, evoCost, canEvolve, calcCharDps, RARITY_CONFIG } from '@/types/game';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getItemDef } from '@/lib/game/items';
 import { RarityBadge } from '@/components/ui/RarityBadge';
@@ -26,14 +26,17 @@ function SectionHead({ color, children }: { color: string; children: React.React
   );
 }
 
-function LevelBar({ level, cap, color }: { level: number; cap: number; color: string }) {
-  const pct = Math.min((level / cap) * 100, 100);
+// Le niveau n'est plus plafonné : la barre montre juste la progression vers
+// le prochain palier de multiplicateur (tous les 100 niveaux).
+function LevelBar({ level, color }: { level: number; color: string }) {
+  const nextTier = (Math.floor(level / 100) + 1) * 100;
+  const pct = ((level % 100) / 100) * 100;
   return (
     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
       <div style={{ flex:1, height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden' }}>
         <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${color}88,${color})`, borderRadius:3, boxShadow:`0 0 5px ${color}66`, transition:'width 0.3s' }} />
       </div>
-      <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10, color, whiteSpace:'nowrap' }}>Niv.{level}<span style={{ color:'rgba(255,255,255,0.25)', fontWeight:400 }}>/{cap}</span></span>
+      <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10, color, whiteSpace:'nowrap' }}>Niv.{level}<span style={{ color:'rgba(255,255,255,0.25)', fontWeight:400 }}>/{nextTier}</span></span>
     </div>
   );
 }
@@ -124,8 +127,6 @@ function CharCard({ templateId }: { templateId: string }) {
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom partagés entre éditions)
   const tpl   = getCharacterById(pureId);
   if (!owned || !tpl) return null;
-  const cap      = getLevelCap(tpl, owned.currentForm);
-  const atCap    = owned.level >= cap;
   const canEvo_  = canEvolve(tpl, owned, inventory);
   const lvCost   = levelUpCost(owned.level, tpl.rarity);
   const evoCostV = evoCost(tpl.rarity, owned.currentForm);
@@ -159,7 +160,7 @@ function CharCard({ templateId }: { templateId: string }) {
               <span style={{ fontFamily:'var(--f-ui)', fontSize:9, color:'var(--text-dim)', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', padding:'1px 6px', borderRadius:4 }}>{tpl.universe}</span>
             )}
           </div>
-          <LevelBar level={owned.level} cap={cap} color={cfg.color} />
+          <LevelBar level={owned.level} color={cfg.color} />
           {tpl.forms && tpl.forms.length > 1 && (
             <div style={{ fontFamily:'var(--f-ui)', fontSize:9, color:'var(--text-dim)', marginTop:4 }}>
               Forme {owned.currentForm+1}/{tpl.forms.length} · Rang {owned.rank}/7
@@ -169,12 +170,12 @@ function CharCard({ templateId }: { templateId: string }) {
       </div>
       {/* Boutons */}
       <div style={{ display:'flex', gap:8, marginTop:12, paddingLeft:8 }}>
-        <button onClick={() => levelUpCharacter(templateId)} disabled={atCap || pixelCoins < lvCost}
-          style={{ flex:1, padding:'8px 10px', background:!atCap&&pixelCoins>=lvCost?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${!atCap&&pixelCoins>=lvCost?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:!atCap&&pixelCoins>=lvCost?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color:!atCap&&pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>{atCap?'⚠ CAP':'⬆ LVL UP'}</span>
-          {!atCap&&<span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>}
+        <button onClick={() => levelUpCharacter(templateId)} disabled={pixelCoins < lvCost}
+          style={{ flex:1, padding:'8px 10px', background:pixelCoins>=lvCost?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=lvCost?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=lvCost?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color:pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
         </button>
-        {atCap && !canEvo_ && reqItem && !hasItem && (
+        {!canEvo_ && reqItem && !hasItem && (
           <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ fontSize:14 }}>{reqItem.icon}</span>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'#c084fc' }}>Requiert : <b>{reqItem.name}</b> ({getItemSource(reqItem.id)})</span>

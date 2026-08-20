@@ -199,7 +199,7 @@ export function MarketplacePage() {
   const filtered = filterType === 'all' ? listings : listings.filter(l => l.type === filterType);
 
   return (
-    <div style={{ padding:'20px', maxWidth:'900px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'16px' }}>
+    <div style={{ height:'100%', overflowY:'auto', padding:'20px', maxWidth:'900px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'16px' }}>
 
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>

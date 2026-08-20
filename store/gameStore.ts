@@ -760,8 +760,6 @@ export const useGameStore = create<GameStore>()(
 
       levelUpHero: () => {
         const { hero } = get();
-        const cap  = HERO_TEMPLATE.forms?.[hero.currentForm]?.levelCap ?? 100;
-        if (hero.level >= cap) return;                 // doit évoluer d'abord
         const cost = heroLevelUpCost(hero.level);
         if (!get().spendPixelCoins(cost)) return;
         set(state => ({
@@ -872,8 +870,6 @@ export const useGameStore = create<GameStore>()(
         if (!owned) return;
         const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
         if (!tpl) return;
-        const cap = getLevelCap(tpl, owned.currentForm);
-        if (owned.level >= cap) return;
         const cost = levelUpCost(owned.level, tpl.rarity);
         if (!get().spendPixelCoins(cost)) return;
         set(state => ({
@@ -1370,6 +1366,13 @@ export const useGameStore = create<GameStore>()(
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         username:s.username,
         lastActiveAt:s.lastActiveAt, offlineMultLevel:s.offlineMultLevel, offlineCapLevel:s.offlineCapLevel, lastOfflineGain:s.lastOfflineGain,
+        // savedAt DOIT être persisté ici : c'est ce qui permet à loadAndApply
+        // (useCloudSave) de savoir que cet état local rechargé est déjà à jour.
+        // Sans lui, il retombe à 0 à chaque refresh et se fait écraser par la
+        // sauvegarde localStorage/Firebase précédente (jusqu'à 30s/10min plus
+        // vieille) — ce qui annule les coffres ouverts, quêtes/succès réclamés
+        // juste avant le refresh.
+        savedAt:s.savedAt,
       }),
     }
   )

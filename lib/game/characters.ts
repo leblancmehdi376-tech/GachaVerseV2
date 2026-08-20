@@ -128,7 +128,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('naruto_evo2', 'Naruto — Chakra Kyuubi', 'naruto', 300, 18),
     f('naruto_evo3', 'Naruto — Mode Baryon',   'naruto', 400, 65),
   ]),
-  ce('luffy', 'Luffy', 'S', 2296, 'One Piece', [
+  ce('luffy', 'Luffy', 'CO', 6100, 'One Piece', [
     f('luffy_base', 'Luffy',          'luffy', 100, 1),
     f('luffy_evo1', 'Luffy — Gear 2', 'luffy', 200, 5),
     f('luffy_evo2', 'Luffy — Gear 4', 'luffy', 300, 18),
@@ -142,7 +142,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('vegeta_evo2', 'Végéta SS Divin',   'vegeta', 300, 26),
     f('vegeta_evo3', 'Végéta SS Blue',    'vegeta', 400, 90),
   ]),
-  ce('minato', 'Minato', 'CO', 5360, 'Naruto', [
+  ce('minato', 'Minato', 'S', 1950, 'Naruto', [
     f('minato_base', 'Minato',              'minato', 100, 1),
     f('minato_evo1', 'Minato — 4ème Hokage','minato', 200, 6.5),
   ]),
