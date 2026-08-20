@@ -726,7 +726,7 @@ export function GachaPage() {
 
               {/* Info */}
               <div style={{ background:'rgba(124,58,237,0.08)', border:'1px solid var(--border-glow)', borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(192,132,252,0.8)', lineHeight:1.6 }}>
-                💡 Toutes les raretés sont disponibles dès le début. Mais au palier 1, les hautes raretés sont quasi impossibles : plus tu montes en palier, plus leurs chances augmentent et se normalisent !
+                💡 Chaque rareté se débloque à partir d'un certain palier (voir 🔒 ci-dessous). Une fois débloquée, plus tu montes en palier, plus ses chances augmentent et se normalisent !
               </div>
 
               {/* Taux par rareté */}

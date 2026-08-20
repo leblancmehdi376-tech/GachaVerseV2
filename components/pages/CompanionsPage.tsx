@@ -17,6 +17,7 @@ import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { CollectionFilters, COLLECTION_RARITY_ORDER, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
+import { RARITY_GATES } from '@/lib/game/gacha';
 
 const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
@@ -39,6 +40,7 @@ export function CompanionsPage() {
     equippedTeam,
     equipCharacter,
     unequipCharacter,
+    maxPalierReached,
     inventory,
     equipmentInventory,
     sellItem,
@@ -506,12 +508,14 @@ export function CompanionsPage() {
                 const isEquipped = equippedTeam.includes(instanceKey);
                 const dps = calcCharDps(tpl, ownedChar);
                 const ult = getUltimateDef(tpl.id);
+                const rarLocked = maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier;
                 return (
                   <div
                     key={instanceKey}
                     className="companion-item-card"
                     onClick={() => {
                       if (selSlot !== null) {
+                        if (rarLocked) return;
                         equipCharacter(instanceKey, selSlot);
                         setSelSlot(null);
                       } else {
@@ -521,6 +525,7 @@ export function CompanionsPage() {
                     style={{
                         cursor: 'pointer',
                         position: 'relative',
+                        opacity: rarLocked ? 0.45 : 1,
                         background: isEquipped ? `${cfg.color}12` : 'rgba(255,255,255,0.03)',
                         borderColor: selSlot !== null ? 'var(--purple-dim)' : isEquipped ? `${cfg.color}55` : 'rgba(255,255,255,0.08)',
                         boxShadow: isEquipped ? `0 0 16px ${cfg.glow}15` : undefined,
@@ -549,6 +554,11 @@ export function CompanionsPage() {
                           {isEquipped && (
                             <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10, color: cfg.color, fontWeight: 700, background: `${cfg.color}15`, border: `1px solid ${cfg.color}44`, borderRadius: 9999, padding: '3px 8px' }}>
                               Équipé
+                            </span>
+                          )}
+                          {rarLocked && (
+                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10, color: '#f87171', fontWeight: 700, background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 9999, padding: '3px 8px' }}>
+                              🔒 Palier {RARITY_GATES[tpl.rarity].unlockPalier}
                             </span>
                           )}
                         </div>

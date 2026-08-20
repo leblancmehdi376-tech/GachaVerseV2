@@ -7,9 +7,10 @@ import { getCharacterById, getCharSprite, getCharFormName } from '@/lib/game/cha
 import { calcCharDps } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_GATES } from '@/lib/game/gacha';
 
 export function CollectionMiniPanel() {
-  const { collection, equippedTeam, equipCharacter, unequipCharacter } = useGameStore();
+  const { collection, equippedTeam, equipCharacter, unequipCharacter, maxPalierReached } = useGameStore();
   const [selSlot, setSelSlot] = useState<number | null>(null);
   const owned = Object.values(collection);
 
@@ -65,9 +66,11 @@ export function CollectionMiniPanel() {
           if (!tpl) return null;
           const cfg  = RARITY_CONFIG[tpl.rarity];
           const isEq = equippedTeam.includes(tpl.id);
+          const rarLocked = maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier;
+          const canClick = selSlot !== null && !rarLocked;
           return (
-            <div key={tpl.id} onClick={() => { if (selSlot !== null) { equipCharacter(tpl.id, selSlot); setSelSlot(null); }}}
-              style={{ display:'flex', gap:'8px', alignItems:'center', padding:'7px 8px', background: isEq?`${cfg.color}0d`:'rgba(255,255,255,0.02)', border:`1px solid ${selSlot!==null?'var(--purple-dim)':isEq?cfg.color+'55':'var(--border)'}`, borderRadius:'7px', cursor: selSlot!==null?'pointer':'default', transition:'all 0.15s', position:'relative', overflow:'hidden' }}>
+            <div key={tpl.id} onClick={() => { if (canClick) { equipCharacter(tpl.id, selSlot!); setSelSlot(null); }}}
+              style={{ display:'flex', gap:'8px', alignItems:'center', padding:'7px 8px', background: isEq?`${cfg.color}0d`:'rgba(255,255,255,0.02)', border:`1px solid ${selSlot!==null?'var(--purple-dim)':isEq?cfg.color+'55':'var(--border)'}`, borderRadius:'7px', cursor: canClick?'pointer':'default', opacity: rarLocked?0.4:1, transition:'all 0.15s', position:'relative', overflow:'hidden' }}>
               {/* Rarity stripe */}
               <div style={{ position:'absolute', left:0, top:0, bottom:0, width:'3px', background:cfg.color, boxShadow:`0 0 6px ${cfg.glow}` }} />
               <div style={{ marginLeft:'5px' }}>
@@ -77,6 +80,7 @@ export function CollectionMiniPanel() {
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
                   {isEq && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9px', color:cfg.color, fontWeight:700, flexShrink:0, marginLeft:'4px' }}>⚔</span>}
+                  {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9px', color:'#f87171', fontWeight:700, flexShrink:0, marginLeft:'4px' }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'3px' }}>
                   <RarityBadge rarity={tpl.rarity} size="xs" />

@@ -3,28 +3,29 @@ import { BANNER_POOL } from './characters';
 
 export const GACHA_COSTS = { single: 10, multi10: 95, multi100: 900 };
 
-// ── Courbes de taux (tout est accessible dès le palier 1) ─────────────────
-// Plus de déblocage par palier : TOUTES les raretés sont tirables dès le début,
-// mais au palier 1 les hautes raretés ont un taux quasi nul. En montant, les
-// taux se normalisent (interpolation linéaire jusqu'au palier 40).
-// rateAtP1  : taux (%) brut au palier 1 (avant normalisation à 100%)
-// rateAtMax : taux (%) brut au palier 40
+// ── Courbes de taux (déblocage progressif par palier) ─────────────────────
+// Chaque rareté n'est tirable qu'à partir du palier `unlockPalier` (cf. tableau
+// de déblocage). En dessous, son taux est nul et le budget est reporté sur les
+// raretés déjà débloquées. Une fois débloquée, son taux progresse linéairement
+// entre rateAtUnlock et rateAtMax jusqu'au palier 40.
+// rateAtUnlock : taux (%) brut au palier de déblocage (avant normalisation à 100%)
+// rateAtMax    : taux (%) brut au palier 40
 
 export const RARITY_GATES: Record<Rarity, {
-  unlockPalier: number;   // conservé pour compat (toujours 1 désormais)
-  rateAtUnlock: number;   // = taux au palier 1
+  unlockPalier: number;
+  rateAtUnlock: number;
   rateAtMax:    number;
 }> = {
-  C:  { unlockPalier: 1, rateAtUnlock: 70.0000, rateAtMax: 30.000 },
-  U:  { unlockPalier: 1, rateAtUnlock: 22.0000, rateAtMax: 20.000 },
-  R:  { unlockPalier: 1, rateAtUnlock:  7.0000, rateAtMax: 15.000 },
-  E:  { unlockPalier: 1, rateAtUnlock:  1.0000, rateAtMax: 10.000 },
-  L:  { unlockPalier: 1, rateAtUnlock:  0.1500, rateAtMax:  4.000 },
-  M:  { unlockPalier: 1, rateAtUnlock:  0.0300, rateAtMax:  1.500 },
-  S:  { unlockPalier: 1, rateAtUnlock:  0.0060, rateAtMax:  0.500 },
-  CO: { unlockPalier: 1, rateAtUnlock:  0.0015, rateAtMax:  0.100 },
-  P:  { unlockPalier: 1, rateAtUnlock:  0.0006, rateAtMax:  0.050 },
-  T:  { unlockPalier: 1, rateAtUnlock:  0.0002, rateAtMax:  0.010 },
+  C:  { unlockPalier: 1,  rateAtUnlock: 70.0000, rateAtMax: 30.000 },
+  U:  { unlockPalier: 3,  rateAtUnlock: 22.0000, rateAtMax: 20.000 },
+  R:  { unlockPalier: 5,  rateAtUnlock:  7.0000, rateAtMax: 15.000 },
+  E:  { unlockPalier: 7,  rateAtUnlock:  1.0000, rateAtMax: 10.000 },
+  L:  { unlockPalier: 9,  rateAtUnlock:  0.1500, rateAtMax:  4.000 },
+  M:  { unlockPalier: 11, rateAtUnlock:  0.0300, rateAtMax:  1.500 },
+  S:  { unlockPalier: 13, rateAtUnlock:  0.0060, rateAtMax:  0.500 },
+  CO: { unlockPalier: 15, rateAtUnlock:  0.0015, rateAtMax:  0.100 },
+  P:  { unlockPalier: 17, rateAtUnlock:  0.0006, rateAtMax:  0.050 },
+  T:  { unlockPalier: 19, rateAtUnlock:  0.0002, rateAtMax:  0.010 },
 };
 
 const MAX_PALIER = 40;

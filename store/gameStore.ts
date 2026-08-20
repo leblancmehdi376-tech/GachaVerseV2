@@ -8,7 +8,7 @@ import {
   evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG, Rarity,
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
-import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/gacha';
+import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, RARITY_GATES } from '@/lib/game/gacha';
 import { getCharacterById, HERO_TEMPLATE, BANNER_POOL } from '@/lib/game/characters';
 import { ITEM_DEFS, rollEquipmentChest } from '@/lib/game/items';
 import { EQUIPMENT_CHESTS } from '@/lib/game/shop';
@@ -978,6 +978,9 @@ export const useGameStore = create<GameStore>()(
       equipCharacter: (id, slot) => {
         const character = get().collection[id];
         if (!character) return;
+        const tpl = getCharacterById(parseInstanceKey(id).templateId);
+        if (!tpl) return;
+        if (get().maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier) return;
         set(state => {
           const team = [...state.equippedTeam] as (string | null)[];
           const currentSlot = team.findIndex(entry => entry === id);
