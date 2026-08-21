@@ -939,6 +939,12 @@ export const useGameStore = create<GameStore>()(
           const team = [...state.equippedTeam] as (string | null)[];
           const currentSlot = team.findIndex(entry => entry === id);
           if (currentSlot === slot) return { equippedTeam: team };
+          // Bloque l'échange si le perso actuellement dans ce slot a utilisé son
+          // ult pendant le combat de boss en cours (même règle que unequipCharacter,
+          // sinon on pouvait contourner le verrou en écrasant le slot).
+          const onBoss = state.bossActive || state.wave === 10;
+          const occupant = team[slot];
+          if (occupant && occupant !== id && onBoss && state.ultUsedThisFight.includes(occupant)) return { equippedTeam: team };
           if (currentSlot !== -1) team[currentSlot] = null;
           team[slot] = id;
           return { equippedTeam: team };
