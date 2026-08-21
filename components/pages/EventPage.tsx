@@ -67,7 +67,7 @@ function DropPopup({ drops, onClose }: { drops: DropResult[]; onClose: () => voi
             {r.sub && <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(255,255,255,0.5)' }}>{r.sub}</div>}
           </div>
         ))}
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(255,255,255,0.3)' }}>Cliquez pour fermer</div>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.3)' }}>Cliquez pour fermer</div>
       </div>
       <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes scaleIn{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:scale(1)}}`}</style>
     </div>
@@ -107,14 +107,14 @@ function EventLobby({ onSelect }: { onSelect: (id: string) => void }) {
               <span style={{ fontSize:22.7 }}>{s.icon}</span>
               <div>
                 <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:s.color }}>{s.val}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)', fontWeight:700 }}>{s.label}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700 }}>{s.label}</div>
               </div>
             </div>
           ))}
         </div>
 
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--text-dim)', letterSpacing:2, marginBottom:14 }}>ÉVÉNEMENTS DISPONIBLES</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:14 }}>ÉVÉNEMENTS DISPONIBLES</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
             {EVENT_BOSSES.map(event => {
               const active   = event.availableUntil > now;
@@ -135,14 +135,14 @@ function EventLobby({ onSelect }: { onSelect: (id: string) => void }) {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                       <div style={{ display:'inline-flex', alignItems:'center', gap:6, background: active?'rgba(74,222,128,0.15)':'rgba(248,113,113,0.15)', border:`1px solid ${active?'rgba(74,222,128,0.4)':'rgba(248,113,113,0.4)'}`, borderRadius:6, padding:'3px 10px' }}>
                         <div style={{ width:6, height:6, borderRadius:'50%', background: active?'#4ade80':'#f87171', animation: active?'pulse 2s infinite':'none' }} />
-                        <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color: active?'#4ade80':'#f87171', letterSpacing:1 }}>{active ? 'ACTIF' : 'TERMINÉ'}</span>
+                        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color: active?'#4ade80':'#f87171', letterSpacing:1 }}>{active ? 'ACTIF' : 'TERMINÉ'}</span>
                       </div>
-                      {active && <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>⏱ {daysLeft}j restants</span>}
+                      {active && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>⏱ {daysLeft}j restants</span>}
                     </div>
                     <div>
                       <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:5, textShadow:`0 0 20px ${event.accentColor}88` }}>{event.name}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(255,255,255,0.5)', fontWeight:700, letterSpacing:1, marginBottom:6 }}>{event.subtitle}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(255,255,255,0.65)', lineHeight:1.6 }}>{event.description}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.5)', fontWeight:700, letterSpacing:1, marginBottom:6 }}>{event.subtitle}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.65)', lineHeight:1.6 }}>{event.description}</div>
                     </div>
                     <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                       {event.dropTable.filter(e => e.result.type !== 'nothing').slice(0,4).map((entry, i) => {
@@ -152,8 +152,8 @@ function EventLobby({ onSelect }: { onSelect: (id: string) => void }) {
                         const label = item?.name ?? (r.type==='gems'?`${r.qty}💎`:r.type==='bossCrowns'?`${r.qty}👑`:'Objet');
                         return (
                           <div key={i} style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.08)', border:`1px solid ${item?item.color+'44':'rgba(255,255,255,0.12)'}`, borderRadius:6, padding:'3px 8px' }}>
-                            <span style={{ fontSize:11.3 }}>{icon}</span>
-                            <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color: item?item.color:'rgba(255,255,255,0.7)' }}>{label}</span>
+                            <span style={{ fontSize:12 }}>{icon}</span>
+                            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color: item?item.color:'rgba(255,255,255,0.7)' }}>{label}</span>
                           </div>
                         );
                       })}
@@ -174,7 +174,7 @@ function EventLobby({ onSelect }: { onSelect: (id: string) => void }) {
                 <span style={{ fontSize:41.2, opacity:0.3 }}>🔒</span>
                 <div style={{ textAlign:'center', padding:'0 20px' }}>
                   <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, fontWeight:700, color:'rgba(255,255,255,0.25)', letterSpacing:3, marginBottom:8 }}>COMING SOON</div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(255,255,255,0.2)' }}>Prochain événement bientôt disponible...</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.2)' }}>Prochain événement bientôt disponible...</div>
                 </div>
               </div>
             ))}
@@ -276,7 +276,7 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ width:6, height:6, borderRadius:'50%', background: boss.availableUntil > now ? '#4ade80' : '#f87171', animation:'pulse 2s infinite' }} />
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, fontWeight:900, color:'white', letterSpacing:2 }}>{boss.name.toUpperCase()}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>{boss.subtitle}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>{boss.subtitle}</span>
           </div>
         </div>
         <div style={{ display:'flex', gap:16 }}>
@@ -287,7 +287,7 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
           ].map(s => (
             <div key={s.label} style={{ textAlign:'center' }}>
               <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:15.5, color:'white' }}>{s.icon} {s.val}</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'rgba(255,255,255,0.35)' }}>{s.label}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.35)' }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -317,11 +317,11 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
           )}
         </div>
         {dead && !drops && <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13.4, color:'rgba(255,255,255,0.5)', animation:'pulse 1s infinite' }}>Calcul des récompenses...</div>}
-        {!dead && <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(255,255,255,0.3)', textAlign:'center' }}>Tes alliés attaquent automatiquement</div>}
+        {!dead && <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.3)', textAlign:'center' }}>Tes alliés attaquent automatiquement</div>}
       </div>
 
       <div style={{ position:'relative', padding:'10px 24px 14px', borderTop:'1px solid rgba(255,255,255,0.05)', background:'rgba(0,0,0,0.3)', flexShrink:0 }}>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'rgba(255,255,255,0.3)', marginBottom:8, letterSpacing:1 }}>RÉCOMPENSES POSSIBLES</div>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.3)', marginBottom:8, letterSpacing:1 }}>RÉCOMPENSES POSSIBLES</div>
         <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
           {boss.dropTable.filter(e => e.result.type !== 'nothing').map((entry, i) => {
             const totalWeight = boss.dropTable.reduce((s, x) => s + x.weight, 0);
@@ -334,8 +334,8 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
             return (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:5, background:'rgba(255,255,255,0.04)', borderRadius:8, padding:'4px 10px', border:`1px solid ${color}33` }}>
                 <span style={{ fontSize:14.4 }}>{icon}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color: color ?? '#c084fc' }}>{label}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'rgba(255,255,255,0.3)' }}>{rate} · 🪙+{entry.coinQty}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color: color ?? '#c084fc' }}>{label}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.3)' }}>{rate} · 🪙+{entry.coinQty}</span>
               </div>
             );
           })}

@@ -242,7 +242,7 @@ export function MarketplacePage() {
             {(['all','item','equipment','character'] as const).map(f => (
               <button key={f} onClick={() => setFilterType(f)} style={{
                 padding:'5px 12px', borderRadius:'6px', cursor:'pointer',
-                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px',
+                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px',
                 background: filterType===f ? 'rgba(249,115,22,0.15)' : 'rgba(255,255,255,0.03)',
                 border:`1px solid ${filterType===f ? '#f9731644' : 'var(--border)'}`,
                 color: filterType===f ? '#f97316' : 'var(--text-muted)',
@@ -269,7 +269,7 @@ export function MarketplacePage() {
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text-hi)' }}>
                         {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
                       </div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)' }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>
                         {TYPE_LABEL[l.type]} · par <span style={{ color:'var(--cyan)' }}>{l.sellerName}</span>
                       </div>
                     </div>
@@ -277,7 +277,7 @@ export function MarketplacePage() {
                       {CURRENCY_ICON[l.currency]} {formatNumber(l.price)}
                     </div>
                     {isOwn ? (
-                      <span style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-muted)', padding:'4px 8px', border:'1px solid var(--border)', borderRadius:'5px' }}>Ma vente</span>
+                      <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', padding:'4px 8px', border:'1px solid var(--border)', borderRadius:'5px' }}>Ma vente</span>
                     ) : (
                       <button onClick={() => handleBuy(l)} disabled={!canBuy} style={{
                         padding:'7px 14px', borderRadius:'7px', cursor:canBuy?'pointer':'not-allowed',
@@ -318,7 +318,7 @@ export function MarketplacePage() {
                 {(['item','equipment'] as const).map(t => (
                   <button key={t} onClick={() => { setFormType(t); setFormItemId(''); }} style={{
                     padding:'6px 14px', borderRadius:'6px', cursor:'pointer',
-                    fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px',
+                    fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px',
                     background: formType===t ? 'rgba(249,115,22,0.2)' : 'rgba(255,255,255,0.04)',
                     border:`1px solid ${formType===t ? '#f9731666' : 'var(--border)'}`,
                     color: formType===t ? '#f97316' : 'var(--text-muted)',
@@ -382,7 +382,7 @@ export function MarketplacePage() {
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text-hi)' }}>
                       {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
                     </div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color: l.status==='active'?'var(--text-muted)':l.status==='sold'?'#4ade80':'#6b7280' }}>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color: l.status==='active'?'var(--text-muted)':l.status==='sold'?'#4ade80':'#6b7280' }}>
                       {l.status === 'active' ? '🟢 En vente' : l.status === 'sold' && !(l as any).claimed ? `✅ Vendu à ${l.soldToName}` : l.status === 'sold' ? '💰 Encaissé' : '❌ Annulé'}
                     </div>
                   </div>
@@ -391,12 +391,12 @@ export function MarketplacePage() {
                   </div>
                   <div>
                     {l.status === 'active' && (
-                      <button onClick={() => handleCancel(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171' }}>
+                      <button onClick={() => handleCancel(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171' }}>
                         Annuler
                       </button>
                     )}
                     {l.status === 'sold' && !(l as any).claimed && (
-                      <button onClick={() => handleClaim(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>
+                      <button onClick={() => handleClaim(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>
                         Encaisser
                       </button>
                     )}

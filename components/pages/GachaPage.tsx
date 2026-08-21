@@ -189,7 +189,7 @@ function FlipCard({ res, index, total, autoFlip, delay }: {
               display:'flex', alignItems:'flex-end', justifyContent:'center', paddingBottom:12,
             }}>
               <span style={{
-                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10.3,
+                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12,
                 color:cfg.color, letterSpacing:1, background:'rgba(0,0,0,0.7)',
                 borderRadius:5, padding:'3px 10px', border:`1px solid ${cfg.color}55`,
               }}>RÉVÉLER</span>
@@ -243,7 +243,7 @@ function FlipCard({ res, index, total, autoFlip, delay }: {
                   </span>
                   <RarityBadge rarity={tpl.rarity} size="xs" />
                   {res.isNew && (
-                    <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'#4ade80', fontWeight:800, letterSpacing:1, marginTop:1 }}>
+                    <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:800, letterSpacing:1, marginTop:1 }}>
                       ✦ NOUVEAU
                     </span>
                   )}
@@ -365,7 +365,7 @@ function InvocationPortal({ onDone }: { onDone: () => void }) {
           INVOCATION
         </div>
         <div style={{
-          fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(192,132,252,0.5)',
+          fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(192,132,252,0.5)',
           letterSpacing:3, fontWeight:700,
         }}>
           EN COURS...
@@ -402,7 +402,7 @@ function PullSummary({ results, onClose }: { results: Res[]; onClose: () => void
             borderRadius:10, padding:'10px 18px', textAlign:'center', minWidth:80,
           }}>
             <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.7, color:s.color }}>{s.val}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'var(--text-dim)', letterSpacing:1, marginTop:2 }}>{s.label}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1, marginTop:2 }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -410,7 +410,7 @@ function PullSummary({ results, onClose }: { results: Res[]; onClose: () => void
       {/* Mise en avant des raretés élevées */}
       {highChars.length > 0 && (
         <div style={{ textAlign:'center' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)', letterSpacing:2, marginBottom:10, fontWeight:700 }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:10, fontWeight:700 }}>
             ✦ RARETÉS ÉLEVÉES
           </div>
           <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
@@ -431,7 +431,7 @@ function PullSummary({ results, onClose }: { results: Res[]; onClose: () => void
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12.4, color:cfg.color }}>{tpl.name}</div>
                     <RarityBadge rarity={tpl.rarity} size="xs" />
                   </div>
-                  {r.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'#4ade80', fontWeight:800 }}>NEW</span>}
+                  {r.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:800 }}>NEW</span>}
                 </div>
               );
             })}
@@ -659,7 +659,7 @@ export function GachaPage() {
             style={{ width:'100%', display:'block', imageRendering:'pixelated', maxHeight:220, objectFit:'cover', objectPosition:'center top' }} />
           <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'70%', background:'linear-gradient(0deg,rgba(6,4,15,0.96),transparent)', pointerEvents:'none' }} />
           <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 24px', zIndex:2 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color:'var(--purple-hi)', letterSpacing:3, marginBottom:4 }}>✦ BANNIÈRE EXCLUSIVE</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--purple-hi)', letterSpacing:3, marginBottom:4 }}>✦ BANNIÈRE EXCLUSIVE</div>
             <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:4, textShadow:'0 0 20px rgba(168,85,247,0.6)' }}>GACHA VERSE VOL.1</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(255,255,255,0.45)' }}>
               {BANNER_POOL.length} personnages · 10 raretés · cartes shiny
@@ -673,7 +673,7 @@ export function GachaPage() {
           <div className="panel" style={{ borderColor:'rgba(34,211,238,0.3)', padding:'16px 20px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, boxShadow:'0 0 24px rgba(34,211,238,0.1)' }}>
             <span style={{ fontSize:28.8 }}>💎</span>
             <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24.7, color:'var(--cyan-hi)' }}>{formatNumber(nekoGems)}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)', fontWeight:700, letterSpacing:1.5 }}>NEKO-GEMMES</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700, letterSpacing:1.5 }}>NEKO-GEMMES</span>
           </div>
 
           {/* ×1 */}
@@ -690,7 +690,7 @@ export function GachaPage() {
           {/* ×10 */}
           <button onClick={doMulti} disabled={!canM || pulling}
             style={{ background:canM?'linear-gradient(135deg,#451a03,#7c2d12)':'var(--bg-card)', border:`1px solid ${canM?'rgba(217,119,6,0.6)':'var(--border)'}`, borderRadius:12, padding:20, cursor:canM&&!pulling?'pointer':'not-allowed', opacity:canM?1:0.4, transition:'all 0.2s', boxShadow:canM?'0 4px 28px rgba(180,83,9,0.35),inset 0 1px 0 rgba(255,255,255,0.07)':'none', display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', overflow:'hidden' }}>
-            <div style={{ position:'absolute', top:8, right:8, background:'#d97706', color:'#000', fontFamily:'var(--f-num)', fontWeight:900, fontSize:10.3, padding:'2px 8px', borderRadius:6 }}>-5%</div>
+            <div style={{ position:'absolute', top:8, right:8, background:'#d97706', color:'#000', fontFamily:'var(--f-num)', fontWeight:900, fontSize:12, padding:'2px 8px', borderRadius:6 }}>-5%</div>
             <span style={{ fontSize:28.8 }}>✦✦</span>
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canM?'#fbbf24':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×10</span>
             <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:8, padding:'6px 16px' }}>
@@ -702,7 +702,7 @@ export function GachaPage() {
           {/* ×100 */}
           <button onClick={doMulti100} disabled={!canM100 || pulling}
             style={{ background:canM100?'linear-gradient(135deg,#1a0536,#3b0764)':'var(--bg-card)', border:`1px solid ${canM100?'rgba(168,85,247,0.7)':'var(--border)'}`, borderRadius:12, padding:20, cursor:canM100&&!pulling?'pointer':'not-allowed', opacity:canM100?1:0.4, transition:'all 0.2s', boxShadow:canM100?'0 4px 28px rgba(147,51,234,0.4),inset 0 1px 0 rgba(255,255,255,0.07)':'none', display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', overflow:'hidden' }}>
-            <div style={{ position:'absolute', top:8, right:8, background:'#7c3aed', color:'#fff', fontFamily:'var(--f-num)', fontWeight:900, fontSize:10.3, padding:'2px 8px', borderRadius:6 }}>-10%</div>
+            <div style={{ position:'absolute', top:8, right:8, background:'#7c3aed', color:'#fff', fontFamily:'var(--f-num)', fontWeight:900, fontSize:12, padding:'2px 8px', borderRadius:6 }}>-10%</div>
             <span style={{ fontSize:28.8 }}>✦✦✦</span>
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canM100?'#c084fc':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×100</span>
             <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(192,132,252,0.35)', borderRadius:8, padding:'6px 16px' }}>
@@ -719,13 +719,13 @@ export function GachaPage() {
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='none'}>
             <span>{showPool ? '▲' : '▼'} TAUX DE DROP & POOL</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--purple-glow)', fontWeight:700 }}>Palier max : {maxPalierReached}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', fontWeight:700 }}>Palier max : {maxPalierReached}</span>
           </button>
           {showPool && (
             <div style={{ padding:'0 18px 18px', display:'flex', flexDirection:'column', gap:16 }}>
 
               {/* Info */}
-              <div style={{ background:'rgba(124,58,237,0.08)', border:'1px solid var(--border-glow)', borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(192,132,252,0.8)', lineHeight:1.6 }}>
+              <div style={{ background:'rgba(124,58,237,0.08)', border:'1px solid var(--border-glow)', borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(192,132,252,0.8)', lineHeight:1.6 }}>
                 💡 Chaque rareté se débloque à partir d'un certain palier (voir 🔒 ci-dessous). Une fois débloquée, plus tu montes en palier, plus ses chances augmentent et se normalisent !
               </div>
 
@@ -746,7 +746,7 @@ export function GachaPage() {
                       </div>
                       <div style={{ display:'flex', gap:10, flexShrink:0, alignItems:'center' }}>
                         <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:cfg2.color, minWidth:64, textAlign:'right' }}>{rateTxt}</span>
-                        <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--text-muted)', minWidth:50 }}>→ {gate.rateAtMax}% max</span>
+                        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', minWidth:50 }}>→ {gate.rateAtMax}% max</span>
                       </div>
                     </div>
                   );
@@ -755,7 +755,7 @@ export function GachaPage() {
 
               {/* Pool */}
               <div style={{ borderTop:'1px solid var(--border)', paddingTop:14 }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:10 }}>TOUS LES PERSONNAGES</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:10 }}>TOUS LES PERSONNAGES</div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
                   {BANNER_POOL.map(tpl => {
                     const cfg       = RARITY_CONFIG[tpl.rarity];
@@ -767,11 +767,11 @@ export function GachaPage() {
                     return (
                       <div key={tpl.id} style={{ background:owned?`${cfg.color}0d`:'rgba(255,255,255,0.02)', border:`1px solid ${owned?cfg.color+'55':'var(--border)'}`, borderRadius:8, padding:'10px 6px', display:'flex', flexDirection:'column', alignItems:'center', gap:5, opacity: rarLocked ? 0.3 : owned ? 1 : 0.55 }}>
                         <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm??0} name={tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={48} height={66} />
-                        <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10.3, color:'var(--text-sub)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
+                        <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-sub)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
                         <RarityBadge rarity={tpl.rarity} size="xs" />
                         {owned && <RankStars rank={owned.rank} />}
-                        {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:8.2, color:'#f87171', fontWeight:700 }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
-                        {!owned && !rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--text-muted)' }}>Non obtenu</span>}
+                        {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#f87171', fontWeight:700 }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
+                        {!owned && !rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)' }}>Non obtenu</span>}
                       </div>
                     );
                   })}

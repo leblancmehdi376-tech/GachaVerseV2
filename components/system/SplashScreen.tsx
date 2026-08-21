@@ -178,7 +178,7 @@ export function SplashScreen({ onComplete }: Props) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{
             fontFamily: "'Rajdhani', sans-serif",
-            fontSize: 11.3,
+            fontSize: 12,
             fontWeight: 700,
             color: 'rgba(255,255,255,0.3)',
             letterSpacing: 1,
@@ -187,7 +187,7 @@ export function SplashScreen({ onComplete }: Props) {
           </span>
           <span style={{
             fontFamily: "'Orbitron', sans-serif",
-            fontSize: 11.3,
+            fontSize: 12,
             fontWeight: 700,
             color: 'rgba(192,132,252,0.6)',
           }}>
@@ -201,7 +201,7 @@ export function SplashScreen({ onComplete }: Props) {
         position: 'absolute',
         bottom: 28,
         fontFamily: "'Orbitron', sans-serif",
-        fontSize: 9.3,
+        fontSize: 12,
         fontWeight: 400,
         color: 'rgba(255,255,255,0.1)',
         letterSpacing: 2,

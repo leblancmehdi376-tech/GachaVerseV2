@@ -34,7 +34,7 @@ export function AchievementsPage() {
           right={
             <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'6px', minWidth:'180px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}>
-                <span style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', fontWeight:700 }}>PROGRESSION</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', fontWeight:700 }}>PROGRESSION</span>
                 <span style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', color:'#fbbf24', fontWeight:700 }}>{pct}%</span>
               </div>
               <div className="prog-track" style={{ width:'100%' }}>
@@ -63,7 +63,7 @@ export function AchievementsPage() {
             <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
               {CATEGORIES.map(c => (
                 <button key={c} onClick={() => setCat(c)}
-                  style={{ padding:'6px 14px', borderRadius:'8px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', letterSpacing:'0.5px', transition:'all 0.15s',
+                  style={{ padding:'6px 14px', borderRadius:'8px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', letterSpacing:'0.5px', transition:'all 0.15s',
                     background: cat===c ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.03)',
                     border: `1px solid ${cat===c ? 'rgba(251,191,36,0.4)' : 'var(--border)'}`,
                     color: cat===c ? '#fbbf24' : 'var(--text-dim)' }}>
@@ -114,7 +114,7 @@ export function AchievementsPage() {
                           </span>
                           {done && <span style={{ fontSize:'14.4px', flexShrink:0 }}>✅</span>}
                         </div>
-                        <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', marginBottom:'8px', lineHeight:1.4 }}>
+                        <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginBottom:'8px', lineHeight:1.4 }}>
                           {isSecret ? 'Succès secret — continue à jouer pour le découvrir' : a.description}
                         </div>
 
@@ -123,7 +123,7 @@ export function AchievementsPage() {
                             <div className="prog-track" style={{ marginBottom:'4px' }}>
                               <div className="prog-fill" style={{ width:`${pct2}%`, background:'linear-gradient(90deg,#78350f,#d97706,#fbbf24)', boxShadow:'0 0 6px rgba(251,191,36,0.4)' }} />
                             </div>
-                            <div style={{ fontFamily:'var(--f-num)', fontSize:'10.3px', color:'var(--text-dim)' }}>
+                            <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-dim)' }}>
                               {formatNumber(prog)} / {formatNumber(a.target)}
                             </div>
                           </>
@@ -144,7 +144,7 @@ export function AchievementsPage() {
                                 style={{ marginTop:'6px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', width:'100%',
                                   background:'linear-gradient(135deg,#f59e0b,#fbbf24)', border:'1px solid #fbbf24', borderRadius:'8px', padding:'6px 10px',
                                   cursor:'pointer', animation:'pulseGlow 1.6s ease-in-out infinite' }}>
-                                <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:'11.3px', color:'#1a1305', letterSpacing:'0.5px' }}>
+                                <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:'12px', color:'#1a1305', letterSpacing:'0.5px' }}>
                                   🎁 RÉCUP — {rewardLabel}
                                 </span>
                               </button>
@@ -154,10 +154,10 @@ export function AchievementsPage() {
                           // Déjà réclamé, ou pas encore débloqué : badge statique normal.
                           return (
                             <div style={{ marginTop:'6px', display:'inline-flex', alignItems:'center', gap:'5px', background: alreadyClaimed ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.03)', border:`1px solid ${alreadyClaimed ? 'rgba(74,222,128,0.3)' : 'var(--border)'}`, borderRadius:'6px', padding:'3px 8px' }}>
-                              <span style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
+                              <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
                                 {alreadyClaimed ? '✓ Reçu :' : '🔒 Récompense :'}
                               </span>
-                              <span style={{ fontFamily:'var(--f-num)', fontSize:'10.3px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
+                              <span style={{ fontFamily:'var(--f-num)', fontSize:'12px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
                                 {rewardLabel}
                               </span>
                             </div>
@@ -195,16 +195,16 @@ export function AchievementsPage() {
                     }}>
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
                       <span style={{ fontSize:'20.6px' }}>{a.icon}</span>
-                      {isActive && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', fontWeight:700, color:'#fbbf24', letterSpacing:'1px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.3)', padding:'2px 7px', borderRadius:'4px' }}>ACTIF</span>}
+                      {isActive && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color:'#fbbf24', letterSpacing:'1px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.3)', padding:'2px 7px', borderRadius:'4px' }}>ACTIF</span>}
                       {!isUnlk && <span style={{ fontSize:'12.4px' }}>🔒</span>}
                     </div>
                     <div style={{ fontFamily:'var(--f-title)', fontSize:'15.5px', fontWeight:700, color: isActive ? '#fbbf24' : isUnlk ? 'var(--text)' : 'var(--text-muted)', letterSpacing:'1px', marginBottom:'3px' }}>
                       « {titleStr} »
                     </div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)' }}>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>
                       {isUnlk ? a.name : `Succès : ${a.name}`}
                     </div>
-                    <div style={{ marginTop:'6px', fontFamily:'var(--f-num)', fontSize:'10.3px', fontWeight:800, color: isUnlk ? 'var(--gold-hi)' : 'var(--text-muted)' }}>
+                    <div style={{ marginTop:'6px', fontFamily:'var(--f-num)', fontSize:'12px', fontWeight:800, color: isUnlk ? 'var(--gold-hi)' : 'var(--text-muted)' }}>
                       🪙 +{TITLE_GOLD_BONUS_PCT[titleStr] ?? 0}% d'or
                     </div>
                   </div>

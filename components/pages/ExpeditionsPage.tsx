@@ -72,7 +72,7 @@ function CharSelector({ def, onConfirm, onClose }: {
         <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
             <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:'var(--purple-glow)', letterSpacing:2 }}>{def.icon} {def.name}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', marginTop:2 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:2 }}>
               Sélectionne jusqu&apos;à {def.slots} personnage{def.slots > 1 ? 's' : ''} · DPS requis : {formatNumber(def.minTeamDps)}
             </div>
           </div>
@@ -109,11 +109,11 @@ function CharSelector({ def, onConfirm, onClose }: {
                   boxShadow: isSelected ? `0 0 14px ${cfg.glow}44` : 'none',
                   transition:'all 0.15s' }}>
                 <span style={{ fontSize:20.6 }}>{isSelected ? '✅' : '👤'}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color: isSelected ? cfg.color : 'var(--text)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:cfg.color, background:`${cfg.color}15`, border:`1px solid ${cfg.color}33`, borderRadius:4, padding:'1px 6px' }}>{tpl.rarity}</div>
-                <span style={{ fontFamily:'var(--f-num)', fontSize:10.3, color:'var(--text-dim)' }}>⚡ {formatNumber(getCharacterExpeditionDps(collection, tpl.id))}</span>
-                {onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'#fb923c' }}>EN MISSION</span>}
-                {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color: isSelected ? cfg.color : 'var(--text)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:cfg.color, background:`${cfg.color}15`, border:`1px solid ${cfg.color}33`, borderRadius:4, padding:'1px 6px' }}>{tpl.rarity}</div>
+                <span style={{ fontFamily:'var(--f-num)', fontSize:12, color:'var(--text-dim)' }}>⚡ {formatNumber(getCharacterExpeditionDps(collection, tpl.id))}</span>
+                {onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#fb923c' }}>EN MISSION</span>}
+                {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
               </button>
             );
           })}
@@ -158,7 +158,7 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
         <div style={{ fontSize:28.8, flexShrink:0 }}>{def.icon}</div>
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14.4, color:'var(--text)', marginBottom:3 }}>{def.name}</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', marginBottom:8 }}>{def.universe}</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:8 }}>{def.universe}</div>
           {/* Persos */}
           <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:8 }}>
             {exp.characterIds.map(cid => {
@@ -167,7 +167,7 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
               const cfg = RARITY_CONFIG[tpl.rarity];
               return (
                 <div key={cid} style={{ display:'flex', alignItems:'center', gap:4, background:`${cfg.color}12`, border:`1px solid ${cfg.color}33`, borderRadius:6, padding:'2px 8px' }}>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color:cfg.color }}>{tpl.name}</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:cfg.color }}>{tpl.name}</span>
                 </div>
               );
             })}
@@ -180,11 +180,11 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
               transition:'width 0.5s linear' }} />
           </div>
           <div style={{ display:'flex', justifyContent:'space-between' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color: done ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color: done ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
               {done ? '✅ TERMINÉE !' : <Countdown endTime={exp.endTime} />}
             </span>
             {def.rewards.dropId && (
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--gold)' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--gold)' }}>
                 {Math.round((def.rewards.dropChance ?? 0) * 100)}% drop spécial
               </span>
             )}
@@ -194,7 +194,7 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
         <div style={{ display:'flex', flexDirection:'column', gap:6, flexShrink:0 }}>
           {done
             ? <button onClick={() => claimExpedition(exp.id)} className="btn-primary" style={{ padding:'8px 16px', fontSize:12.4 }}>RÉCLAMER</button>
-            : <button onClick={() => cancelExpedition(exp.id)} className="btn-secondary" style={{ padding:'6px 12px', fontSize:11.3, cursor:'pointer' }}>ANNULER</button>
+            : <button onClick={() => cancelExpedition(exp.id)} className="btn-secondary" style={{ padding:'6px 12px', fontSize:12, cursor:'pointer' }}>ANNULER</button>
           }
         </div>
       </div>
@@ -224,7 +224,7 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
   return (
     <div className="panel" style={{ padding:'16px', opacity: dimmed ? 0.5 : 1, position:'relative', overflow:'hidden' }}>
       {def.isFarming && (
-        <div style={{ position:'absolute', top:8, right:8, fontFamily:'var(--f-ui)', fontSize:8.2, fontWeight:700, color:'var(--gold)', background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:4, padding:'2px 7px', letterSpacing:1 }}>
+        <div style={{ position:'absolute', top:8, right:8, fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--gold)', background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:4, padding:'2px 7px', letterSpacing:1 }}>
           ♻ RETOUR
         </div>
       )}
@@ -232,8 +232,8 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
         <div style={{ fontSize:33, flexShrink:0 }}>{def.icon}</div>
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:'var(--f-title)', fontSize:14.4, color:'var(--text)', letterSpacing:1, marginBottom:3 }}>{def.name}</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--purple-glow)', fontWeight:700, letterSpacing:1, marginBottom:5 }}>{def.universe}</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', lineHeight:1.5, marginBottom:10 }}>{def.description}</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', fontWeight:700, letterSpacing:1, marginBottom:5 }}>{def.universe}</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.5, marginBottom:10 }}>{def.description}</div>
           {/* Stats */}
           <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:10 }}>
             {[
@@ -242,34 +242,34 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
               { icon:'⚡', val: formatNumber(def.minTeamDps), label:'DPS min' },
             ].map((s,i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:6, padding:'4px 8px' }}>
-                <span style={{ fontSize:11.3 }}>{s.icon}</span>
+                <span style={{ fontSize:12 }}>{s.icon}</span>
                 <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:12.4, color:'var(--text)' }}>{s.val}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--text-dim)' }}>{s.label}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>{s.label}</span>
               </div>
             ))}
           </div>
           {/* Récompenses */}
           <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--gold)', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', borderRadius:6, padding:'3px 8px' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--gold)', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', borderRadius:6, padding:'3px 8px' }}>
               🪙 {formatNumber(def.rewards.coinsMin)}–{formatNumber(def.rewards.coinsMax)}
             </div>
             {def.rewards.gemsMin !== undefined && (
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--cyan-hi)', background:'rgba(34,211,238,0.1)', border:'1px solid rgba(34,211,238,0.25)', borderRadius:6, padding:'3px 8px' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--cyan-hi)', background:'rgba(34,211,238,0.1)', border:'1px solid rgba(34,211,238,0.25)', borderRadius:6, padding:'3px 8px' }}>
                 💎 {def.rewards.gemsMin}–{def.rewards.gemsMax}
               </div>
             )}
             {def.rewards.dropId && (
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'#c084fc', background:'rgba(192,132,252,0.1)', border:'1px solid rgba(192,132,252,0.25)', borderRadius:6, padding:'3px 8px' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc', background:'rgba(192,132,252,0.1)', border:'1px solid rgba(192,132,252,0.25)', borderRadius:6, padding:'3px 8px' }}>
                 ✦ {Math.round((def.rewards.dropChance ?? 0)*100)}% drop spécial
               </div>
             )}
           </div>
           {locked
-            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-muted)', fontWeight:700 }}>
+            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>
                 🔒 {palierLocked ? `Palier ${def.palierRequired} requis` : sequenceLockReason}
               </div>
             : busy
-              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-muted)', fontWeight:700 }}>⏳ Une expédition est déjà en cours</div>
+              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>⏳ Une expédition est déjà en cours</div>
               : <button onClick={onSelect} className="btn-primary" style={{ padding:'9px 20px', fontSize:13.4 }}>ENVOYER ✦</button>
           }
         </div>
@@ -335,7 +335,7 @@ export function ExpeditionsPage() {
         {/* Expéditions actives */}
         {runningExp.length > 0 && (
           <div>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--text-dim)', letterSpacing:2, marginBottom:10 }}>EN COURS</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:10 }}>EN COURS</div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {runningExp.map(e => <ActiveExpeditionCard key={e.id} exp={e} />)}
             </div>
@@ -350,7 +350,7 @@ export function ExpeditionsPage() {
             { k:'equipment' as const, label:'🛠️ ATELIERS ÉQUIP.' },
           ].map(f => (
             <button key={f.k} onClick={() => setFilter(f.k)}
-              style={{ padding:'7px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, letterSpacing:0.5, transition:'all 0.15s',
+              style={{ padding:'7px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, letterSpacing:0.5, transition:'all 0.15s',
                 background: filter===f.k ? 'rgba(251,146,60,0.15)' : 'var(--bg-card)',
                 border: `1px solid ${filter===f.k ? 'rgba(251,146,60,0.4)' : 'var(--border)'}`,
                 color: filter===f.k ? '#fb923c' : 'var(--text-dim)' }}>

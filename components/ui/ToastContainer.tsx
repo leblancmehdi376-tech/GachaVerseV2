@@ -82,7 +82,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           {toast.message && (
             <div style={{
               fontFamily: 'var(--f-ui)',
-              fontSize: '11.3px',
+              fontSize: '12px',
               color: 'var(--text-dim)',
               lineHeight: 1.4,
               fontWeight: 600,
@@ -93,7 +93,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         </div>
 
         {/* Dismiss X */}
-        <div style={{ fontSize: '11.3px', color: 'var(--text-muted)', flexShrink: 0, marginTop: '1px' }}>✕</div>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0, marginTop: '1px' }}>✕</div>
       </div>
 
       {/* Progress bar */}

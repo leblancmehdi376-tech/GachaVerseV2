@@ -122,7 +122,7 @@ export function ChampionInventoryPage() {
             return (
               <button key={rarity} onClick={() => handleRecycleRarity(rarity)}
                 style={{
-                  padding:'8px 14px', borderRadius:'8px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px',
+                  padding:'8px 14px', borderRadius:'8px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px',
                   background: armed ? 'rgba(239,68,68,0.15)' : `${cfg.color}18`,
                   border:`1px solid ${armed ? 'rgba(239,68,68,0.5)' : `${cfg.color}44`}`,
                   color: armed ? '#f87171' : cfg.color,
@@ -157,7 +157,7 @@ export function ChampionInventoryPage() {
                   </div>
                   <div style={{ flex:1 }}>
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:cfg.color }}>{tpl.name}</div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)' }}>{cfg.label} · {qty > 1 ? `×${qty} exemplaires` : '1 exemplaire'}</div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>{cfg.label} · {qty > 1 ? `×${qty} exemplaires` : '1 exemplaire'}</div>
                   </div>
                 </div>
 
@@ -193,11 +193,11 @@ export function ChampionInventoryPage() {
                 ) : (
                   <div style={{ display:'flex', gap:'8px' }}>
                     <button onClick={() => handleRecycle(id)}
-                      style={{ flex:1, padding:'8px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', background:'rgba(139,92,246,0.12)', border:'1px solid rgba(139,92,246,0.3)', color:'#a78bfa' }}>
+                      style={{ flex:1, padding:'8px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', background:'rgba(139,92,246,0.12)', border:'1px solid rgba(139,92,246,0.3)', color:'#a78bfa' }}>
                       🔮 Recycler (+{orbs} orbe{orbs > 1 ? 's' : ''})
                     </button>
                     <button onClick={() => { setSelling(id); setSellPrice(''); }}
-                      style={{ flex:1, padding:'8px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', background:'rgba(249,115,22,0.12)', border:'1px solid rgba(249,115,22,0.3)', color:'#f97316' }}>
+                      style={{ flex:1, padding:'8px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', background:'rgba(249,115,22,0.12)', border:'1px solid rgba(249,115,22,0.3)', color:'#f97316' }}>
                       🏛 Vendre HdV
                     </button>
                   </div>

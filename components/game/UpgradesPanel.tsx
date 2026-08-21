@@ -15,7 +15,7 @@ export function UpgradesPanel() {
           <div style={{ width:32, height:32, background:'rgba(255,255,255,0.04)', borderRadius:'6px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16.5px', flexShrink:0 }}>{r.icon}</div>
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)' }}>{r.label}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)' }}>{r.sub}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{r.sub}</div>
           </div>
           <div style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:'22.7px', color:'var(--text)' }}>{r.val}</div>
         </div>

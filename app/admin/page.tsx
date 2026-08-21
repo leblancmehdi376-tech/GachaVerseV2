@@ -195,7 +195,7 @@ export default function AdminPage() {
                 <div style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{r.username}</div>
                 <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, marginTop: 2 }}>{r.email}</div>
                 <div style={{ color: '#7289da', fontSize: 12.4, marginTop: 2 }}>Discord : {r.discordUsername}</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10.3, marginTop: 4 }}>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 4 }}>
                   Demandé le {new Date(r.createdAt).toLocaleString('fr-FR')}
                 </div>
               </div>
@@ -233,16 +233,16 @@ export default function AdminPage() {
                   <div key={u.uid} style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(96,165,250,0.18)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                       <span style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{u.username || '(sans pseudo)'}</span>
-                      <span style={{ color: u.approved ? '#4ade80' : '#fbbf24', fontSize: 11.3, fontWeight: 700 }}>
+                      <span style={{ color: u.approved ? '#4ade80' : '#fbbf24', fontSize: 12, fontWeight: 700 }}>
                         {u.approved ? '✓ Validé' : '⏳ En attente'}
                       </span>
                     </div>
                     <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12.4 }}>{u.email}</div>
                     <div style={{ color: '#7289da', fontSize: 12.4 }}>Discord : {u.discordUsername || '—'}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11.3, fontFamily: 'monospace', marginTop: 2 }}>
+                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, fontFamily: 'monospace', marginTop: 2 }}>
                       ID de save : {u.uid}
                     </div>
-                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10.3 }}>
+                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>
                       Créé le {u.createdAt ? new Date(u.createdAt).toLocaleString('fr-FR') : '—'}
                     </div>
                   </div>
@@ -293,7 +293,7 @@ export default function AdminPage() {
               <div style={{ padding: '18px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)' }}>
                 <div style={{ color: '#fff', fontWeight: 800, fontSize: 15.5, marginBottom: 2 }}>{foundPlayer.username}</div>
                 <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12.4, marginBottom: 4 }}>{foundPlayer.email}</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11.3, marginBottom: 4 }}>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 4 }}>
                   Dernière sauvegarde : {playerSave.lastSaved ? new Date(playerSave.lastSaved).toLocaleString('fr-FR') : 'jamais'}
                 </div>
                 <div style={{ color: '#c084fc', fontSize: 12.4, fontWeight: 700, marginBottom: 4 }}>
@@ -305,17 +305,17 @@ export default function AdminPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>🪙 Pixel-Coins</label>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🪙 Pixel-Coins</label>
                     <input value={editCoins} onChange={e => setEditCoins(e.target.value)} type="number"
                       style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>💎 Neko-Gemmes</label>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>💎 Neko-Gemmes</label>
                     <input value={editGems} onChange={e => setEditGems(e.target.value)} type="number"
                       style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>👑 Couronnes</label>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>👑 Couronnes</label>
                     <input value={editCrowns} onChange={e => setEditCrowns(e.target.value)} type="number"
                       style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
                   </div>
@@ -329,18 +329,18 @@ export default function AdminPage() {
                 {/* ── Palier / progression (ex: annuler une avance obtenue via un bug) ── */}
                 <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                   <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 4 }}>Palier / progression</div>
-                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11.3, marginBottom: 14 }}>
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 14 }}>
                     Palier actuel : {playerSave.palier} · Vague : {playerSave.wave}/10 · Palier max atteint : {playerSave.maxPalierReached}
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                     <div>
-                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>⛰️ Palier</label>
+                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>⛰️ Palier</label>
                       <input value={editPalier} onChange={e => setEditPalier(e.target.value)} type="number" min={1}
                         style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>🌊 Vague (1-10)</label>
+                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🌊 Vague (1-10)</label>
                       <input value={editWave} onChange={e => setEditWave(e.target.value)} type="number" min={1} max={10}
                         style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
                     </div>
@@ -381,11 +381,11 @@ export default function AdminPage() {
                           style={{ width: 70, padding: '5px 8px', borderRadius: 6, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }}
                         />
                         <button onClick={() => handleSetLevel(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', fontSize: 11.3, fontWeight: 700 }}>
+                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
                           Niveau
                         </button>
                         <button onClick={() => handleRemoveChar(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', cursor: 'pointer', fontSize: 11.3, fontWeight: 700, marginLeft: 'auto' }}>
+                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', cursor: 'pointer', fontSize: 12, fontWeight: 700, marginLeft: 'auto' }}>
                           {charBusy === c.instanceKey ? '...' : 'Retirer'}
                         </button>
                       </div>

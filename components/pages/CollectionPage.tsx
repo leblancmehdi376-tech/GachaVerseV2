@@ -129,7 +129,7 @@ export function CollectionPage() {
           </div>
           <div className="collection-card__name">{tpl.name}</div>
           <RarityBadge rarity={tpl.rarity} />
-          {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)', marginTop:'2px' }}>{tpl.universe}</div>}
+          {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'2px' }}>{tpl.universe}</div>}
         </div>
       );
     }
@@ -140,13 +140,13 @@ export function CollectionPage() {
         <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={72} height={98} />
         <div className="collection-card__name">{tpl.name}</div>
         {owned.edition && owned.edition !== 'base' && (
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'9.3px', letterSpacing:0.5, color:ed.color, background:`${ed.color}18`, border:`1px solid ${ed.color}55`, borderRadius:999, padding:'1px 8px', marginTop:2 }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'12px', letterSpacing:0.5, color:ed.color, background:`${ed.color}18`, border:`1px solid ${ed.color}55`, borderRadius:999, padding:'1px 8px', marginTop:2 }}>
             {owned.edition === 'diamond' ? '💎 DIAMANT' : '✨ OR'}
           </div>
         )}
         <RankStars rank={owned.rank} />
         <div className="collection-card__dps">{formatNumber(dps)}/s</div>
-        {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)', marginTop:'1px' }}>{tpl.universe}</div>}
+        {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'1px' }}>{tpl.universe}</div>}
         {ult && (
           <div className="collection-card__ult">
             <div className="collection-card__ult-name">{ult.name}</div>
@@ -251,12 +251,12 @@ export function CollectionPage() {
                   <div style={{ width:44, height:44, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20.6px', flexShrink:0 }}>{item.icon}</div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
                   </div>
                 </div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', lineHeight:1.5, marginBottom:'10px' }}>{item.description}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5, marginBottom:'10px' }}>{item.description}</div>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)' }}>Recyclage</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>Recyclage</span>
                   <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13.4px', color:'var(--green)' }}>{item.recycleValue} 🪙</span>
                 </div>
               </div>

@@ -38,7 +38,7 @@ function LevelBar({ level, color }: { level: number; color: string }) {
       <div style={{ flex:1, height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden' }}>
         <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${color}88,${color})`, borderRadius:3, boxShadow:`0 0 5px ${color}66`, transition:'width 0.3s' }} />
       </div>
-      <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10.3, color, whiteSpace:'nowrap' }}>Niv.{level}<span style={{ color:'rgba(255,255,255,0.25)', fontWeight:400 }}>/{nextTier}</span></span>
+      <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color, whiteSpace:'nowrap' }}>Niv.{level}<span style={{ color:'rgba(255,255,255,0.25)', fontWeight:400 }}>/{nextTier}</span></span>
     </div>
   );
 }
@@ -63,14 +63,14 @@ function GoldUpgradeCard() {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
         <div>
           <div style={{ fontFamily:'var(--f-title)', fontSize:13.4, color:'#4ade80', marginBottom:8 }}>🪙 COFFRE D&apos;OR</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu. Chaque palier atteint débloque un niveau supplémentaire.</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu. Chaque palier atteint débloque un niveau supplémentaire.</div>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)' }}>Bonus actuel :</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>Bonus actuel :</span>
             <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.5, color:'#4ade80' }}>×{mult.toFixed(2)}</span>
           </div>
         </div>
         <div style={{ background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:8, padding:'8px 14px', textAlign:'center', flexShrink:0 }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:8.2, color:'rgba(74,222,128,0.6)', display:'block', letterSpacing:1 }}>NIV.</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(74,222,128,0.6)', display:'block', letterSpacing:1 }}>NIV.</span>
           <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26.8, color:'#4ade80', lineHeight:1 }}>{level}/{maxLevel}</span>
         </div>
       </div>
@@ -133,7 +133,7 @@ function CharCard({ templateId }: { templateId: string }) {
         <div style={{ position:'relative', flexShrink:0 }}>
           <CharacterCardThumb templateId={pureId} formIndex={owned.currentForm} name={name} rarity={tpl.rarity} edition={owned.edition} width={64} height={88} />
           {tpl.forms && tpl.forms.length > 1 && (
-            <div style={{ position:'absolute', bottom:-5, right:-5, background:cfg.color, borderRadius:'50%', width:18, height:18, display:'flex', alignItems:'center', justifyContent:'center', fontSize:9.3, border:'2px solid var(--bg-deep)', fontWeight:700, color:'#000' }}>{owned.currentForm+1}</div>
+            <div style={{ position:'absolute', bottom:-5, right:-5, background:cfg.color, borderRadius:'50%', width:18, height:18, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, border:'2px solid var(--bg-deep)', fontWeight:700, color:'#000' }}>{owned.currentForm+1}</div>
           )}
         </div>
         {/* Infos */}
@@ -145,12 +145,12 @@ function CharCard({ templateId }: { templateId: string }) {
           <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
             <RarityBadge rarity={tpl.rarity} size="xs" />
             {tpl.universe && (
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--text-dim)', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', padding:'1px 6px', borderRadius:4 }}>{tpl.universe}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', padding:'1px 6px', borderRadius:4 }}>{tpl.universe}</span>
             )}
           </div>
           <LevelBar level={owned.level} color={cfg.color} />
           {tpl.forms && tpl.forms.length > 1 && (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--text-dim)', marginTop:4 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:4 }}>
               Forme {owned.currentForm+1}/{tpl.forms.length} · Rang {owned.rank}/7
             </div>
           )}
@@ -160,29 +160,29 @@ function CharCard({ templateId }: { templateId: string }) {
       <div style={{ display:'flex', gap:8, marginTop:12, paddingLeft:8 }}>
         <button onClick={() => levelUpCharacter(templateId)} disabled={pixelCoins < lvCost}
           style={{ flex:1, padding:'8px 10px', background:pixelCoins>=lvCost?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=lvCost?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=lvCost?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
         </button>
         {!canEvo_ && reqItem && !hasItem && (
           <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ fontSize:14.4 }}>{reqItem.icon}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'#c084fc' }}>Requiert : <b>{reqItem.name}</b> ({getItemSource(reqItem.id)})</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert : <b>{reqItem.name}</b> ({getItemSource(reqItem.id)})</span>
           </div>
         )}
         {!canEvo_ && canEvolveAtAll && !hasStones && (
           <div style={{ padding:'7px 10px', background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ fontSize:14.4 }}>{evoStoneDrop?.icon ?? '🔷'}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b> (Sanctuaire des Pierres)</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b> (Sanctuaire des Pierres)</span>
           </div>
         )}
         {canEvo_ && (
           <button onClick={() => evolveCharacter(templateId)} disabled={pixelCoins < evoCostV}
             style={{ flex:1, padding:'8px 10px', background:pixelCoins>=evoCostV?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=evoCostV?'#d97706':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=evoCostV?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:pixelCoins>=evoCostV?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:11.3, color:pixelCoins>=evoCostV?'#fbbf24':'var(--text-muted)' }}>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:pixelCoins>=evoCostV?'#fbbf24':'var(--text-muted)' }}>
               {reqItem ? `${reqItem.icon} ÉVOLUER` : '✦ ÉVOLUER'}
             </span>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
           </button>
         )}
       </div>
@@ -198,7 +198,7 @@ function SynergiesPanel() {
 
   return (
     <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, padding:16 }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>SYNERGIES ACTIVES ({active.length}/{allSynergies.length})</div>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>SYNERGIES ACTIVES ({active.length}/{allSynergies.length})</div>
 
       {active.length === 0 ? (
         <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-muted)', textAlign:'center', padding:'12px 0' }}>
@@ -216,7 +216,7 @@ function SynergiesPanel() {
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:syn.def.color }}>{syn.def.label}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)', marginTop:1 }}>{syn.threshold.label}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:1 }}>{syn.threshold.label}</div>
               </div>
               <div style={{ display:'flex', gap:4 }}>
                 {syn.members.map(id => {
@@ -237,7 +237,7 @@ function SynergiesPanel() {
 
       {/* Toutes les synergies possibles */}
       <details style={{ marginTop:12 }}>
-        <summary style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)', cursor:'pointer', userSelect:'none', letterSpacing:1 }}>▼ VOIR TOUTES LES SYNERGIES</summary>
+        <summary style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', cursor:'pointer', userSelect:'none', letterSpacing:1 }}>▼ VOIR TOUTES LES SYNERGIES</summary>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:5, marginTop:10 }}>
           {allSynergies.map(syn => {
             const isActive = active.some(a => a.def.id === syn.id);
@@ -250,10 +250,10 @@ function SynergiesPanel() {
                       style={{ width:'100%', height:'100%', objectFit:'contain' }}
                       onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:13px">${syn.icon}</span>`; }} />
                   </div>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10.3, color:syn.color }}>{syn.label}</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:syn.color }}>{syn.label}</span>
                 </div>
                 {syn.thresholds.map((t,i) => (
-                  <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:8.2, color:'var(--text-dim)', lineHeight:1.5 }}>
+                  <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.5 }}>
                     ×{t.count} → {t.label}
                   </div>
                 ))}
@@ -326,7 +326,7 @@ export function UpgradesPage() {
             { label:'DPS',         val:formatNumber(getTotalDps()), color:'var(--green)',   icon:'🔥' },
           ].map(s=>(
             <div key={s.label} className="panel" style={{ padding:'16px 18px' }}>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
               <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.7, color:s.color, lineHeight:1.05 }}>{s.val}</div>
             </div>
           ))}

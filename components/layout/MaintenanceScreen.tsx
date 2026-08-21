@@ -37,7 +37,7 @@ export function MaintenanceScreen() {
         </div>
 
         <div style={{
-          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 11.3, color: 'rgba(255,255,255,0.4)',
+          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 12, color: 'rgba(255,255,255,0.4)',
           letterSpacing: 0.5,
         }}>
           Reviens dans quelques instants.

@@ -68,7 +68,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
       {/* Sous-titre */}
       <p style={{
         color: '#6b7280',
-        fontSize: '8.2px',
+        fontSize: '12px',
         marginBottom: 48,
         textAlign: 'center',
         lineHeight: 2,
@@ -90,7 +90,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
               border: '2px solid #7c3aed',
               color: '#a78bfa',
               fontFamily: "'Press Start 2P', monospace",
-              fontSize: '8.2px',
+              fontSize: '12px',
               padding: '14px 24px',
               cursor: 'pointer',
               letterSpacing: '0.05em',
@@ -116,7 +116,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
               border: '2px solid #374151',
               color: '#6b7280',
               fontFamily: "'Press Start 2P', monospace",
-              fontSize: '8.2px',
+              fontSize: '12px',
               padding: '14px 24px',
               cursor: 'pointer',
               letterSpacing: '0.05em',
@@ -141,7 +141,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
         position: 'absolute',
         bottom: 24,
         color: '#1f2937',
-        fontSize: '7.2px',
+        fontSize: '12px',
       }}>
         GACHAVERSE — INSTANCE GUARD v1.0
       </div>

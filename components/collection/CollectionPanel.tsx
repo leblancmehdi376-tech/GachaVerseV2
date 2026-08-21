@@ -30,18 +30,18 @@ export function CollectionMiniPanel() {
               {tpl && own ? (
                 <>
                   <PixelSprite src={getCharSprite(tpl, own.currentForm)} alt={getCharFormName(tpl, own.currentForm)} size={40} rarity={tpl.rarity} />
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', color:'var(--text-sub)', textAlign:'center', lineHeight:1.2, maxWidth:'70px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-sub)', textAlign:'center', lineHeight:1.2, maxWidth:'70px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
                   <RankStars rank={own.rank} />
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--green)' }}>{formatNumber(calcCharDps(tpl, own))}/s</span>
                   <button onClick={e=>{e.stopPropagation(); unequipCharacter(i);}}
-                    style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--red)', background:'none', border:'none', cursor:'pointer', padding:'0', marginTop:'2px', opacity:0.7 }}>
+                    style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--red)', background:'none', border:'none', cursor:'pointer', padding:'0', marginTop:'2px', opacity:0.7 }}>
                     ✕ Retirer
                   </button>
                 </>
               ) : (
                 <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'5px' }}>
                   <div style={{ width:34, height:34, border:`2px dashed ${isSel?'var(--purple-hi)':'rgba(255,255,255,0.1)'}`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18.5px', color: isSel?'var(--purple-glow)':'rgba(255,255,255,0.2)', transition:'all 0.15s' }}>{isSel?'✓':'+'}</div>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', fontWeight:600, color: isSel?'var(--purple-glow)':'var(--text-muted)' }}>SLOT {i+1}</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, color: isSel?'var(--purple-glow)':'var(--text-muted)' }}>SLOT {i+1}</span>
                 </div>
               )}
             </div>
@@ -50,7 +50,7 @@ export function CollectionMiniPanel() {
       </div>
 
       {selSlot !== null && (
-        <div style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'11.3px', color:'var(--purple-glow)', textAlign:'center', animation:'warnFlash 1.2s infinite', letterSpacing:'0.5px' }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'12px', color:'var(--purple-glow)', textAlign:'center', animation:'warnFlash 1.2s infinite', letterSpacing:'0.5px' }}>
           ↓ Sélectionne un allié pour le slot {selSlot+1}
         </div>
       )}
@@ -79,8 +79,8 @@ export function CollectionMiniPanel() {
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
-                  {isEq && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:cfg.color, fontWeight:700, flexShrink:0, marginLeft:'4px' }}>⚔</span>}
-                  {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'#f87171', fontWeight:700, flexShrink:0, marginLeft:'4px' }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
+                  {isEq && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:cfg.color, fontWeight:700, flexShrink:0, marginLeft:'4px' }}>⚔</span>}
+                  {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'#f87171', fontWeight:700, flexShrink:0, marginLeft:'4px' }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'3px' }}>
                   <RarityBadge rarity={tpl.rarity} size="xs" />

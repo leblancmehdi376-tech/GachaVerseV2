@@ -31,7 +31,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel }: {
 
         {/* Ce qui reset */}
         <div style={{ background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:10, padding:'14px 18px', textAlign:'left' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color:'#f87171', letterSpacing:2, marginBottom:8 }}>✕ RÉINITIALISÉ</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#f87171', letterSpacing:2, marginBottom:8 }}>✕ RÉINITIALISÉ</div>
           {['Palier → 1', 'Pixel-Coins → 0', 'Upgrades attaque & or → 0', 'Niveau héros → 1'].map(item => (
             <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(248,113,113,0.8)', marginBottom:3 }}>• {item}</div>
           ))}
@@ -39,7 +39,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel }: {
 
         {/* Ce qui reste */}
         <div style={{ background:'rgba(74,222,128,0.06)', border:'1px solid rgba(74,222,128,0.2)', borderRadius:10, padding:'14px 18px', textAlign:'left' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color:'#4ade80', letterSpacing:2, marginBottom:8 }}>✓ CONSERVÉ</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#4ade80', letterSpacing:2, marginBottom:8 }}>✓ CONSERVÉ</div>
           {['Collection gacha complète', 'Neko-Gemmes', 'BossCrowns & VoidOrbs', 'Succès & expéditions', '+3 Points de Prestige', `+${(PRESTIGE_PASSIVE_DPS_PER_LEVEL*100).toFixed(0)}% DPS & +${(PRESTIGE_PASSIVE_COIN_PER_LEVEL*100).toFixed(0)}% coins passifs`].map(item => (
             <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(74,222,128,0.8)', marginBottom:3 }}>• {item}</div>
           ))}
@@ -135,7 +135,7 @@ export function PrestigePage() {
                 <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:'var(--text-dim)' }}>
                   🔒 Palier {maxPalierReached} / 40
                 </div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-muted)', marginTop:3 }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', marginTop:3 }}>
                   Atteins le palier 40 pour débloquer
                 </div>
                 <div className="prog-track" style={{ marginTop:8, width:160 }}>
@@ -151,11 +151,11 @@ export function PrestigePage() {
 
         {/* Stats actives */}
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>BONUS ACTIFS</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>BONUS ACTIFS</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:10 }}>
             {STAT_ROWS.map((s, i) => (
               <div key={i} className="panel" style={{ padding:'16px 18px' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8 }}>{s.label}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8 }}>{s.label}</div>
                 <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:20.6, color:s.color, lineHeight:1.05 }}>{s.val}</div>
               </div>
             ))}
@@ -165,7 +165,7 @@ export function PrestigePage() {
         {/* Bonus passifs par niveau */}
         {level > 0 && (
           <div className="panel" style={{ padding:'16px 20px', borderColor:'rgba(147,51,234,0.3)' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--purple-glow)', letterSpacing:2, marginBottom:10 }}>✦ BONUS PASSIFS PAR NIVEAU (×{level})</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--purple-glow)', letterSpacing:2, marginBottom:10 }}>✦ BONUS PASSIFS PAR NIVEAU (×{level})</div>
             <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:13.4, color:'var(--green)' }}>
                 🔥 +{(level * PRESTIGE_PASSIVE_DPS_PER_LEVEL * 100).toFixed(0)}% DPS total
@@ -179,7 +179,7 @@ export function PrestigePage() {
 
         {/* Shop prestige */}
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>
             SHOP PRESTIGE — {points} point{points !== 1 ? 's' : ''} disponible{points !== 1 ? 's' : ''}
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:12 }}>
@@ -214,12 +214,12 @@ export function PrestigePage() {
                           {upg.name}
                         </span>
                         {upg.maxLevel > 1 && (
-                          <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:11.3, color: maxed ? '#4ade80' : '#fbbf24', background: maxed ? 'rgba(74,222,128,0.1)' : 'rgba(251,191,36,0.1)', border:`1px solid ${maxed ? 'rgba(74,222,128,0.3)' : 'rgba(251,191,36,0.3)'}`, borderRadius:4, padding:'2px 7px' }}>
+                          <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:12, color: maxed ? '#4ade80' : '#fbbf24', background: maxed ? 'rgba(74,222,128,0.1)' : 'rgba(251,191,36,0.1)', border:`1px solid ${maxed ? 'rgba(74,222,128,0.3)' : 'rgba(251,191,36,0.3)'}`, borderRadius:4, padding:'2px 7px' }}>
                             {currentLevel}/{upg.maxLevel}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', lineHeight:1.5 }}>{upg.description}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.5 }}>{upg.description}</div>
                     </div>
                   </div>
 

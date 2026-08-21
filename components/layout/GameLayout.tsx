@@ -311,7 +311,7 @@ export function GameLayout() {
           <div style={{ fontFamily:'var(--f-title)', fontSize:isMobile?'15.5px':'18.5px', fontWeight:900, letterSpacing:isMobile?'1.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))' }}>
             GACHAVERSE
           </div>
-          {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'9.3px', color:'var(--text-muted)', letterSpacing:'4px', marginTop:'3px' }}>MULTIVERS RPG</div>}
+          {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'4px', marginTop:'3px' }}>MULTIVERS RPG</div>}
         </div>
 
         {/* Avatar / Bouton connexion */}
@@ -328,10 +328,10 @@ export function GameLayout() {
           {!isMobile && <div style={{ textAlign:'left' }}>
             {user ? (<>
               <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
             </>) : (<>
               <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'13.4px', color:'#e9d5ff', lineHeight:1.2, letterSpacing:'0.5px' }}>SE CONNECTER</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'rgba(233,213,255,0.6)', lineHeight:1 }}>ou créer un compte</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'rgba(233,213,255,0.6)', lineHeight:1 }}>ou créer un compte</div>
             </>)}
           </div>}
         </button>
@@ -372,9 +372,9 @@ export function GameLayout() {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
               {Icon && <Icon size={18} color="currentColor" />}
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:'8.2px', fontWeight:600, letterSpacing:'0.5px' }}>{n.label}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>{n.label}</span>
               {n.id === 'quests' && claimable > 0 && (
-                <div style={{ position:'absolute', top:'2px', right:'2px', width:14, height:14, background:'#ef4444', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'9.3px', color:'white', border:'1px solid var(--bg-dark)' }}>
+                <div style={{ position:'absolute', top:'2px', right:'2px', width:14, height:14, background:'#ef4444', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12px', color:'white', border:'1px solid var(--bg-dark)' }}>
                   {claimable}
                 </div>
               )}
@@ -409,7 +409,7 @@ export function GameLayout() {
           {(isMobile ? [...NAV_GROUPS, { title:'RACCOURCIS', items: NAV_MOBILE_EXTRA }] : NAV_GROUPS).map((group, gi) => (
             <div key={gi} style={{ display:'flex', flexDirection:'column', gap:2 }}>
               {group.title && (
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:8.8, fontWeight:800, letterSpacing:2, color:'var(--text-muted)', padding:'10px 12px 4px', textTransform:'uppercase' }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:800, letterSpacing:2, color:'var(--text-muted)', padding:'10px 12px 4px', textTransform:'uppercase' }}>
                   {group.title}
                 </div>
               )}
@@ -426,7 +426,7 @@ export function GameLayout() {
                   <span>{item.label}</span>
                   {/* Badge quêtes */}
                   {item.id === 'quests' && claimable > 0 && (
-                    <div style={{ position:'absolute', right:'10px', width:18, height:18, background:'linear-gradient(135deg,#dc2626,#ef4444)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:10.3, color:'white', boxShadow:'0 0 8px rgba(239,68,68,0.6)' }}>{claimable}</div>
+                    <div style={{ position:'absolute', right:'10px', width:18, height:18, background:'linear-gradient(135deg,#dc2626,#ef4444)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:12, color:'white', boxShadow:'0 0 8px rgba(239,68,68,0.6)' }}>{claimable}</div>
                   )}
                 </div>
                 );
@@ -439,10 +439,10 @@ export function GameLayout() {
           {/* Événement */}
           <div style={{ background:'linear-gradient(160deg,#150a28,#1e0e38)', border:'1px solid var(--border-glow)', borderRadius:'12px', padding:'14px', marginTop:'8px', position:'relative', overflow:'hidden', boxShadow:'0 0 20px rgba(124,58,237,0.08), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
             <div style={{ position:'absolute', top:'-15px', right:'-15px', width:'80px', height:'80px', background:'radial-gradient(circle,rgba(168,85,247,0.16),transparent)', borderRadius:'50%' }} />
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>★ ÉVÉNEMENT</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>★ ÉVÉNEMENT</div>
             <div style={{ fontFamily:'var(--f-title)', fontSize:'12.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>BOSS DES OMBRES</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', lineHeight:1.5 }}>Vaincs le boss de chaque palier pour des récompenses exclusives</div>
-            <div style={{ marginTop:'8px', fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', display:'flex', alignItems:'center', gap:'5px' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>Vaincs le boss de chaque palier pour des récompenses exclusives</div>
+            <div style={{ marginTop:'8px', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', display:'flex', alignItems:'center', gap:'5px' }}>
               <span>⏰</span><span>Permanent</span>
             </div>
           </div>
@@ -512,10 +512,10 @@ export function GameLayout() {
 function ProgressCard({ palier, wave, progressPct, cfg }: { palier: number; wave: number; progressPct: number; cfg: ReturnType<typeof getPalierConfig> }) {
   return (
     <div className="panel" style={{ padding:'14px', flexShrink:0 }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'10.3px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'10px' }}>PROGRESSION</div>
+      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'10px' }}>PROGRESSION</div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
         <div>
-          <div style={{ fontFamily:'var(--f-num)', fontSize:'10.3px', color:'var(--text-dim)', fontWeight:700 }}>PALIER {palier}</div>
+          <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-dim)', fontWeight:700 }}>PALIER {palier}</div>
           <div style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginTop:'2px', lineHeight:1.2 }}>{cfg.name}</div>
         </div>
         <div style={{ width:40, height:40, background:`${cfg.accentColor}18`, border:`1px solid ${cfg.accentColor}44`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20.6px' }}>📦</div>
@@ -524,11 +524,11 @@ function ProgressCard({ palier, wave, progressPct, cfg }: { palier: number; wave
         <div className="prog-fill" style={{ width:`${progressPct}%` }} />
       </div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', fontWeight:600 }}>Vague {wave}/10</span>
+        <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', fontWeight:600 }}>Vague {wave}/10</span>
         <span style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', color:'var(--purple-glow)', fontWeight:700 }}>{progressPct}%</span>
       </div>
       <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid var(--border)', borderRadius:'6px', padding:'6px 10px', display:'flex', alignItems:'center', gap:'8px' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)' }}>Récompense :</span>
+        <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>Récompense :</span>
         <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13.4px', color:'var(--cyan-hi)' }}>💎 ×{getPalierPassGems(palier)}</span>
       </div>
     </div>
@@ -538,7 +538,7 @@ function ProgressCard({ palier, wave, progressPct, cfg }: { palier: number; wave
 function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:string; label:string; current:number; target:number; reward:number; rewardType:string; done:boolean }[]; claimQuest: (id: string) => void }) {
   return (
     <div className="panel" style={{ padding:'14px', flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'10.3px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'10px', flexShrink:0 }}>QUÊTES QUOTIDIENNES</div>
+      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'10px', flexShrink:0 }}>QUÊTES QUOTIDIENNES</div>
       <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:'8px' }}>
         {(quests ?? []).map(q => {
           const pct = Math.min((q.current/q.target)*100, 100);
@@ -553,11 +553,11 @@ function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:string; 
                 {q.done ? <span style={{ fontSize:'16.5px', flexShrink:0 }}>✅</span>
                   : canClaim ? (
                     <button onClick={() => claimQuest(q.id)}
-                      style={{ background:'linear-gradient(135deg,#3b0764,#5b21b6)', border:'1px solid var(--purple)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'10.3px', color:'white', flexShrink:0, boxShadow:'0 0 8px rgba(124,58,237,0.35)', whiteSpace:'nowrap' }}>
+                      style={{ background:'linear-gradient(135deg,#3b0764,#5b21b6)', border:'1px solid var(--purple)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'white', flexShrink:0, boxShadow:'0 0 8px rgba(124,58,237,0.35)', whiteSpace:'nowrap' }}>
                       RÉCUP
                     </button>
                   ) : (
-                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', color:'var(--gold)', background:'rgba(245,166,35,0.1)', border:'1px solid rgba(245,166,35,0.2)', padding:'2px 7px', borderRadius:'5px', flexShrink:0, whiteSpace:'nowrap' }}>
+                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--gold)', background:'rgba(245,166,35,0.1)', border:'1px solid rgba(245,166,35,0.2)', padding:'2px 7px', borderRadius:'5px', flexShrink:0, whiteSpace:'nowrap' }}>
                       {q.rewardType==='gems'?'💎':'🪙'} {q.reward}
                     </span>
                   )
@@ -566,7 +566,7 @@ function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:string; 
               <div style={{ height:'5px', background:'rgba(255,255,255,0.05)', borderRadius:'3px', overflow:'hidden', marginBottom:'4px' }}>
                 <div style={{ height:'100%', width:`${pct}%`, background:q.done?'linear-gradient(90deg,#166534,#4ade80)':'linear-gradient(90deg,#4c1d95,#a855f7)', borderRadius:'3px', transition:'width 0.3s', boxShadow:canClaim?'0 0 6px #a855f766':undefined }} />
               </div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', textAlign:'right', fontWeight:600 }}>{q.current}/{q.target}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', textAlign:'right', fontWeight:600 }}>{q.current}/{q.target}</div>
             </div>
           );
         })}
@@ -578,7 +578,7 @@ function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:string; 
 function StatsCard({ maxPalierReached }: { maxPalierReached: number }) {
   return (
     <div className="panel" style={{ padding:'12px', flexShrink:0 }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'10.3px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>STATISTIQUES</div>
+      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>STATISTIQUES</div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 0', borderTop:'1px solid var(--border)' }}>
         <span style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>Palier max atteint</span>
         <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'16.5px', color:'var(--purple-glow)' }}>{maxPalierReached}</span>

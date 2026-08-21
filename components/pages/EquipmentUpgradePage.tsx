@@ -116,7 +116,7 @@ export function EquipmentUpgradePage() {
                           <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: cfg.color }}>
                             {EQUIPMENT_SLOT_LABELS[g.slot]} — {cfg.label}
                           </div>
-                          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.3, color: 'var(--text-muted)' }}>
+                          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-muted)' }}>
                             {Math.floor(g.qty / UPGRADE_COST)} fusion{Math.floor(g.qty / UPGRADE_COST) !== 1 ? 's' : ''} possible{Math.floor(g.qty / UPGRADE_COST) !== 1 ? 's' : ''}
                           </div>
                         </div>

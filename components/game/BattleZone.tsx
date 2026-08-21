@@ -51,7 +51,7 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
     <div onClick={onManage} style={{ width:'100%', display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer', opacity:0.5 }}>
       <div style={{ width:'100%', aspectRatio:'306 / 517', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
         <span style={{ fontSize:22.7, color:'rgba(255,255,255,0.2)' }}>+</span>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'rgba(255,255,255,0.2)', fontWeight:600, letterSpacing:1 }}>VIDE</span>
+        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.2)', fontWeight:600, letterSpacing:1 }}>VIDE</span>
       </div>
     </div>
   );
@@ -90,8 +90,8 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
 
           {/* Niveau + rang — overlay haut-gauche */}
           <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-            <span style={{ fontFamily: 'var(--f-num)', fontSize: 8.2, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px' }}>LV{owned.level}</span>
-            {owned.rank > 0 && <span style={{ fontFamily: 'var(--f-num)', fontSize: 8.2, fontWeight: 800, color: '#fbbf24', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 4, padding: '1px 4px' }}>★{owned.rank}</span>}
+            <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px' }}>LV{owned.level}</span>
+            {owned.rank > 0 && <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: '#fbbf24', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 4, padding: '1px 4px' }}>★{owned.rank}</span>}
           </div>
 
           {/* Ult — overlay haut-droit */}
@@ -99,8 +99,8 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
             background: ready ? 'rgba(88,28,135,0.92)' : 'rgba(0,0,0,0.72)',
             border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.15)',
             borderRadius: 4, padding: '1px 4px' }}>
-            <span style={{ fontSize: 7.2 }}>{ready ? '⚡' : '⏳'}</span>
-            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 7.2, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3 }}>
+            <span style={{ fontSize: 12 }}>{ready ? '⚡' : '⏳'}</span>
+            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3 }}>
               {ready ? 'PRÊT' : ultLabel}
             </span>
           </div>
@@ -111,16 +111,16 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
       {/* Pied : BASE | TYPE | DPS */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', padding: '5px 4px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22`, gap: 2 }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--f-num)', fontSize: 10.3, fontWeight: 800, color: 'rgba(255,255,255,0.7)', lineHeight: 1 }}>{formatNumber(base)}</div>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 6.7, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: 2 }}>BASE</div>
+          <div style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.7)', lineHeight: 1 }}>{formatNumber(base)}</div>
+          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: 2 }}>BASE</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--f-num)', fontSize: 10.3, fontWeight: 900, color: multCol, lineHeight: 1 }}>{multTxt}</div>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 6.7, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: 2 }}>TYPE</div>
+          <div style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: multCol, lineHeight: 1 }}>{multTxt}</div>
+          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: 2 }}>TYPE</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--f-num)', fontSize: 11.3, fontWeight: 900, color: finalCol, lineHeight: 1 }}>{formatNumber(final)}</div>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 6.7, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, marginTop: 2 }}>DPS</div>
+          <div style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: finalCol, lineHeight: 1 }}>{formatNumber(final)}</div>
+          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, marginTop: 2 }}>DPS</div>
         </div>
       </div>
     </div>
@@ -151,13 +151,13 @@ function ActiveBoostsBar() {
       {dpsActive && (
         <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(248,113,113,0.12)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:8, padding:'4px 10px' }}>
           <span style={{ fontSize:12.4 }}>⚡</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'#f87171' }}>+20% DPS — {fmt(dpsBoostEndsAt)}</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#f87171' }}>+20% DPS — {fmt(dpsBoostEndsAt)}</span>
         </div>
       )}
       {goldActive && (
         <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(74,222,128,0.12)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:8, padding:'4px 10px' }}>
           <span style={{ fontSize:12.4 }}>💰</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'#4ade80' }}>+20% Or — {fmt(goldBoostEndsAt)}</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#4ade80' }}>+20% Or — {fmt(goldBoostEndsAt)}</span>
         </div>
       )}
     </div>
@@ -196,7 +196,7 @@ function PalierTravelModal({
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', borderBottom:'1px solid var(--border)' }}>
           <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, fontWeight:700, color:'var(--purple-glow)', letterSpacing:2 }}>🗺 CARTE DES MONDES</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-sub)', letterSpacing:0.5 }}>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-sub)', letterSpacing:0.5 }}>
               Voyage vers un palier déjà atteint pour re-farmer coins &amp; ressources
             </span>
           </div>
@@ -227,15 +227,15 @@ function PalierTravelModal({
               >
                 <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
                   <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:13.4, color:cfg.accentColor }}>P{p}</span>
-                  {isHere && <span style={{ fontFamily:'var(--f-ui)', fontSize:8.2, fontWeight:800, color:'var(--purple-glow)', letterSpacing:1, border:'1px solid var(--purple-glow)', borderRadius:4, padding:'1px 5px' }}>ICI</span>}
+                  {isHere && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:800, color:'var(--purple-glow)', letterSpacing:1, border:'1px solid var(--purple-glow)', borderRadius:4, padding:'1px 5px' }}>ICI</span>}
                   {drops.length > 0 && (
                     <span title={drops.map(d => d.name).join(', ')} style={{ marginLeft:'auto', fontSize:12.4, filter:'drop-shadow(0 0 4px rgba(245,158,11,0.6))' }}>
                       {drops.map(d => d.icon).join('')}
                     </span>
                   )}
                 </div>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'white', lineHeight:1.15, marginBottom:1 }}>{cfg.name}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--text-sub)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{cfg.universe}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'white', lineHeight:1.15, marginBottom:1 }}>{cfg.name}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-sub)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{cfg.universe}</div>
               </button>
             );
           })}
@@ -307,11 +307,11 @@ export function BattleZone() {
       <div style={{ position:'relative', zIndex:3, padding:'12px 18px 10px', background:'linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%)', flexShrink:0 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:8, flexWrap:'wrap' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:10.3, color:cfg.accentColor, letterSpacing:2 }}>{cfg.universe.toUpperCase()}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:cfg.accentColor, letterSpacing:2 }}>{cfg.universe.toUpperCase()}</span>
             <span style={{ color:'rgba(255,255,255,0.2)' }}>·</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'rgba(255,255,255,0.3)', letterSpacing:1 }}>{cfg.arc}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.3)', letterSpacing:1 }}>{cfg.arc}</span>
             <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:currentEnemy.isBoss?'rgba(127,29,29,0.8)':isFarming?'rgba(52,211,153,0.15)':'rgba(0,0,0,0.5)', border:`1px solid ${currentEnemy.isBoss?'rgba(239,68,68,0.5)':isFarming?'rgba(52,211,153,0.5)':cfg.accentColor+'33'}`, borderRadius:6, padding:'2px 10px' }}>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10.3, color:currentEnemy.isBoss?'#f87171':isFarming?'#34d399':cfg.accentColor }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:currentEnemy.isBoss?'#f87171':isFarming?'#34d399':cfg.accentColor }}>
                 {currentEnemy.isBoss ? '★ BOSS' : isFarming ? `🔁 FARM · ÉTAGE ${wave}/9` : `ÉTAGE ${wave} / 10`}
               </span>
             </div>
@@ -327,8 +327,8 @@ export function BattleZone() {
                   opacity:bossActive?0.4:1, transition:'opacity 0.15s',
                 }}
               >
-                <span style={{ fontSize:11.3 }}>🗺</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:10.3, color:'var(--purple-glow)', letterSpacing:1 }}>VOYAGER</span>
+                <span style={{ fontSize:12 }}>🗺</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:'var(--purple-glow)', letterSpacing:1 }}>VOYAGER</span>
               </button>
             )}
             {isFarming && (
@@ -343,8 +343,8 @@ export function BattleZone() {
                 onMouseEnter={e => { e.currentTarget.style.filter='brightness(1.2)'; }}
                 onMouseLeave={e => { e.currentTarget.style.filter='none'; }}
               >
-                <span style={{ fontSize:11.3 }}>↩</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:10.3, color:'#34d399', letterSpacing:1 }}>RETOUR · P{maxPalierReached}</span>
+                <span style={{ fontSize:12 }}>↩</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:'#34d399', letterSpacing:1 }}>RETOUR · P{maxPalierReached}</span>
               </button>
             )}
           </div>
@@ -357,7 +357,7 @@ export function BattleZone() {
           {isFarming && !bossActive && (
             <div style={{ display:'flex', alignItems:'center', gap:7, background:'rgba(52,211,153,0.12)', border:'1px solid rgba(52,211,153,0.4)', borderRadius:8, padding:'4px 12px' }}>
               <span style={{ fontSize:12.4 }}>🔁</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, color:'#34d399' }}>Farm en boucle · boss désactivé</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#34d399' }}>Farm en boucle · boss désactivé</span>
             </div>
           )}
         </div>
@@ -373,7 +373,7 @@ export function BattleZone() {
             if (em === 1) return null;
             const buff = em > 1;
             return (
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:11.3, padding:'2px 8px', borderRadius:999,
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:12, padding:'2px 8px', borderRadius:999,
                 color: buff ? '#4ade80' : '#f87171',
                 background: buff ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
                 border: `1px solid ${buff ? 'rgba(74,222,128,0.4)' : 'rgba(248,113,113,0.4)'}` }}>
@@ -383,7 +383,7 @@ export function BattleZone() {
           })()}
         </div>
         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:600, color:'rgba(255,255,255,0.35)', letterSpacing:1 }}>HP</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.35)', letterSpacing:1 }}>HP</span>
           <span style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'rgba(255,255,255,0.75)' }}>{formatNumber(currentEnemy.currentHp)} / {formatNumber(currentEnemy.maxHp)}</span>
         </div>
         <div style={{ height:8, background:'rgba(0,0,0,0.5)', borderRadius:10, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)', marginBottom:6 }}>
@@ -434,7 +434,7 @@ export function BattleZone() {
         <div style={{ display:'flex', alignItems:'flex-end', gap:10, padding:'10px 18px 8px' }}>
           {/* Panel compagnons */}
           <div style={{ background:'linear-gradient(160deg,rgba(15,10,30,0.92),rgba(8,6,18,0.92))', border:'1px solid rgba(255,255,255,0.09)', borderRadius:12, padding:'10px 12px 8px', display:'flex', flexDirection:'column', alignItems:'center', gap:8, boxShadow:'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:2 }}>COMPAGNONS</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:2 }}>COMPAGNONS</span>
             <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
               {equippedTeam.map((tid, i) => {
                 const isLocked = !!tid && ultUsedThisFight.includes(tid);
@@ -443,7 +443,7 @@ export function BattleZone() {
                     <AllyCard templateId={tid ?? ''} onManage={() => {}} />
                     {isLocked && (
                       <div title="Ult utilisé — retrait bloqué jusqu'à la fin du combat"
-                        style={{ position:'absolute', top:2, right:2, background:'rgba(0,0,0,0.75)', borderRadius:4, padding:'1px 3px', fontSize:10.3, lineHeight:1, pointerEvents:'none' }}>
+                        style={{ position:'absolute', top:2, right:2, background:'rgba(0,0,0,0.75)', borderRadius:4, padding:'1px 3px', fontSize:12, lineHeight:1, pointerEvents:'none' }}>
                         🔒
                       </div>
                     )}
@@ -470,7 +470,7 @@ export function BattleZone() {
                         style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:2 }}
                         onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:12px">${s.def.icon}</span>`; }} />
                     </div>
-                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:9.3, color:s.def.color, whiteSpace:'nowrap' }}>
+                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:s.def.color, whiteSpace:'nowrap' }}>
                       {s.threshold.dpsBonus > 0 ? `+${s.threshold.dpsBonus}%` : `+${s.threshold.globalBonus}% glb`}
                     </span>
                   </div>
@@ -481,17 +481,17 @@ export function BattleZone() {
 
           {/* Butin de l'ennemi courant */}
           <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'7px 12px', flexShrink:0, textAlign:'right', marginRight:12 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
             <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>+{formatNumber(currentEnemy.pixelCoinsReward)} 🪙</div>
             {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>
 
           {/* DPS d'équipe */}
           <div style={{ textAlign:'right' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:1.5 }}>🔥 DPS</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:1.5 }}>🔥 DPS</div>
             <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
-              {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:11.3, marginLeft:2 }}>×{dpsUltMult}</span>}
+              {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
             </div>
           </div>
 
@@ -505,7 +505,7 @@ export function BattleZone() {
               title="Abandonner le boss et retourner à la vague 1"
             >
               <span style={{ fontSize:16.5 }}>🏳️</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
             </button>
           )}
           {bossAvoided && !bossActive && wave !== 10 && (
@@ -517,7 +517,7 @@ export function BattleZone() {
               title="Retenter le boss"
             >
               <span style={{ fontSize:16.5 }}>⚡</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
             </button>
           )}
         </div>

@@ -77,15 +77,15 @@ export function LeaderboardPage() {
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
           <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:'2px', boxShadow:'0 0 8px #fbbf24' }} />
           <span style={{ fontFamily:'var(--f-title)', fontSize:'16.5px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>🏆 CLASSEMENT</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)', marginLeft:4 }}>Mis à jour toutes les 30s</span>
-          {loading && <span style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)' }}>⏳</span>}
+          <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginLeft:4 }}>Mis à jour toutes les 30s</span>
+          {loading && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>⏳</span>}
         </div>
 
         {/* Pseudo + Ma progression */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
           {/* Pseudo */}
           <div className="panel" style={{ padding:'18px 20px' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-muted)', letterSpacing:'1px', marginBottom:'10px' }}>TON PSEUDO PUBLIC</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'1px', marginBottom:'10px' }}>TON PSEUDO PUBLIC</div>
             {!user ? (
               <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>Connecte-toi pour définir ton pseudo et apparaître dans le classement.</div>
             ) : (
@@ -117,14 +117,14 @@ export function LeaderboardPage() {
 
           {/* Ma progression */}
           <div className="panel" style={{ padding:'18px 20px' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-muted)', letterSpacing:'1px', marginBottom:'10px' }}>TA PROGRESSION</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'1px', marginBottom:'10px' }}>TA PROGRESSION</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
               {[
                 { label:'Palier',       value: String(palier)          },
                 { label:'Pixel-Coins',  value: formatNumber(pixelCoins) },
               ].map(item => (
                 <div key={item.label} style={{ padding:'10px 12px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px' }}>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)', letterSpacing:'1px' }}>{item.label.toUpperCase()}</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'1px' }}>{item.label.toUpperCase()}</div>
                   <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.5px', color:'var(--text)', marginTop:2 }}>{item.value}</div>
                 </div>
               ))}
@@ -164,12 +164,12 @@ export function LeaderboardPage() {
                     </div>
                     {/* Palier */}
                     <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)' }}>PALIER</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PALIER</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.palier}</div>
                     </div>
                     {/* Pixel-Coins */}
                     <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)' }}>PIXEL-COINS</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PIXEL-COINS</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#fbbf24' }}>{formatNumber(entry.pixelCoins)}</div>
                     </div>
                   </div>

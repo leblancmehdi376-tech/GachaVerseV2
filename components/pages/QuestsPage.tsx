@@ -95,7 +95,7 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
           RÉCUPÉRER
         </button>
       ) : (
-        <div style={{ width:80, flexShrink:0, textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)', fontWeight:600 }}>EN COURS</div>
+        <div style={{ width:80, flexShrink:0, textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', fontWeight:600 }}>EN COURS</div>
       )}
     </div>
   );
@@ -135,7 +135,7 @@ export function QuestsPage() {
             <div style={{ display:'flex', gap:10 }}>
               {(['daily','weekly'] as const).map(t => (
                 <div key={t} style={{ textAlign:'center', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 12px' }}>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'var(--text-dim)', letterSpacing:1, marginBottom:3 }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1, marginBottom:3 }}>
                     {t === 'daily' ? '📅 JOURNALIER' : '📆 HEBDOMADAIRE'}
                   </div>
                   <Countdown type={t} />
@@ -151,7 +151,7 @@ export function QuestsPage() {
             const pct = t.totalCount > 0 ? Math.round((t.doneCount / t.totalCount) * 100) : 0;
             return (
               <button key={t.id} onClick={() => setTab(t.id)}
-                style={{ flex:1, padding:'10px 8px', borderRadius:10, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, letterSpacing:0.5, transition:'all 0.15s', display:'flex', flexDirection:'column', alignItems:'center', gap:5,
+                style={{ flex:1, padding:'10px 8px', borderRadius:10, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, letterSpacing:0.5, transition:'all 0.15s', display:'flex', flexDirection:'column', alignItems:'center', gap:5,
                   background: tab===t.id ? `${t.color}18` : 'var(--bg-card)',
                   border: `1px solid ${tab===t.id ? t.color+'55' : 'var(--border)'}`,
                   color: tab===t.id ? t.color : 'var(--text-dim)',
@@ -169,7 +169,7 @@ export function QuestsPage() {
         {/* ── JOURNALIÈRES ── */}
         {tab === 'daily' && (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
               Reset quotidien à <strong style={{ color:'#34d399' }}>2h00 (heure de Paris)</strong>
             </div>
             {(quests ?? []).map((q: QuestItem) => (
@@ -181,7 +181,7 @@ export function QuestsPage() {
         {/* ── HEBDOMADAIRES ── */}
         {tab === 'weekly' && (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
               Reset le <strong style={{ color:'#60a5fa' }}>lundi à 2h00 (heure de Paris)</strong>
             </div>
             {(weeklyQuests ?? []).map((q: QuestItem) => (
@@ -193,7 +193,7 @@ export function QuestsPage() {
         {/* ── ÉVÉNEMENTS ── */}
         {tab === 'event' && (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
               Quêtes permanentes — <strong style={{ color:'#e879f9' }}>disponibles jusqu'à complétion</strong>
             </div>
             {(eventQuests ?? []).map((q: QuestItem) => (

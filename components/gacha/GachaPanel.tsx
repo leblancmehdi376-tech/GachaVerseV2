@@ -94,7 +94,7 @@ function FlipCard({ res, index, total }: { res: PullResult; index: number; total
               paddingBottom: 12,
             }}>
               <span style={{
-                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 11.3,
+                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12,
                 color: cfg.color, letterSpacing: 1,
                 background: 'rgba(0,0,0,0.6)', borderRadius: 6,
                 padding: '3px 10px', border: `1px solid ${cfg.color}66`,
@@ -138,7 +138,7 @@ function FlipCard({ res, index, total }: { res: PullResult; index: number; total
               }}>
                 <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'white' }}>{tpl.name}</span>
                 <RarityBadge rarity={tpl.rarity} size="xs" />
-                {res.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'#4ade80', fontWeight:700, letterSpacing:1 }}>✦ NOUVEAU !</span>}
+                {res.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:700, letterSpacing:1 }}>✦ NOUVEAU !</span>}
               </div>
             )}
           </>) : (
@@ -335,7 +335,7 @@ export function GachaMiniPanel() {
 
             <button onClick={doMulti} disabled={!canM || pulling}
               style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 12px', background:canM?'linear-gradient(135deg,#3d1500,#7c2d12)':'rgba(255,255,255,0.03)', border:`1px solid ${canM?'rgba(217,119,6,0.5)':'var(--border)'}`, borderRadius:'7px', cursor:canM&&!pulling?'pointer':'not-allowed', opacity:canM?1:0.4, transition:'all 0.15s', boxShadow:canM?'0 2px 16px rgba(180,83,9,0.25)':'none', position:'relative', overflow:'hidden' }}>
-              <div style={{ position:'absolute', top:'-2px', right:'-2px', background:'#d97706', padding:'1px 8px', fontSize:'9.3px', fontFamily:'var(--f-ui)', fontWeight:700, color:'#000', borderBottomLeftRadius:'4px' }}>-10%</div>
+              <div style={{ position:'absolute', top:'-2px', right:'-2px', background:'#d97706', padding:'1px 8px', fontSize:'12px', fontFamily:'var(--f-ui)', fontWeight:700, color:'#000', borderBottomLeftRadius:'4px' }}>-10%</div>
               <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canM?'#fbbf24':'var(--text-muted)' }}>Tirage ×10</span>
               <div style={{ display:'flex', alignItems:'center', gap:'5px', background:'rgba(0,0,0,0.3)', border:'1px solid rgba(34,211,238,0.3)', borderRadius:'5px', padding:'3px 10px' }}>
                 <span style={{ fontSize:'12.4px' }}>💎</span>
@@ -347,7 +347,7 @@ export function GachaMiniPanel() {
 
         {/* Taux */}
         <button onClick={() => setShowRate(!showRate)}
-          style={{ background:'none', border:'1px solid var(--border)', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', transition:'all 0.15s' }}>
+          style={{ background:'none', border:'1px solid var(--border)', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', transition:'all 0.15s' }}>
           {showRate ? '▲' : '▼'} Taux de drop
         </button>
 

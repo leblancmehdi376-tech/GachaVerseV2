@@ -12,7 +12,7 @@ export function AffinityBadge({ affinity, size = 'md' }: { affinity: Affinity; s
         padding: sm ? '2px 8px' : '3px 10px',
         borderRadius: 999,
         fontFamily: 'var(--f-ui)', fontWeight: 800,
-        fontSize: sm ? 9.3 : 10.3, letterSpacing: 0.5,
+        fontSize: 12, letterSpacing: 0.5,
         color: c.color,
         background: `${c.color}18`,
         border: `1px solid ${c.color}55`,
@@ -20,7 +20,7 @@ export function AffinityBadge({ affinity, size = 'md' }: { affinity: Affinity; s
         whiteSpace: 'nowrap',
       }}
     >
-      <span style={{ fontSize: sm ? 10.3 : 12.4, lineHeight: 1 }}>{c.icon}</span>
+      <span style={{ fontSize: sm ? 12 : 12.4, lineHeight: 1 }}>{c.icon}</span>
       {c.label.toUpperCase()}
     </span>
   );

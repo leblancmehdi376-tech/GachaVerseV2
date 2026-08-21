@@ -156,7 +156,7 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
               <div style={{ width:44, height:44, background:'linear-gradient(135deg,#3b0764,#6d28d9)', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22.7px', border:'1px solid var(--purple-dim)' }}>🐱</div>
               <div>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.5px', color:'var(--text)' }}>{username || 'NEKOZ'}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', marginTop:'2px' }}>{user ? user.email : 'Sans compte'}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginTop:'2px' }}>{user ? user.email : 'Sans compte'}</div>
               </div>
             </div>
             <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
@@ -272,7 +272,7 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
                     border:`1px solid ${checked ? 'rgba(96,165,250,0.4)' : 'var(--border)'}`, transition:'background 0.15s' }}>
                   <div style={{ width:'16px', height:'16px', borderRadius:'4px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center',
                     background: checked ? '#3b82f6' : 'transparent', border:`1.5px solid ${checked ? '#3b82f6' : 'var(--text-muted)'}` }}>
-                    {checked && <span style={{ fontSize:'10.3px', color:'#fff', fontWeight:900, lineHeight:1 }}>✓</span>}
+                    {checked && <span style={{ fontSize:'12px', color:'#fff', fontWeight:900, lineHeight:1 }}>✓</span>}
                   </div>
                   <span style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', fontWeight: checked ? 700 : 500, color: checked ? '#93c5fd' : 'var(--text-sub)' }}>{universe}</span>
                 </label>
@@ -281,7 +281,7 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
           </div>
 
           {Object.values(protectedUniverses).some(Boolean) && (
-            <div style={{ marginTop:'12px', fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'#60a5fa' }}>
+            <div style={{ marginTop:'12px', fontFamily:'var(--f-ui)', fontSize:'12px', color:'#60a5fa' }}>
               🛡️ {Object.values(protectedUniverses).filter(Boolean).length} univers protégé(s)
             </div>
           )}
@@ -342,7 +342,7 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
           )}
         </div>
 
-        <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)', lineHeight:1.8 }}>
+        <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', lineHeight:1.8 }}>
           <div>GACHA VERSE — Version 1.0</div>
           <div style={{ marginTop:'4px', color:'var(--text-dim)' }}>Clé : <code style={{ background:'rgba(255,255,255,0.05)', padding:'1px 6px', borderRadius:'3px' }}>nekoz-world-v6</code></div>
         </div>

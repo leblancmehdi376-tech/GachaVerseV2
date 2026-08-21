@@ -139,7 +139,7 @@ export function JackpotEvent() {
             fontFamily:'var(--f-title)', fontWeight:900, fontSize:20.6, letterSpacing:2,
             boxShadow:'0 0 40px rgba(245,158,11,0.7)', animation:'jackpotBlink 0.6s infinite' }}>
           🎰 GAIN MULTIPLIÉ !
-          <div style={{ fontFamily:'var(--f-num)', fontSize:11.3, fontWeight:700, opacity:0.85, marginTop:4 }}>{(timeLeft/1000).toFixed(0)}s pour tenter</div>
+          <div style={{ fontFamily:'var(--f-num)', fontSize:12, fontWeight:700, opacity:0.85, marginTop:4 }}>{(timeLeft/1000).toFixed(0)}s pour tenter</div>
         </button>
         <style>{`@keyframes jackpotBlink { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.5)} }`}</style>
       </div>

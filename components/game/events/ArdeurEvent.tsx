@@ -67,7 +67,7 @@ export function ArdeurEvent() {
         FRAPPE !
       </button>
 
-      <div style={{ fontFamily:'var(--f-num)', fontSize:11.3, color:'var(--text-dim)' }}>{(timeLeft/1000).toFixed(1)}s</div>
+      <div style={{ fontFamily:'var(--f-num)', fontSize:12, color:'var(--text-dim)' }}>{(timeLeft/1000).toFixed(1)}s</div>
     </div>
   );
 }

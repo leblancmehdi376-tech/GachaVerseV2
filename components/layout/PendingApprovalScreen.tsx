@@ -35,7 +35,7 @@ export function PendingApprovalScreen({ email, onLogout }: { email: string | nul
         </div>
 
         <div style={{
-          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 11.3, color: 'rgba(255,255,255,0.4)',
+          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 12, color: 'rgba(255,255,255,0.4)',
           marginBottom: 22,
         }}>
           Reviens un peu plus tard, ou reconnecte-toi.

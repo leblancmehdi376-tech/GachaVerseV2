@@ -22,7 +22,7 @@ export function RankStars({ rank }: { rank: number }) {
     <div style={{ display: 'flex', gap: '2px' }}>
       {Array.from({ length: 7 }, (_, i) => (
         <span key={i} style={{
-          fontSize: '10.3px', lineHeight: 1,
+          fontSize: '12px', lineHeight: 1,
           color: i < rank ? '#fbbf24' : 'rgba(255,255,255,0.08)',
           textShadow: i < rank ? '0 0 4px #f59e0b' : 'none',
         }}>★</span>
