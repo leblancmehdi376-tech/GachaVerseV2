@@ -94,33 +94,35 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
             {owned.rank > 0 && <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: '#fbbf24', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 4, padding: '1px 4px' }}>★{owned.rank}</span>}
           </div>
 
-          {/* Ult — overlay haut-droit */}
-          <div style={{ position: 'absolute', top: 4, right: 4, display: 'flex', alignItems: 'center', gap: 2,
-            background: ready ? 'rgba(88,28,135,0.92)' : 'rgba(0,0,0,0.72)',
-            border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.15)',
-            borderRadius: 4, padding: '1px 4px' }}>
-            <span style={{ fontSize: 12 }}>{ready ? '⚡' : '⏳'}</span>
-            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3 }}>
-              {ready ? 'PRÊT' : ultLabel}
-            </span>
-          </div>
-
         </div>
       </SkillTooltip>
 
-      {/* Pied : BASE | TYPE | DPS */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', padding: '5px 4px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22`, gap: 2 }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.7)', lineHeight: 1 }}>{formatNumber(base)}</div>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: 2 }}>BASE</div>
+      {/* Pied : ULTI / BASE / TYPE / DPS — empilés en lignes pleine largeur
+          (au lieu d'un badge en overlay sur l'illustration, qui se lisait mal
+          une fois superposé à l'art) pour laisser assez de place aux valeurs
+          formatées (ex: "447.00T") sans qu'elles se chevauchent, la carte
+          faisant seulement 88px de large. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '5px 7px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22` }}>
+        <div onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '2px 4px', marginBottom: 2, borderRadius: 4, cursor: ready ? 'pointer' : 'default',
+            background: ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',
+            border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)' }}>
+          {!ready && <span style={{ fontSize: 12 }}>⏳</span>}
+          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
+            {ready ? 'ULTI PRÊT' : ultLabel}
+          </span>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: multCol, lineHeight: 1 }}>{multTxt}</div>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: 2 }}>TYPE</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4 }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, flexShrink: 0 }}>BASE</span>
+          <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.8)', lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(base)}</span>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: finalCol, lineHeight: 1 }}>{formatNumber(final)}</div>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, marginTop: 2 }}>DPS</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4 }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, flexShrink: 0 }}>TYPE</span>
+          <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: multCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{multTxt}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4, marginTop: 2, paddingTop: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5, flexShrink: 0 }}>DPS</span>
+          <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: finalCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(final)}</span>
         </div>
       </div>
     </div>
