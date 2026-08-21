@@ -385,7 +385,7 @@ export const useExpeditionStore = create<ExpeditionStore>()(
       },
     }),
     {
-      name: 'gachaverse_expeditions',
+      name: 'gachaverse_expeditions_v2', // bump v2.5 : force un reset local pour tous les joueurs
       partialize: (s) => ({
         active:         s.active,
         dropInventory:  s.dropInventory,

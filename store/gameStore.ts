@@ -87,7 +87,7 @@ export function getGoldChestMultiplier(level: number): number {
 }
 
 // ── Anti-exploit multi-onglets ─────────────────────────────────────────────
-const LOCAL_STORAGE_KEY = 'gachaverse_save';
+const LOCAL_STORAGE_KEY = 'gachaverse_save_v2'; // bump v2.5 : doit rester identique à useCloudSave.ts (même entrée localStorage partagée)
 const BROADCAST_CHANNEL = typeof window !== 'undefined' ? new BroadcastChannel('gachaverse_state') : null;
 
 // Vérifie le bonus "bonusFor" d'un équipement pour un perso donné — accepte
@@ -1397,7 +1397,7 @@ export const useGameStore = create<GameStore>()(
       },
     }),
     {
-      name: 'nekoz-world-v7',
+      name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
       partialize: (s) => ({
         pixelCoins:s.pixelCoins, nekoGems:s.nekoGems, totalClicks:s.totalClicks,
         totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0, totalGemsSpent:s.totalGemsSpent ?? 0,

@@ -138,7 +138,7 @@ export const useAchievementStore = create<AchievementState>()(
       }),
     }),
     {
-      name: 'gachaverse_achievements',
+      name: 'gachaverse_achievements_v2', // bump v2.5 : force un reset local pour tous les joueurs
       partialize: (s) => ({
         progress: s.progress,
         unlocked: s.unlocked,

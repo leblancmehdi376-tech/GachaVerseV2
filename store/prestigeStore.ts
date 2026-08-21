@@ -69,7 +69,7 @@ export const usePrestigeStore = create<PrestigeStore>()(
       getBonuses: () => calcPrestigeBonuses(get().bonusLevels),
     }),
     {
-      name: 'gachaverse_prestige',
+      name: 'gachaverse_prestige_v2', // bump v2.5 : force un reset local pour tous les joueurs
       partialize: (s) => ({
         level:       s.level,
         tokens:      s.tokens,

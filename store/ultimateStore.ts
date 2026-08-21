@@ -130,7 +130,7 @@ export const useUltimateStore = create<UltState>()(
     get().activeUlts.reduce((sum, a) => sum + (a.effect.damageToCoinPct ?? 0), 0),
     }),
     {
-      name: 'nekoz-ult-v1',
+      name: 'nekoz-ult-v2', // bump v2.5 : force un reset local pour tous les joueurs
       // Ne persiste QUE les cooldowns (pas les actives — elles expirent au reload)
       partialize: (s) => ({ cooldowns: s.cooldowns }),
     }

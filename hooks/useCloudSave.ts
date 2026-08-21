@@ -10,7 +10,7 @@ import { saveGameToFirestore, loadGameFromFirestore } from '@/lib/firebase/saveG
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
 const LOCAL_INTERVAL_MS    =  30_000; // localStorage toutes les 30s (gratuit, illimité)
-const LOCAL_STORAGE_KEY    = 'gachaverse_save';
+const LOCAL_STORAGE_KEY    = 'gachaverse_save_v2'; // bump v2.5 : force un reset local pour tous les joueurs — doit rester identique à LOCAL_STORAGE_KEY dans store/gameStore.ts (même entrée localStorage partagée)
 
 // ── Sérialisation ──────────────────────────────────────────────────────────
 function getSerializableState() {
