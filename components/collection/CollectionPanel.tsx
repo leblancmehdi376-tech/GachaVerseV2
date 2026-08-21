@@ -10,7 +10,7 @@ import { RARITY_CONFIG } from '@/types/game';
 import { RARITY_GATES } from '@/lib/game/gacha';
 
 export function CollectionMiniPanel() {
-  const { collection, equippedTeam, equipCharacter, unequipCharacter, maxPalierReached } = useGameStore();
+  const { collection, equippedTeam, equipCharacter, unequipCharacter, getRunPeakPalier } = useGameStore();
   const [selSlot, setSelSlot] = useState<number | null>(null);
   const owned = Object.values(collection);
 
@@ -66,7 +66,7 @@ export function CollectionMiniPanel() {
           if (!tpl) return null;
           const cfg  = RARITY_CONFIG[tpl.rarity];
           const isEq = equippedTeam.includes(tpl.id);
-          const rarLocked = maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier;
+          const rarLocked = getRunPeakPalier() < RARITY_GATES[tpl.rarity].unlockPalier;
           const canClick = selSlot !== null && !rarLocked;
           return (
             <div key={tpl.id} onClick={() => { if (canClick) { equipCharacter(tpl.id, selSlot!); setSelSlot(null); }}}

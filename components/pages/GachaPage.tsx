@@ -594,12 +594,14 @@ function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClose: () 
    MAIN PAGE
 ───────────────────────────────────────────────────────────────── */
 export function GachaPage() {
-  const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, maxPalierReached } = useGameStore();
+  const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, getRunPeakPalier } = useGameStore();
   const [results,     setResults]     = useState<Res[]>([]);
   const [pulling,     setPulling]     = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [showPool,    setShowPool]    = useState(false);
-  // Taux dynamiques calculés pour le palier max du joueur
+  // Taux dynamiques calculés pour le palier max atteint DEPUIS LE DERNIER
+  // PRESTIGE (pas le lifetime maxPalierReached, qui ne redescend jamais).
+  const maxPalierReached = getRunPeakPalier();
   const currentRates = getDynamicRates(maxPalierReached);
 
   const canS    = nekoGems >= GACHA_COSTS.single;

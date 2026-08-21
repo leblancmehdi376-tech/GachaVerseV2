@@ -70,10 +70,10 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
 
 function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
   const { canCraft, craftRecipe } = useExpeditionStore();
-  const { maxPalierReached, collection } = useGameStore();
+  const { getRunPeakPalier, collection } = useGameStore();
   const [expanded, setExpanded] = useState(false);
 
-  const locked = maxPalierReached < recipe.palierRequired;
+  const locked = getRunPeakPalier() < recipe.palierRequired;
   const { ok, missing } = canCraft(recipe.id);
   const alreadyOwned = recipe.reward.type === 'character' && recipe.reward.characterId
     ? !!collection[recipe.reward.characterId] : false;

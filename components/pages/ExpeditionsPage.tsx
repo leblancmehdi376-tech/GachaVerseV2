@@ -229,9 +229,9 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
 
 /* ── Carte expédition disponible ────────────────────────────────────────── */
 function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionDef; onSelect: () => void; busy: boolean; highlighted?: boolean }) {
-  const { maxPalierReached, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
+  const { getRunPeakPalier, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
   const { getExpeditionAffinity } = useExpeditionStore();
-  const palierLocked = maxPalierReached < def.palierRequired;
+  const palierLocked = getRunPeakPalier() < def.palierRequired;
   const requiresRealUniverse = hasRealUniverse(def);
   const requiredAffinity = requiresRealUniverse ? null : getExpeditionAffinity(def.id);
 

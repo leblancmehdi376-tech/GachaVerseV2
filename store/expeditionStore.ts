@@ -134,7 +134,7 @@ export const useExpeditionStore = create<ExpeditionStore>()(
           return { ok:false, reason:'Toutes tes expéditions sont déjà occupées' };
 
         const gs = useGameStore.getState();
-        if (gs.maxPalierReached < def.palierRequired)
+        if (gs.getRunPeakPalier() < def.palierRequired)
           return { ok:false, reason:`Palier ${def.palierRequired} requis` };
 
         // Déblocages d'équipement (fusion / drop) : impossible de sauter une

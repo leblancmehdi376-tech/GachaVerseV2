@@ -46,12 +46,13 @@ function LevelBar({ level, color }: { level: number; color: string }) {
 // ── Carte : Coffre d'Or (un niveau débloqué par palier atteint) ──────────
 // Bonus = ×1.2^niveau (formule fixe), coût = 6000 × 1.13^niveau (même taux
 // que la progression naturelle des golds par palier). Le niveau achetable
-// max suit maxPalierReached — pas de plafond fixe, il grandit avec la
-// progression du joueur.
+// max suit le palier max atteint DEPUIS LE DERNIER PRESTIGE (pas le lifetime
+// maxPalierReached, qui ne redescend jamais) — pas de plafond fixe, il
+// grandit avec la progression du joueur dans le run en cours.
 function GoldUpgradeCard() {
-  const { goldUpgradeLevel, upgradeGold, pixelCoins, getGoldMultiplier, maxPalierReached } = useGameStore();
+  const { goldUpgradeLevel, upgradeGold, pixelCoins, getGoldMultiplier, getRunPeakPalier } = useGameStore();
   const level      = goldUpgradeLevel ?? 0;
-  const maxLevel   = maxPalierReached ?? 1;
+  const maxLevel   = getRunPeakPalier();
   const mult       = getGoldMultiplier();
   const locked     = level >= maxLevel;
   const nextCost   = getGoldChestCost(level);

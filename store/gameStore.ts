@@ -684,7 +684,7 @@ export const useGameStore = create<GameStore>()(
 
       upgradeGold: () => {
         const level = get().goldUpgradeLevel ?? 0;
-        const maxLevel = get().maxPalierReached ?? 1;
+        const maxLevel = runPeakPalierOf(get());
         if (level >= maxLevel) return; // pas encore débloqué par la progression de palier
         const cost = getGoldChestCost(level);
         if (!get().spendPixelCoins(cost)) return;
@@ -705,7 +705,7 @@ export const useGameStore = create<GameStore>()(
 
       getGoldUpgradeCost: () => {
         const level = get().goldUpgradeLevel ?? 0;
-        const maxLevel = get().maxPalierReached ?? 1;
+        const maxLevel = runPeakPalierOf(get());
         return level >= maxLevel ? 0 : getGoldChestCost(level);
       },
 
@@ -972,7 +972,7 @@ export const useGameStore = create<GameStore>()(
         if (!character) return;
         const tpl = getCharacterById(parseInstanceKey(id).templateId);
         if (!tpl) return;
-        if (get().maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier) return;
+        if (runPeakPalierOf(get()) < RARITY_GATES[tpl.rarity].unlockPalier) return;
         // Exclusivité expédition ↔ équipe active : un perso en expédition ne
         // peut pas être équipé (voir aussi canStart dans expeditionStore.ts,
         // qui bloque le sens inverse).
@@ -1006,7 +1006,7 @@ export const useGameStore = create<GameStore>()(
       pullSingle: () => {
         if (get().nekoGems < GACHA_COSTS.single) return null;
         set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.single, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.single }));
-        const id = rollCharacter(get().maxPalierReached);
+        const id = rollCharacter(runPeakPalierOf(get()));
         const edition = get().addToCollection(id);
         get().bumpQuestProgress('w_gacha_10', 1);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + 1 }));
@@ -1016,7 +1016,7 @@ export const useGameStore = create<GameStore>()(
       pullMulti: () => {
         if (get().nekoGems < GACHA_COSTS.multi10) return null;
         set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi10, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi10 }));
-        const ids = rollMulti(get().maxPalierReached);
+        const ids = rollMulti(runPeakPalierOf(get()));
         const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
         get().bumpQuestProgress('w_gacha_10', ids.length);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
@@ -1026,7 +1026,7 @@ export const useGameStore = create<GameStore>()(
       pullMulti100: () => {
         if (get().nekoGems < GACHA_COSTS.multi100) return null;
         set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi100, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi100 }));
-        const ids = rollMulti100(get().maxPalierReached);
+        const ids = rollMulti100(runPeakPalierOf(get()));
         const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
         get().bumpQuestProgress('w_gacha_10', ids.length);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));

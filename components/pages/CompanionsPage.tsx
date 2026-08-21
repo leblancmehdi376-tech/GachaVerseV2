@@ -40,7 +40,7 @@ export function CompanionsPage() {
     equippedTeam,
     equipCharacter,
     unequipCharacter,
-    maxPalierReached,
+    getRunPeakPalier,
     inventory,
     equipmentInventory,
     sellItem,
@@ -515,7 +515,7 @@ export function CompanionsPage() {
                 const isEquipped = equippedTeam.includes(instanceKey);
                 const dps = calcCharDps(tpl, ownedChar);
                 const ult = getUltimateDef(tpl.id);
-                const rarLocked = maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier;
+                const rarLocked = getRunPeakPalier() < RARITY_GATES[tpl.rarity].unlockPalier;
                 return (
                   <div
                     key={instanceKey}
