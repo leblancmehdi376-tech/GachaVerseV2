@@ -26,7 +26,7 @@ import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { getEquipmentDrop, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput } from '@/lib/game/items';
 import { EVENT_BOSSES } from '@/lib/game/eventBoss';
 import {
-  CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
+  CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, getGoldPackCoins, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
   getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, getThisWeekKey, generateDailyShopCharacters,
   LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS,
 } from '@/lib/game/shop';
@@ -577,8 +577,7 @@ export const useGameStore = create<GameStore>()(
       buyGoldWithGems: (packId) => {
         const pack = GEM_GOLD_PACKS.find(p => p.id === packId);
         if (!pack || get().nekoGems < pack.gems) return;
-        const palierMult = Math.pow(1.45, get().palier - 1);
-        const scaledCoins = Math.floor(pack.coins * palierMult);
+        const scaledCoins = getGoldPackCoins(pack, get().palier);
         set(state => ({ nekoGems: state.nekoGems - pack.gems, pixelCoins: state.pixelCoins + scaledCoins, totalGemsSpent: (state.totalGemsSpent ?? 0) + pack.gems }));
       },
 

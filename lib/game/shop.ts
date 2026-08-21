@@ -1,5 +1,6 @@
 import { Rarity } from '@/types/game';
 import { rollCharacter } from './gacha';
+import { COIN_BASE, COIN_GROWTH } from './enemies';
 
 // ── BossCrown : packs de gemmes ───────────────────────────────────────────
 export interface CrownGemPack { id: string; crowns: number; gems: number; bonusLabel?: string; }
@@ -23,12 +24,27 @@ export const ORB_GEM_PACKS: OrbGemPack[] = [
 ];
 
 // ── Boutique gemmes → Or : packs de pixel coins achetés en gemmes ─────────
-export interface GemGoldPack { id: string; coins: number; gems: number; bonusLabel?: string; }
+// killsEquivalent = combien de "kills" au palier courant le pack rapporte en
+// or, calculé sur la MÊME courbe que le gain organique par ennemi
+// (pixelCoinsReward, voir generateEnemy dans enemies.ts) — le pack garde
+// donc toujours la même valeur relative, à n'importe quel palier, au lieu
+// d'un multiplicateur arbitraire déconnecté de l'économie réelle (ancien bug :
+// ×1.45/palier faisait exploser la valeur bien plus vite que l'or gagné en
+// jouant, rendant ces packs dérisoires en early-game).
+export interface GemGoldPack { id: string; killsEquivalent: number; gems: number; bonusLabel?: string; }
 export const GEM_GOLD_PACKS: GemGoldPack[] = [
-  { id:'gg1', coins:500_000,  gems:50 },
-  { id:'gg2', coins:2_000_000, gems:185 },
-  { id:'gg3', coins:5_000_000, gems:350 },
+  { id:'gg1', killsEquivalent:40,  gems:50 },
+  { id:'gg2', killsEquivalent:200, gems:185 },
+  { id:'gg3', killsEquivalent:500, gems:350 },
 ];
+
+// Repère de calcul : vague 5 (milieu de palier), la même formule que le gain
+// par ennemi en combat normal (hors bonus de boss).
+export function getGoldPackCoins(pack: GemGoldPack, palier: number): number {
+  const global = (palier - 1) * 10 + 5;
+  const perKill = COIN_BASE * Math.pow(COIN_GROWTH, global - 1);
+  return Math.floor(perKill * pack.killsEquivalent);
+}
 
 // ── Orbe du Néant : recyclage des doublons au rang max (7★) ──────────────
 export function getVoidOrbsForRarity(rarity: Rarity): number {

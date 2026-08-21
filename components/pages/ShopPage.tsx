@@ -8,7 +8,7 @@ import { getCharacterById } from '@/lib/game/characters';
 import { RARITY_CONFIG, CardEdition } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import {
-  CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
+  CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, getGoldPackCoins, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
   SHOP_CHAR_PRICE_ORBS, LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS,
   EQUIPMENT_CHESTS,
 } from '@/lib/game/shop';
@@ -208,15 +208,16 @@ export function ShopPage() {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
             {GEM_GOLD_PACKS.map(p => {
-              // Scaling exponentiel : ×1.45 par palier — utile même aux paliers élevés
-              const palierMult = Math.pow(1.45, palier - 1);
-              const scaledCoins = Math.floor(p.coins * palierMult);
+              // Valeur alignée sur la courbe organique (voir getGoldPackCoins) :
+              // le pack vaut toujours l'équivalent de killsEquivalent kills au
+              // palier courant, jamais un multiplicateur déconnecté de l'économie.
+              const scaledCoins = getGoldPackCoins(p, palier);
               const canBuy = nekoGems >= p.gems;
               return (
                 <div key={p.id} style={{ background:'rgba(56,189,248,0.05)', border:'1px solid rgba(56,189,248,0.25)', borderRadius:'10px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'6px' }}>
                   <span style={{ fontSize:'22.7px' }}>💰</span>
                   <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'18.5px', color:'var(--cyan)' }}>{formatNumber(scaledCoins)} or</span>
-                  {palier > 1 && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'#4ade80' }}>×{palierMult.toFixed(1)} (Palier {palier})</span>}
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)' }}>≈ {p.killsEquivalent} kills</span>
                   {p.bonusLabel && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'#4ade80' }}>{p.bonusLabel}</span>}
                   <button onClick={() => buyGoldWithGems(p.id)} disabled={!canBuy}
                     style={{ width:'100%', marginTop:'4px', padding:'8px', background:canBuy?'rgba(56,189,248,0.18)':'rgba(255,255,255,0.03)', border:`1px solid ${canBuy?'#38bdf866':'var(--border)'}`, borderRadius:'7px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canBuy?'#38bdf8':'var(--text-muted)', cursor:canBuy?'pointer':'not-allowed' }}>
