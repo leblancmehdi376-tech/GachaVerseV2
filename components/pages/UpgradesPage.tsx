@@ -284,7 +284,7 @@ export function UpgradesPage() {
   const setUniverse = (next: string | 'all') => setCollectionFilters({ universe: next });
   const setAffinity = (next: CollectionAffinityMode) => setCollectionFilters({ affinity: next });
   const setSort = (next: CollectionSortMode) => setCollectionFilters({ sort: next });
-  const universeOptions = Array.from(new Set(ownedIds.map(id => getCharacterById(parseInstanceKey(id).templateId)?.universe).filter(Boolean))) as string[];
+  const universeOptions = (Array.from(new Set(ownedIds.map(id => getCharacterById(parseInstanceKey(id).templateId)?.universe).filter(Boolean))) as string[]).sort();
   const filteredIds = ownedIds.filter(id => {
     const tpl = getCharacterById(parseInstanceKey(id).templateId);
     if (!tpl) return false;

@@ -103,9 +103,17 @@ export function GameLayout() {
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
   const [victory, setVictory] = useState<{ palier: number; gems: number; coins: number } | null>(null);
-  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, ensureWeeklyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory } = useGameStore();
+  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, ensureWeeklyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory, focusedExpeditionId } = useGameStore();
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
   const { forceSave, loaded: cloudLoaded } = useCloudSave(user?.uid ?? null);
+
+  // Navigation Forge → Expéditions : dès qu'un ingrédient à récolter est
+  // "focusé", on bascule automatiquement sur la page Expéditions (qui se
+  // charge ensuite d'afficher le bon onglet et de surligner la carte).
+  useEffect(() => {
+    if (focusedExpeditionId) goToPage('expeditions');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedExpeditionId]);
 
   const cfg = getPalierConfig(palier);
   const isCombat = COMBAT_PAGES.includes(page);

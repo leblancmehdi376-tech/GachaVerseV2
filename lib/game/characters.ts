@@ -400,7 +400,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('madara_rinnegan', 'Rinnegan',             'madara', 200, 4.5),
     f('madara_susanoo',  'Susanoo',              'madara', 300, 12),
   ]),
-  ce('millim', 'Millim', 'S', 68, 'Slime Datta Ken', [
+  ce('millim', 'Millim', 'S', 68, 'Tensei Slime', [
     f('millim_base',     'Millim',               'millim', 100, 1),
     f('millim_slime',    'Millim — Slime',       'millim', 200, 5),
   ]),

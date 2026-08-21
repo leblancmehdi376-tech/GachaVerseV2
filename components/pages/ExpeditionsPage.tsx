@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useExpeditionStore, ActiveExpedition, MAX_ACTIVE_EXPEDITIONS } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
-import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
@@ -183,11 +183,14 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
             <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color: done ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
               {done ? '✅ TERMINÉE !' : <Countdown endTime={exp.endTime} />}
             </span>
-            {def.rewards.dropId && (
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--gold)' }}>
-                {Math.round((def.rewards.dropChance ?? 0) * 100)}% drop spécial
-              </span>
-            )}
+            {def.rewards.dropId && (() => {
+              const drop = getPalierDrop(def.rewards.dropId);
+              return drop ? (
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--gold)' }}>
+                  {drop.icon} {drop.name}
+                </span>
+              ) : null;
+            })()}
           </div>
         </div>
         {/* Actions */}
@@ -203,26 +206,35 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
 }
 
 /* ── Carte expédition disponible ────────────────────────────────────────── */
-function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect: () => void; busy: boolean }) {
+function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionDef; onSelect: () => void; busy: boolean; highlighted?: boolean }) {
   const { maxPalierReached, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
   const palierLocked = maxPalierReached < def.palierRequired;
+
+  // Déblocage one-shot déjà obtenu : impossible de relancer l'expédition
+  // (voir expeditionStore.canStart, qui applique la même règle côté logique).
+  const alreadyUnlocked =
+    (!!def.unlocksEquipRarity && unlockedEquipRarities.includes(def.unlocksEquipRarity)) ||
+    (!!def.unlocksEquipDropRarity && unlockedEquipDropRarities.includes(def.unlocksEquipDropRarity));
 
   // Déblocages d'équipement (fusion/drop) : rareté suivante inaccessible tant
   // que la précédente n'est pas terminée (voir expeditionStore.canStart).
   let sequenceLockReason: string | null = null;
-  if (def.unlocksEquipRarity) {
+  if (!alreadyUnlocked && def.unlocksEquipRarity) {
     const prev = getPrevRarity(def.unlocksEquipRarity);
     if (prev && !unlockedEquipRarities.includes(prev)) sequenceLockReason = `Atelier ${RARITY_CONFIG[prev].label} requis`;
-  } else if (def.unlocksEquipDropRarity) {
+  } else if (!alreadyUnlocked && def.unlocksEquipDropRarity) {
     const prev = getPrevRarity(def.unlocksEquipDropRarity);
     if (prev && !unlockedEquipDropRarities.includes(prev)) sequenceLockReason = `Chasse ${RARITY_CONFIG[prev].label} requise`;
   }
 
   const locked = palierLocked || !!sequenceLockReason;
-  const dimmed = locked || busy;
+  const dimmed = (locked || busy) && !alreadyUnlocked;
 
   return (
-    <div className="panel" style={{ padding:'16px', opacity: dimmed ? 0.5 : 1, position:'relative', overflow:'hidden' }}>
+    <div id={`exp-${def.id}`} className="panel" style={{ padding:'16px', opacity: alreadyUnlocked ? 0.7 : dimmed ? 0.5 : 1, position:'relative', overflow:'hidden',
+      borderColor: highlighted ? 'var(--purple-glow)' : alreadyUnlocked ? 'rgba(74,222,128,0.35)' : undefined,
+      boxShadow: highlighted ? '0 0 0 2px var(--purple-glow), 0 0 30px rgba(192,132,252,0.5)' : undefined,
+      transition:'box-shadow 0.3s, border-color 0.3s' }}>
       {def.isFarming && (
         <div style={{ position:'absolute', top:8, right:8, fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--gold)', background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:4, padding:'2px 7px', letterSpacing:1 }}>
           ♻ RETOUR
@@ -258,19 +270,24 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
                 💎 {def.rewards.gemsMin}–{def.rewards.gemsMax}
               </div>
             )}
-            {def.rewards.dropId && (
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc', background:'rgba(192,132,252,0.1)', border:'1px solid rgba(192,132,252,0.25)', borderRadius:6, padding:'3px 8px' }}>
-                ✦ {Math.round((def.rewards.dropChance ?? 0)*100)}% drop spécial
-              </div>
-            )}
+            {def.rewards.dropId && (() => {
+              const drop = getPalierDrop(def.rewards.dropId);
+              return drop ? (
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc', background:'rgba(192,132,252,0.1)', border:'1px solid rgba(192,132,252,0.25)', borderRadius:6, padding:'3px 8px' }}>
+                  ✦ {drop.icon} {drop.name}
+                </div>
+              ) : null;
+            })()}
           </div>
-          {locked
-            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>
-                🔒 {palierLocked ? `Palier ${def.palierRequired} requis` : sequenceLockReason}
-              </div>
-            : busy
-              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>⏳ Une expédition est déjà en cours</div>
-              : <button onClick={onSelect} className="btn-primary" style={{ padding:'9px 20px', fontSize:13.4 }}>ENVOYER ✦</button>
+          {alreadyUnlocked
+            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:700 }}>✅ Déjà débloqué</div>
+            : locked
+              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>
+                  🔒 {palierLocked ? `Palier ${def.palierRequired} requis` : sequenceLockReason}
+                </div>
+              : busy
+                ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>⏳ Une expédition est déjà en cours</div>
+                : <button onClick={onSelect} className="btn-primary" style={{ padding:'9px 20px', fontSize:13.4 }}>ENVOYER ✦</button>
           }
         </div>
       </div>
@@ -279,20 +296,44 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
 }
 
 /* ── Main page ──────────────────────────────────────────────────────────── */
+// Catégorisation à 3 onglets : spécial (drapeau dédié) > équipement (ateliers/
+// chasses) > forge (tout le reste par défaut — items de craft, farm palier,
+// expéditions génériques sans drop).
+const isEquipUnlock = (d: ExpeditionDef) => !!d.unlocksEquipRarity || !!d.unlocksEquipDropRarity;
+type ExpTab = 'forge' | 'equipment' | 'special';
+function tabOf(d: ExpeditionDef): ExpTab {
+  if (d.isSpecialItem) return 'special';
+  if (isEquipUnlock(d)) return 'equipment';
+  return 'forge';
+}
+
 export function ExpeditionsPage() {
   const { active, getFinished } = useExpeditionStore();
+  const { focusedExpeditionId, focusExpedition } = useGameStore();
   const [selectedDef, setSelectedDef] = useState<ExpeditionDef | null>(null);
-  const [filter, setFilter] = useState<'all' | 'farming' | 'equipment'>('all');
+  const [filter, setFilter] = useState<ExpTab>('forge');
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const runningExp = active.filter(e => !e.claimed);
   const finished   = getFinished();
 
-  const isEquipUnlock = (d: ExpeditionDef) => !!d.unlocksEquipRarity || !!d.unlocksEquipDropRarity;
-  const filtered = EXPEDITION_DEFS.filter(d => {
-    if (filter === 'farming')   return d.isFarming;
-    if (filter === 'equipment') return isEquipUnlock(d);
-    return !isEquipUnlock(d); // "Toutes" = expéditions classiques, sans les ateliers/chasses
-  });
+  const filtered = EXPEDITION_DEFS.filter(d => tabOf(d) === filter);
+
+  // Arrivée depuis la Forge (clic sur un ingrédient) : bascule sur le bon
+  // onglet, scroll jusqu'à la carte et la met en surbrillance quelques secondes.
+  useEffect(() => {
+    if (!focusedExpeditionId) return;
+    const def = EXPEDITION_DEFS.find(d => d.id === focusedExpeditionId);
+    if (!def) { focusExpedition(null); return; }
+    setFilter(tabOf(def));
+    setHighlightId(def.id);
+    const scrollTimer = setTimeout(() => {
+      document.getElementById(`exp-${def.id}`)?.scrollIntoView({ behavior:'smooth', block:'center' });
+    }, 50);
+    const clearTimer = setTimeout(() => setHighlightId(null), 3000);
+    focusExpedition(null);
+    return () => { clearTimeout(scrollTimer); clearTimeout(clearTimer); };
+  }, [focusedExpeditionId, focusExpedition]);
 
   return (
     <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
@@ -345,9 +386,9 @@ export function ExpeditionsPage() {
         {/* Filtres */}
         <div style={{ display:'flex', gap:8 }}>
           {[
-            { k:'all'       as const, label:'TOUTES'            },
-            { k:'farming'   as const, label:'♻ RETOUR PALIER'   },
-            { k:'equipment' as const, label:'🛠️ ATELIERS ÉQUIP.' },
+            { k:'forge'     as const, label:'⚒️ ITEM DE FORGE'    },
+            { k:'equipment' as const, label:'🛠️ ATELIER ÉQUIPEMENT' },
+            { k:'special'   as const, label:'🔷 OBJETS SPÉCIAUX'  },
           ].map(f => (
             <button key={f.k} onClick={() => setFilter(f.k)}
               style={{ padding:'7px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, letterSpacing:0.5, transition:'all 0.15s',
@@ -362,7 +403,7 @@ export function ExpeditionsPage() {
         {/* Liste expéditions */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(320px, 1fr))', gap:12 }}>
           {filtered.map(def => (
-            <ExpeditionCard key={def.id} def={def} busy={runningExp.length >= MAX_ACTIVE_EXPEDITIONS} onSelect={() => setSelectedDef(def)} />
+            <ExpeditionCard key={def.id} def={def} busy={runningExp.length >= MAX_ACTIVE_EXPEDITIONS} onSelect={() => setSelectedDef(def)} highlighted={highlightId === def.id} />
           ))}
         </div>
 

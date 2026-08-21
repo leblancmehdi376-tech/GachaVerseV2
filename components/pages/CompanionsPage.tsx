@@ -70,7 +70,7 @@ export function CompanionsPage() {
     const bRarity = getCharacterById(b.templateId)?.rarity ?? 'C';
     return RARITY_PRIORITY[aRarity] - RARITY_PRIORITY[bRarity];
   });
-  const universeOptions = Array.from(new Set(Object.values(collection).map(c => getCharacterById(c.templateId)?.universe).filter(Boolean))) as string[];
+  const universeOptions = (Array.from(new Set(Object.values(collection).map(c => getCharacterById(c.templateId)?.universe).filter(Boolean))) as string[]).sort();
   const filteredCollection = [...owned].filter(([instanceKey, ownedChar]) => {
     const tpl = getCharacterById(ownedChar.templateId);
     if (!tpl) return false;

@@ -496,6 +496,58 @@ export const SYNERGIES: SynergyDef[] = [
       [2, 25],
     ],
   }),
+
+  synergy({
+    id: 'undertale',
+    universe: 'Undertale',
+    label: 'Undertale',
+    color: '#f87171',
+    glow: '#dc2626',
+    icon: '❤',
+    thresholds: [
+      [2, 26],
+      [4, 42, 6],
+    ],
+  }),
+
+  synergy({
+    id: 'fnaf',
+    universe: "Five Nights At Freddy's",
+    label: 'FNAF',
+    color: '#a78bfa',
+    glow: '#7c3aed',
+    icon: '🐻',
+    thresholds: [
+      [2, 24],
+      [3, 38, 5],
+    ],
+  }),
+
+  synergy({
+    id: 'fireforce',
+    universe: 'Fire Force',
+    label: 'Fire Force',
+    color: '#fb923c',
+    glow: '#ea580c',
+    icon: '🔥',
+    thresholds: [
+      [2, 26],
+      [4, 42, 6],
+    ],
+  }),
+
+  synergy({
+    id: 'fmab',
+    universe: 'Fullmetal Alchemist Brotherhood',
+    label: 'Fullmetal Alchemist',
+    color: '#ef4444',
+    glow: '#b91c1c',
+    icon: '⚗',
+    thresholds: [
+      [2, 27],
+      [4, 44, 6],
+    ],
+  }),
 ];
 
 // Déduplique par universe

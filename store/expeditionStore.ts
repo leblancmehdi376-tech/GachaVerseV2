@@ -92,13 +92,21 @@ export const useExpeditionStore = create<ExpeditionStore>()(
 
         // Déblocages d'équipement (fusion / drop) : impossible de sauter une
         // rareté, il faut avoir terminé l'expédition de la rareté précédente.
+        // Impossible aussi de refaire une expédition dont la rareté est déjà
+        // débloquée (c'est un déblocage one-shot, pas une expédition de farm).
         if (def.unlocksEquipRarity) {
+          if (gs.unlockedEquipRarities.includes(def.unlocksEquipRarity)) {
+            return { ok:false, reason:`Fusion ${RARITY_CONFIG[def.unlocksEquipRarity].label} déjà débloquée` };
+          }
           const prev = getPrevRarity(def.unlocksEquipRarity);
           if (prev && !gs.unlockedEquipRarities.includes(prev)) {
             return { ok:false, reason:`Termine d'abord l'atelier de rareté ${RARITY_CONFIG[prev].label}` };
           }
         }
         if (def.unlocksEquipDropRarity) {
+          if (gs.unlockedEquipDropRarities.includes(def.unlocksEquipDropRarity)) {
+            return { ok:false, reason:`Drop ${RARITY_CONFIG[def.unlocksEquipDropRarity].label} déjà débloqué` };
+          }
           const prev = getPrevRarity(def.unlocksEquipDropRarity);
           if (prev && !gs.unlockedEquipDropRarities.includes(prev)) {
             return { ok:false, reason:`Termine d'abord la chasse de rareté ${RARITY_CONFIG[prev].label}` };

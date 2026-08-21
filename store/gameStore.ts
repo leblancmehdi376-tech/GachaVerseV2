@@ -203,6 +203,10 @@ interface GameStore extends GameState {
   equipItem: (templateId: string, slot: EquipmentSlot, equipmentId: string) => void;
   unequipItem: (templateId: string, slot: EquipmentSlot) => void;
   setLastEquipmentDrop: (id: string | null) => void;
+  // Signal de navigation "Forge → Expéditions" : id de l'expédition à mettre
+  // en avant (onglet + surbrillance) quand on clique sur un ingrédient.
+  focusedExpeditionId: string | null;
+  focusExpedition: (id: string | null) => void;
   // Fusion d'équipement (10 items d'un slot+rareté → 1 de la rareté suivante)
   unlockedEquipRarities: Rarity[];
   unlockEquipRarity: (rarity: Rarity) => void;
@@ -328,6 +332,7 @@ const makeInitial = () => ({
   equipmentInventory: {} as Record<string, number>,
   championInventory:  {} as Record<string, number>,
   lastEquipmentDrop: null,
+  focusedExpeditionId: null,
   unlockedEquipRarities: ['C'] as Rarity[],
   unlockedEquipDropRarities: ['C'] as Rarity[],
   dpsBoostEndsAt: 0, goldBoostEndsAt: 0,
@@ -1187,6 +1192,7 @@ export const useGameStore = create<GameStore>()(
       }),
 
       setLastEquipmentDrop: (id) => set(() => ({ lastEquipmentDrop: id })),
+      focusExpedition: (id) => set(() => ({ focusedExpeditionId: id })),
 
       // ─── Prestige (New Game+) ─────────────────────────────────────────
       // Reset : coins, palier, upgrades d'attaque/or, niveau du héros, combat en cours.

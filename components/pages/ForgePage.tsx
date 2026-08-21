@@ -8,7 +8,7 @@ import { RARITY_CONFIG } from '@/types/game';
 
 function IngredientRow({ type, id, quantity, label }: { type: string; id: string; quantity: number; label: string }) {
   const { dropInventory } = useExpeditionStore();
-  const { collection, championInventory } = useGameStore();
+  const { collection, championInventory, focusExpedition } = useGameStore();
 
   let have = 0;
   let ok = false;
@@ -23,8 +23,18 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
     ok = maxed && have >= quantity;
   }
 
+  // Clic → redirige vers l'expédition qui drop cet ingrédient (page Expéditions,
+  // bon onglet ouvert, carte surlignée — voir ExpeditionsPage.tsx).
+  const expDef = type === 'drop' ? EXPEDITION_DEFS.find(x => x.rewards.dropId === id) : null;
+  const clickable = !!expDef;
+
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 12px', background: ok ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.02)', borderRadius:8, border:`1px solid ${ok ? 'rgba(74,222,128,0.25)' : 'var(--border)'}` }}>
+    <div
+      onClick={clickable ? () => focusExpedition(expDef!.id) : undefined}
+      style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 12px', background: ok ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.02)', borderRadius:8, border:`1px solid ${ok ? 'rgba(74,222,128,0.25)' : 'var(--border)'}`, cursor: clickable ? 'pointer' : 'default', transition:'background 0.15s, border-color 0.15s' }}
+      onMouseEnter={clickable ? e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--purple-glow)'; (e.currentTarget as HTMLElement).style.background = 'rgba(192,132,252,0.06)'; } : undefined}
+      onMouseLeave={clickable ? e => { (e.currentTarget as HTMLElement).style.borderColor = ok ? 'rgba(74,222,128,0.25)' : 'var(--border)'; (e.currentTarget as HTMLElement).style.background = ok ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.02)'; } : undefined}
+    >
       <span style={{ fontSize:18.5 }}>{type === 'drop' ? (PALIER_DROPS.find(d => d.id === id)?.icon ?? '📦') : '👤'}</span>
       <div style={{ flex:1 }}>
         <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color: ok ? 'var(--text)' : 'var(--text-dim)' }}>{label}</div>
@@ -38,6 +48,11 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
             {maxed
               ? 'Consommé depuis l\'inventaire champions — ton exemplaire 7★ reste dans ta collection'
               : 'Nécessite le champion maxé (7★) dans ta collection'}
+          </div>
+        )}
+        {clickable && (
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', marginTop:2 }}>
+            → {expDef!.name}
           </div>
         )}
       </div>
@@ -145,7 +160,9 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
                   const drop = PALIER_DROPS.find(d => d.id === ing.id);
                   const expDef = drop ? EXPEDITION_DEFS.find(x => x.rewards.dropId === ing.id) : null;
                   return drop ? (
-                    <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:3 }}>
+                    <div key={i}
+                      onClick={expDef ? () => useGameStore.getState().focusExpedition(expDef.id) : undefined}
+                      style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:3, cursor: expDef ? 'pointer' : 'default', textDecoration: expDef ? 'underline' : 'none', textDecorationColor: 'rgba(192,132,252,0.4)' }}>
                       {drop.icon} <strong style={{ color:'var(--text-sub)' }}>{drop.name}</strong> → {expDef ? expDef.name : `Expédition palier ${drop.palier}`} ({drop.universName})
                     </div>
                   ) : null;
@@ -230,8 +247,14 @@ export function ForgePage() {
                 {PALIER_DROPS.map(drop => {
                   const count = dropInventory[drop.id] ?? 0;
                   if (count === 0) return null;
+                  const expDef = EXPEDITION_DEFS.find(x => x.rewards.dropId === drop.id);
                   return (
-                    <div key={drop.id} className="panel" style={{ padding:'14px 16px', borderColor:'rgba(192,132,252,0.25)' }}>
+                    <div key={drop.id} className="panel"
+                      onClick={expDef ? () => useGameStore.getState().focusExpedition(expDef.id) : undefined}
+                      style={{ padding:'14px 16px', borderColor:'rgba(192,132,252,0.25)', cursor: expDef ? 'pointer' : 'default', transition:'transform 0.15s, box-shadow 0.15s' }}
+                      onMouseEnter={expDef ? e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 20px rgba(192,132,252,0.15)'; } : undefined}
+                      onMouseLeave={expDef ? e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; } : undefined}
+                    >
                       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
                         <span style={{ fontSize:28.8 }}>{drop.icon}</span>
                         <div>
