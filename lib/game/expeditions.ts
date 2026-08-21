@@ -2,6 +2,7 @@
 
 import { Rarity, RARITY_CONFIG } from '@/types/game';
 import { EQUIP_RARITY_MIN_PALIER } from '@/lib/game/items';
+import { RARITY_GATES } from '@/lib/game/gacha';
 
 // ── Drops spéciaux par palier ────────────────────────────────────────────
 export interface PalierDrop {
@@ -66,7 +67,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '💫',
     description: 'Fusionne Goku et Végéta à l\'aide des Boucles Potara en un être d\'une puissance absolue.',
     lore: '"La fusion Potara est permanente... sauf à l\'intérieur d\'un Super Buu." — Végéto',
-    palierRequired: 24,
+    palierRequired: RARITY_GATES.P.unlockPalier,
     ingredients: [
       { type:'drop', id:'potala',  quantity:50, label:'Boucle Potara × 50'   },
       { type:'drop', id:'ore_kame', quantity:13, label:'Pierre de Kame × 13' },
@@ -79,7 +80,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '⚡',
     description: 'Fusion dansée parfaite entre Goku et Végéta. Plus puissant et stable que la Fusion Potara.',
     lore: '"Ceci s\'appelle... Gogeta !" — Gogeta SS Blue',
-    palierRequired: 24,
+    palierRequired: RARITY_GATES.P.unlockPalier,
     ingredients: [
       { type:'drop', id:'saiyen_power', quantity:50, label:'Puissance Saiyen × 50' },
       { type:'drop', id:'ore_kame',     quantity:13, label:'Pierre de Kame × 13'   },
@@ -93,7 +94,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '💠',
     description: 'Aizen fusionné avec l\'Hogyoku à son niveau ultime, transcendant Shinigami et Hollow.',
     lore: '"Je ne suis ni Shinigami, ni Hollow. Je suis au-delà de toute chose." — Aizen',
-    palierRequired: 12,
+    palierRequired: RARITY_GATES.P.unlockPalier,
     ingredients: [
       { type:'drop', id:'hogyoku',   quantity:50, label:'Fragment d\'Hogyoku × 50' },
       { type:'drop', id:'zanpakuto', quantity:1,  label:'Zanpakuto × 1'            },
@@ -107,7 +108,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '🌅',
     description: 'Le chasseur de démons originel, inventeur des Formes de Respiration. Jamais égalé.',
     lore: '"Je suis né avec la Marque de la Mort... et une seule technique." — Yoriichi',
-    palierRequired: 25,
+    palierRequired: RARITY_GATES.P.unlockPalier,
     ingredients: [
       { type:'drop', id:'ore_soleil',   quantity:50, label:'Minerai du Soleil × 50'          },
       { type:'drop', id:'manche_sabre', quantity:1,  label:'Manche de Sabre Nichirin × 1'    },
@@ -121,7 +122,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '🛡',
     description: 'La Valkyrie à l\'origine du Ragnarök. Sa volonté est de sauver l\'humanité coûte que coûte.',
     lore: '"Je ne me battrai jamais moi-même. Mais je serai leur force." — Brunhilde',
-    palierRequired: 31,
+    palierRequired: RARITY_GATES.CO.unlockPalier,
     ingredients: [
       { type:'drop', id:'bijou_divin', quantity:50, label:'Bijou Divin × 50' },
     ],
@@ -134,7 +135,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '🔪',
     description: 'L\'enfant qui tomba sous-terre en premier. Sa présence seule change l\'issue du voyage.',
     lore: '"Ce n\'était pas moi. C\'était toi." — Chara',
-    palierRequired: 38,
+    palierRequired: RARITY_GATES.P.unlockPalier,
     ingredients: [
       { type:'drop', id:'ame_humaine', quantity:75, label:'Âme Humaine × 75' },
     ],
@@ -147,7 +148,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '⚔',
     description: 'Invoque le plus puissant des Quatre Empereurs, dont le Haki du Conquérant peut arrêter Kaido lui-même.',
     lore: '"Je parie sur la nouvelle génération." — Shanks le Roux',
-    palierRequired: 2,
+    palierRequired: RARITY_GATES.T.unlockPalier,
     ingredients: [
       { type:'drop', id:'sea_fragment', quantity:60, label:'Fragment Océanique × 60' },
       { type:'drop', id:'fruit_demon',  quantity:1,  label:'Fruit du Démon × 1'      },

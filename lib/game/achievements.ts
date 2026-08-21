@@ -135,13 +135,13 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'upgrade_10', category:'progression', icon:'⬆',
     title:'Optimisateur', name:'Toujours Plus Fort',
-    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 10 fois au total.', target:10,
+    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 50 fois au total.', target:50,
     reward:{ type:'gems', value:10 },
   },
   {
     id:'upgrade_50', category:'progression', icon:'🔧',
     title:'Forgeron', name:'Perfectionniste',
-    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 50 fois au total.', target:50,
+    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 500 fois au total.', target:500,
     reward:{ type:'gems', value:50 },
   },
 
@@ -155,26 +155,26 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'collect_5', category:'collection', icon:'👥',
     title:'Meneur', name:'L\'Équipe se Forme',
-    description:'Obtiens 5 personnages différents.', target:5,
-    reward:{ type:'gems', value:15 },
+    description:'Obtiens 50 personnages différents.', target:50,
+    reward:{ type:'gems', value:30 },
   },
   {
     id:'collect_15', category:'collection', icon:'🏛',
     title:'Archiviste', name:'Petite Collection',
-    description:'Obtiens 15 personnages différents.', target:15,
-    reward:{ type:'gems', value:40 },
+    description:'Obtiens 100 personnages différents.', target:100,
+    reward:{ type:'gems', value:150 },
   },
   {
     id:'collect_30', category:'collection', icon:'📚',
     title:'Collectionneur', name:'Bibliothèque',
-    description:'Obtiens 30 personnages différents.', target:30,
-    reward:{ type:'gems', value:100 },
+    description:'Obtiens 150 personnages différents.', target:193,
+    reward:{ type:'gems', value:400 },
   },
   {
     id:'collect_all', category:'collection', icon:'🌟',
     title:'Complétiste', name:'Tout Attraper',
-    description:'Débloque tous les personnages.', target:999,
-    reward:{ type:'gems', value:500 },
+    description:'Débloque tous les personnages.', target:193,
+    reward:{ type:'gems', value:1500 },
     secret:true,
   },
   {
@@ -187,7 +187,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'transcendant_1', category:'collection', icon:'🌈',
     title:'Élu', name:'Au-Delà de Tout',
     description:'Obtiens un personnage Transcendant.', target:1,
-    reward:{ type:'gems', value:100 },
+    reward:{ type:'gems', value:400 },
     secret:true,
   },
   {
@@ -253,20 +253,20 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'gold_1', category:'collection', icon:'✨',
     title:'Étincelant', name:'Première Étincelle',
     description:'Obtiens ta première carte Édition Or.', target:1,
-    reward:{ type:'gems', value:80 },
+    reward:{ type:'gems', value:400 },
   },
   {
     id:'diamond_1', category:'collection', icon:'💠',
     title:'Éclat Pur', name:'Diamant Brut',
     description:'Obtiens ta première carte Édition Diamant.', target:1,
-    reward:{ type:'gems', value:400 },
+    reward:{ type:'gems', value:600 },
     secret:true,
   },
   {
     id:'shiny_10', category:'collection', icon:'🌟',
     title:'Scintillant', name:'Collection Étincelante',
     description:'Possède 10 cartes Or ou Diamant au total.', target:10,
-    reward:{ type:'gems', value:250 },
+    reward:{ type:'gems', value:550 },
   },
   {
     id:'trio_perfect', category:'collection', icon:'🔱',
@@ -288,19 +288,19 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'rank7_1', category:'collection', icon:'⭐',
     title:'Astre', name:'Étoile Filante',
     description:'Monte un personnage au rang 7★ maximum.', target:1,
-    reward:{ type:'gems', value:120 },
+    reward:{ type:'gems', value:40 },
   },
   {
     id:'rank7_5', category:'collection', icon:'🌌',
     title:'Nébuleuse', name:'Constellation',
     description:'Monte 5 personnages différents au rang 7★.', target:5,
-    reward:{ type:'gems', value:350 },
+    reward:{ type:'gems', value:70 },
   },
   {
     id:'rank7_team', category:'collection', icon:'🛡',
     title:'Garde d\'Élite', name:'Escouade d\'Élite',
     description:'Équipe une équipe complète (4/4) de personnages rang 7★.', target:1,
-    reward:{ type:'gems', value:500 },
+    reward:{ type:'gems', value:200 },
     secret:true,
   },
   {
@@ -334,8 +334,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'prestige_10', category:'progression', icon:'♾',
     title:'Ascendant', name:'Ascension Ultime',
-    description:'Atteins le niveau 10 de Prestige.', target:10,
-    reward:{ type:'gems', value:800 },
+    description:'Atteins le niveau 5 de Prestige.', target:5,
+    reward:{ type:'gems', value:3000 },
     secret:true,
   },
 
@@ -350,7 +350,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'orbs_30', category:'progression', icon:'🔮',
     title:'Néant Incarné', name:'Le Vide t\'Appelle',
     description:'Accumule 30 Orbes du Néant.', target:30,
-    reward:{ type:'gems', value:200 },
+    reward:{ type:'gems', value:20 },
   },
   {
     id:'titles_25', category:'social', icon:'🎖',
@@ -373,8 +373,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'upgrade_200', category:'progression', icon:'⚒',
     title:'Maître Artisan', name:'Maître Artisan',
-    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 200 fois au total.', target:200,
-    reward:{ type:'gems', value:220 },
+    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 2000 fois au total.', target:200,
+    reward:{ type:'gems', value:300 },
   },
 
   // ── EXTRÊMEMENT DIFFICILES ──────────────────────────────────────────────
@@ -396,7 +396,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'dps_1b', category:'combat', icon:'🌀',
     title:'Singularité', name:'Singularité',
     description:'Atteins 1 000 000 000 DPS.', target:1000000000,
-    reward:{ type:'gems', value:1500 },
+    reward:{ type:'gems', value:1000 },
     secret:true,
   },
   {
@@ -409,7 +409,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'prestige_25', category:'progression', icon:'🔄',
     title:'Renaissant', name:'Renaissance Infinie',
-    description:'Atteins le niveau 25 de Prestige.', target:25,
+    description:'Atteins le niveau 20 de Prestige.', target:20.,
     reward:{ type:'gems', value:1500 },
     secret:true,
   },
@@ -417,7 +417,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'pantheon_5', category:'collection', icon:'🏺',
     title:'Architecte du Panthéon', name:'Panthéon Complet',
     description:'Possède 5 personnages différents en Base, Or ET Diamant à la fois.', target:5,
-    reward:{ type:'gems', value:2000 },
+    reward:{ type:'gems', value:1000 },
     secret:true,
   },
   {
@@ -445,7 +445,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'kills_1000000', category:'combat', icon:'🔥',
     title:'Apocalypse', name:'Extermination Totale',
     description:'Vaincs 1 000 000 de monstres à vie.', target:1000000,
-    reward:{ type:'gems', value:1500 },
+    reward:{ type:'gems', value:1000 },
     secret:true,
   },
 ];

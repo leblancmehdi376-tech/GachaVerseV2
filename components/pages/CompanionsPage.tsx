@@ -88,7 +88,7 @@ export function CompanionsPage() {
     const aTpl = getCharacterById(a.templateId)!;
     const bTpl = getCharacterById(b.templateId)!;
     if (sort === 'rarity') {
-      return (RARITY_PRIORITY[bTpl.rarity] ?? 9) - (RARITY_PRIORITY[aTpl.rarity] ?? 9);
+      return (RARITY_PRIORITY[aTpl.rarity] ?? 9) - (RARITY_PRIORITY[bTpl.rarity] ?? 9);
     }
     if (sort === 'dps_desc') {
       return calcCharDps(bTpl, b) - calcCharDps(aTpl, a);

@@ -253,7 +253,8 @@ function SynergiesPanel() {
 
 // ── PAGE ──────────────────────────────────────────────────────────────────
 export function UpgradesPage() {
-  const { pixelCoins, nekoGems, getTotalDps, collection, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters } = useGameStore();
+  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters } = useGameStore();
+  const equippedSet = new Set(equippedTeam.filter((id): id is string => !!id));
   const ownedIds = Object.keys(collection).sort((a, b) => {
     const aRarity = getCharacterById(parseInstanceKey(a).templateId)?.rarity ?? 'C';
     const bRarity = getCharacterById(parseInstanceKey(b).templateId)?.rarity ?? 'C';
@@ -279,12 +280,17 @@ export function UpgradesPage() {
     if (universe !== 'all' && tpl.universe !== universe) return false;
     return tpl.rarity === filter && matchesAffinity;
   }).sort((a, b) => {
+    // Personnages déjà équipés en priorité, avant tout autre critère de tri.
+    const aEquipped = equippedSet.has(a);
+    const bEquipped = equippedSet.has(b);
+    if (aEquipped !== bEquipped) return aEquipped ? -1 : 1;
+
     const aTpl = getCharacterById(parseInstanceKey(a).templateId)!;
     const bTpl = getCharacterById(parseInstanceKey(b).templateId)!;
     const aOwned = collection[a];
     const bOwned = collection[b];
     if (sort === 'rarity') {
-      return (RARITY_PRIORITY[bTpl.rarity] ?? 9) - (RARITY_PRIORITY[aTpl.rarity] ?? 9);
+      return (RARITY_PRIORITY[aTpl.rarity] ?? 9) - (RARITY_PRIORITY[bTpl.rarity] ?? 9);
     }
     if (sort === 'dps_desc') return (bOwned ? calcCharDps(bTpl, bOwned) : 0) - (aOwned ? calcCharDps(aTpl, aOwned) : 0);
     if (sort === 'dps_asc') return (aOwned ? calcCharDps(aTpl, aOwned) : 0) - (bOwned ? calcCharDps(bTpl, bOwned) : 0);
