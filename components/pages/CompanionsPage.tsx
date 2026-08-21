@@ -177,7 +177,14 @@ export function CompanionsPage() {
                   key={index}
                   className={`companion-team-slot ${isSelected ? 'companion-team-slot--selected' : ''}`}
                   style={tpl ? { borderColor: isSelected ? 'var(--purple-hi)' : `${cfg!.color}55`, background: isSelected ? 'rgba(168,85,247,0.14)' : `${cfg!.color}10`, position: 'relative' } : { position: 'relative' }}
-                  onClick={() => setSelSlot(isSelected ? null : index)}
+                  onClick={() => {
+                    if (tid) {
+                      setSelSlot(null);
+                      setSelectedCharacterId(tid);
+                    } else {
+                      setSelSlot(isSelected ? null : index);
+                    }
+                  }}
                 >
                   <div className="companion-team-slot__meta">SLOT {index + 1}</div>
                   {tpl && own ? (
