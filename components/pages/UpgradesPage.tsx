@@ -6,7 +6,7 @@ import { formatNumber } from '@/lib/game/format';
 import { levelUpCost, evoCost, canEvolve, calcCharDps, RARITY_CONFIG, evoStoneCost, EVOLUTION_STONE_ITEM_ID } from '@/types/game';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getItemDef } from '@/lib/game/items';
-import { getPalierDrop } from '@/lib/game/expeditions';
+import { getPalierDrop, EXPEDITION_DEFS } from '@/lib/game/expeditions';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { computeActiveSynergies, SYNERGIES_LIST as SYNERGIES } from '@/lib/game/synergies';
@@ -90,21 +90,9 @@ function GoldUpgradeCard() {
   );
 }
 
-// ── Détermine la source d'obtention de l'item d'évolution ─────────────────
-function getItemSource(itemId: string): string {
-  const jinwooItems = ['elixir_vie', 'manteau_ombre', 'beru'];
-  const arthurItems = ['cristal_ether', 'epee_ether', 'sylvia'];
-  const eminenceItems = ['masque_cid', 'epee_slime', 'slime_eminence'];
-  
-  if (jinwooItems.includes(itemId)) return 'Monarque des Ombres';
-  if (arthurItems.includes(itemId)) return 'Arthur Leywin';
-  if (eminenceItems.includes(itemId)) return 'Éminence de l\'Ombre';
-  return 'Événement';
-}
-
 // ── Carte personnage avec PP ──────────────────────────────────────────────
 function CharCard({ templateId }: { templateId: string }) {
-  const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory } = useGameStore();
+  const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory, focusExpedition } = useGameStore();
   const { dropInventory } = useExpeditionStore();
   const owned = collection[templateId];
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom partagés entre éditions)
@@ -123,7 +111,9 @@ function CharCard({ templateId }: { templateId: string }) {
   const stonesHave   = dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0;
   const hasStones    = stonesHave >= stonesNeeded;
   const evoStoneDrop = getPalierDrop(EVOLUTION_STONE_ITEM_ID);
+  const evoStoneExpedition = EXPEDITION_DEFS.find(x => x.rewards.dropId === EVOLUTION_STONE_ITEM_ID);
   const name     = getCharFormName(tpl, owned.currentForm);
+  const handleLevelUpX10 = () => { for (let i = 0; i < 10; i++) levelUpCharacter(templateId); };
 
   return (
     <div style={{ background:'linear-gradient(135deg,#0e0c1a,#130f22)', border:`1px solid ${cfg.color}33`, borderRadius:12, padding:14, position:'relative', overflow:'hidden', boxShadow:`0 0 14px ${cfg.glow}0d` }}>
@@ -163,16 +153,25 @@ function CharCard({ templateId }: { templateId: string }) {
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
         </button>
+        <button onClick={handleLevelUpX10} disabled={pixelCoins < lvCost} title="Améliore jusqu'à 10 niveaux d'affilée"
+          style={{ flexShrink:0, padding:'8px 10px', background:pixelCoins>=lvCost?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=lvCost?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=lvCost?'pointer':'not-allowed', transition:'all 0.15s' }}>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>×10</span>
+        </button>
         {!canEvo_ && reqItem && !hasItem && (
           <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ fontSize:14.4 }}>{reqItem.icon}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert : <b>{reqItem.name}</b> ({getItemSource(reqItem.id)})</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert : <b>{reqItem.name}</b></span>
           </div>
         )}
         {!canEvo_ && canEvolveAtAll && !hasStones && (
-          <div style={{ padding:'7px 10px', background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8 }}>
+          <div
+            onClick={evoStoneExpedition ? () => focusExpedition(evoStoneExpedition.id) : undefined}
+            style={{ padding:'7px 10px', background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, cursor:evoStoneExpedition?'pointer':'default', transition:'background 0.15s, border-color 0.15s' }}
+            onMouseEnter={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='var(--purple-glow)'; (e.currentTarget as HTMLElement).style.background='rgba(192,132,252,0.1)'; } : undefined}
+            onMouseLeave={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='rgba(96,165,250,0.25)'; (e.currentTarget as HTMLElement).style.background='rgba(96,165,250,0.08)'; } : undefined}
+          >
             <span style={{ fontSize:14.4 }}>{evoStoneDrop?.icon ?? '🔷'}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b> (Sanctuaire des Pierres)</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b></span>
           </div>
         )}
         {canEvo_ && (
