@@ -484,6 +484,18 @@ export const SYNERGIES: SynergyDef[] = [
       [3, 35, 5],
     ],
   }),
+
+  synergy({
+    id: 'Apothicaire',
+    universe: 'Les Carnets de l’Apothicaire',
+    label: 'Les Carnets de l’Apothicaire',
+    color: '#4009a7',
+    glow: '#b4089d',
+    icon: '🧪',
+    thresholds: [
+      [2, 25],
+    ],
+  }),
 ];
 
 // Déduplique par universe
