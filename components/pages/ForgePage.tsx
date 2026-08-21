@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useExpeditionStore } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
-import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe } from '@/lib/game/expeditions';
+import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe, EXPEDITION_DEFS } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG } from '@/types/game';
 
@@ -143,13 +143,10 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
               {recipe.ingredients.map((ing, i) => {
                 if (ing.type === 'drop') {
                   const drop = PALIER_DROPS.find(d => d.id === ing.id);
-                  const expDef = drop ? (['cave_cristal','foret_kame','patrol_easblue','mission_ninja','safari_kanto','palais_persona','esplanade_tempest','farm_namek','farm_bleach','farm_demonslayer','farm_ragnarok','farm_undertale','farm_eldenring']).find(eid => {
-                    const e = (require('@/lib/game/expeditions') as {EXPEDITION_DEFS:typeof import('@/lib/game/expeditions').EXPEDITION_DEFS}).EXPEDITION_DEFS.find(x => x.id === eid);
-                    return e?.rewards.dropId === ing.id;
-                  }) : null;
+                  const expDef = drop ? EXPEDITION_DEFS.find(x => x.rewards.dropId === ing.id) : null;
                   return drop ? (
                     <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', marginBottom:3 }}>
-                      {drop.icon} <strong style={{ color:drop ? 'var(--text-sub)' : 'inherit' }}>{drop.name}</strong> → Expédition palier {drop.palier} ({drop.universName})
+                      {drop.icon} <strong style={{ color:'var(--text-sub)' }}>{drop.name}</strong> → {expDef ? expDef.name : `Expédition palier ${drop.palier}`} ({drop.universName})
                     </div>
                   ) : null;
                 }
@@ -197,7 +194,7 @@ export function ForgePage() {
             <span style={{ fontFamily:'var(--f-title)', fontSize:16, fontWeight:700, color:'#e879f9', letterSpacing:'2px' }}>FORGE ⚗</span>
           </div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>
-            Combine des drops rares et des doublons de champions pour forger des personnages uniques
+            Combine des drops rares récoltés en expédition pour forger des personnages uniques
           </div>
         </div>
 

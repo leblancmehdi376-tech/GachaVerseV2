@@ -17,15 +17,14 @@ export const PALIER_DROPS: PalierDrop[] = [
   { id:'saiyen_power',   name:'Puissance Saiyen',       icon:'🔥', description:'Émane des guerriers Saiyen les plus puissants.',             palier:1,  universName:'Dragon Ball Z'        },
   { id:'ore_kame',       name:'Pierre de Kame',         icon:'🐢', description:'Fragment de la magie du Dieu de la Destruction.',            palier:1,  universName:'Dragon Ball Z'        },
   { id:'sea_fragment',   name:'Fragment Océanique',     icon:'🌊', description:'Écume des mers d\'East Blue.',                               palier:2,  universName:'One Piece'            },
-  { id:'chakra_crystal', name:'Cristal de Chakra',      icon:'🌀', description:'Concentre l\'énergie vitale des ninjas.',                    palier:3,  universName:'Naruto'               },
-  { id:'pierre_lune',    name:'Pierre Lune',            icon:'🌙', description:'Pierre évolutive rare du monde Pokémon.',                    palier:4,  universName:'Pokémon'              },
-  { id:'masque_vo',      name:'Masque des Voleurs',     icon:'🎭', description:'Emblème des Voleurs Fantômes de Persona 5.',                 palier:5,  universName:'Persona 5'            },
+  { id:'fruit_demon',    name:'Fruit du Démon',         icon:'🍈', description:'Fruit maudit conférant un pouvoir surnaturel... au prix de savoir nager.', palier:2, universName:'One Piece' },
   { id:'potala',         name:'Boucle Potara',          icon:'💫', description:'Boucle d\'oreille sacrée permettant la fusion Potara.',      palier:24, universName:'Dragon Ball Z'        },
   { id:'hogyoku',        name:'Fragment d\'Hogyoku',    icon:'💠', description:'Éclat de la sphère d\'Aizen qui transcende les limites.',    palier:12, universName:'Bleach'               },
+  { id:'zanpakuto',      name:'Zanpakuto',              icon:'⚔️', description:'Lame vivante scellant le pouvoir d\'un Shinigami.',          palier:12, universName:'Bleach'               },
   { id:'ore_soleil',     name:'Minerai du Soleil',      icon:'☀',  description:'Métal forgé dans le soleil, seul capable de tuer un démon.', palier:25, universName:'Demon Slayer'         },
+  { id:'manche_sabre',   name:'Manche de Sabre Nichirin', icon:'🗡️', description:'Poignée forgée pour recevoir une lame Nichirin.',          palier:25, universName:'Demon Slayer'         },
   { id:'bijou_divin',    name:'Bijou Divin',            icon:'⚡', description:'Artefact des dieux de Ragnarök.',                            palier:31, universName:'Valkyrie Apocalypse'  },
   { id:'ame_humaine',    name:'Âme Humaine',            icon:'❤',  description:'L\'une des 7 âmes humaines du monde souterrain.',           palier:38, universName:'Undertale'            },
-  { id:'rune_ancestrale',name:'Rune Ancestrale',        icon:'✨', description:'Rune imprégnée de la Grâce de l\'Entre-Terre.',              palier:40, universName:'Elden Ring'           },
   { id:'duplication_shards', name:'Éclat de Duplication', icon:'🔮', description:'Permet de dupliquer un objet ou une essence.',           palier:9,  universName:'Tensei Slime'         },
 ];
 
@@ -69,9 +68,8 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     lore: '"La fusion Potara est permanente... sauf à l\'intérieur d\'un Super Buu." — Végéto',
     palierRequired: 24,
     ingredients: [
-      { type:'drop',          id:'potala',  quantity:2, label:'Boucle Potara × 2'       },
-      { type:'champion_dupe', id:'goku',    quantity:1, label:'Doublon Goku maxé (inv. champions)' },
-      { type:'champion_dupe', id:'vegeta',  quantity:1, label:'Doublon Végéta maxé (inv. champions)' },
+      { type:'drop', id:'potala',  quantity:50, label:'Boucle Potara × 50'   },
+      { type:'drop', id:'ore_kame', quantity:13, label:'Pierre de Kame × 13' },
     ],
     reward: { type:'character', characterId:'vegeto', rarity:'P', label:'Végéto', icon:'💫' },
   },
@@ -83,10 +81,8 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     lore: '"Ceci s\'appelle... Gogeta !" — Gogeta SS Blue',
     palierRequired: 24,
     ingredients: [
-      { type:'drop',          id:'saiyen_power', quantity:5, label:'Puissance Saiyen × 5'  },
-      { type:'drop',          id:'ore_kame',     quantity:3, label:'Pierre de Kame × 3'    },
-      { type:'champion_dupe', id:'goku',         quantity:1, label:'Doublon Goku maxé (inv. champions)'    },
-      { type:'champion_dupe', id:'vegeta',       quantity:1, label:'Doublon Végéta maxé (inv. champions)'  },
+      { type:'drop', id:'saiyen_power', quantity:50, label:'Puissance Saiyen × 50' },
+      { type:'drop', id:'ore_kame',     quantity:13, label:'Pierre de Kame × 13'   },
     ],
     reward: { type:'character', characterId:'gogeta', rarity:'P', label:'Gogeta', icon:'⚡' },
   },
@@ -99,8 +95,8 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     lore: '"Je ne suis ni Shinigami, ni Hollow. Je suis au-delà de toute chose." — Aizen',
     palierRequired: 12,
     ingredients: [
-      { type:'drop',          id:'hogyoku', quantity:5, label:'Fragment d\'Hogyoku × 5'  },
-      { type:'champion_dupe', id:'aizen',   quantity:1, label:'Doublon Aizen maxé (inv. champions)'      },
+      { type:'drop', id:'hogyoku',   quantity:50, label:'Fragment d\'Hogyoku × 50' },
+      { type:'drop', id:'zanpakuto', quantity:1,  label:'Zanpakuto × 1'            },
     ],
     reward: { type:'character', characterId:'aizen_t', rarity:'P', label:'Aizen Transcendant', icon:'💠' },
   },
@@ -113,8 +109,8 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     lore: '"Je suis né avec la Marque de la Mort... et une seule technique." — Yoriichi',
     palierRequired: 25,
     ingredients: [
-      { type:'drop',          id:'ore_soleil',  quantity:7, label:'Minerai du Soleil × 7'  },
-      { type:'champion_dupe', id:'tanjiro',     quantity:1, label:'Doublon Tanjiro maxé (inv. champions)'  },
+      { type:'drop', id:'ore_soleil',   quantity:50, label:'Minerai du Soleil × 50'          },
+      { type:'drop', id:'manche_sabre', quantity:1,  label:'Manche de Sabre Nichirin × 1'    },
     ],
     reward: { type:'character', characterId:'yoriichi', rarity:'P', label:'Yoriichi Tsugikuni', icon:'🌅' },
   },
@@ -127,7 +123,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     lore: '"Je ne me battrai jamais moi-même. Mais je serai leur force." — Brunhilde',
     palierRequired: 31,
     ingredients: [
-      { type:'drop', id:'bijou_divin', quantity:4, label:'Bijou Divin × 4' },
+      { type:'drop', id:'bijou_divin', quantity:50, label:'Bijou Divin × 50' },
     ],
     reward: { type:'character', characterId:'brunhilde', rarity:'CO', label:'Brunhilde', icon:'🛡' },
   },
@@ -140,8 +136,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     lore: '"Ce n\'était pas moi. C\'était toi." — Chara',
     palierRequired: 38,
     ingredients: [
-      { type:'drop',          id:'ame_humaine', quantity:6, label:'Âme Humaine × 6'       },
-      { type:'champion_dupe', id:'flowey_ut',   quantity:1, label:'Doublon Flowey maxé (inv. champions)'  },
+      { type:'drop', id:'ame_humaine', quantity:75, label:'Âme Humaine × 75' },
     ],
     reward: { type:'character', characterId:'chara', rarity:'P', label:'Chara', icon:'🔪' },
   },
@@ -154,8 +149,8 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     lore: '"Je parie sur la nouvelle génération." — Shanks le Roux',
     palierRequired: 2,
     ingredients: [
-      { type:'drop',          id:'sea_fragment', quantity:8,  label:'Fragment Océanique × 8'          },
-      { type:'champion_dupe', id:'zoro',         quantity:1,  label:'Doublon Zoro maxé (inv. champions)' },
+      { type:'drop', id:'sea_fragment', quantity:60, label:'Fragment Océanique × 60' },
+      { type:'drop', id:'fruit_demon',  quantity:1,  label:'Fruit du Démon × 1'      },
     ],
     reward: { type:'character', characterId:'shanks', rarity:'T', label:'Shanks le Roux', icon:'⚔' },
   },
@@ -277,30 +272,24 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'ore_kame', dropChance:0.6, dropQuantity:1 },
   },
   {
+    id:'entrainement_saiyen', name:'Entraînement Intensif — Capsule Corp', icon:'🔥', universe:'Dragon Ball Z',
+    description:'Repousse tes limites dans la chambre de gravité pour éveiller ta puissance Saiyenne.',
+    duration: 3*H, slots:1, palierRequired:1, minRarityScore:2,
+    rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'saiyen_power', dropChance:0.6, dropQuantity:2 },
+  },
+  {
     id:'patrol_easblue', name:'Patrouille East Blue', icon:'🌊', universe:'One Piece',
     description:'Croise les mers d\'East Blue pour récupérer du butin.',
     duration: 4*H, slots:2, palierRequired:2, minRarityScore:4,
     rewards:{ coinsMin:150_000, coinsMax:400_000, gemsMin:2, gemsMax:5, dropId:'sea_fragment', dropChance:0.5, dropQuantity:1 },
   },
+  {
+    id:'ile_fruit_demon', name:'Île Mystérieuse aux Fruits', icon:'🍈', universe:'One Piece',
+    description:'Une île qui n\'apparaît qu\'une fois par génération, dit-on, chargée de fruits maudits.',
+    duration: 5*H, slots:2, palierRequired:2, minRarityScore:6,
+    rewards:{ coinsMin:200_000, coinsMax:500_000, gemsMin:2, gemsMax:6, dropId:'fruit_demon', dropChance:0.12, dropQuantity:1 },
+  },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────
-  {
-    id:'mission_ninja', name:'Mission Secrète — Konoha', icon:'🌀', universe:'Naruto',
-    description:'Infiltre une base ennemie pour récupérer des cristaux de chakra.',
-    duration: 6*H, slots:2, palierRequired:3, minRarityScore:6,
-    rewards:{ coinsMin:300_000, coinsMax:800_000, gemsMin:3, gemsMax:8, dropId:'chakra_crystal', dropChance:0.55, dropQuantity:2 },
-  },
-  {
-    id:'safari_kanto', name:'Safari de Kanto', icon:'🌙', universe:'Pokémon',
-    description:'Explore la Zone Safari pour trouver des pierres évolutives rares.',
-    duration: 6*H, slots:2, palierRequired:4, minRarityScore:8,
-    rewards:{ coinsMin:350_000, coinsMax:900_000, gemsMin:4, gemsMax:10, dropId:'pierre_lune', dropChance:0.5, dropQuantity:1 },
-  },
-  {
-    id:'palais_persona', name:'Exploration du Palais', icon:'🎭', universe:'Persona 5',
-    description:'Infiltre un palais de la conscience pour voler le trésor.',
-    duration: 8*H, slots:3, palierRequired:5, minRarityScore:12,
-    rewards:{ coinsMin:500_000, coinsMax:1_200_000, gemsMin:5, gemsMax:12, dropId:'masque_vo', dropChance:0.5, dropQuantity:1 },
-  },
   {
     id:'esplanade_tempest', name:'Esplanade de Tempest', icon:'🔮', universe:'Tensei Slime',
     description:'Sillonne les plaines de Tempest pour récolter des fragments magiques.',
@@ -323,11 +312,23 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     rewards:{ coinsMin:1_200_000, coinsMax:3_500_000, gemsMin:10, gemsMax:22, dropId:'hogyoku', dropChance:0.65, dropQuantity:1 },
   },
   {
+    id:'chasse_zanpakuto', name:'Chasse au Zanpakuto Perdu', icon:'⚔️', universe:'Bleach',
+    description:'Traque les lames abandonnées dans les ruines du Seireitei — rares et jalousement gardées.',
+    duration: 14*H, slots:3, palierRequired:12, minRarityScore:18,
+    rewards:{ coinsMin:1_200_000, coinsMax:3_500_000, gemsMin:10, gemsMax:22, dropId:'zanpakuto', dropChance:0.15, dropQuantity:1 },
+  },
+  {
     id:'farm_demonslayer', name:'Montagne Wisteria', icon:'☀', universe:'Demon Slayer',
     description:'Escalade la montagne sacrée pour forger du minerai sous la lumière du soleil.',
     duration: 16*H, slots:3, palierRequired:25, minRarityScore:24,
     isFarming:true, farmingPalier:25,
     rewards:{ coinsMin:2_000_000, coinsMax:5_000_000, gemsMin:12, gemsMax:28, dropId:'ore_soleil', dropChance:0.6, dropQuantity:2 },
+  },
+  {
+    id:'forge_nichirin', name:'Forge du Sabre Nichirin', icon:'🗡️', universe:'Demon Slayer',
+    description:'Assiste le forgeron Haganezuka dans la création d\'une lame Nichirin — un échec sur mille réussit.',
+    duration: 18*H, slots:3, palierRequired:25, minRarityScore:24,
+    rewards:{ coinsMin:2_000_000, coinsMax:5_000_000, gemsMin:12, gemsMax:28, dropId:'manche_sabre', dropChance:0.15, dropQuantity:1 },
   },
   {
     id:'farm_ragnarok', name:'Colisée du Ragnarök', icon:'⚡', universe:'Valkyrie Apocalypse',
@@ -342,13 +343,6 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     duration: 24*H, slots:4, palierRequired:38, minRarityScore:40,
     isFarming:true, farmingPalier:38,
     rewards:{ coinsMin:5_000_000, coinsMax:12_000_000, gemsMin:20, gemsMax:50, dropId:'ame_humaine', dropChance:0.55, dropQuantity:2 },
-  },
-  {
-    id:'farm_eldenring', name:'L\'Entre-Terre Éternel', icon:'✨', universe:'Elden Ring',
-    description:'Parcours l\'Entre-Terre pour graver les Runes Ancestrales en toi.',
-    duration: 36*H, slots:4, palierRequired:40, minRarityScore:50,
-    isFarming:true, farmingPalier:40,
-    rewards:{ coinsMin:10_000_000, coinsMax:25_000_000, gemsMin:30, gemsMax:80, dropId:'rune_ancestrale', dropChance:0.5, dropQuantity:2 },
   },
   // ── Ateliers — déblocage de la fusion d'équipement par rareté ────────────
   // Une expédition dédiée par rareté (Peu Commun → Transcendant, Commun étant
