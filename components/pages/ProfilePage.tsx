@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useGameStore, OFFLINE_MULT_TIERS, OFFLINE_CAP_TIERS_H } from '@/store/gameStore';
 import { useAchievementStore } from '@/store/achievementStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
+import { parseInstanceKey } from '@/lib/game/editions';
 import { RARITY_CONFIG, calcCharDps, getPalierConfig, Rarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
@@ -20,9 +21,14 @@ export function ProfilePage() {
 
   const cfg = getPalierConfig(palier);
 
-  // Stats calculées
-  const ownedChars = useMemo(() =>
-    CHARACTER_POOL.filter(c => !!collection[c.id]), [collection]);
+  // Stats calculées — collection est indexée par clé d'instance (templateId,
+  // ou templateId::gold/::diamond pour les shiny), pas par id de template pur,
+  // donc on passe par parseInstanceKey pour ne pas rater les persos possédés
+  // uniquement en édition shiny.
+  const ownedChars = useMemo(() => {
+    const ownedTemplateIds = new Set(Object.keys(collection).map(k => parseInstanceKey(k).templateId));
+    return CHARACTER_POOL.filter(c => ownedTemplateIds.has(c.id));
+  }, [collection]);
 
   const totalDps = getTotalDps();
 
@@ -36,14 +42,14 @@ export function ProfilePage() {
 
   const highestDpsChar = useMemo(() => {
     let best: { name: string; dps: number } | null = null;
-    for (const tpl of ownedChars) {
-      const owned = collection[tpl.id];
-      if (!owned) continue;
+    for (const [key, owned] of Object.entries(collection)) {
+      const tpl = CHARACTER_POOL.find(c => c.id === parseInstanceKey(key).templateId);
+      if (!tpl) continue;
       const dps = calcCharDps(tpl, owned);
       if (!best || dps > best.dps) best = { name: tpl.name, dps };
     }
     return best;
-  }, [ownedChars, collection]);
+  }, [collection]);
 
   const equippedCount = equippedTeam.filter(Boolean).length;
 
@@ -165,7 +171,7 @@ export function ProfilePage() {
               <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>👥 ÉQUIPE</div>
               <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
                 {equippedTeam.map((id, i) => {
-                  const tpl = id ? CHARACTER_POOL.find(c => c.id === id) : null;
+                  const tpl = id ? CHARACTER_POOL.find(c => c.id === parseInstanceKey(id).templateId) : null;
                   return (
                     <div key={i} style={{ background: tpl ? 'rgba(147,51,234,0.12)' : 'rgba(255,255,255,0.03)', border:`1px solid ${tpl ? 'rgba(147,51,234,0.3)' : 'var(--border)'}`, borderRadius:'8px', padding:'6px 10px', fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color: tpl ? 'var(--purple-glow)' : 'var(--text-muted)' }}>
                       {tpl ? tpl.name : `Slot ${i+1}`}
