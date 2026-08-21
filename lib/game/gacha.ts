@@ -16,10 +16,10 @@ export const RARITY_GATES: Record<Rarity, {
   rateAtUnlock: number;
   rateAtMax:    number;
 }> = {
-  C:  { unlockPalier: 1,  rateAtUnlock: 70.0000, rateAtMax: 30.000 },
-  U:  { unlockPalier: 3,  rateAtUnlock: 22.0000, rateAtMax: 20.000 },
-  R:  { unlockPalier: 5,  rateAtUnlock:  7.0000, rateAtMax: 15.000 },
-  E:  { unlockPalier: 7,  rateAtUnlock:  1.0000, rateAtMax: 10.000 },
+  C:  { unlockPalier: 1,  rateAtUnlock: 100.0000, rateAtMax: 30.000 },
+  U:  { unlockPalier: 3,  rateAtUnlock: 5.0000, rateAtMax: 20.000 },
+  R:  { unlockPalier: 5,  rateAtUnlock:  2.0000, rateAtMax: 15.000 },
+  E:  { unlockPalier: 7,  rateAtUnlock:  0.5000, rateAtMax: 10.000 },
   L:  { unlockPalier: 9,  rateAtUnlock:  0.1500, rateAtMax:  4.000 },
   M:  { unlockPalier: 11, rateAtUnlock:  0.0300, rateAtMax:  1.500 },
   S:  { unlockPalier: 13, rateAtUnlock:  0.0060, rateAtMax:  0.500 },
