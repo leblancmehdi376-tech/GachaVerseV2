@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { useExpeditionStore, ActiveExpedition, MAX_ACTIVE_EXPEDITIONS } from '@/store/expeditionStore';
+import { useExpeditionStore, ActiveExpedition } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
-import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
+import { AFFINITY_CONFIG, getAffinityForId } from '@/lib/game/affinities';
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
 function fmtDuration(secs: number): string {
@@ -44,7 +45,7 @@ function CharSelector({ def, onConfirm, onClose }: {
   onClose: () => void;
 }) {
   const { collection, maxPalierReached, equippedTeam } = useGameStore();
-  const { isCharOnExpedition } = useExpeditionStore();
+  const { isCharOnExpedition, getExpeditionAffinity } = useExpeditionStore();
   const [selected, setSelected] = useState<string[]>([]);
 
   // Possédé si N'IMPORTE QUELLE édition l'est (Base/Or/Diamant) — sinon un
@@ -55,6 +56,15 @@ function CharSelector({ def, onConfirm, onClose }: {
     .sort((a, b) => getCharacterExpeditionDps(collection, b.id) - getCharacterExpeditionDps(collection, a.id));
   const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
   const score = getExpeditionTeamDps(collection, selected);
+
+  // Exigence d'univers (ou de type pour les expéditions sans univers de perso
+  // réel, ex: Atelier/Chasse/Mystique) : TOUTE l'équipe envoyée doit correspondre.
+  const requiresRealUniverse = hasRealUniverse(def);
+  const requiredAffinity = requiresRealUniverse ? null : getExpeditionAffinity(def.id);
+  const matchesRequirement = (tplId: string) =>
+    requiresRealUniverse
+      ? CHARACTER_POOL.find(c => c.id === tplId)?.universe === def.universe
+      : getAffinityForId(tplId) === requiredAffinity;
 
   const toggle = (id: string) => {
     setSelected(prev =>
@@ -74,6 +84,12 @@ function CharSelector({ def, onConfirm, onClose }: {
             <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:'var(--purple-glow)', letterSpacing:2 }}>{def.icon} {def.name}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:2 }}>
               Sélectionne jusqu&apos;à {def.slots} personnage{def.slots > 1 ? 's' : ''} · DPS requis : {formatNumber(def.minTeamDps)}
+            </div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, marginTop:4, display:'flex', alignItems:'center', gap:5 }}>
+              {requiresRealUniverse
+                ? <>Équipe 100% <span style={{ color:'var(--purple-glow)', fontWeight:700 }}>{def.universe}</span></>
+                : <>Équipe 100% type <span style={{ color:AFFINITY_CONFIG[requiredAffinity!].color, fontWeight:700 }}>{AFFINITY_CONFIG[requiredAffinity!].icon} {AFFINITY_CONFIG[requiredAffinity!].label}</span></>
+              }
             </div>
           </div>
           <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:20.6 }}>✕</button>
@@ -97,8 +113,9 @@ function CharSelector({ def, onConfirm, onClose }: {
             const cfg = RARITY_CONFIG[tpl.rarity];
             const onExpedition = isCharOnExpedition(tpl.id);
             const inTeam = equippedPure.includes(tpl.id);
+            const mismatched = !matchesRequirement(tpl.id);
             const isSelected = selected.includes(tpl.id);
-            const disabled = onExpedition || inTeam || (!isSelected && selected.length >= def.slots);
+            const disabled = onExpedition || inTeam || mismatched || (!isSelected && selected.length >= def.slots);
             return (
               <button key={tpl.id} onClick={() => !disabled && toggle(tpl.id)}
                 style={{ padding:'10px 8px', borderRadius:10, cursor: disabled ? 'not-allowed' : 'pointer',
@@ -114,6 +131,11 @@ function CharSelector({ def, onConfirm, onClose }: {
                 <span style={{ fontFamily:'var(--f-num)', fontSize:12, color:'var(--text-dim)' }}>⚡ {formatNumber(getCharacterExpeditionDps(collection, tpl.id))}</span>
                 {onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#fb923c' }}>EN MISSION</span>}
                 {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
+                {mismatched && !onExpedition && !inTeam && (
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#f87171' }}>
+                    {requiresRealUniverse ? '✗ MAUVAIS UNIVERS' : '✗ MAUVAIS TYPE'}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -208,7 +230,10 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
 /* ── Carte expédition disponible ────────────────────────────────────────── */
 function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionDef; onSelect: () => void; busy: boolean; highlighted?: boolean }) {
   const { maxPalierReached, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
+  const { getExpeditionAffinity } = useExpeditionStore();
   const palierLocked = maxPalierReached < def.palierRequired;
+  const requiresRealUniverse = hasRealUniverse(def);
+  const requiredAffinity = requiresRealUniverse ? null : getExpeditionAffinity(def.id);
 
   // Déblocage one-shot déjà obtenu : impossible de relancer l'expédition
   // (voir expeditionStore.canStart, qui applique la même règle côté logique).
@@ -244,7 +269,10 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
         <div style={{ fontSize:33, flexShrink:0 }}>{def.icon}</div>
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:'var(--f-title)', fontSize:14.4, color:'var(--text)', letterSpacing:1, marginBottom:3 }}>{def.name}</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', fontWeight:700, letterSpacing:1, marginBottom:5 }}>{def.universe}</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, letterSpacing:1, marginBottom:5, display:'flex', alignItems:'center', gap:5,
+            color: requiresRealUniverse ? 'var(--purple-glow)' : AFFINITY_CONFIG[requiredAffinity!].color }}>
+            {requiresRealUniverse ? def.universe : <>{AFFINITY_CONFIG[requiredAffinity!].icon} Type {AFFINITY_CONFIG[requiredAffinity!].label}</>}
+          </div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.5, marginBottom:10 }}>{def.description}</div>
           {/* Stats */}
           <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:10 }}>
@@ -308,7 +336,7 @@ function tabOf(d: ExpeditionDef): ExpTab {
 }
 
 export function ExpeditionsPage() {
-  const { active, getFinished } = useExpeditionStore();
+  const { active, getFinished, getMaxActiveExpeditions } = useExpeditionStore();
   const { focusedExpeditionId, focusExpedition } = useGameStore();
   const [selectedDef, setSelectedDef] = useState<ExpeditionDef | null>(null);
   const [filter, setFilter] = useState<ExpTab>('forge');
@@ -316,6 +344,7 @@ export function ExpeditionsPage() {
 
   const runningExp = active.filter(e => !e.claimed);
   const finished   = getFinished();
+  const maxActive  = getMaxActiveExpeditions();
 
   const filtered = EXPEDITION_DEFS.filter(d => tabOf(d) === filter);
 
@@ -368,7 +397,7 @@ export function ExpeditionsPage() {
               </div>
             )}
             <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 14px', fontFamily:'var(--f-num)', fontWeight:700, fontSize:12.4, color:'var(--purple-glow)' }}>
-              {runningExp.length} / {MAX_ACTIVE_EXPEDITIONS} active
+              {runningExp.length} / {maxActive} active
             </div>
           </div>
         </div>
@@ -403,7 +432,7 @@ export function ExpeditionsPage() {
         {/* Liste expéditions */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(320px, 1fr))', gap:12 }}>
           {filtered.map(def => (
-            <ExpeditionCard key={def.id} def={def} busy={runningExp.length >= MAX_ACTIVE_EXPEDITIONS} onSelect={() => setSelectedDef(def)} highlighted={highlightId === def.id} />
+            <ExpeditionCard key={def.id} def={def} busy={runningExp.length >= maxActive} onSelect={() => setSelectedDef(def)} highlighted={highlightId === def.id} />
           ))}
         </div>
 

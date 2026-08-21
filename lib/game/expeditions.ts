@@ -49,6 +49,19 @@ export function getExpeditionTeamDps(collection: Record<string, OwnedCharacter>,
   return characterIds.reduce((sum, cid) => sum + getCharacterExpeditionDps(collection, cid), 0);
 }
 
+// ── Exigence d'univers ─────────────────────────────────────────────────────
+// Le champ `universe` d'une expédition sert de thème d'affichage, mais aussi
+// désormais de condition pour l'envoyer : toute l'équipe doit appartenir à ce
+// même univers. Certaines expéditions ont un "univers" purement organisationnel
+// (Atelier, Chasse, Mystique...) qui ne correspond à AUCUN personnage réel —
+// pour celles-là, l'exigence bascule sur un TYPE (affinité) tiré au hasard par
+// expédition, voir defAffinity dans expeditionStore.ts.
+const REAL_CHARACTER_UNIVERSES: Set<string> = new Set(CHARACTER_POOL.map(c => c.universe).filter((u): u is string => !!u));
+
+export function hasRealUniverse(def: ExpeditionDef): boolean {
+  return REAL_CHARACTER_UNIVERSES.has(def.universe);
+}
+
 // ── Drops spéciaux par palier ────────────────────────────────────────────
 export interface PalierDrop {
   id:          string;

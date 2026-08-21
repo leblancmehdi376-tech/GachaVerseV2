@@ -1,15 +1,23 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { EXPEDITION_DEFS, CRAFT_RECIPES, ExpeditionDef, getExpeditionTeamDps } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, CRAFT_RECIPES, ExpeditionDef, getExpeditionTeamDps, hasRealUniverse } from '@/lib/game/expeditions';
+import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { parseInstanceKey } from '@/lib/game/editions';
+import { Affinity, AFFINITY_ORDER, AFFINITY_CONFIG, getAffinityForId } from '@/lib/game/affinities';
 import { useGameStore } from '@/store/gameStore';
 import { toast } from '@/hooks/useToast';
 import { formatNumber } from '@/lib/game/format';
 
-// Nombre maximum d'expéditions simultanées (une seule à la fois).
-export const MAX_ACTIVE_EXPEDITIONS = 1;
+function rollAffinity(): Affinity {
+  return AFFINITY_ORDER[Math.floor(Math.random() * AFFINITY_ORDER.length)];
+}
+
+// Nombre maximum d'expéditions simultanées de base (une seule à la fois) —
+// augmentable en BossCrowns via upgradeExpeditionSlot() (voir ShopPage.tsx).
+export const BASE_MAX_ACTIVE_EXPEDITIONS = 1;
+export const EXPEDITION_SLOT_COSTS = [25, 60, 120]; // coût en 👑 de chaque emplacement supplémentaire
 
 export interface ActiveExpedition {
   id:           string;  // unique instance id
@@ -27,6 +35,16 @@ interface ExpeditionStore {
   dropInventory: Record<string, number>;
   // Recettes déjà craftées (pour éviter les doublons de perso)
   craftedRecipes: string[];
+  // Emplacements d'expédition supplémentaires achetés en BossCrowns
+  expeditionSlotLevel: number;
+  getMaxActiveExpeditions: () => number;
+  getExpeditionSlotCost: () => number | null;
+  upgradeExpeditionSlot: () => void;
+  // Type (affinité) requis pour les expéditions sans univers de perso réel
+  // (Atelier/Chasse/Mystique...) — tiré au hasard par expédition, regénéré
+  // à chaque fin d'expédition (voir claimExpedition).
+  defAffinities: Record<string, Affinity>;
+  getExpeditionAffinity: (defId: string) => Affinity;
 
   // ── Actions expéditions ────────────────────────────────────────────────
   canStart:      (defId: string, characterIds: string[]) => { ok: boolean; reason?: string };
@@ -49,15 +67,44 @@ interface ExpeditionStore {
 
 let _seq = 0;
 
+// Tire un type initial pour chaque expédition sans univers de perso réel —
+// calculé une fois au chargement du module (liste d'expéditions statique).
+function initialDefAffinities(): Record<string, Affinity> {
+  const out: Record<string, Affinity> = {};
+  for (const def of EXPEDITION_DEFS) {
+    if (!hasRealUniverse(def)) out[def.id] = rollAffinity();
+  }
+  return out;
+}
+
 export const useExpeditionStore = create<ExpeditionStore>()(
   persist(
     (set, get) => ({
       active:        [],
       dropInventory: {},
       craftedRecipes: [],
+      expeditionSlotLevel: 0,
+      defAffinities: initialDefAffinities(),
 
       // Remet les expéditions à zéro (utilisé par "Réinitialiser mon compte").
-      resetExpeditions: () => set({ active: [], dropInventory: {}, craftedRecipes: [] }),
+      resetExpeditions: () => set({ active: [], dropInventory: {}, craftedRecipes: [], expeditionSlotLevel: 0, defAffinities: initialDefAffinities() }),
+
+      getExpeditionAffinity: (defId) => get().defAffinities[defId] ?? rollAffinity(),
+
+      getMaxActiveExpeditions: () => BASE_MAX_ACTIVE_EXPEDITIONS + (get().expeditionSlotLevel ?? 0),
+
+      getExpeditionSlotCost: () => {
+        const lvl = get().expeditionSlotLevel ?? 0;
+        return lvl >= EXPEDITION_SLOT_COSTS.length ? null : EXPEDITION_SLOT_COSTS[lvl];
+      },
+
+      upgradeExpeditionSlot: () => {
+        const cost = get().getExpeditionSlotCost();
+        if (cost === null) return;
+        if (useGameStore.getState().bossCrowns < cost) return;
+        useGameStore.setState(s => ({ bossCrowns: s.bossCrowns - cost }));
+        set(s => ({ expeditionSlotLevel: (s.expeditionSlotLevel ?? 0) + 1 }));
+      },
 
       getDropCount: (dropId) => get().dropInventory[dropId] ?? 0,
 
@@ -80,11 +127,11 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         const def = EXPEDITION_DEFS.find(d => d.id === defId);
         if (!def) return { ok:false, reason:'Expédition introuvable' };
 
-        // Une seule expédition à la fois : il faut d'abord récupérer/terminer l'actuelle.
+        // Limite d'expéditions simultanées (base + emplacements achetés en BossCrowns).
         // Filtre défensif sur !claimed : d'anciennes sauvegardes peuvent contenir des
         // entrées "claimed" jamais nettoyées (bug corrigé dans claimExpedition).
-        if (get().active.filter(e => !e.claimed).length >= MAX_ACTIVE_EXPEDITIONS)
-          return { ok:false, reason:'Une seule expédition à la fois' };
+        if (get().active.filter(e => !e.claimed).length >= get().getMaxActiveExpeditions())
+          return { ok:false, reason:'Toutes tes expéditions sont déjà occupées' };
 
         const gs = useGameStore.getState();
         if (gs.maxPalierReached < def.palierRequired)
@@ -129,6 +176,22 @@ export const useExpeditionStore = create<ExpeditionStore>()(
             return { ok:false, reason:`${cid} est déjà en expédition` };
           if (equippedPure.includes(cid))
             return { ok:false, reason:`${cid} est dans l'équipe active` };
+        }
+
+        // Exigence d'univers (ou de type si l'expédition n'a pas d'univers de
+        // perso réel) : TOUTE l'équipe envoyée doit correspondre.
+        if (hasRealUniverse(def)) {
+          for (const cid of characterIds) {
+            const tpl = CHARACTER_POOL.find(c => c.id === cid);
+            if (!tpl || tpl.universe !== def.universe)
+              return { ok:false, reason:`Toute l'équipe doit être de l'univers ${def.universe}` };
+          }
+        } else {
+          const required = get().getExpeditionAffinity(def.id);
+          for (const cid of characterIds) {
+            if (getAffinityForId(cid) !== required)
+              return { ok:false, reason:`Toute l'équipe doit être de type ${AFFINITY_CONFIG[required].label}` };
+          }
         }
 
         // Vérifier le DPS minimum de l'équipe d'expédition
@@ -213,10 +276,16 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         // Retire l'expédition du tableau (comme cancelExpedition) au lieu de
         // juste la marquer "claimed" : sinon elle reste bloquée à vie dans
         // `active`, gonfle le compteur, et empêche à terme tout nouveau
-        // lancement dès que MAX_ACTIVE_EXPEDITIONS est atteint pour de faux.
+        // lancement dès que la limite d'expéditions actives est atteinte pour de faux.
         set(s => ({
           active: s.active.filter(e => e.id !== instanceId),
         }));
+
+        // Nouveau type requis pour la prochaine tentative (expéditions sans
+        // univers de perso réel — voir hasRealUniverse).
+        if (!hasRealUniverse(def)) {
+          set(s => ({ defAffinities: { ...s.defAffinities, [def.id]: rollAffinity() } }));
+        }
 
         // Déblocage de la fusion et/ou du drop d'équipement pour cette rareté
         // (voir EQUIP_UNLOCK_EXPEDITIONS / EQUIP_DROP_UNLOCK_EXPEDITIONS dans
@@ -321,6 +390,8 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         active:         s.active,
         dropInventory:  s.dropInventory,
         craftedRecipes: s.craftedRecipes,
+        expeditionSlotLevel: s.expeditionSlotLevel,
+        defAffinities:  s.defAffinities,
       }),
     }
   )

@@ -29,299 +29,970 @@ export interface UltimateDef {
 
 export const ULTIMATE_DEFS: Record<string, UltimateDef> = {
 
-  // ══ COMMUNS — cooldown 90s ═══════════════════════════════════════════
   canarticho: {
-    templateId:'canarticho', name:'Coup Critique', duration:4, cooldown:90,
-    description:'Taux de critique à 100% pendant 4s',
-    effect:{ critChance:1.0 }, animDuration:1200,
+    templateId:'canarticho', name:'Pic-Vente', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   cyborg: {
-    templateId:'cyborg', name:'Tir Automatique', duration:6, cooldown:90,
-    description:'Tir automatique (1/s à 30% du DPS d\'équipe) pendant 6s',
-    effect:{ autoStrikes:{ perSecond:1, source:'teamDpsPct', value:0.3 } }, animDuration:1200,
+    templateId:'cyborg', name:'Laser', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   slime: {
-    templateId:'slime', name:'Explosion Visqueuse', duration:1, cooldown:90,
-    description:'Inflige instantanément 160% du DPS d\'équipe',
-    effect:{ instantDamagePctTeamDps:160 }, animDuration:1200,
+    templateId:'slime', name:'Noyade', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   axolotl: {
-    templateId:'axolotl', name:'Capture Surprise', duration:1, cooldown:90,
-    description:'×0 coins instantané sur l\'ennemi actuel',
-    effect:{ instantCoinMultiplierBurst:0 }, animDuration:1200,
+    templateId:'axolotl', name:'Plouf', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   garry_fish: {
-    templateId:'garry_fish', name:'Saut Hors de l\'Eau', duration:8, cooldown:90,
-    description:'×1.4 monnaie obtenue pendant 8s',
-    effect:{ coinMultiplier:1.4 }, animDuration:1200,
+    templateId:'garry_fish', name:'Écaille Brillante', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   birthday_boy: {
-    templateId:'birthday_boy', name:'Bougie Magique', duration:6, cooldown:90,
-    description:'×1.3 DPS pendant 6s',
-    effect:{ dpsMultiplier:1.3 }, animDuration:1200,
+    templateId:'birthday_boy', name:'Surprise d\'anniversaire', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   gummigoo: {
-    templateId:'gummigoo', name:'Glu Collante', duration:6, cooldown:90,
-    description:'L\'ennemi reçoit +5% de dégâts pendant 6s',
-    effect:{ enemyDamageTakenBonusPct:5 }, animDuration:1200,
+    templateId:'gummigoo', name:'Rebond', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   yamcha: {
-    templateId:'yamcha', name:'La Pose', duration:1, cooldown:90,
-    description:'×0 coins instantané sur l\'ennemi actuel',
-    effect:{ instantCoinMultiplierBurst:0 }, animDuration:1400,
+    templateId:'yamcha', name:'Dodon Ray', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   korogu: {
-    templateId:'korogu', name:'Cri de la Forêt', duration:8, cooldown:90,
-    description:'×1.4 monnaie obtenue pendant 8s',
-    effect:{ coinMultiplier:1.4 }, animDuration:1200,
+    templateId:'korogu', name:'Jet de Noix', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   bangers: {
-    templateId:'bangers', name:'Explosion', duration:1, cooldown:120,
-    description:'Inflige instantanément 3% des PV max de l\'ennemi',
-    effect:{ instantDamagePctMaxHp:3 }, animDuration:1600,         // ← nerfé : était 25%
+    templateId:'bangers', name:'Coup de Poing', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   bubba: {
-    templateId:'bubba', name:'Piétinement', duration:8, cooldown:90,
-    description:'×1.4 DPS personnel pendant 8s',
-    effect:{ selfDpsMultiplier:1.4 }, animDuration:1200,
+    templateId:'bubba', name:'Sourire', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   tentacool: {
-    templateId:'tentacool', name:'Venin', duration:8, cooldown:90,
-    description:'×1.5 DPS pendant 8s',
-    effect:{ dpsMultiplier:1.5 }, animDuration:1200,
+    templateId:'tentacool', name:'Dard-Venin', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   chenipan: {
-    templateId:'chenipan', name:'Évolution Rapide', duration:1, cooldown:90,
-    description:'Réduit le cooldown de tous les autres ultimates de 15s',
-    effect:{ reduceOtherCooldownsSeconds:15 }, animDuration:1200,  // ← nerfé : était 30s
+    templateId:'chenipan', name:'Strangulation', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
   mr_popo: {
-    templateId:'mr_popo', name:'Pecking Order', duration:15, cooldown:300,
-    description:'×1.8 DPS d\'équipe et ×1.5 or sur cet ennemi pendant 15s',
-    effect:{ dpsMultiplier:1.8, coinMultiplier:1.5 }, animDuration:1800,  // ← nerfé : était x3/x2 20s
+    templateId:'mr_popo', name:'Gifle', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
   },
-
-  // ══ UNCOMMUNS — cooldown 120s ═════════════════════════════════════════
   prince_lars: {
-    templateId:'prince_lars', name:'Caprice Royal', duration:6, cooldown:120,
-    description:'×1.3 DPS pendant 6s',
-    effect:{ dpsMultiplier:1.3 }, animDuration:1400,
+    templateId:'prince_lars', name:'Coup de Masse', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
   },
   eugeo: {
-    templateId:'eugeo', name:'Lame de Glace', duration:8, cooldown:120,
-    description:'×1.5 DPS personnel pendant 8s',
-    effect:{ selfDpsMultiplier:1.5 }, animDuration:1400,
+    templateId:'eugeo', name:'Geyser', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
   },
   angie: {
-    templateId:'angie', name:'Volée de Papillons', duration:8, cooldown:120,
-    description:'×1.4 monnaie obtenue pendant 8s',
-    effect:{ coinMultiplier:1.4 }, animDuration:1400,
+    templateId:'angie', name:'Mensonge', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
   },
   gobuta: {
-    templateId:'gobuta', name:'Charge Gobeline', duration:1, cooldown:120,
-    description:'Inflige instantanément 2% des PV max de l\'ennemi',
-    effect:{ instantDamagePctMaxHp:2 }, animDuration:1400,
+    templateId:'gobuta', name:'Prédation', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
   },
   vogue_merry: {
-    templateId:'vogue_merry', name:'Réparation', duration:1, cooldown:240,
-    description:'Réduit de 20s le cooldown de tous les autres ultimates',
-    effect:{ reduceOtherCooldownsSeconds:20 }, animDuration:1600,  // ← nerfé : était /2
+    templateId:'vogue_merry', name:'Canon Principal', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
   },
-
-  // ══ RARES — cooldown 150s ═════════════════════════════════════════════
-  'salamèche': {
-    templateId:'salamèche', name:'Brûlure', duration:8, cooldown:150,
-    description:'L\'ennemi reçoit +8% de dégâts pendant 8s',
-    effect:{ enemyDamageTakenBonusPct:8 }, animDuration:1600,
+  salamèche: {
+    templateId:'salamèche', name:'Flammèche', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
   },
   carapuce: {
-    templateId:'carapuce', name:'Bulles', duration:20, cooldown:150,
-    description:'×1.5 monnaie obtenue pendant 20s',
-    effect:{ coinMultiplier:1.5 }, animDuration:1600,              // ← nerfé : était x2 30s
+    templateId:'carapuce', name:'Pistolet à O', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
   },
   bulbizarre: {
-    templateId:'bulbizarre', name:'Vampigraine', duration:12, cooldown:150,
-    description:'Convertit 50% des dégâts infligés en monnaie pendant 12s',
-    effect:{ damageToCoinPct:50 }, animDuration:1600,
+    templateId:'bulbizarre', name:'Fouet Lianes', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
   },
   kissy_missy: {
-    templateId:'kissy_missy', name:'Cadeau', duration:1, cooldown:150,
-    description:'×0 monnaie instantané sur l\'ennemi actuel',
-    effect:{ instantCoinMultiplierBurst:0 }, animDuration:1600,    // ← nerfé : était x10
+    templateId:'kissy_missy', name:'Câlin', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
   },
   yuno: {
-    templateId:'yuno', name:'Tempête de Vent', duration:5, cooldown:150,
-    description:'×2 DPS pendant 5s',
-    effect:{ dpsMultiplier:2 }, animDuration:1600,                 // ← nerfé : était x5
+    templateId:'yuno', name:'Hekireki Issen', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
   },
   the_dress: {
-    templateId:'the_dress', name:'Illusion Optique', duration:6, cooldown:150,
-    description:'Taux de critique à 40% pendant 6s',
-    effect:{ critChance:0.4 }, animDuration:1600,
+    templateId:'the_dress', name:'Tissu Piégeur', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
   },
   kirito: {
-    templateId:'kirito', name:'Dual Wield', duration:8, cooldown:150,
-    description:'×1.8 DPS pendant 8s',
-    effect:{ dpsMultiplier:1.8 }, animDuration:1600,
+    templateId:'kirito', name:'Starburst Stream', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
   },
-
-  // ══ ÉPIQUES — cooldown 210s ═══════════════════════════════════════════
   arsene: {
-    templateId:'arsene', name:'Agile', duration:10, cooldown:210,
-    description:'×1.3 DPS d\'équipe pendant 10s',
-    effect:{ dpsMultiplier:1.3 }, animDuration:1800,               // ← nerfé : était x1.5
+    templateId:'arsene', name:'Eiha', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
   },
   huggy_wuggy: {
-    templateId:'huggy_wuggy', name:'Étreinte', duration:8, cooldown:210,
-    description:'×1.35 DPS pendant 8s',
-    effect:{ dpsMultiplier:1.35 }, animDuration:1800,
+    templateId:'huggy_wuggy', name:'Étreinte', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
   },
   diablo: {
-    templateId:'diablo', name:'Chaos Imprévisible', duration:10, cooldown:210,
-    description:'×1.45 DPS pendant 10s',
-    effect:{ dpsMultiplier:1.45 }, animDuration:1800,
+    templateId:'diablo', name:'Megidolaon', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
   },
   reaper_leviathan: {
-    templateId:'reaper_leviathan', name:'Attaque des Profondeurs', duration:8, cooldown:210,
-    description:'×2 DPS personnel pendant 8s',
-    effect:{ selfDpsMultiplier:2 }, animDuration:2000,             // ← nerfé : était x4
+    templateId:'reaper_leviathan', name:'Morsure des Abysses', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
   },
   reinhardt: {
-    templateId:'reinhardt', name:'Marteau Pilon', duration:1, cooldown:210,
-    description:'Inflige instantanément 80% du DPS d\'équipe',
-    effect:{ instantDamagePctTeamDps:80 }, animDuration:1800,      // ← nerfé : était 150%
+    templateId:'reinhardt', name:'Charge de Choc', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
   },
-
-  // ══ LÉGENDAIRES — cooldown 270s ═══════════════════════════════════════
   sanji: {
-    templateId:'sanji', name:'Diable Jambe', duration:8, cooldown:270,
-    description:'×2 DPS pendant 8s',
-    effect:{ dpsMultiplier:2 }, animDuration:2000,                 // ← nerfé : était x3
+    templateId:'sanji', name:'Diable Jambe', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
   },
   asta: {
-    templateId:'asta', name:'Black Hurricane', duration:20, cooldown:270,
-    description:'×1.5 DPS personnel pendant 20s',
-    effect:{ selfDpsMultiplier:1.5 }, animDuration:2000,           // ← nerfé : était x2 30s
+    templateId:'asta', name:'Anti-Magic Slash', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
   },
   taureau: {
-    templateId:'taureau', name:'Charge Furieuse', duration:10, cooldown:270,
-    description:'×2 DPS personnel pendant 10s',
-    effect:{ selfDpsMultiplier:2 }, animDuration:2000,
+    templateId:'taureau', name:'Charge', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
   },
   kioraku: {
-    templateId:'kioraku', name:'Jeux d\'Ombre', duration:1, cooldown:270,
-    description:'Inflige instantanément 120% du DPS d\'équipe',
-    effect:{ instantDamagePctTeamDps:120 }, animDuration:2200,
+    templateId:'kioraku', name:'Katen Kyokotsu', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
   },
   arthur_pandragon: {
-    templateId:'arthur_pandragon', name:'Excalibur', duration:1, cooldown:270,
-    description:'Inflige instantanément 150% du DPS d\'équipe',
-    effect:{ instantDamagePctTeamDps:150 }, animDuration:2200,      // ← nerfé : était 300%
-  },
-  nagito_komaeda: {
-    templateId:'nagito_komaeda', name:'Chance', duration:8, cooldown:270,
-    description:'×1.4 monnaie obtenue pendant 8s',
-    effect:{ coinMultiplier:1.4 }, animDuration:2000,
-  },
-  chuuya: {
-    templateId:'chuuya', name:'Gravité', duration:8, cooldown:270,
-    description:'L\'ennemi reçoit +20% de dégâts pendant 8s',
-    effect:{ enemyDamageTakenBonusPct:20 }, animDuration:2000,     // ← nerfé : était +30% 10s
-  },
-
-  // ══ MYTHIQUES — cooldown 360s ═════════════════════════════════════════
-  ren_m: {
-    templateId:'ren_m', name:'All-Out Attack', duration:1, cooldown:360,
-    description:'Inflige instantanément 180% du DPS d\'équipe',
-    effect:{ instantDamagePctTeamDps:180 }, animDuration:2400,     // ← nerfé : était 500%
-  },
-  ichigo: {
-    templateId:'ichigo', name:'Bankai', duration:1, cooldown:360,
-    description:'Envoie une attaque à 8200% de son propre DPS',
-    effect:{ instantDamagePctSelfDps:8200 }, animDuration:2400,     // ← nerfé : était 1000%
-  },
-  ouma: {
-    templateId:'ouma', name:'Mensonge', duration:10, cooldown:360,
-    description:'×1.5 DPS pendant 10s',
-    effect:{ dpsMultiplier:1.5 }, animDuration:2200,
-  },
-  jax: {
-    templateId:'jax', name:'Numéro de Charme', duration:12, cooldown:360,
-    description:'×1.45 DPS pendant 12s',
-    effect:{ dpsMultiplier:1.45 }, animDuration:2200,
-  },
-  dazai: {
-    templateId:'dazai', name:'Annulation', duration:1, cooldown:360,
-    description:'Réinitialise le cooldown de l\'ultimate allié le plus avancé',
-    effect:{ resetBestOtherCooldown:true }, animDuration:2200,
-  },
-
-  // ══ STELLAIRES — cooldown 420s ════════════════════════════════════════
-  naruto: {
-    templateId:'naruto', name:'Rasengan Géant', duration:12, cooldown:420,
-    description:'×3 DPS personnel pendant 12s',
-    effect:{ selfDpsMultiplier:3 }, animDuration:2400,             // ← nerfé : était x5
-  },
-  luffy: {
-    templateId:'luffy', name:'Gatling Gun', duration:7, cooldown:420,
-    description:'attaque automatiques (30/s à 5% du DPS d\'équipe) pendant 7s',
-    effect:{ autoStrikes:{ perSecond:30, source:'teamDpsPct', value:5 } }, animDuration:2800, // ← nerfé
-  },
-
-  // ══ COSMIQUES — cooldown 480s ═════════════════════════════════════════
-  vegeta: {
-    templateId:'vegeta', name:'Final Flash', duration:30, cooldown:480,
-    description:'×3.5 DPS pendant 30s',
-    effect:{ dpsMultiplier:3.5 }, animDuration:2600,               // ← nerfé : était x5
-  },
-  minato: {
-    templateId:'minato', name:'Hiraishin', duration:1, cooldown:480,
-    description:'Inflige instantanément 15% des PV max de l\'ennemi',
-    effect:{ instantDamagePctMaxHp:15 }, animDuration:2600,         // ← nerfé : était 35%
-  },
-  gilgamesh: {
-    templateId:'gilgamesh', name:'Gate of Babylon', duration:5, cooldown:480,
-    description:'Épées automatiques (3/s à 90% du DPS d\'équipe) pendant 5s',
-    effect:{ autoStrikes:{ perSecond:3, source:'teamDpsPct', value:90 } }, animDuration:2800, // ← nerfé
-  },
-  link_midona: {
-    templateId:'link_midona', name:'Lien', duration:15, cooldown:480,
-    description:'×1.45 DPS pendant 15s',
-    effect:{ dpsMultiplier:1.45 }, animDuration:2600,
-  },
-  jinwoo: {
-    templateId:'jinwoo', name:'Arise', duration:7, cooldown:480,
-    description:'Soldats de l\'ombre (3 attaques/s à 80% du DPS d\'équipe) pendant 7s',
-    effect:{ autoStrikes:{ perSecond:3, source:'teamDpsPct', value:80 } }, animDuration:2600, // ← nerfé
-  },
-
-  // ══ PRIMORDIAUX — cooldown 540s ═══════════════════════════════════════
-  goku: {
-    templateId:'goku', name:'Kamehameha', duration:1, cooldown:540,
-    description:'Inflige instantanément 22% des PV max de l\'ennemi',
-    effect:{ instantDamagePctMaxHp:22 }, animDuration:2600, 
-  },
-  limule: {
-    templateId:'limule', name:'Prédateur', duration:15, cooldown:540,
-    description:'×2 DPS et ×2 monnaie pendant 15s',
-    effect:{ dpsMultiplier:2, coinMultiplier:2 }, animDuration:3200,  // ← nerfé : était x6/x2
+    templateId:'arthur_pandragon', name:'Excalibur', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
   },
   arthur_leywin: {
-    templateId:'arthur_leywin', name:'Lame d\'Éther', duration:5, cooldown:540,
-    description:'Épées automatiques (4/s à 60% du DPS d\'équipe) pendant 5s',
-    effect:{ autoStrikes:{ perSecond:4, source:'teamDpsPct', value:60 } }, animDuration:3000, // ← nerfé : était 100% (x5.0 au total, désormais x3.4 comme les ultimes similaires)
+    templateId:'arthur_leywin', name:'Aether Blade', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
   },
-
-  // ══ TRANSCENDANT — cooldown 600s ══════════════════════════════════════
-  nekoz: {
-    templateId:'nekoz', name:'A Perte', duration:15, cooldown:600,
-    description:'×2.5 DPS et ×1.5 monnaie pendant 15s',
-    effect:{ dpsMultiplier:2.5, coinMultiplier:1.5 }, animDuration:3200, // ← nerfé : était x3
+  nagito_komaeda: {
+    templateId:'nagito_komaeda', name:'Boucle de l\'Espoir', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  chuuya: {
+    templateId:'chuuya', name:'Corruption', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  ren_m: {
+    templateId:'ren_m', name:'Agi', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  ichigo: {
+    templateId:'ichigo', name:'Getsuga Tensho', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  ouma: {
+    templateId:'ouma', name:'Mensonge', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  jax: {
+    templateId:'jax', name:'Farce', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  dazai: {
+    templateId:'dazai', name:'No Longer Human', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  naruto: {
+    templateId:'naruto', name:'Rasenshuriken', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  luffy: {
+    templateId:'luffy', name:'Gum-Gum Gatling', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  vegeta: {
+    templateId:'vegeta', name:'Final Flash', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  minato: {
+    templateId:'minato', name:'Hiraishin no Jutsu', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  gilgamesh: {
+    templateId:'gilgamesh', name:'Gate of Babylon', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  link_midona: {
+    templateId:'link_midona', name:'Twilight', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  jinwoo: {
+    templateId:'jinwoo', name:'Domain Expansion', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
   },
   cid_kagenou: {
-    templateId:'cid_kagenou', name:'Atomic', duration:14, cooldown:300,
-    description:'×4 DPS pendant 14s et 350% du DPS d’équipe en dégâts instantanés',
-    effect:{ dpsMultiplier:4.0, instantDamagePctTeamDps:350 }, animDuration:2400,
+    templateId:'cid_kagenou', name:'I Am Atomic', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  goku: {
+    templateId:'goku', name:'Kamehameha', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  limule: {
+    templateId:'limule', name:'Belzébuth', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  nekoz: {
+    templateId:'nekoz', name:'Transcendence', duration:17, cooldown:110,
+    description:'×3 DPS pendant 17s',
+    effect:{ dpsMultiplier:3 }, animDuration:2550,
+  },
+  violet_p5: {
+    templateId:'violet_p5', name:'Coup de Pied Tournoyant', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  zooble: {
+    templateId:'zooble', name:'Chaos Numérique', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  bond: {
+    templateId:'bond', name:'Coup de Museau', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  murata: {
+    templateId:'murata', name:'Frappe Tranchante', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  grubs: {
+    templateId:'grubs', name:'Nuée d\'Insectes', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  moris: {
+    templateId:'moris', name:'Griffes', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  corayon: {
+    templateId:'corayon', name:'Dard', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  qwilfish: {
+    templateId:'qwilfish', name:'Piques', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  queulorior: {
+    templateId:'queulorior', name:'Esquisse', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  sombra_ow: {
+    templateId:'sombra_ow', name:'Piratage', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  connie: {
+    templateId:'connie', name:'Lame Double', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  silverfish: {
+    templateId:'silverfish', name:'Mandibule', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  spider_mc: {
+    templateId:'spider_mc', name:'Toile', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  cochon: {
+    templateId:'cochon', name:'Charge', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  kiba: {
+    templateId:'kiba', name:'Kage Bunshin', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  caribou: {
+    templateId:'caribou', name:'Piétinement', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  wapol: {
+    templateId:'wapol', name:'Wapol House', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  mizuki_naruto: {
+    templateId:'mizuki_naruto', name:'Substitution', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  oolong: {
+    templateId:'oolong', name:'Transformation', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  teuchi: {
+    templateId:'teuchi', name:'Bouillon de Ramen', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  kasugaigarasu: {
+    templateId:'kasugaigarasu', name:'Vol', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  ribby_croaks: {
+    templateId:'ribby_croaks', name:'Poing Crochu', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  sbire: {
+    templateId:'sbire', name:'Ordre de Bataille', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  mr_satan: {
+    templateId:'mr_satan', name:'Satan Miracle Special', duration:8, cooldown:110,
+    description:'×1.2 DPS pendant 8s',
+    effect:{ dpsMultiplier:1.2 }, animDuration:1200,
+  },
+  konohamaru: {
+    templateId:'konohamaru', name:'Jutsu Boule de Feu', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  goron: {
+    templateId:'goron', name:'Écrasement Sismique', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  repo_char: {
+    templateId:'repo_char', name:'Extraction', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  tracer: {
+    templateId:'tracer', name:'Chronotransfert', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  lishu_ap: {
+    templateId:'lishu_ap', name:'Analyse', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  xiaolan_ap: {
+    templateId:'xiaolan_ap', name:'Infusion de Thé', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  kobeni: {
+    templateId:'kobeni', name:'Tranche-Viande', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  haumea_ff: {
+    templateId:'haumea_ff', name:'Flammes', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  riza: {
+    templateId:'riza', name:'Tir de Couverture', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  twix: {
+    templateId:'twix', name:'Morsure', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  zote: {
+    templateId:'zote', name:'Coup d\'Aiguillon', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  jean_aot: {
+    templateId:'jean_aot', name:'Tourbillon de Vent', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  mugman: {
+    templateId:'mugman', name:'Tir de Bulle', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  chica_fnaf: {
+    templateId:'chica_fnaf', name:'Sourire d\'Animateur', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  poulet: {
+    templateId:'poulet', name:'Picorage', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  tenten: {
+    templateId:'tenten', name:'FILE', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  hanataro: {
+    templateId:'hanataro', name:'Soin', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  kon: {
+    templateId:'kon', name:'Âme Artificielle', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  don_kanonji: {
+    templateId:'don_kanonji', name:'Onde Spirituelle', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  silica: {
+    templateId:'silica', name:'Épée Courte', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  laboon: {
+    templateId:'laboon', name:'Jet d\'Eau', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  fantome: {
+    templateId:'fantome', name:'Apparition', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  sisigou: {
+    templateId:'sisigou', name:'Runes de Combat', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  melina: {
+    templateId:'melina', name:'Bénédiction', duration:9, cooldown:110,
+    description:'×1.4 DPS pendant 9s',
+    effect:{ dpsMultiplier:1.4 }, animDuration:1350,
+  },
+  boa_hancock: {
+    templateId:'boa_hancock', name:'Mero Mero Mello', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
+  },
+  finral: {
+    templateId:'finral', name:'Portail magique', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
+  },
+  enderman: {
+    templateId:'enderman', name:'Téléportation', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
+  },
+  sabito: {
+    templateId:'sabito', name:'Lame d\'Eau', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
+  },
+  k1bo: {
+    templateId:'k1bo', name:'Calcul', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
+  },
+  yasutora_sado: {
+    templateId:'yasutora_sado', name:'Dos Hands', duration:10, cooldown:110,
+    description:'×1.6 DPS pendant 10s',
+    effect:{ dpsMultiplier:1.6 }, animDuration:1500,
+  },
+  catnap: {
+    templateId:'catnap', name:'Sourire', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  warden: {
+    templateId:'warden', name:'Traque', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  reaper_ow: {
+    templateId:'reaper_ow', name:'Faux Funeste', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  lihua_ap: {
+    templateId:'lihua_ap', name:'Parfum', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  anya_spy: {
+    templateId:'anya_spy', name:'Télépathie', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  maitre_yi: {
+    templateId:'maitre_yi', name:'Alpha', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  herald: {
+    templateId:'herald', name:'Frappe Temporelle', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  loki_va: {
+    templateId:'loki_va', name:'Geirrod', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  kirigiri: {
+    templateId:'kirigiri', name:'Deduction', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  asriel_ut: {
+    templateId:'asriel_ut', name:'Hyper Blaster', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  bonny_fnaf: {
+    templateId:'bonny_fnaf', name:'Jeu de Scène', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  panda_tekken: {
+    templateId:'panda_tekken', name:'Piétinement', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  margith: {
+    templateId:'margith', name:'Lame Dorée', duration:11, cooldown:110,
+    description:'×1.8 DPS pendant 11s',
+    effect:{ dpsMultiplier:1.8 }, animDuration:1650,
+  },
+  piccolo: {
+    templateId:'piccolo', name:'Makankosappo', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  kakashi: {
+    templateId:'kakashi', name:'Chidori', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  aki_csm: {
+    templateId:'aki_csm', name:'Lame de Sang', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  arthur_ff: {
+    templateId:'arthur_ff', name:'Caliburn', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  alphonse: {
+    templateId:'alphonse', name:'Frappe d\'Armure', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  karma_lol: {
+    templateId:'karma_lol', name:'Illumination', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  jinx_lol: {
+    templateId:'jinx_lol', name:'Pow-Pow', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  igloo_na: {
+    templateId:'igloo_na', name:'Igloo', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  thor_va: {
+    templateId:'thor_va', name:'Mjolnir', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  mikasa: {
+    templateId:'mikasa', name:'Lame', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  cuphead_char: {
+    templateId:'cuphead_char', name:'Tir de Blaster', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  emiya_kiri: {
+    templateId:'emiya_kiri', name:'Magnum Snipe', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  flowey_ut: {
+    templateId:'flowey_ut', name:'Vignes', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  godrick_er: {
+    templateId:'godrick_er', name:'Frappe Royale', duration:12, cooldown:110,
+    description:'×2 DPS pendant 12s',
+    effect:{ dpsMultiplier:2 }, animDuration:1800,
+  },
+  trunks: {
+    templateId:'trunks', name:'Dimension Trip', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  explorer: {
+    templateId:'explorer', name:'Racine', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  sea_emperor: {
+    templateId:'sea_emperor', name:'Chant Profond', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  zelda_char: {
+    templateId:'zelda_char', name:'Flèche de Lumière', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  clown_repo: {
+    templateId:'clown_repo', name:'Laser', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  asuna: {
+    templateId:'asuna', name:'Starburst Stream', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  power_csm: {
+    templateId:'power_csm', name:'Blood Devil', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  yor: {
+    templateId:'yor', name:'Coup de Poing', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  nezuko: {
+    templateId:'nezuko', name:'Kekki Sanjutsu', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  zenitsu: {
+    templateId:'zenitsu', name:'Hekireki Issen', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  jinshi_ap: {
+    templateId:'jinshi_ap', name:'Parfum', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  adam_va: {
+    templateId:'adam_va', name:'Poing Divin', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  hornet_hk: {
+    templateId:'hornet_hk', name:'Aiguillon', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  claudio: {
+    templateId:'claudio', name:'Jugement', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  celeste_drp: {
+    templateId:'celeste_drp', name:'Danse', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
+  zoro: {
+    templateId:'zoro', name:'Ittoryu Iai', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  madara: {
+    templateId:'madara', name:'Katon : Goka Messhaku', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  millim: {
+    templateId:'millim', name:'Urgent Thunder', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  byakuya: {
+    templateId:'byakuya', name:'Senbonzakura Kageyoshi', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  richard_coeur: {
+    templateId:'richard_coeur', name:'Clarent', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  ganondorf_char: {
+    templateId:'ganondorf_char', name:'Triforce', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  pomni: {
+    templateId:'pomni', name:'Sursaut', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  alice_sao: {
+    templateId:'alice_sao', name:'Sacred Sword', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  atsushi: {
+    templateId:'atsushi', name:'Beast Moonlight', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  mao_mao_ap: {
+    templateId:'mao_mao_ap', name:'Poudre d\'Apothicaire', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  denji: {
+    templateId:'denji', name:'Chainsaw Man', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  loid: {
+    templateId:'loid', name:'Couteau', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  tanjiro: {
+    templateId:'tanjiro', name:'Hinokami Kagura', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  edward: {
+    templateId:'edward', name:'Alchimie', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  roy: {
+    templateId:'roy', name:'Alchimiya', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  horus_na: {
+    templateId:'horus_na', name:'Plume', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  livai: {
+    templateId:'livai', name:'Spear', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  freddy_fnaf: {
+    templateId:'freddy_fnaf', name:'Jumpscare', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  sans_ut: {
+    templateId:'sans_ut', name:'Gaster Blaster', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  pichu: {
+    templateId:'pichu', name:'Thunder Shock', duration:14, cooldown:110,
+    description:'×2.4 DPS pendant 14s',
+    effect:{ dpsMultiplier:2.4 }, animDuration:2100,
+  },
+  yami: {
+    templateId:'yami', name:'Dimensional Slash', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  aizen: {
+    templateId:'aizen', name:'Kyoka Suigetsu', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  shinra: {
+    templateId:'shinra', name:'Adora Burst', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  jin_tekken: {
+    templateId:'jin_tekken', name:'Electric Wind God Fist', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  zorua: {
+    templateId:'zorua', name:'Balle Ombre', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  brume: {
+    templateId:'brume', name:'Bénédiction', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  steve: {
+    templateId:'steve', name:'Coup de Pioche', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  dva: {
+    templateId:'dva', name:'Self-Destruct', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  benimaru: {
+    templateId:'benimaru', name:'Purgatory', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  aatrox_lol: {
+    templateId:'aatrox_lol', name:'Darkin Blade', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  the_knight: {
+    templateId:'the_knight', name:'Dash', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  eren: {
+    templateId:'eren', name:'Rumbling', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  rayquaza: {
+    templateId:'rayquaza', name:'Draco-Météore', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  ouchuu: {
+    templateId:'ouchuu', name:'Dépression', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  qin_shi_huang: {
+    templateId:'qin_shi_huang', name:'Shi Shu Gong', duration:17, cooldown:110,
+    description:'×3 DPS pendant 17s',
+    effect:{ dpsMultiplier:3 }, animDuration:2550,
+  },
+  vegeto: {
+    templateId:'vegeto', name:'Final Kamehameha', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  gogeta: {
+    templateId:'gogeta', name:'Big Bang Kamehameha', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  aizen_t: {
+    templateId:'aizen_t', name:'Kyoka Suigetsu', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  yoriichi: {
+    templateId:'yoriichi', name:'Hinokami Kagura', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  brunhilde: {
+    templateId:'brunhilde', name:'Jugement', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  chara: {
+    templateId:'chara', name:'Slash', duration:16, cooldown:110,
+    description:'×2.8 DPS pendant 16s',
+    effect:{ dpsMultiplier:2.8 }, animDuration:2400,
+  },
+  shanks: {
+    templateId:'shanks', name:'Kamusari', duration:17, cooldown:110,
+    description:'×3 DPS pendant 17s',
+    effect:{ dpsMultiplier:3 }, animDuration:2550,
   },
 };
 
@@ -331,27 +1002,21 @@ export const ULTIMATE_DEFS: Record<string, UltimateDef> = {
 // ═══════════════════════════════════════════════════════════════════════════
 type Rarity = 'C'|'U'|'R'|'E'|'L'|'M'|'S'|'CO'|'P'|'T';
 
+// Barème uniforme par rareté (cooldown 110s partout) — voir ULTIMATE_DEFS
+// ci-dessus, qui couvre déjà tous les persos existants avec leur propre nom ;
+// ceci ne sert que de filet pour un futur perso ajouté sans entrée explicite.
 const RARITY_ULT: Record<Rarity, { name: string; duration: number; cooldown: number; effect: UltimateEffect; anim: number }> = {
-  C:  { name:'Assaut',        duration:8,  cooldown:90,  effect:{ dpsMultiplier:1.5 },                                anim:1200 },
-  U:  { name:'Déferlante',    duration:8,  cooldown:110, effect:{ dpsMultiplier:1.7 },                                anim:1200 },
-  R:  { name:'Percée',        duration:9,  cooldown:130, effect:{ dpsMultiplier:1.9, coinMultiplier:1.2 },            anim:1300 },
-  E:  { name:'Fureur',        duration:10, cooldown:150, effect:{ dpsMultiplier:2.1, coinMultiplier:1.3 },            anim:1400 },
-  L:  { name:'Cataclysme',    duration:12, cooldown:180, effect:{ dpsMultiplier:2.4, coinMultiplier:1.4 },            anim:1600 },
-  M:  { name:'Jugement',      duration:12, cooldown:210, effect:{ dpsMultiplier:2.8, enemyDamageTakenBonusPct:8 },    anim:1800 },
-  S:  { name:'Supernova',     duration:13, cooldown:240, effect:{ dpsMultiplier:3.2, instantDamagePctTeamDps:200 },   anim:2000 },
-  CO: { name:'Singularité',   duration:14, cooldown:300, effect:{ dpsMultiplier:3.8, coinMultiplier:1.6 },            anim:2200 },
-  P:  { name:'Genèse',        duration:15, cooldown:360, effect:{ dpsMultiplier:4.5, instantDamagePctTeamDps:300 },   anim:2600 },
-  T:  { name:'Transcendance',  duration:15, cooldown:480, effect:{ dpsMultiplier:5.5, coinMultiplier:1.8, instantDamagePctTeamDps:400 }, anim:3000 },
+  C:  { name:'Ultime',  duration:8,  cooldown:110, effect:{ dpsMultiplier:1.2 }, anim:1200 },
+  U:  { name:'Ultime',  duration:9,  cooldown:110, effect:{ dpsMultiplier:1.4 }, anim:1350 },
+  R:  { name:'Ultime',  duration:10, cooldown:110, effect:{ dpsMultiplier:1.6 }, anim:1500 },
+  E:  { name:'Ultime',  duration:11, cooldown:110, effect:{ dpsMultiplier:1.8 }, anim:1650 },
+  L:  { name:'Ultime',  duration:12, cooldown:110, effect:{ dpsMultiplier:2.0 }, anim:1800 },
+  M:  { name:'Ultime',  duration:13, cooldown:110, effect:{ dpsMultiplier:2.2 }, anim:1950 },
+  S:  { name:'Ultime',  duration:14, cooldown:110, effect:{ dpsMultiplier:2.4 }, anim:2100 },
+  CO: { name:'Ultime',  duration:15, cooldown:110, effect:{ dpsMultiplier:2.6 }, anim:2250 },
+  P:  { name:'Ultime',  duration:16, cooldown:110, effect:{ dpsMultiplier:2.8 }, anim:2400 },
+  T:  { name:'Ultime',  duration:17, cooldown:110, effect:{ dpsMultiplier:3.0 }, anim:2550 },
 };
-
-function describeEffect(e: UltimateEffect): string {
-  const parts: string[] = [];
-  if (e.dpsMultiplier)             parts.push(`×${e.dpsMultiplier} DPS`);
-  if (e.coinMultiplier)            parts.push(`×${e.coinMultiplier} or`);
-  if (e.enemyDamageTakenBonusPct)  parts.push(`+${e.enemyDamageTakenBonusPct}% dégâts subis`);
-  if (e.instantDamagePctTeamDps)   parts.push(`+${e.instantDamagePctTeamDps}% DPS en dégâts instantanés`);
-  return parts.join(', ');
-}
 
 function generateUltimate(templateId: string): UltimateDef | undefined {
   const tpl = getCharacterById(templateId);
@@ -360,7 +1025,7 @@ function generateUltimate(templateId: string): UltimateDef | undefined {
   return {
     templateId,
     name: arch.name,
-    description: `${describeEffect(arch.effect)} pendant ${arch.duration}s`,
+    description: `×${arch.effect.dpsMultiplier} DPS pendant ${arch.duration}s`,
     duration: arch.duration,
     cooldown: arch.cooldown,
     effect: arch.effect,

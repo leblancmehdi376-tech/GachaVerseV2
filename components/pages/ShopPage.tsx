@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
+import { useExpeditionStore } from '@/store/expeditionStore';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { getCharacterById } from '@/lib/game/characters';
@@ -39,6 +40,7 @@ export function ShopPage() {
     dailyShop, ensureDailyShop, buyShopCharacter, buyGemsWithOrbs, buyEquipmentChest,
     starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyEventCharacter,
   } = useGameStore();
+  const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useExpeditionStore();
 
   const [, setTick] = useState(0);
   const [chestResult, setChestResult] = useState<{ itemId: string; tier: string } | null>(null);
@@ -155,6 +157,33 @@ export function ShopPage() {
               </div>
             ))}
           </div>
+
+          {(() => {
+            const maxActive = getMaxActiveExpeditions();
+            const slotCost  = getExpeditionSlotCost();
+            const maxed     = slotCost === null;
+            const canAfford = !maxed && bossCrowns >= slotCost;
+            return (
+              <div style={{ background:'var(--bg-card)', border:`1px solid ${maxed?'rgba(74,222,128,0.4)':'var(--border)'}`, borderRadius:'12px', padding:'16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'14px', marginBottom:'20px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+                  <span style={{ fontSize:'20.6px' }}>🧭</span>
+                  <div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>Emplacements d&apos;Expédition</div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>
+                      Lance {maxActive} expédition{maxActive>1?'s':''} en simultané{maxed ? ' — MAXIMUM ATTEINT' : ''}
+                    </div>
+                  </div>
+                </div>
+                {maxed
+                  ? <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'#4ade80', flexShrink:0 }}>✓ MAX</div>
+                  : <button onClick={upgradeExpeditionSlot} disabled={!canAfford}
+                      style={{ padding:'9px 16px', background:canAfford?'rgba(251,191,36,0.18)':'rgba(255,255,255,0.03)', border:`1px solid ${canAfford?'#fbbf2466':'var(--border)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canAfford?'#fbbf24':'var(--text-muted)', cursor:canAfford?'pointer':'not-allowed', flexShrink:0, display:'flex', alignItems:'center', gap:'6px' }}>
+                      +1 EMPLACEMENT · 👑{slotCost}
+                    </button>
+                }
+              </div>
+            );
+          })()}
 
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
             {CROWN_GEM_PACKS.map(p => (

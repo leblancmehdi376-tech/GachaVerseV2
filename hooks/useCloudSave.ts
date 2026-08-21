@@ -70,6 +70,8 @@ function getSerializableState() {
     expeditionActive:         es.active,
     expeditionDropInventory:  es.dropInventory,
     expeditionCraftedRecipes: es.craftedRecipes,
+    expeditionSlotLevel:      es.expeditionSlotLevel ?? 0,
+    expeditionDefAffinities:  es.defAffinities ?? {},
     // Prestige — store séparé (prestigeStore), même problème.
     prestigeLevel:     ps.level,
     prestigePoints:    ps.points,
@@ -150,6 +152,8 @@ async function loadAndApply(userId: string) {
       if ('expeditionActive' in data)         { expeditionPatch.active         = data.expeditionActive;         delete data.expeditionActive; }
       if ('expeditionDropInventory' in data)  { expeditionPatch.dropInventory  = data.expeditionDropInventory;  delete data.expeditionDropInventory; }
       if ('expeditionCraftedRecipes' in data) { expeditionPatch.craftedRecipes = data.expeditionCraftedRecipes; delete data.expeditionCraftedRecipes; }
+      if ('expeditionSlotLevel' in data)      { expeditionPatch.expeditionSlotLevel = data.expeditionSlotLevel; delete data.expeditionSlotLevel; }
+      if ('expeditionDefAffinities' in data)  { expeditionPatch.defAffinities  = data.expeditionDefAffinities;  delete data.expeditionDefAffinities; }
       if (Object.keys(expeditionPatch).length) {
         useExpeditionStore.setState(expeditionPatch as unknown as Parameters<typeof useExpeditionStore.setState>[0]);
       }
