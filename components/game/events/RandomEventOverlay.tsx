@@ -26,6 +26,9 @@ export function RandomEventOverlay() {
       if (cut || prevActive.current) {
         setBossNotice(true);
         const t = setTimeout(() => setBossNotice(false), 2600);
+        //reset DPS mult à 1 si on était en Ardeur
+        if (prevActive.current === 'ardeur') useGameStore.getState().setEventDpsMult(1, 0);
+        prevActive.current = null;
         return () => clearTimeout(t);
       }
     }
