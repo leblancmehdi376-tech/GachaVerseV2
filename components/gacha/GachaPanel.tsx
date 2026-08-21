@@ -345,10 +345,6 @@ export function GachaMiniPanel() {
           </div>
         </div>
 
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', textAlign:'center', fontWeight:500 }}>
-          ★ 4+ GARANTI DANS 32 TIRAGES
-        </div>
-
         {/* Taux */}
         <button onClick={() => setShowRate(!showRate)}
           style={{ background:'none', border:'1px solid var(--border)', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', transition:'all 0.15s' }}>

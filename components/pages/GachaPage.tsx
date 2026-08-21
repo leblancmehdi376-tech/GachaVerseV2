@@ -662,7 +662,7 @@ export function GachaPage() {
             <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color:'var(--purple-hi)', letterSpacing:3, marginBottom:4 }}>✦ BANNIÈRE EXCLUSIVE</div>
             <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:4, textShadow:'0 0 20px rgba(168,85,247,0.6)' }}>GACHA VERSE VOL.1</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(255,255,255,0.45)' }}>
-              {BANNER_POOL.length} personnages · 10 raretés · 4★+ garanti en 32 tirages
+              {BANNER_POOL.length} personnages · 10 raretés · cartes shiny
             </div>
           </div>
         </div>
