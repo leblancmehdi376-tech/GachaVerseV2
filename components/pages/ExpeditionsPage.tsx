@@ -2,11 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useExpeditionStore, ActiveExpedition, MAX_ACTIVE_EXPEDITIONS } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
-import { EXPEDITION_DEFS, RARITY_SCORE, ExpeditionDef } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
-import { makeInstanceKey } from '@/lib/game/editions';
+import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
 function fmtDuration(secs: number): string {
@@ -43,7 +43,7 @@ function CharSelector({ def, onConfirm, onClose }: {
   onConfirm: (ids: string[]) => void;
   onClose: () => void;
 }) {
-  const { collection, maxPalierReached } = useGameStore();
+  const { collection, maxPalierReached, equippedTeam } = useGameStore();
   const { isCharOnExpedition } = useExpeditionStore();
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -51,10 +51,8 @@ function CharSelector({ def, onConfirm, onClose }: {
   // perso possédé uniquement en shiny serait invisible pour les expéditions.
   const owned = CHARACTER_POOL.filter(c => !c.isHero &&
     (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(c.id, ed)]));
-  const score = selected.reduce((s, id) => {
-    const tpl = CHARACTER_POOL.find(c => c.id === id);
-    return s + (tpl ? (RARITY_SCORE[tpl.rarity] ?? 1) : 0);
-  }, 0);
+  const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
+  const score = getExpeditionTeamDps(collection, selected);
 
   const toggle = (id: string) => {
     setSelected(prev =>
@@ -73,7 +71,7 @@ function CharSelector({ def, onConfirm, onClose }: {
           <div>
             <div style={{ fontFamily:'var(--f-title)', fontSize:16, color:'var(--purple-glow)', letterSpacing:2 }}>{def.icon} {def.name}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', marginTop:2 }}>
-              Sélectionne jusqu&apos;à {def.slots} personnage{def.slots > 1 ? 's' : ''} · Score requis : {def.minRarityScore}
+              Sélectionne jusqu&apos;à {def.slots} personnage{def.slots > 1 ? 's' : ''} · DPS requis : {formatNumber(def.minTeamDps)}
             </div>
           </div>
           <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:20 }}>✕</button>
@@ -82,12 +80,12 @@ function CharSelector({ def, onConfirm, onClose }: {
         {/* Score */}
         <div style={{ padding:'10px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
           <div className="prog-track" style={{ flex:1 }}>
-            <div className="prog-fill" style={{ width:`${Math.min((score/def.minRarityScore)*100,100)}%`,
-              background: score >= def.minRarityScore ? 'linear-gradient(90deg,#166534,#4ade80)' : undefined,
-              boxShadow: score >= def.minRarityScore ? '0 0 8px #4ade8088' : undefined }} />
+            <div className="prog-fill" style={{ width:`${Math.min((score/def.minTeamDps)*100,100)}%`,
+              background: score >= def.minTeamDps ? 'linear-gradient(90deg,#166534,#4ade80)' : undefined,
+              boxShadow: score >= def.minTeamDps ? '0 0 8px #4ade8088' : undefined }} />
           </div>
-          <span style={{ fontFamily:'var(--f-num)', fontSize:14, color: score >= def.minRarityScore ? '#4ade80' : 'var(--text-dim)', whiteSpace:'nowrap' }}>
-            {score} / {def.minRarityScore}
+          <span style={{ fontFamily:'var(--f-num)', fontSize:14, color: score >= def.minTeamDps ? '#4ade80' : 'var(--text-dim)', whiteSpace:'nowrap' }}>
+            {formatNumber(score)} / {formatNumber(def.minTeamDps)}
           </span>
         </div>
 
@@ -96,8 +94,9 @@ function CharSelector({ def, onConfirm, onClose }: {
           {owned.map(tpl => {
             const cfg = RARITY_CONFIG[tpl.rarity];
             const onExpedition = isCharOnExpedition(tpl.id);
+            const inTeam = equippedPure.includes(tpl.id);
             const isSelected = selected.includes(tpl.id);
-            const disabled = onExpedition || (!isSelected && selected.length >= def.slots);
+            const disabled = onExpedition || inTeam || (!isSelected && selected.length >= def.slots);
             return (
               <button key={tpl.id} onClick={() => !disabled && toggle(tpl.id)}
                 style={{ padding:'10px 8px', borderRadius:10, cursor: disabled ? 'not-allowed' : 'pointer',
@@ -110,8 +109,9 @@ function CharSelector({ def, onConfirm, onClose }: {
                 <span style={{ fontSize:20 }}>{isSelected ? '✅' : '👤'}</span>
                 <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color: isSelected ? cfg.color : 'var(--text)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:9, color:cfg.color, background:`${cfg.color}15`, border:`1px solid ${cfg.color}33`, borderRadius:4, padding:'1px 6px' }}>{tpl.rarity}</div>
-                <span style={{ fontFamily:'var(--f-num)', fontSize:10, color:'var(--text-dim)' }}>⚡ {RARITY_SCORE[tpl.rarity]}</span>
+                <span style={{ fontFamily:'var(--f-num)', fontSize:10, color:'var(--text-dim)' }}>⚡ {formatNumber(getCharacterExpeditionDps(collection, tpl.id))}</span>
                 {onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:9, color:'#fb923c' }}>EN MISSION</span>}
+                {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:9, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
               </button>
             );
           })}
@@ -125,9 +125,9 @@ function CharSelector({ def, onConfirm, onClose }: {
         {/* Footer */}
         <div style={{ padding:'14px 22px', borderTop:'1px solid var(--border)', display:'flex', gap:10, justifyContent:'flex-end' }}>
           <button onClick={onClose} className="btn-secondary" style={{ padding:'10px 20px', fontSize:13, cursor:'pointer' }}>ANNULER</button>
-          <button onClick={() => { if (selected.length > 0 && score >= def.minRarityScore) onConfirm(selected); }}
+          <button onClick={() => { if (selected.length > 0 && score >= def.minTeamDps) onConfirm(selected); }}
             className="btn-primary"
-            disabled={selected.length === 0 || score < def.minRarityScore}
+            disabled={selected.length === 0 || score < def.minTeamDps}
             style={{ padding:'10px 24px', fontSize:13 }}>
             LANCER ({selected.length}/{def.slots})
           </button>
@@ -237,7 +237,7 @@ function ExpeditionCard({ def, onSelect, busy }: { def: ExpeditionDef; onSelect:
             {[
               { icon:'⏱', val: fmtDurationLabel(def.duration), label:'Durée' },
               { icon:'👥', val: `×${def.slots}`, label:'Slots' },
-              { icon:'⚡', val: String(def.minRarityScore), label:'Score min' },
+              { icon:'⚡', val: formatNumber(def.minTeamDps), label:'DPS min' },
             ].map((s,i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:6, padding:'4px 8px' }}>
                 <span style={{ fontSize:11 }}>{s.icon}</span>

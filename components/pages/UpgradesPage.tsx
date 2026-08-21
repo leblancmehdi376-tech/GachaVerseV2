@@ -1,10 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useGameStore, getGoldChestCost, getGoldChestMultiplier } from '@/store/gameStore';
+import { useExpeditionStore } from '@/store/expeditionStore';
 import { formatNumber } from '@/lib/game/format';
-import { levelUpCost, evoCost, canEvolve, calcCharDps, RARITY_CONFIG } from '@/types/game';
+import { levelUpCost, evoCost, canEvolve, calcCharDps, RARITY_CONFIG, evoStoneCost, EVOLUTION_STONE_ITEM_ID } from '@/types/game';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getItemDef } from '@/lib/game/items';
+import { getPalierDrop } from '@/lib/game/expeditions';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { computeActiveSynergies, SYNERGIES_LIST as SYNERGIES } from '@/lib/game/synergies';
@@ -103,11 +105,12 @@ function getItemSource(itemId: string): string {
 // ── Carte personnage avec PP ──────────────────────────────────────────────
 function CharCard({ templateId }: { templateId: string }) {
   const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory } = useGameStore();
+  const { dropInventory } = useExpeditionStore();
   const owned = collection[templateId];
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom partagés entre éditions)
   const tpl   = getCharacterById(pureId);
   if (!owned || !tpl) return null;
-  const canEvo_  = canEvolve(tpl, owned, inventory);
+  const canEvo_  = canEvolve(tpl, owned, inventory, dropInventory);
   const lvCost   = levelUpCost(owned.level);
   const evoCostV = evoCost(tpl.rarity, owned.currentForm);
   const dps      = calcCharDps(tpl, owned);
@@ -115,6 +118,11 @@ function CharCard({ templateId }: { templateId: string }) {
   const nextForm = tpl.forms?.[owned.currentForm + 1];
   const reqItem  = nextForm?.requiredItemId ? getItemDef(nextForm.requiredItemId) : null;
   const hasItem  = reqItem ? (inventory[reqItem.id] ?? 0) >= 1 : true;
+  const canEvolveAtAll = !!tpl.forms && owned.currentForm < tpl.forms.length - 1;
+  const stonesNeeded = canEvolveAtAll ? evoStoneCost(tpl.rarity, owned.currentForm) : 0;
+  const stonesHave   = dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0;
+  const hasStones    = stonesHave >= stonesNeeded;
+  const evoStoneDrop = getPalierDrop(EVOLUTION_STONE_ITEM_ID);
   const name     = getCharFormName(tpl, owned.currentForm);
 
   return (
@@ -161,6 +169,12 @@ function CharCard({ templateId }: { templateId: string }) {
             <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'#c084fc' }}>Requiert : <b>{reqItem.name}</b> ({getItemSource(reqItem.id)})</span>
           </div>
         )}
+        {!canEvo_ && canEvolveAtAll && !hasStones && (
+          <div style={{ padding:'7px 10px', background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontSize:14 }}>{evoStoneDrop?.icon ?? '🔷'}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b> (Sanctuaire des Pierres)</span>
+          </div>
+        )}
         {canEvo_ && (
           <button onClick={() => evolveCharacter(templateId)} disabled={pixelCoins < evoCostV}
             style={{ flex:1, padding:'8px 10px', background:pixelCoins>=evoCostV?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=evoCostV?'#d97706':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=evoCostV?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:pixelCoins>=evoCostV?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
@@ -168,6 +182,7 @@ function CharCard({ templateId }: { templateId: string }) {
               {reqItem ? `${reqItem.icon} ÉVOLUER` : '✦ ÉVOLUER'}
             </span>
             <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
           </button>
         )}
       </div>

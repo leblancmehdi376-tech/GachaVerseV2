@@ -545,6 +545,15 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
   ],
 };
 
+// PV du boss d'un palier (vague 10, hpMult:10) — exposé pour calibrer d'autres
+// systèmes (ex: seuils de DPS d'expédition dans expeditions.ts) sur la même
+// courbe de puissance que le combat, sans dupliquer les constantes.
+export function getPalierBossHp(palier: number): number {
+  const global = (palier - 1) * 10 + 10;
+  const baseHp = Math.floor(120 * Math.pow(1.12, global - 1));
+  return Math.floor(baseHp * 10);
+}
+
 export function generateEnemy(wave: number, palier: number, maxPalierReached: number = palier): Enemy {
   const defs   = PALIER_ENEMIES[palier];
   const def    = defs ? defs[wave - 1] : getFallback(wave, palier);

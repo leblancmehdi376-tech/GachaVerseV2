@@ -1,11 +1,12 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { EXPEDITION_DEFS, CRAFT_RECIPES, RARITY_SCORE, ExpeditionDef } from '@/lib/game/expeditions';
-import { CHARACTER_POOL } from '@/lib/game/characters';
+import { EXPEDITION_DEFS, CRAFT_RECIPES, ExpeditionDef, getExpeditionTeamDps } from '@/lib/game/expeditions';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
+import { parseInstanceKey } from '@/lib/game/editions';
 import { useGameStore } from '@/store/gameStore';
 import { toast } from '@/hooks/useToast';
+import { formatNumber } from '@/lib/game/format';
 
 // Nombre maximum d'expéditions simultanées (une seule à la fois).
 export const MAX_ACTIVE_EXPEDITIONS = 1;
@@ -35,6 +36,7 @@ interface ExpeditionStore {
 
   // ── Actions drops/craft ────────────────────────────────────────────────
   getDropCount:  (dropId: string) => number;
+  consumeDrop:   (dropId: string, quantity: number) => boolean;
   canCraft:      (recipeId: string) => { ok: boolean; missing: string[] };
   craftRecipe:   (recipeId: string) => boolean;
 
@@ -58,6 +60,13 @@ export const useExpeditionStore = create<ExpeditionStore>()(
       resetExpeditions: () => set({ active: [], dropInventory: {}, craftedRecipes: [] }),
 
       getDropCount: (dropId) => get().dropInventory[dropId] ?? 0,
+
+      consumeDrop: (dropId, quantity) => {
+        const have = get().dropInventory[dropId] ?? 0;
+        if (have < quantity) return false;
+        set(s => ({ dropInventory: { ...s.dropInventory, [dropId]: have - quantity } }));
+        return true;
+      },
 
       getActiveForChar: (charId) =>
         get().active.find(e => !e.claimed && e.characterIds.includes(charId)),
@@ -101,20 +110,23 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         if (characterIds.length > def.slots)
           return { ok:false, reason:`Max ${def.slots} personnages` };
 
-        // Vérifier que les persos ne sont pas déjà en expédition
+        // Vérifier que les persos ne sont pas déjà en expédition, ni dans
+        // l'équipe active (exclusivité dans les deux sens — voir aussi
+        // equipCharacter dans gameStore.ts qui bloque le sens inverse).
+        const equippedPure = gs.equippedTeam
+          .filter((t): t is string => !!t)
+          .map(t => parseInstanceKey(t).templateId);
         for (const cid of characterIds) {
           if (get().isCharOnExpedition(cid))
             return { ok:false, reason:`${cid} est déjà en expédition` };
+          if (equippedPure.includes(cid))
+            return { ok:false, reason:`${cid} est dans l'équipe active` };
         }
 
-        // Vérifier le score minimum de rareté
-        const score = characterIds.reduce((sum, cid) => {
-          const tpl = CHARACTER_POOL.find(c => c.id === cid);
-          if (!tpl) return sum;
-          return sum + (RARITY_SCORE[tpl.rarity] ?? 1);
-        }, 0);
-        if (score < def.minRarityScore)
-          return { ok:false, reason:`Score d'équipe insuffisant (${score}/${def.minRarityScore})` };
+        // Vérifier le DPS minimum de l'équipe d'expédition
+        const teamDps = getExpeditionTeamDps(gs.collection, characterIds);
+        if (teamDps < def.minTeamDps)
+          return { ok:false, reason:`DPS d'équipe insuffisant (${formatNumber(teamDps)}/${formatNumber(def.minTeamDps)})` };
 
         return { ok: true };
       },
@@ -155,18 +167,19 @@ export const useExpeditionStore = create<ExpeditionStore>()(
           ? Math.floor(def.rewards.gemsMin + Math.random() * ((def.rewards.gemsMax ?? def.rewards.gemsMin) - def.rewards.gemsMin))
           : 0;
 
-        // Drop spécial — bonus si l'équipe dépasse largement le score requis
-        // (jusqu'à x3), pour récompenser le fait de suréquiper l'expédition.
+        // Drop spécial — le seuil de DPS (déjà garanti par canStart) conditionne
+        // le fait d'avoir un drop ; le dépasser augmente la QUANTITÉ selon une
+        // échelle logarithmique (rendements décroissants, pas de palier fixe à
+        // x3) : ratio=1 -> x1, ratio=2 -> x2, ratio=4 -> x3, ratio=8 -> x4...
         let dropGained = 0;
         if (def.rewards.dropId && Math.random() < (def.rewards.dropChance ?? 0)) {
-          const teamScore = exp.characterIds.reduce((sum, cid) => {
-            const tpl = CHARACTER_POOL.find(c => c.id === cid);
-            return tpl ? sum + (RARITY_SCORE[tpl.rarity] ?? 1) : sum;
-          }, 0);
-          const overkillMult = def.minRarityScore > 0
-            ? Math.max(1, Math.min(3, Math.floor(teamScore / def.minRarityScore)))
-            : 1;
-          dropGained = (def.rewards.dropQuantity ?? 1) * overkillMult;
+          const teamDps = getExpeditionTeamDps(gs.collection, exp.characterIds);
+          const ratio = def.minTeamDps > 0 ? Math.max(1, teamDps / def.minTeamDps) : 1;
+          const bonusMult = 1 + Math.log2(ratio);
+          const base = def.rewards.dropQuantity ?? 1;
+          let qty = Math.max(base, Math.floor(base * bonusMult));
+          if (def.rewards.dropQuantityCap) qty = Math.min(qty, def.rewards.dropQuantityCap);
+          dropGained = qty;
         }
 
         // Appliquer les récompenses monétaires

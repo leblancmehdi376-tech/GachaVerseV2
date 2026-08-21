@@ -5,6 +5,7 @@ import {
   GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
   calcCharDps, xpToNextLevel, levelUpCost, heroLevelUpCost,
   evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG, Rarity, getNextRarity,
+  evoStoneCost, EVOLUTION_STONE_ITEM_ID,
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, RARITY_GATES } from '@/lib/game/gacha';
@@ -17,6 +18,7 @@ import { auth } from '@/lib/firebase/config';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { useUltimateStore, getActiveCoinMultiplier } from '@/store/ultimateStore';
 import { usePrestigeStore, getPrestigeBonuses } from '@/store/prestigeStore';
+import { useExpeditionStore } from '@/store/expeditionStore';
 import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
 import { rollCardEdition, makeInstanceKey, parseInstanceKey, CardEdition } from '@/lib/game/editions';
 import { useAchievementStore } from '@/store/achievementStore';
@@ -841,9 +843,13 @@ export const useGameStore = create<GameStore>()(
         const owned = get().collection[templateId];
         if (!owned) return;
         const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
-        if (!tpl || !canEvolve(tpl, owned, get().inventory)) return;
+        const expState = useExpeditionStore.getState();
+        if (!tpl || !canEvolve(tpl, owned, get().inventory, expState.dropInventory)) return;
         const cost = evoCost(tpl.rarity, owned.currentForm);
         if (!get().spendPixelCoins(cost)) return;
+        // Consomme les Pierres d'Évolution (drop d'expédition) requises
+        const stonesCost = evoStoneCost(tpl.rarity, owned.currentForm);
+        if (stonesCost > 0) expState.consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);
         // Consomme l'item requis pour cette évolution si applicable
         const nextForm = tpl.forms?.[owned.currentForm + 1];
         const requiredItem = nextForm?.requiredItemId;
@@ -935,6 +941,10 @@ export const useGameStore = create<GameStore>()(
         const tpl = getCharacterById(parseInstanceKey(id).templateId);
         if (!tpl) return;
         if (get().maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier) return;
+        // Exclusivité expédition ↔ équipe active : un perso en expédition ne
+        // peut pas être équipé (voir aussi canStart dans expeditionStore.ts,
+        // qui bloque le sens inverse).
+        if (useExpeditionStore.getState().isCharOnExpedition(parseInstanceKey(id).templateId)) return;
         set(state => {
           const team = [...state.equippedTeam] as (string | null)[];
           const currentSlot = team.findIndex(entry => entry === id);

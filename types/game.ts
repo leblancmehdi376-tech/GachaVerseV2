@@ -105,11 +105,22 @@ export function getLevelCap(character: CharacterTemplate, formIndex: number): nu
   return character.forms[formIndex]?.levelCap ?? 100 * (formIndex + 1);
 }
 
-export function canEvolve(character: CharacterTemplate, owned: OwnedCharacter, inventory: Record<string, number> = {}): boolean {
+// Coût en Pierres d'Évolution (drop d'expédition, voir lib/game/expeditions.ts
+// — dropId 'pierre_evolution') : plus la rareté est haute et plus la forme
+// actuelle est avancée, plus l'évolution suivante coûte cher en pierres.
+export const EVOLUTION_STONE_ITEM_ID = 'pierre_evolution';
+export function evoStoneCost(rarity: Rarity, currentForm: number): number {
+  const rarityIdx = RARITY_ORDER_ASC.indexOf(rarity);
+  return (rarityIdx + 1) * (currentForm + 1) * 3;
+}
+
+export function canEvolve(character: CharacterTemplate, owned: OwnedCharacter, inventory: Record<string, number> = {}, dropInventory: Record<string, number> = {}): boolean {
   if (!character.forms || character.forms.length === 0) return false;
   if (owned.currentForm >= character.forms.length - 1) return false;
   const nextForm = character.forms[owned.currentForm + 1];
   if (nextForm.requiredItemId && (inventory[nextForm.requiredItemId] ?? 0) < 1) return false;
+  const stonesNeeded = evoStoneCost(character.rarity, owned.currentForm);
+  if ((dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0) < stonesNeeded) return false;
   return true;
 }
 

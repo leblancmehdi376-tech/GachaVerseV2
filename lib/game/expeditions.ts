@@ -1,8 +1,53 @@
 // lib/game/expeditions.ts
 
-import { Rarity, RARITY_CONFIG } from '@/types/game';
+import { Rarity, RARITY_CONFIG, getPalierConfig, calcCharDps, OwnedCharacter } from '@/types/game';
 import { EQUIP_RARITY_MIN_PALIER } from '@/lib/game/items';
 import { RARITY_GATES } from '@/lib/game/gacha';
+import { getPalierBossHp } from '@/lib/game/enemies';
+import { CHARACTER_POOL } from '@/lib/game/characters';
+import { makeInstanceKey } from '@/lib/game/editions';
+
+// ── Seuil de DPS d'équipe requis par expédition ───────────────────────────
+// Le seuil n'est plus un poids de rareté arbitraire (RARITY_SCORE) mais un
+// DPS réel, calibré sur la rareté du personnage que l'expédition sert à
+// obtenir/faire évoluer (ses matériaux de forge, ou la rareté d'équipement
+// débloquée) : "seuil = DPS nécessaire pour tuer le boss du palier où cette
+// rareté se débloque, dans son temps imparti" — un repère 100% dérivé des
+// courbes de combat existantes, jamais un nombre inventé.
+function referenceTeamDps(rarity: Rarity): number {
+  const palier = RARITY_GATES[rarity].unlockPalier;
+  return getPalierBossHp(palier) / getPalierConfig(palier).bossTimerSeconds;
+}
+
+// Rareté "typique" débloquée à un palier donné (fallback pour les
+// expéditions sans cible de craft précise, ex: farming générique).
+const RARITY_BY_UNLOCK_PALIER: Rarity[] = (Object.keys(RARITY_GATES) as Rarity[])
+  .sort((a, b) => RARITY_GATES[a].unlockPalier - RARITY_GATES[b].unlockPalier);
+function rarityForPalier(palier: number): Rarity {
+  let result: Rarity = 'C';
+  for (const r of RARITY_BY_UNLOCK_PALIER) {
+    if (RARITY_GATES[r].unlockPalier <= palier) result = r;
+  }
+  return result;
+}
+
+// DPS d'un personnage (par id de template pur, toutes éditions confondues)
+// pour le calcul de score d'expédition : prend la meilleure édition possédée,
+// puisque les expéditions ne distinguent pas Base/Or/Diamant.
+export function getCharacterExpeditionDps(collection: Record<string, OwnedCharacter>, templateId: string): number {
+  const tpl = CHARACTER_POOL.find(c => c.id === templateId);
+  if (!tpl) return 0;
+  let best = 0;
+  for (const ed of ['base', 'gold', 'diamond'] as const) {
+    const owned = collection[makeInstanceKey(templateId, ed)];
+    if (owned) best = Math.max(best, calcCharDps(tpl, owned));
+  }
+  return best;
+}
+
+export function getExpeditionTeamDps(collection: Record<string, OwnedCharacter>, characterIds: string[]): number {
+  return characterIds.reduce((sum, cid) => sum + getCharacterExpeditionDps(collection, cid), 0);
+}
 
 // ── Drops spéciaux par palier ────────────────────────────────────────────
 export interface PalierDrop {
@@ -27,6 +72,7 @@ export const PALIER_DROPS: PalierDrop[] = [
   { id:'bijou_divin',    name:'Bijou Divin',            icon:'⚡', description:'Artefact des dieux de Ragnarök.',                            palier:31, universName:'Valkyrie Apocalypse'  },
   { id:'ame_humaine',    name:'Âme Humaine',            icon:'❤',  description:'L\'une des 7 âmes humaines du monde souterrain.',           palier:38, universName:'Undertale'            },
   { id:'duplication_shards', name:'Éclat de Duplication', icon:'🔮', description:'Permet de dupliquer un objet ou une essence.',           palier:9,  universName:'Tensei Slime'         },
+  { id:'pierre_evolution', name:'Pierre d\'Évolution',  icon:'🔷', description:'Catalyseur mystique nécessaire pour faire évoluer un personnage vers sa forme suivante.', palier:3, universName:'Mystique' },
 ];
 
 export function getPalierDrop(id: string): PalierDrop | undefined {
@@ -180,7 +226,7 @@ export interface ExpeditionDef {
   duration:       number;      // en secondes
   slots:          number;      // nb persos (1-4)
   palierRequired: number;
-  minRarityScore: number;      // somme basique de "poids de rareté" requis
+  minTeamDps:     number;      // DPS d'équipe requis (voir referenceTeamDps)
   rewards: {
     coinsMin:     number;
     coinsMax:     number;
@@ -189,18 +235,13 @@ export interface ExpeditionDef {
     dropId?:      string;     // drop spécial possible
     dropChance?:  number;     // 0-1
     dropQuantity?: number;
+    dropQuantityCap?: number; // plafond du bonus de quantité (sinon illimité)
   };
   isFarming?:     boolean;    // expédition de retour-palier
   farmingPalier?: number;
   unlocksEquipRarity?: Rarity;     // débloque la fusion d'équipement vers cette rareté au claim
   unlocksEquipDropRarity?: Rarity; // débloque le drop en combat de cette rareté au claim
 }
-
-// Poids de rareté pour calculer le score d'une équipe (utilisé aussi par les
-// expéditions de déblocage d'équipement générées plus bas).
-export const RARITY_SCORE: Record<string, number> = {
-  C:1, U:2, R:4, E:8, L:15, M:25, S:40, CO:60, P:90, T:150,
-};
 
 const H = 3600;
 
@@ -235,7 +276,7 @@ const EQUIP_UNLOCK_EXPEDITIONS: ExpeditionDef[] = EQUIP_UNLOCK_TIER_ORDER.map(r 
   duration: EQUIP_UNLOCK_DURATION[r],
   slots: EQUIP_UNLOCK_SLOTS[r],
   palierRequired: EQUIP_RARITY_MIN_PALIER[r],
-  minRarityScore: RARITY_SCORE[r],
+  minTeamDps: referenceTeamDps(r),
   rewards: EQUIP_UNLOCK_REWARDS[r],
   unlocksEquipRarity: r,
 }));
@@ -253,95 +294,101 @@ const EQUIP_DROP_UNLOCK_EXPEDITIONS: ExpeditionDef[] = EQUIP_UNLOCK_TIER_ORDER.m
   duration: EQUIP_UNLOCK_DURATION[r],
   slots: EQUIP_UNLOCK_SLOTS[r],
   palierRequired: EQUIP_RARITY_MIN_PALIER[r],
-  minRarityScore: RARITY_SCORE[r],
+  minTeamDps: referenceTeamDps(r),
   rewards: EQUIP_UNLOCK_REWARDS[r],
   unlocksEquipDropRarity: r,
 }));
 
 export const EXPEDITION_DEFS: ExpeditionDef[] = [
-  // ── Courtes (2-4h) ──────────────────────────────────────────────────────
+  // ── Courtes (2-5h) ──────────────────────────────────────────────────────
   {
     id:'cave_cristal', name:'Caverne de Cristal', icon:'💎', universe:'Subnautica',
     description:'Explore les cavernes sous-marines à la recherche de ressources.',
-    duration: 2*H, slots:1, palierRequired:1, minRarityScore:1,
+    duration: 2*H, slots:1, palierRequired:1, minTeamDps: referenceTeamDps(rarityForPalier(1)),
     rewards:{ coinsMin:50_000, coinsMax:150_000, gemsMin:1, gemsMax:3 },
   },
   {
     id:'foret_kame', name:'Forêt de la Tortue', icon:'🐢', universe:'Dragon Ball Z',
     description:'Cherche les pierres secrètes cachées par Maître Roshi.',
-    duration: 3*H, slots:1, palierRequired:1, minRarityScore:2,
+    duration: 3*H, slots:1, palierRequired:1, minTeamDps: referenceTeamDps('P'),
     rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'ore_kame', dropChance:0.6, dropQuantity:1 },
   },
   {
     id:'entrainement_saiyen', name:'Entraînement Intensif — Capsule Corp', icon:'🔥', universe:'Dragon Ball Z',
     description:'Repousse tes limites dans la chambre de gravité pour éveiller ta puissance Saiyenne.',
-    duration: 3*H, slots:1, palierRequired:1, minRarityScore:2,
+    duration: 3*H, slots:1, palierRequired:1, minTeamDps: referenceTeamDps('P'),
     rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'saiyen_power', dropChance:0.6, dropQuantity:2 },
+  },
+  {
+    id:'sanctuaire_evolution', name:'Sanctuaire des Pierres', icon:'🔷', universe:'Mystique',
+    description:'Explore un sanctuaire oublié où se forment les catalyseurs d\'évolution.',
+    duration: 3*H, slots:2, palierRequired:3, minTeamDps: referenceTeamDps('U'),
+    rewards:{ coinsMin:100_000, coinsMax:250_000, gemsMin:1, gemsMax:3, dropId:'pierre_evolution', dropChance:1, dropQuantity:1, dropQuantityCap:3 },
   },
   {
     id:'patrol_easblue', name:'Patrouille East Blue', icon:'🌊', universe:'One Piece',
     description:'Croise les mers d\'East Blue pour récupérer du butin.',
-    duration: 4*H, slots:2, palierRequired:2, minRarityScore:4,
+    duration: 4*H, slots:2, palierRequired:2, minTeamDps: referenceTeamDps('T'),
     rewards:{ coinsMin:150_000, coinsMax:400_000, gemsMin:2, gemsMax:5, dropId:'sea_fragment', dropChance:0.5, dropQuantity:1 },
   },
   {
     id:'ile_fruit_demon', name:'Île Mystérieuse aux Fruits', icon:'🍈', universe:'One Piece',
     description:'Une île qui n\'apparaît qu\'une fois par génération, dit-on, chargée de fruits maudits.',
-    duration: 5*H, slots:2, palierRequired:2, minRarityScore:6,
+    duration: 5*H, slots:2, palierRequired:2, minTeamDps: referenceTeamDps('T'),
     rewards:{ coinsMin:200_000, coinsMax:500_000, gemsMin:2, gemsMax:6, dropId:'fruit_demon', dropChance:0.12, dropQuantity:1 },
   },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────
   {
     id:'esplanade_tempest', name:'Esplanade de Tempest', icon:'🔮', universe:'Tensei Slime',
     description:'Sillonne les plaines de Tempest pour récolter des fragments magiques.',
-    duration: 8*H, slots:2, palierRequired:9, minRarityScore:10,
+    duration: 8*H, slots:2, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(9)),
     rewards:{ coinsMin:600_000, coinsMax:1_500_000, gemsMin:5, gemsMax:14, dropId:'duplication_shards', dropChance:0.65, dropQuantity:3 },
   },
   // ── Longues (12-24h) ────────────────────────────────────────────────────
   {
     id:'farm_namek', name:'Retour sur Namek', icon:'💫', universe:'Dragon Ball Z',
     description:'Retourne sur la planète Namek pour récolter les légendaires Boucles Potara.',
-    duration: 12*H, slots:3, palierRequired:24, minRarityScore:20,
+    duration: 12*H, slots:3, palierRequired:24, minTeamDps: referenceTeamDps('P'),
     isFarming:true, farmingPalier:24,
     rewards:{ coinsMin:1_000_000, coinsMax:3_000_000, gemsMin:8, gemsMax:20, dropId:'potala', dropChance:0.7, dropQuantity:1 },
   },
   {
     id:'farm_bleach', name:'Soul Society — Secteur 1', icon:'💠', universe:'Bleach',
     description:'Infiltre Soul Society pour récupérer des fragments de l\'Hogyoku d\'Aizen.',
-    duration: 12*H, slots:3, palierRequired:12, minRarityScore:18,
+    duration: 12*H, slots:3, palierRequired:12, minTeamDps: referenceTeamDps('P'),
     isFarming:true, farmingPalier:12,
     rewards:{ coinsMin:1_200_000, coinsMax:3_500_000, gemsMin:10, gemsMax:22, dropId:'hogyoku', dropChance:0.65, dropQuantity:1 },
   },
   {
     id:'chasse_zanpakuto', name:'Chasse au Zanpakuto Perdu', icon:'⚔️', universe:'Bleach',
     description:'Traque les lames abandonnées dans les ruines du Seireitei — rares et jalousement gardées.',
-    duration: 14*H, slots:3, palierRequired:12, minRarityScore:18,
+    duration: 14*H, slots:3, palierRequired:12, minTeamDps: referenceTeamDps('P'),
     rewards:{ coinsMin:1_200_000, coinsMax:3_500_000, gemsMin:10, gemsMax:22, dropId:'zanpakuto', dropChance:0.15, dropQuantity:1 },
   },
   {
     id:'farm_demonslayer', name:'Montagne Wisteria', icon:'☀', universe:'Demon Slayer',
     description:'Escalade la montagne sacrée pour forger du minerai sous la lumière du soleil.',
-    duration: 16*H, slots:3, palierRequired:25, minRarityScore:24,
+    duration: 16*H, slots:3, palierRequired:25, minTeamDps: referenceTeamDps('P'),
     isFarming:true, farmingPalier:25,
     rewards:{ coinsMin:2_000_000, coinsMax:5_000_000, gemsMin:12, gemsMax:28, dropId:'ore_soleil', dropChance:0.6, dropQuantity:2 },
   },
   {
     id:'forge_nichirin', name:'Forge du Sabre Nichirin', icon:'🗡️', universe:'Demon Slayer',
     description:'Assiste le forgeron Haganezuka dans la création d\'une lame Nichirin — un échec sur mille réussit.',
-    duration: 18*H, slots:3, palierRequired:25, minRarityScore:24,
+    duration: 18*H, slots:3, palierRequired:25, minTeamDps: referenceTeamDps('P'),
     rewards:{ coinsMin:2_000_000, coinsMax:5_000_000, gemsMin:12, gemsMax:28, dropId:'manche_sabre', dropChance:0.15, dropQuantity:1 },
   },
   {
     id:'farm_ragnarok', name:'Colisée du Ragnarök', icon:'⚡', universe:'Valkyrie Apocalypse',
     description:'Affronte les dieux pour récupérer leurs Bijoux Divins perdus.',
-    duration: 20*H, slots:4, palierRequired:31, minRarityScore:32,
+    duration: 20*H, slots:4, palierRequired:31, minTeamDps: referenceTeamDps('CO'),
     isFarming:true, farmingPalier:31,
     rewards:{ coinsMin:3_000_000, coinsMax:7_000_000, gemsMin:15, gemsMax:35, dropId:'bijou_divin', dropChance:0.6, dropQuantity:1 },
   },
   {
     id:'farm_undertale', name:'Monde Souterrain Profond', icon:'❤', universe:'Undertale',
     description:'Descends dans les abysses pour récolter les Âmes Humaines éparpillées.',
-    duration: 24*H, slots:4, palierRequired:38, minRarityScore:40,
+    duration: 24*H, slots:4, palierRequired:38, minTeamDps: referenceTeamDps('P'),
     isFarming:true, farmingPalier:38,
     rewards:{ coinsMin:5_000_000, coinsMax:12_000_000, gemsMin:20, gemsMax:50, dropId:'ame_humaine', dropChance:0.55, dropQuantity:2 },
   },
