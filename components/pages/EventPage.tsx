@@ -2,12 +2,106 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useGameStore, bumpBossQuests } from '@/store/gameStore';
 import { useUltimateStore } from '@/store/ultimateStore';
+import { useExpeditionStore } from '@/store/expeditionStore';
 import { EVENT_BOSSES, rollEventDrop, getEventBossMaxHp, EventBossDef, DropResult } from '@/lib/game/eventBoss';
 import { getItemDef } from '@/lib/game/items';
+import { CHARACTER_POOL } from '@/lib/game/characters';
+import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
+import { Affinity, AFFINITY_ORDER, AFFINITY_CONFIG, affinityMatchupKind, getAffinityForId } from '@/lib/game/affinities';
 import { calculateEquippedTeamDps } from '@/lib/game/dpsCalculation';
 import { formatNumber } from '@/lib/game/format';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
 import { EventMusicPlayer } from '@/components/game/EventMusicPlayer';
+
+// ── Compagnons d'event : jusqu'à 3 alliés hors équipe/expédition qui
+// influencent la durée du combat selon leur type vs celui (aléatoire) du boss.
+const MAX_EVENT_COMPANIONS = 3;
+const COMPANION_DURATION_STEP = 0.10; // ±10% par compagnon fort/faible
+
+function rollBossAffinity(): Affinity {
+  return AFFINITY_ORDER[Math.floor(Math.random() * AFFINITY_ORDER.length)];
+}
+
+function computeDurationMult(companionIds: string[], bossAffinity: Affinity): number {
+  let mult = 1;
+  for (const cid of companionIds) {
+    const kind = affinityMatchupKind(getAffinityForId(cid), bossAffinity);
+    if (kind === 'strong') mult -= COMPANION_DURATION_STEP;
+    else if (kind === 'weak') mult += COMPANION_DURATION_STEP;
+  }
+  return Math.max(0.1, mult);
+}
+
+function CompanionSelector({ bossAffinity, selected, onToggle, onClose }: {
+  bossAffinity: Affinity;
+  selected: string[];
+  onToggle: (id: string) => void;
+  onClose: () => void;
+}) {
+  const { collection, equippedTeam } = useGameStore();
+  const { isCharOnExpedition } = useExpeditionStore();
+
+  const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
+  const owned = CHARACTER_POOL.filter(c => !c.isHero &&
+    (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(c.id, ed)]));
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="panel" style={{ width:'100%', maxWidth:640, maxHeight:'80vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:'var(--purple-glow)', letterSpacing:2 }}>🤝 Compagnons ({selected.length}/{MAX_EVENT_COMPANIONS})</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:2, display:'flex', alignItems:'center', gap:6 }}>
+              Boss : <span style={{ color:AFFINITY_CONFIG[bossAffinity].color, fontWeight:700 }}>{AFFINITY_CONFIG[bossAffinity].icon} {AFFINITY_CONFIG[bossAffinity].label}</span>
+              — un type fort réduit le combat de 10%, un type faible l&apos;allonge de 10%
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:20.6 }}>✕</button>
+        </div>
+
+        <div style={{ flex:1, overflowY:'auto', padding:'12px 16px', display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:8 }}>
+          {owned.map(tpl => {
+            const onExpedition = isCharOnExpedition(tpl.id);
+            const inTeam = equippedPure.includes(tpl.id);
+            const isSelected = selected.includes(tpl.id);
+            const disabled = onExpedition || inTeam || (!isSelected && selected.length >= MAX_EVENT_COMPANIONS);
+            const affinity = getAffinityForId(tpl.id);
+            const cfg = AFFINITY_CONFIG[affinity];
+            const kind = affinityMatchupKind(affinity, bossAffinity);
+            const kindLabel = kind === 'strong' ? '▲ -10% durée' : kind === 'weak' ? '▼ +10% durée' : '● neutre';
+            const kindColor = kind === 'strong' ? '#4ade80' : kind === 'weak' ? '#f87171' : 'var(--text-dim)';
+            return (
+              <button key={tpl.id} onClick={() => !disabled && onToggle(tpl.id)}
+                style={{ padding:'10px 8px', borderRadius:10, cursor: disabled ? 'not-allowed' : 'pointer',
+                  background: isSelected ? `${cfg.color}18` : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${isSelected ? cfg.color+'66' : 'var(--border)'}`,
+                  opacity: disabled ? 0.4 : 1,
+                  display:'flex', flexDirection:'column', alignItems:'center', gap:5,
+                  boxShadow: isSelected ? `0 0 14px ${cfg.glow}44` : 'none',
+                  transition:'all 0.15s' }}>
+                <span style={{ fontSize:20.6 }}>{isSelected ? '✅' : cfg.icon}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color: isSelected ? cfg.color : 'var(--text)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:kindColor, fontWeight:700 }}>{kindLabel}</div>
+                {onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#fb923c' }}>EN MISSION</span>}
+                {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
+              </button>
+            );
+          })}
+          {owned.length === 0 && (
+            <div style={{ gridColumn:'1/-1', textAlign:'center', color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:12.4, padding:24 }}>
+              Aucun personnage disponible.
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding:'14px 22px', borderTop:'1px solid var(--border)', display:'flex', justifyContent:'flex-end' }}>
+          <button onClick={onClose} className="btn-primary" style={{ padding:'10px 24px', fontSize:13.4 }}>VALIDER</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function EventBg({ boss }: { boss: EventBossDef }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(boss.bgImagePath));
@@ -193,7 +287,19 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
   const boss = useMemo(() => EVENT_BOSSES.find(b => b.id === bossId) ?? EVENT_BOSSES[0], [bossId]);
   const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection), [equippedTeam, collection]);
 
-  const [maxHp, setMaxHp] = useState(() => getEventBossMaxHp(boss, totalEquippedDps));
+  // Type du boss : tiré au hasard à chaque nouveau lancement (entrée + chaque
+  // respawn après un kill — voir respawn() plus bas), pas déterministe.
+  const [bossAffinity, setBossAffinity] = useState<Affinity>(() => rollBossAffinity());
+  const [companionIds, setCompanionIds] = useState<string[]>([]);
+  const [showCompanions, setShowCompanions] = useState(false);
+  const durationMult = useMemo(() => computeDurationMult(companionIds, bossAffinity), [companionIds, bossAffinity]);
+  const toggleCompanion = (id: string) => setCompanionIds(prev =>
+    prev.includes(id) ? prev.filter(x => x !== id)
+      : prev.length < MAX_EVENT_COMPANIONS ? [...prev, id]
+      : prev
+  );
+
+  const [maxHp, setMaxHp] = useState(() => getEventBossMaxHp(boss, totalEquippedDps, durationMult));
   const [hp, setHp] = useState(maxHp);
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
   const [drops, setDrops] = useState<DropResult[] | null>(null);
@@ -202,9 +308,9 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
   const now = Date.now();
 
   useEffect(() => {
-    const freshMax = getEventBossMaxHp(boss, totalEquippedDps);
+    const freshMax = getEventBossMaxHp(boss, totalEquippedDps, durationMult);
     setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null);
-  }, [boss, totalEquippedDps]);
+  }, [boss, totalEquippedDps, durationMult]);
 
   // ── Combat automatique : dégâts du DPS d'équipe chaque seconde, avec
   // un pop-up de dégâts flottant pour le retour visuel (plus de clic).
@@ -252,7 +358,12 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
   }, [hp, dead, addItem, boss]);
 
   const respawn = () => {
-    const freshMax = getEventBossMaxHp(boss, totalEquippedDps);
+    // Nouveau type de boss à chaque nouveau lancement — calculé directement
+    // avec la nouvelle valeur (le state bossAffinity ne sera à jour qu'au
+    // prochain rendu, donc on ne peut pas relire durationMult ici).
+    const nextAffinity = rollBossAffinity();
+    setBossAffinity(nextAffinity);
+    const freshMax = getEventBossMaxHp(boss, totalEquippedDps, computeDurationMult(companionIds, nextAffinity));
     setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null); setKills(k => k + 1);
   };
 
@@ -264,6 +375,14 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
       <EventBg boss={boss} />
       <EventMusicPlayer />
       {drops && <DropPopup drops={drops} onClose={() => { setDrops(null); respawn(); }} />}
+      {showCompanions && (
+        <CompanionSelector
+          bossAffinity={bossAffinity}
+          selected={companionIds}
+          onToggle={toggleCompanion}
+          onClose={() => setShowCompanions(false)}
+        />
+      )}
 
       <div style={{ position:'relative', padding:'10px 16px', borderBottom:'1px solid rgba(192,132,252,0.12)', background:'rgba(0,0,0,0.45)', flexShrink:0, display:'flex', alignItems:'center', gap:14 }}>
         <button onClick={onBack}
@@ -277,8 +396,15 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
             <div style={{ width:6, height:6, borderRadius:'50%', background: boss.availableUntil > now ? '#4ade80' : '#f87171', animation:'pulse 2s infinite' }} />
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, fontWeight:900, color:'white', letterSpacing:2 }}>{boss.name.toUpperCase()}</span>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>{boss.subtitle}</span>
+            <span title="Type du boss (aléatoire à chaque combat)" style={{ display:'inline-flex', alignItems:'center', gap:4, background:`${AFFINITY_CONFIG[bossAffinity].color}22`, border:`1px solid ${AFFINITY_CONFIG[bossAffinity].color}55`, borderRadius:999, padding:'2px 9px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:AFFINITY_CONFIG[bossAffinity].color }}>
+              {AFFINITY_CONFIG[bossAffinity].icon} {AFFINITY_CONFIG[bossAffinity].label}
+            </span>
           </div>
         </div>
+        <button onClick={() => setShowCompanions(true)}
+          style={{ background: companionIds.length > 0 ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.06)', border:`1px solid ${companionIds.length > 0 ? 'rgba(192,132,252,0.5)' : 'rgba(255,255,255,0.15)'}`, borderRadius:8, padding:'7px 14px', cursor:'pointer', color: companionIds.length > 0 ? '#c084fc' : 'rgba(255,255,255,0.7)', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, letterSpacing:1, display:'flex', alignItems:'center', gap:6, flexShrink:0, transition:'all 0.15s' }}>
+          🤝 COMPAGNONS ({companionIds.length}/{MAX_EVENT_COMPANIONS})
+        </button>
         <div style={{ display:'flex', gap:16 }}>
           {[
             { icon:'⚔', val:kills, label:'Victoires' },
@@ -302,6 +428,11 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
           <div style={{ height:16, background:'rgba(255,255,255,0.08)', borderRadius:8, overflow:'hidden', border:'1px solid rgba(255,255,255,0.1)' }}>
             <div style={{ height:'100%', width:`${hpPct}%`, background:`linear-gradient(90deg,${hpColor}aa,${hpColor})`, borderRadius:8, transition:'width 0.3s ease', boxShadow:`0 0 12px ${hpColor}66` }} />
           </div>
+          {durationMult !== 1 && (
+            <div style={{ marginTop:6, textAlign:'center', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color: durationMult < 1 ? '#4ade80' : '#f87171' }}>
+              {durationMult < 1 ? '▲' : '▼'} {durationMult < 1 ? '-' : '+'}{Math.round(Math.abs(1 - durationMult) * 100)}% durée grâce aux compagnons
+            </div>
+          )}
         </div>
         <div style={{ position:'relative', userSelect:'none', filter: dead?'grayscale(1) brightness(0.3)':'none', transition:'filter 0.1s' }}>
           <BossSprite boss={boss} deadStyle={dead} />

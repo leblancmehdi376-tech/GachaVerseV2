@@ -121,8 +121,13 @@ export function rollEventDrop(bossId: string): DropResult[] {
 const FIGHT_TARGET_SECONDS = 300;       // durée visée d'un combat via DPS passif seul (~4 min) pour un joueur déjà puissant
 const MIN_POWER_FLOOR      = 50;        // évite un calcul à 0 pour un joueur sans équipe
 
-export function getEventBossMaxHp(boss: EventBossDef, currentPower: number): number {
+// durationMult : influence de l'équipe de compagnons (types forts/faibles
+// contre le type du boss, ±10% cumulable par compagnon — voir EventPage.tsx).
+// Le temps de combat reste "fixe" pour une config donnée : PV = DPS × temps,
+// donc le combat dure toujours exactement targetSeconds × durationMult,
+// quelle que soit la puissance du joueur.
+export function getEventBossMaxHp(boss: EventBossDef, currentPower: number, durationMult: number = 1): number {
   const power = Math.max(currentPower, MIN_POWER_FLOOR);
-  const targetSeconds = boss.targetSeconds ?? FIGHT_TARGET_SECONDS;
+  const targetSeconds = (boss.targetSeconds ?? FIGHT_TARGET_SECONDS) * durationMult;
   return Math.floor(power * targetSeconds);
 }
