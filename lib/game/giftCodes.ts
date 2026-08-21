@@ -32,8 +32,8 @@ export const GIFT_CODES: GiftCodeDef[] = [
     pixelCoins:   700_000_000,
     characters:   ['arthur_leywin', 'arthur_leywin'],
     gems:1200,
-  },
-  {
+  },*/
+  /*{
     code:         'CODE-SORRY-INES',
     pixelCoins:   1_000_000,
     gems: 400,
@@ -62,9 +62,17 @@ export const GIFT_CODES: GiftCodeDef[] = [
   /*{
     code:          'GOKU-DIAMOND-MAX',
     maxCharacters: ['goku'],
+  },
+  {
+    code:          'POPO-DIAMOND-MAX',
+    maxCharacters: ['mr_popo'],
+  },
+  {
+    code:          'NARUTO-DIAMOND-MAX',
+    maxCharacters: ['naruto'],
   },*/
   // ── Personnages offerts (édition tirée normalement, pas de bonus max) ──
-  {
+  /*{
     code:       'OUCHUU-CADEAU',
     characters: ['ouchuu'],
   },
@@ -83,7 +91,7 @@ export const GIFT_CODES: GiftCodeDef[] = [
   {
     code:      'EPEE-AUBE',
     equipment: ['weapon_primordial_dawn'],
-  },
+  },*/
 ];
 
 // Normalise une saisie utilisateur (espaces, casse) pour la comparaison
