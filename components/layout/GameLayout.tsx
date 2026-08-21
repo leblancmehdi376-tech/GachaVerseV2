@@ -54,13 +54,13 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
     { id:'home',         label:'ACCUEIL',         accent:'var(--purple-glow)' },
   ]},
   { title:'ÉQUIPE', items: [
-    { id:'companions',   label:'COMPAGNONS',      accent:'var(--purple-hi)'   },
+    { id:'companions',   label:'COMPAGNONS',      accent:'var(--purple-hi)'     },
+    { id:'equipment',    label:'ÉQUIPEMENT',      accent:'#93c5fd'            },
     { id:'collection',   label:'COLLECTION',      accent:'#60a5fa'            },
-    { id:'gacha',        label:'GACHA',           accent:'var(--cyan-hi)'     },
   ]},
   { title:'PROGRESSION', items: [
-    { id:'upgrades',     label:'AMÉLIORATIONS',   accent:'var(--gold)'        },
-    { id:'prestige',     label:'PRESTIGE',        accent:'var(--purple-glow)' },
+    { id:'upgrades',     label:'AMÉLIORATIONS',   accent:'var(--gold)'          },
+    { id:'prestige',     label:'PRESTIGE',        accent:'var(--purple-glow)'   },
     { id:'achievements', label:'SUCCÈS',          accent:'#fbbf24'            },
   ]},
   { title:'ACTIVITÉS', items: [
@@ -68,14 +68,14 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
     { id:'expeditions',  label:'EXPÉDITIONS',     accent:'#fb923c'            },
     { id:'champions',    label:'INV. CHAMPIONS',  accent:'#fbbf24'            },
   ]},
-  { title:'ÉCHANGES', items: [
+  { title:'ÉCONOMIE', items: [
+    { id:'gacha',        label:'GACHA',           accent:'var(--cyan-hi)'       },
     { id:'shop',         label:'BOUTIQUE',        accent:'#4ade80'            },
-    { id:'forge',        label:'FORGE',           accent:'#e879f9'            },
-    { id:'equipment',    label:'ÉQUIPEMENT',      accent:'#93c5fd'            },
     { id:'marketplace',  label:'HÔTEL DE VILLE',  accent:'#f97316'            },
+    { id:'forge',        label:'FORGE',           accent:'#e879f9'            },
   ]},
   { title:'COMPTE', items: [
-    { id:'profile',      label:'PROFIL',          accent:'var(--purple-glow)' },
+    { id:'profile',      label:'PROFIL',          accent:'var(--purple-glow)'   },
   ]},
 ];
 
