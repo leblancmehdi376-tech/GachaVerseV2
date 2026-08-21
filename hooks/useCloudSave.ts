@@ -30,6 +30,7 @@ function getSerializableState() {
     wave:               s.wave,
     palier:             s.palier,
     maxPalierReached:   s.maxPalierReached,
+    runPeakPalier:      s.runPeakPalier ?? null,
     currentEnemy:       s.currentEnemy,
     goldUpgradeLevel:   s.goldUpgradeLevel ?? 0,
     equippedTeam:       s.equippedTeam,

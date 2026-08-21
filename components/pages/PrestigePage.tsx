@@ -107,12 +107,16 @@ function RollResultPopup({ type, onClose }: { type: PrestigeBonusType; onClose: 
 
 export function PrestigePage() {
   const { level, tokens, bonusLevels, canPrestige, spendToken } = usePrestigeStore();
-  const { maxPalierReached, doPrestige } = useGameStore();
+  const { getRunPeakPalier, doPrestige } = useGameStore();
   const [showConfirm, setShowConfirm] = useState(false);
   const [rollResult, setRollResult] = useState<PrestigeBonusType | null>(null);
 
-  const eligible = canPrestige(maxPalierReached);
-  const tokensToGain = calcTokensAwarded(maxPalierReached, bonusLevels.tokenGain);
+  // Palier max atteint DEPUIS LE DERNIER PRESTIGE (pas le lifetime) : c'est
+  // ce qui gate l'éligibilité, pour éviter de pouvoir represtiger en boucle
+  // dès le palier 1 après un premier prestige.
+  const runPeakPalier = getRunPeakPalier();
+  const eligible = canPrestige(runPeakPalier);
+  const tokensToGain = calcTokensAwarded(runPeakPalier, bonusLevels.tokenGain);
 
   const handlePrestige = () => {
     doPrestige();
@@ -165,13 +169,13 @@ export function PrestigePage() {
             ) : (
               <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:10, padding:'12px 20px', textAlign:'center' }}>
                 <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:'var(--text-dim)' }}>
-                  🔒 Palier {maxPalierReached} / {PRESTIGE_PALIER_REQUIRED}
+                  🔒 Palier {runPeakPalier} / {PRESTIGE_PALIER_REQUIRED}
                 </div>
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', marginTop:3 }}>
                   Atteins le palier {PRESTIGE_PALIER_REQUIRED} pour débloquer
                 </div>
                 <div className="prog-track" style={{ marginTop:8, width:160 }}>
-                  <div className="prog-fill" style={{ width:`${Math.min(100, (maxPalierReached/PRESTIGE_PALIER_REQUIRED)*100)}%` }} />
+                  <div className="prog-fill" style={{ width:`${Math.min(100, (runPeakPalier/PRESTIGE_PALIER_REQUIRED)*100)}%` }} />
                 </div>
               </div>
             )}

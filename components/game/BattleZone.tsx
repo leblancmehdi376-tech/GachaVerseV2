@@ -251,7 +251,12 @@ function PalierTravelModal({
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function BattleZone() {
-  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, bossActive, bossAvoided, bossTimeLeft, lastEquipmentDrop, setLastEquipmentDrop, ultUsedThisFight, getEventDpsMult } = useGameStore();
+  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, lastEquipmentDrop, setLastEquipmentDrop, ultUsedThisFight, getEventDpsMult } = useGameStore();
+  // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
+  // maxPalierReached, qui ne redescend jamais et sert au classement) — c'est
+  // ce qui doit borner le mode farm / voyage, sinon un joueur qui vient de
+  // prestige peut instantanément revoyager vers son ancien palier.
+  const runPeakPalier = runPeakPalierRaw ?? maxPalierReached;
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
   const [showTravel, setShowTravel] = useState(false);
   const ultStore    = useUltimateStore();
@@ -259,7 +264,7 @@ export function BattleZone() {
   const dps = Math.floor(getTotalDps()); // inclut déjà dpsMultiplier/selfDpsMultiplier (calculé dans gameStore)
   const enemyAffinity = getAffinityForId(currentEnemy.name);
   const cfg = getPalierConfig(palier);
-  const isFarming = palier < maxPalierReached; // voyage sur un palier déjà validé
+  const isFarming = palier < runPeakPalier; // voyage sur un palier déjà validé CETTE run
   const hp  = (currentEnemy.currentHp / currentEnemy.maxHp) * 100;
   const bossWarn = bossActive && bossTimeLeft <= 10;
 
@@ -292,7 +297,7 @@ export function BattleZone() {
       {showTravel && (
         <PalierTravelModal
           current={palier}
-          maxReached={maxPalierReached}
+          maxReached={runPeakPalier}
           onTravel={travelToPalier}
           onClose={() => setShowTravel(false)}
         />
@@ -317,7 +322,7 @@ export function BattleZone() {
                 {currentEnemy.isBoss ? '★ BOSS' : isFarming ? `🔁 FARM · ÉTAGE ${wave}/9` : `ÉTAGE ${wave} / 10`}
               </span>
             </div>
-            {maxPalierReached > 1 && (
+            {runPeakPalier > 1 && (
               <button
                 onClick={e => { e.stopPropagation(); if (!bossActive) setShowTravel(true); }}
                 disabled={bossActive}
@@ -335,8 +340,8 @@ export function BattleZone() {
             )}
             {isFarming && (
               <button
-                onClick={e => { e.stopPropagation(); travelToPalier(maxPalierReached); }}
-                title={`Retourner à ta progression actuelle (palier ${maxPalierReached})`}
+                onClick={e => { e.stopPropagation(); travelToPalier(runPeakPalier); }}
+                title={`Retourner à ta progression actuelle (palier ${runPeakPalier})`}
                 style={{
                   display:'inline-flex', alignItems:'center', gap:5,
                   background:'rgba(52,211,153,0.18)', border:'1px solid #34d399',
@@ -346,7 +351,7 @@ export function BattleZone() {
                 onMouseLeave={e => { e.currentTarget.style.filter='none'; }}
               >
                 <span style={{ fontSize:12 }}>↩</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:'#34d399', letterSpacing:1 }}>RETOUR · P{maxPalierReached}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:'#34d399', letterSpacing:1 }}>RETOUR · P{runPeakPalier}</span>
               </button>
             )}
           </div>

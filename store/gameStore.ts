@@ -131,8 +131,19 @@ export function getPalierPassGems(palier: number): number {
   return palier * 10;
 }
 export const MOB_GEM_DROP_CHANCE = 0.005;  // 0.5% de chance de looter 1 gemme bonus sur N'IMPORTE QUEL ennemi tué
-// Taux de drop d'équipement en mode farm (palier < maxPalierReached) : ×0.25 = 4× plus lent.
+// Taux de drop d'équipement en mode farm (palier < runPeakPalier) : ×0.25 = 4× plus lent.
 export const FARM_EQUIP_DROP_RATE = 0.25;
+
+// Palier max atteint DEPUIS LE DERNIER PRESTIGE — détermine le mode farm
+// (palier déjà validé CETTE run), la portée du voyage, et l'éligibilité/le
+// gain de jetons du prochain prestige. Contrairement à maxPalierReached (qui
+// ne redescend jamais, gardé pour le classement), ce compteur repart à 1 à
+// chaque prestige. `null` = jamais divergé de maxPalierReached (sauvegarde
+// jamais prestige, ou antérieure à l'ajout de ce champ) → on retombe alors
+// sur maxPalierReached, ce qui est le comportement correct dans ce cas précis.
+function runPeakPalierOf(state: { runPeakPalier: number | null; maxPalierReached: number }): number {
+  return state.runPeakPalier ?? state.maxPalierReached;
+}
 
 // Idle : plancher de DPS pour qu'un joueur SANS compagnon progresse quand même
 // (lentement) en début de partie. Exprimé en fraction des PV de l'ennemi courant
@@ -245,6 +256,8 @@ interface GameStore extends GameState {
   retreatFromBoss: () => void;
   challengeBoss: () => void;
   travelToPalier: (palier: number) => void;
+  // Palier max atteint depuis le dernier prestige — voir runPeakPalierOf().
+  getRunPeakPalier: () => number;
   tickDps: () => void;
   tickBossTimer: () => void;
   activateCharacterUltimate: (templateId: string, formIndex: number) => void;
@@ -308,7 +321,7 @@ interface GameStore extends GameState {
 const makeInitial = () => ({
   pixelCoins: 0, nekoGems: 10, totalClicks: 0,
   totalKills: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0, totalGachaPulls: 0, totalBossKills: 0, totalGemsSpent: 0,
-  wave: 1, palier: 1, maxPalierReached: 1,
+  wave: 1, palier: 1, maxPalierReached: 1, runPeakPalier: null as number | null,
   currentEnemy: generateEnemy(1, 1),
   goldUpgradeLevel: 0,
   equippedTeam: [null, null, null, null] as (string|null)[],
@@ -364,6 +377,8 @@ export const useGameStore = create<GameStore>()(
       })),
 
       // ─── Combat ───────────────────────────────────────────────────────
+      getRunPeakPalier: () => runPeakPalierOf(get()),
+
       retreatFromBoss: () => {
         const state = get();
         if (!state.bossActive && state.wave !== 10) return;
@@ -372,28 +387,29 @@ export const useGameStore = create<GameStore>()(
           bossActive:   false,
           bossTimeLeft: 0,
           bossAvoided:  true,
-          currentEnemy: generateEnemy(1, state.palier, state.maxPalierReached),
+          currentEnemy: generateEnemy(1, state.palier, runPeakPalierOf(state)),
         });
       },
 
       challengeBoss: () => {
         const state = get();
-        if (state.palier < state.maxPalierReached) return; // pas de boss en mode farm
+        if (state.palier < runPeakPalierOf(state)) return; // pas de boss en mode farm
         set({
           wave:         10,
           bossActive:   true,
           bossAvoided:  false,
           bossTimeLeft: getPalierConfig(state.palier).bossTimerSeconds,
-          currentEnemy: generateEnemy(10, state.palier, state.maxPalierReached),
+          currentEnemy: generateEnemy(10, state.palier, runPeakPalierOf(state)),
         });
       },
 
-      // Voyage vers un palier déjà atteint (1..maxPalierReached) pour re-farmer
-      // coins / drops. Interdit pendant un combat de boss chronométré.
+      // Voyage vers un palier déjà atteint CETTE RUN (1..runPeakPalier) pour
+      // re-farmer coins / drops. Interdit pendant un combat de boss chronométré.
       travelToPalier: (target) => {
         const state = get();
         const dest = Math.floor(target);
-        if (dest < 1 || dest > state.maxPalierReached) return;
+        const peak = runPeakPalierOf(state);
+        if (dest < 1 || dest > peak) return;
         if (state.bossActive) return;              // pas de fuite du boss via voyage
         if (dest === state.palier && state.wave === 1 && !state.bossAvoided) return; // déjà ici, rien à faire
         set({
@@ -403,7 +419,7 @@ export const useGameStore = create<GameStore>()(
           bossTimeLeft:  0,
           bossAvoided:   false,
           ultUsedThisFight: [],
-          currentEnemy:  generateEnemy(1, dest, state.maxPalierReached),
+          currentEnemy:  generateEnemy(1, dest, peak),
         });
       },
 
@@ -444,7 +460,7 @@ export const useGameStore = create<GameStore>()(
         // Défaite (timer écoulé) : même état qu'une retraite volontaire —
         // bossAvoided:true permet de retenter le boss directement (bouton
         // "⚡ BOSS") au lieu de forcer un reclear complet des vagues 1-9.
-        if (t <= 0) return { bossActive:false, bossTimeLeft:0, bossAvoided:true, wave:1, currentEnemy: generateEnemy(1, state.palier, state.maxPalierReached) };
+        if (t <= 0) return { bossActive:false, bossTimeLeft:0, bossAvoided:true, wave:1, currentEnemy: generateEnemy(1, state.palier, runPeakPalierOf(state)) };
         return { bossTimeLeft: t };
       }),
 
@@ -1208,18 +1224,23 @@ export const useGameStore = create<GameStore>()(
       focusExpedition: (id) => set(() => ({ focusedExpeditionId: id })),
 
       // ─── Prestige (New Game+) ─────────────────────────────────────────
-      // Débloqué au palier 41, non obligatoire, repétable à volonté au-delà.
+      // Débloqué au palier 41 CETTE run (runPeakPalier, pas le lifetime
+      // maxPalierReached), non obligatoire, repétable à volonté au-delà —
+      // il faut regrinder jusqu'à 41 à chaque fois, runPeakPalier étant remis
+      // à 1 par ce reset (voir runPeakPalierOf()).
       // Reset : équipements, coins, collection (rang/forme/niveau des cartes),
-      //         pièces perso d'event, items de forge, héros, combat en cours.
-      // Conserve : gemmes, maxPalierReached, succès/titres (store dédié),
-      //            quêtes, expéditions en cours, monnaies premium (BossCrowns,
+      //         pièces perso d'event, items de forge, héros, combat en cours,
+      //         expéditions en cours (annulées : leurs persos n'existeront
+      //         plus dans la collection vidée).
+      // Conserve : gemmes, maxPalierReached (classement), succès/titres
+      //            (store dédié), quêtes, monnaies premium (BossCrowns,
       //            Orbes du Néant). Les cartes shiny (or/diamant) et les persos
       //            forge/event gardent leur RANG en banque (bankedRanks),
       //            restauré automatiquement à la re-obtention (addToCollection).
       doPrestige: () => {
         const state = get();
-        const maxPalier = state.maxPalierReached;
-        if (!usePrestigeStore.getState().canPrestige(maxPalier)) return;
+        const runPeak = runPeakPalierOf(state);
+        if (!usePrestigeStore.getState().canPrestige(runPeak)) return;
 
         // Banque le rang des cartes shiny/forge/event AVANT de vider la collection.
         const newBankedRanks = { ...state.bankedRanks };
@@ -1230,8 +1251,10 @@ export const useGameStore = create<GameStore>()(
           }
         }
 
-        // Incrémente le niveau de prestige et crédite les jetons + toast.
-        usePrestigeStore.getState().doPrestige(maxPalier);
+        // Incrémente le niveau de prestige et crédite les jetons + toast
+        // (le nombre de jetons dépend du palier atteint CETTE run, pas du
+        // lifetime — sinon represtiger juste après en donnerait déjà plein).
+        usePrestigeStore.getState().doPrestige(runPeak);
 
         set({
           // ── Reset ──
@@ -1248,14 +1271,17 @@ export const useGameStore = create<GameStore>()(
           hero: { level: 1, currentForm: 0, xp: 0 },
           wave: 1,
           palier: 1,
-          currentEnemy: generateEnemy(1, 1, maxPalier),
+          runPeakPalier: 1,
+          currentEnemy: generateEnemy(1, 1, 1),
           bossActive: false,
           bossTimeLeft: 0,
           bossAvoided: false,
           ultUsedThisFight: [],
           // ── Conservé : maxPalierReached, nekoGems, bossCrowns, voidOrbs ──
         });
-        useExpeditionStore.setState({ dropInventory: {} });
+        // Annule les expéditions en cours (leurs persos n'existent plus dans
+        // la collection qu'on vient de vider) et vide les drops de forge.
+        useExpeditionStore.setState({ dropInventory: {}, active: [] });
 
         broadcastAndSaveLocal();
       },
@@ -1375,7 +1401,7 @@ export const useGameStore = create<GameStore>()(
       partialize: (s) => ({
         pixelCoins:s.pixelCoins, nekoGems:s.nekoGems, totalClicks:s.totalClicks,
         totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0, totalGemsSpent:s.totalGemsSpent ?? 0,
-        wave:s.wave, palier:s.palier, maxPalierReached:s.maxPalierReached,
+        wave:s.wave, palier:s.palier, maxPalierReached:s.maxPalierReached, runPeakPalier:s.runPeakPalier ?? null,
         currentEnemy:s.currentEnemy,
         equippedTeam:s.equippedTeam, collection:s.collection, hero:s.hero, goldUpgradeLevel:s.goldUpgradeLevel ?? 0,
         bossActive:s.bossActive, bossTimeLeft:s.bossTimeLeft,
@@ -1499,21 +1525,23 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
             ? { ...q, current: Math.min(Math.max(q.current, next), q.target) } : q
         )
       : eventQuests;
-    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, eventQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,Math.max(state.maxPalierReached,next)), bossCrowns: bossCrownsBefore + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1 } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] }>;
+    const newRunPeak = Math.max(runPeakPalierOf(state), next);
+    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, eventQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1 } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] }>;
   }
   const nw = state.wave + 1;
+  const runPeak = runPeakPalierOf(state);
   if (nw === 10) {
-    // Mode farm (palier < maxPalierReached) OU boss évité → boucle sur vague 1,
-    // le boss ne se déclenche jamais (les boss ne sont pas refaisables).
-    const isFarming = state.palier < state.maxPalierReached;
+    // Mode farm (palier < runPeakPalier, càd déjà validé CETTE run) OU boss
+    // évité → boucle sur vague 1, le boss ne se déclenche jamais.
+    const isFarming = state.palier < runPeak;
     if (isFarming || state.bossAvoided) {
-      return { pixelCoins:coins, nekoGems:gems, quests:coinQuestUpdate.quests, weeklyQuests:coinQuestUpdate.weeklyQuests, eventQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, state.maxPalierReached), totalKills: (state.totalKills ?? 0) + 1 };
+      return { pixelCoins:coins, nekoGems:gems, quests:coinQuestUpdate.quests, weeklyQuests:coinQuestUpdate.weeklyQuests, eventQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1 };
     }
-    return { pixelCoins:coins, nekoGems:gems, quests:coinQuestUpdate.quests, weeklyQuests:coinQuestUpdate.weeklyQuests, eventQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,state.maxPalierReached), totalKills: (state.totalKills ?? 0) + 1 };
+    return { pixelCoins:coins, nekoGems:gems, quests:coinQuestUpdate.quests, weeklyQuests:coinQuestUpdate.weeklyQuests, eventQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1 };
   }
   const equipDrop = getEquipmentDrop(
     state.unlockedEquipDropRarities ?? ['C'],
-    (state.palier < state.maxPalierReached ? FARM_EQUIP_DROP_RATE : 1) * getPrestigeBonuses().equipDropRateMult,
+    (state.palier < runPeak ? FARM_EQUIP_DROP_RATE : 1) * getPrestigeBonuses().equipDropRateMult,
   );
   const newEquipmentInventory = equipDrop
     ? { ...state.equipmentInventory, [equipDrop]: (state.equipmentInventory[equipDrop] ?? 0) + 1 }
@@ -1525,7 +1553,7 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
     weeklyQuests:coinQuestUpdate.weeklyQuests,
     eventQuests,
     wave:nw,
-    ultUsedThisFight:[], currentEnemy:generateEnemy(nw,state.palier,state.maxPalierReached),
+    ultUsedThisFight:[], currentEnemy:generateEnemy(nw,state.palier,runPeak),
     equipmentInventory:newEquipmentInventory,
     lastEquipmentDrop: equipDrop ?? null,
     totalKills: (state.totalKills ?? 0) + 1,

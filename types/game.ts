@@ -255,6 +255,13 @@ export interface GameState {
   pixelCoins: number; nekoGems: number; totalClicks: number;
   totalKills: number; totalQuestsCompleted: number; totalUpgradesPerformed: number; totalGachaPulls: number; totalBossKills: number; totalGemsSpent: number;
   wave: number; palier: number; maxPalierReached: number;
+  // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
+  // maxPalierReached, qui ne redescend jamais et sert de référence pour le
+  // classement). Détermine l'éligibilité au prochain prestige, la portée du
+  // voyage/farm, et le nombre de jetons gagnés. `null` = jamais divergé de
+  // maxPalierReached (sauvegarde jamais prestige ou antérieure à ce champ) —
+  // voir runPeakPalierOf() dans gameStore.ts pour le fallback.
+  runPeakPalier: number | null;
   currentEnemy: Enemy;
   equippedTeam: (string | null)[];
   goldUpgradeLevel: number;
