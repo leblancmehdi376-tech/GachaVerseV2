@@ -20,8 +20,8 @@ export const PRESTIGE_BONUS_DEFS: Record<PrestigeBonusType, PrestigeBonusDef> = 
   gold:         { label: 'Golds',                         icon: '🪙', perLevel: 0.10 },
   shinyGold:    { label: 'Taux Shiny Or',                 icon: '✨', perLevel: 0.25, maxLevel: 20 },
   shinyDiamond: { label: 'Taux Shiny Diamant',            icon: '💠', perLevel: 0.05, maxLevel: 20 },
-  equipDrop:    { label: 'Drop Équipement (par rareté)',  icon: '🛡️', perLevel: 0.10 },
-  tokenGain:    { label: 'Jetons de Prestige gagnés',     icon: '🎫', perLevel: 1 },
+  equipDrop:    { label: 'Taux de drop d\'équipements',  icon: '🛡️', perLevel: 0.10 },
+  tokenGain:    { label: 'Jetons de Prestige supplémentaires gagnés',     icon: '🎫', perLevel: 1 },
 };
 
 export const PRESTIGE_BONUS_TYPES = Object.keys(PRESTIGE_BONUS_DEFS) as PrestigeBonusType[];
