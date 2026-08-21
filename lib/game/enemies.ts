@@ -1,5 +1,8 @@
 import { Enemy } from '@/types/game';
 
+export const COIN_BASE = 60;
+export const COIN_GROWTH = 1.13;
+
 interface EnemyDef {
   name:    string;
   sprite:  string;
@@ -567,8 +570,7 @@ export function generateEnemy(wave: number, palier: number, maxPalierReached: nu
 
   // Coins : base × growth^(global-1), boss × bossMult
   // On applique en plus un scale global pour calibrer la vitesse d'obtention des coins.
-  const COIN_BASE = 60;
-  const COIN_GROWTH = 1.13;
+  //on retrouve base et growth en export tout en haut de ce fichier, pour calibrer d'autres systèmes sur la même courbe.
   const COIN_BOSS_MULT = 12;
 
   const rawCoins = isBoss

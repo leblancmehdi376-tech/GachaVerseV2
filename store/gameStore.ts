@@ -71,13 +71,16 @@ const EVENT_QUESTS: Omit<Quest,'current'|'done'>[] = [
 // Chaque palier atteint débloque un niveau de coffre achetable (niveau max
 // achetable = maxPalierReached) ; le multiplicateur et le coût sont désormais
 // des formules fixes, plus des paliers manuels plafonnés.
-export const GOLD_CHEST_COST_BASE   = 3_500;
-export const GOLD_CHEST_COST_GROWTH = 9;
+import { COIN_BASE, COIN_GROWTH } from '@/lib/game/enemies';
+//base=COIN_BASE*50 COIN_BASE retrouvable dans ennemies.ts
+export const GOLD_CHEST_COST_BASE   = COIN_BASE * 50;  // coût du coffre d'or niveau 0
+//growth=COIN_GROWTH+0.02 COIN_GROWTH retrouvable dans ennemies.ts
+export const GOLD_CHEST_COST_GROWTH = COIN_GROWTH + 0.02; // coût du coffre d'or croît plus vite que le butin de base
 export const GOLD_CHEST_MULT_GROWTH = 1.2;  // boost golds ×1.2^niveau_du_coffre
 
 // base*pow^level_du_palier
 export function getGoldChestCost(level: number): number {
-  return Math.round(GOLD_CHEST_COST_BASE * Math.pow(GOLD_CHEST_COST_GROWTH, level));
+  return Math.round(GOLD_CHEST_COST_BASE * Math.pow(GOLD_CHEST_COST_GROWTH, (level*10-1)) * Math.pow(GOLD_CHEST_MULT_GROWTH, level));
 }
 export function getGoldChestMultiplier(level: number): number {
   return Math.pow(GOLD_CHEST_MULT_GROWTH, level);
