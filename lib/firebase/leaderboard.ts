@@ -37,21 +37,20 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       };
     });
 
-    // Tri côté client par totalDps DESC puis score DESC
-    // Déduplique par username — garde la meilleure entrée (totalDps le plus élevé)
+    // Déduplique par username — garde le meilleur palier, puis le plus de coins.
     const seen = new Map<string, typeof entries[0]>();
     for (const entry of entries) {
       const key = entry.username.toLowerCase();
       const existing = seen.get(key);
-      if (!existing || entry.totalDps > existing.totalDps || (!existing.totalDps && entry.score > existing.score)) {
+      if (!existing || entry.palier > existing.palier || (entry.palier === existing.palier && entry.pixelCoins > existing.pixelCoins)) {
         seen.set(key, entry);
       }
     }
     const deduped = Array.from(seen.values());
 
-    // Tri par totalDps DESC puis score DESC
+    // Tri par palier maximum atteint DESC puis Pixel-Coins DESC.
     return deduped
-      .sort((a, b) => b.totalDps - a.totalDps || b.score - a.score)
+      .sort((a, b) => b.palier - a.palier || b.pixelCoins - a.pixelCoins)
       .slice(0, maxEntries);
   } catch (e) {
     console.error('Leaderboard error:', e);

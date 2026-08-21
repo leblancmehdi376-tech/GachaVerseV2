@@ -121,8 +121,6 @@ export function LeaderboardPage() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
               {[
                 { label:'Palier',       value: String(palier)          },
-                { label:'Vague',        value: `${wave}/10`            },
-                { label:'Clics',        value: formatNumber(totalClicks)},
                 { label:'Pixel-Coins',  value: formatNumber(pixelCoins) },
               ].map(item => (
                 <div key={item.label} style={{ padding:'10px 12px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px' }}>
@@ -147,10 +145,9 @@ export function LeaderboardPage() {
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {entries.map((entry, idx) => {
                 const isMe = entry.uid === user?.uid;
-                const rankColor = getRankColor(idx);
                 return (
                   <div key={entry.uid} style={{
-                    display:'grid', gridTemplateColumns:'48px 1fr 80px 80px 110px 100px 100px',
+                    display:'grid', gridTemplateColumns:'48px 1fr 100px 120px',
                     alignItems:'center', gap:'8px',
                     padding:'12px 16px', borderRadius:'10px',
                     background: isMe ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
@@ -170,25 +167,10 @@ export function LeaderboardPage() {
                       <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)' }}>PALIER</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.palier}</div>
                     </div>
-                    {/* Vague */}
-                    <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)' }}>VAGUE</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.wave}/10</div>
-                    </div>
                     {/* Pixel-Coins */}
                     <div style={{ textAlign:'center' }}>
                       <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)' }}>PIXEL-COINS</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#fbbf24' }}>{formatNumber(entry.pixelCoins)}</div>
-                    </div>
-                    {/* Score */}
-                    <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)' }}>SCORE</div>
-                      <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'14.4px', color:rankColor }}>{formatNumber(entry.score)}</div>
-                    </div>
-                    {/* DPS total */}
-                    <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'var(--text-muted)' }}>DPS TOTAL</div>
-                      <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'14.4px', color:'#34d399' }}>{formatNumber(entry.totalDps)}</div>
                     </div>
                   </div>
                 );
