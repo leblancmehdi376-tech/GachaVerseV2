@@ -122,7 +122,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     icon: '🛡',
     description: 'La Valkyrie à l\'origine du Ragnarök. Sa volonté est de sauver l\'humanité coûte que coûte.',
     lore: '"Je ne me battrai jamais moi-même. Mais je serai leur force." — Brunhilde',
-    palierRequired: RARITY_GATES.CO.unlockPalier,
+    palierRequired: RARITY_GATES.P.unlockPalier,
     ingredients: [
       { type:'drop', id:'bijou_divin', quantity:50, label:'Bijou Divin × 50' },
     ],
