@@ -38,16 +38,19 @@ const RARITY_ORDER: Rarity[] = ['T','P','CO','S','M','L','E','R','U','C'];
  * - La somme est toujours normalisée à exactement 100%.
  */
 export function getDynamicRates(maxPalier: number): Partial<Record<Rarity, number>> {
+  // Passé le palier 40 (prestige), les taux ne doivent plus continuer à
+  // extrapoler : T est déjà à son taux max à ce stade.
+  const clampedMax = Math.min(maxPalier, MAX_PALIER);
   const raw: Partial<Record<Rarity, number>> = {};
   let total = 0;
 
   for (const r of RARITY_ORDER) {
     const gate = RARITY_GATES[r];
-    if (maxPalier < gate.unlockPalier) continue;
+    if (clampedMax < gate.unlockPalier) continue;
 
     // Interpolation linéaire entre unlock et max
     const range = MAX_PALIER - gate.unlockPalier;
-    const progress = range <= 0 ? 1 : (maxPalier - gate.unlockPalier) / range;
+    const progress = range <= 0 ? 1 : (clampedMax - gate.unlockPalier) / range;
     const rate = gate.rateAtUnlock + (gate.rateAtMax - gate.rateAtUnlock) * progress;
 
     raw[r] = Math.max(0, rate);

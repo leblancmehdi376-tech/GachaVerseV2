@@ -49,6 +49,7 @@ function getSerializableState() {
     inventory:          s.inventory,
     equipmentInventory: s.equipmentInventory,
     championInventory:  s.championInventory ?? {},
+    bankedRanks:         s.bankedRanks ?? {},
     dpsBoostEndsAt:     s.dpsBoostEndsAt,
     goldBoostEndsAt:    s.goldBoostEndsAt,
     dailyShop:          s.dailyShop,
@@ -73,9 +74,9 @@ function getSerializableState() {
     expeditionSlotLevel:      es.expeditionSlotLevel ?? 0,
     expeditionDefAffinities:  es.defAffinities ?? {},
     // Prestige — store séparé (prestigeStore), même problème.
-    prestigeLevel:     ps.level,
-    prestigePoints:    ps.points,
-    prestigePurchased: ps.purchased,
+    prestigeLevel:       ps.level,
+    prestigeTokens:      ps.tokens,
+    prestigeBonusLevels: ps.bonusLevels,
     savedAt:            Date.now(),
   };
 }
@@ -159,9 +160,13 @@ async function loadAndApply(userId: string) {
       }
 
       const prestigePatch: Record<string, unknown> = {};
-      if ('prestigeLevel' in data)     { prestigePatch.level     = data.prestigeLevel;     delete data.prestigeLevel; }
-      if ('prestigePoints' in data)    { prestigePatch.points    = data.prestigePoints;    delete data.prestigePoints; }
-      if ('prestigePurchased' in data) { prestigePatch.purchased = data.prestigePurchased; delete data.prestigePurchased; }
+      if ('prestigeLevel' in data)       { prestigePatch.level       = data.prestigeLevel;       delete data.prestigeLevel; }
+      if ('prestigeTokens' in data)      { prestigePatch.tokens      = data.prestigeTokens;      delete data.prestigeTokens; }
+      if ('prestigeBonusLevels' in data) { prestigePatch.bonusLevels = data.prestigeBonusLevels; delete data.prestigeBonusLevels; }
+      // Compat anciennes sauvegardes cloud (avant ce rework) : on ignore juste
+      // ces champs obsolètes plutôt que de les laisser polluer le merge plus bas.
+      delete data.prestigePoints;
+      delete data.prestigePurchased;
       if (Object.keys(prestigePatch).length) {
         usePrestigeStore.setState(prestigePatch as unknown as Parameters<typeof usePrestigeStore.setState>[0]);
       }

@@ -1,82 +1,59 @@
 // lib/game/prestige.ts — Définitions du système de Prestige (New Game+)
+//
+// Un prestige donne des jetons ; dépenser un jeton (voir prestigeStore.spendToken)
+// tire au hasard UN des 6 bonus ci-dessous et l'incrémente d'un niveau. Chaque
+// niveau applique `perLevel` (stack sans limite, sauf shinyGold/shinyDiamond
+// plafonnés à `maxLevel`).
 
-export interface PrestigeUpgrade {
-  id:          string;
-  name:        string;
-  icon:        string;
-  description: string;
-  cost:        number;   // Points de prestige
-  maxLevel:    number;   // 1 = unique, N = empilable
-  effect: {
-    type:  'dps' | 'coins' | 'startGems' | 'startPalier' | 'upgradeDiscount';
-    value: number;  // multiplicateur ou bonus flat
+export type PrestigeBonusType =
+  | 'dps' | 'gold' | 'shinyGold' | 'shinyDiamond' | 'equipDrop' | 'tokenGain';
+
+export interface PrestigeBonusDef {
+  label:     string;
+  icon:      string;
+  perLevel:  number;
+  maxLevel?: number;
+}
+
+export const PRESTIGE_BONUS_DEFS: Record<PrestigeBonusType, PrestigeBonusDef> = {
+  dps:          { label: 'DPS',                          icon: '🔥', perLevel: 0.10 },
+  gold:         { label: 'Golds',                         icon: '🪙', perLevel: 0.10 },
+  shinyGold:    { label: 'Taux Shiny Or',                 icon: '✨', perLevel: 0.25, maxLevel: 20 },
+  shinyDiamond: { label: 'Taux Shiny Diamant',            icon: '💠', perLevel: 0.05, maxLevel: 20 },
+  equipDrop:    { label: 'Drop Équipement (par rareté)',  icon: '🛡️', perLevel: 0.10 },
+  tokenGain:    { label: 'Jetons de Prestige gagnés',     icon: '🎫', perLevel: 1 },
+};
+
+export const PRESTIGE_BONUS_TYPES = Object.keys(PRESTIGE_BONUS_DEFS) as PrestigeBonusType[];
+
+export type PrestigeBonusLevels = Record<PrestigeBonusType, number>;
+
+export function initialBonusLevels(): PrestigeBonusLevels {
+  return { dps: 0, gold: 0, shinyGold: 0, shinyDiamond: 0, equipDrop: 0, tokenGain: 0 };
+}
+
+export interface ActivePrestigeBonuses {
+  dpsMult:              number;
+  coinsMult:            number;
+  shinyGoldBonusPct:    number;
+  shinyDiamondBonusPct: number;
+  equipDropRateMult:    number;
+  tokenGainBonus:       number;
+}
+
+export function calcPrestigeBonuses(bonusLevels: PrestigeBonusLevels): ActivePrestigeBonuses {
+  return {
+    dpsMult:              1 + PRESTIGE_BONUS_DEFS.dps.perLevel * bonusLevels.dps,
+    coinsMult:            1 + PRESTIGE_BONUS_DEFS.gold.perLevel * bonusLevels.gold,
+    shinyGoldBonusPct:    PRESTIGE_BONUS_DEFS.shinyGold.perLevel * bonusLevels.shinyGold,
+    shinyDiamondBonusPct: PRESTIGE_BONUS_DEFS.shinyDiamond.perLevel * bonusLevels.shinyDiamond,
+    equipDropRateMult:    1 + PRESTIGE_BONUS_DEFS.equipDrop.perLevel * bonusLevels.equipDrop,
+    tokenGainBonus:       PRESTIGE_BONUS_DEFS.tokenGain.perLevel * bonusLevels.tokenGain,
   };
 }
 
-export const PRESTIGE_UPGRADES: PrestigeUpgrade[] = [
-  {
-    id:'coins_boost', name:'Fortune Ancestrale', icon:'🪙',
-    description:'+30% de coins gagnés par ennemi vaincu, pour toujours.',
-    cost:1, maxLevel:10,
-    effect:{ type:'coins', value:1.30 },
-  },
-  {
-    id:'start_gems', name:'Mémoire Quantique', icon:'💎',
-    description:'Commence chaque nouveau run avec 500 Neko-Gemmes supplémentaires.',
-    cost:3, maxLevel:3,
-    effect:{ type:'startGems', value:500 },
-  },
-  {
-    id:'dps_boost', name:'Transcendance', icon:'🔥',
-    description:'+50% DPS de toute ton équipe de façon permanente.',
-    cost:3, maxLevel:5,
-    effect:{ type:'dps', value:1.50 },
-  },
-  {
-    id:'start_palier', name:'Archives du Multivers', icon:'🌌',
-    description:'Commence directement au palier 3 au lieu du palier 1.',
-    cost:5, maxLevel:1,
-    effect:{ type:'startPalier', value:3 },
-  },
-  {
-    id:'upgrade_discount', name:'Fusion Parfaite', icon:'⚗',
-    description:'Les upgrades d\'attaque coûtent 20% moins cher.',
-    cost:2, maxLevel:3,
-    effect:{ type:'upgradeDiscount', value:0.80 },
-  },
-];
-
-export interface ActivePrestigeBonuses {
-  dpsMult:         number;
-  coinsMult:       number;
-  startGems:       number;
-  startPalier:     number;
-  upgradeDiscount: number;  // ex: 0.64 = -36%
+// Jetons gagnés en prestigeant au palier `maxPalierReached` (>=41) : +1 jeton
+// par tranche de 10 paliers au-delà de 40, plus le bonus tokenGain éventuel.
+export function calcTokensAwarded(maxPalierReached: number, tokenGainBonus: number): number {
+  return Math.floor((maxPalierReached - 40) / 10) + 1 + tokenGainBonus;
 }
-
-export function calcPrestigeBonuses(
-  purchased: Record<string, number>  // id → level acheté
-): ActivePrestigeBonuses {
-  let dpsMult         = 1;
-  let coinsMult       = 1;
-  let startGems       = 0;
-  let startPalier     = 1;
-  let upgradeDiscount = 1;
-
-  for (const upg of PRESTIGE_UPGRADES) {
-    const level = purchased[upg.id] ?? 0;
-    if (level <= 0) continue;
-    const { type, value } = upg.effect;
-    if (type === 'dps')             dpsMult         *= Math.pow(value, level);
-    if (type === 'coins')           coinsMult       *= Math.pow(value, level);
-    if (type === 'startGems')       startGems       += value * level;
-    if (type === 'startPalier')     startPalier      = Math.max(startPalier, value);
-    if (type === 'upgradeDiscount') upgradeDiscount *= Math.pow(value, level);
-  }
-
-  return { dpsMult, coinsMult, startGems, startPalier, upgradeDiscount };
-}
-
-// Bonus DPS passif par niveau de prestige (en plus du shop)
-export const PRESTIGE_PASSIVE_DPS_PER_LEVEL  = 0.15;  // +15% DPS par niveau
-export const PRESTIGE_PASSIVE_COIN_PER_LEVEL = 0.20;  // +20% coins par niveau

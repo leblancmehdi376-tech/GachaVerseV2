@@ -9,7 +9,7 @@ import {
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, RARITY_GATES } from '@/lib/game/gacha';
-import { getCharacterById, HERO_TEMPLATE, BANNER_POOL } from '@/lib/game/characters';
+import { getCharacterById, HERO_TEMPLATE, BANNER_POOL, isForgeOrEventCharacter } from '@/lib/game/characters';
 import { ITEM_DEFS, rollEquipmentChest } from '@/lib/game/items';
 import { EQUIPMENT_CHESTS } from '@/lib/game/shop';
 import { computeActiveSynergies, calcDpsWithSynergies } from '@/lib/game/synergies';
@@ -207,6 +207,10 @@ interface GameStore extends GameState {
   // en avant (onglet + surbrillance) quand on clique sur un ingrédient.
   focusedExpeditionId: string | null;
   focusExpedition: (id: string | null) => void;
+  // Rangs banqués à travers un prestige (cartes shiny + persos forge/event) —
+  // clé = instance key (templateId ou templateId::gold/diamond), voir doPrestige
+  // et addToCollection.
+  bankedRanks: Record<string, number>;
   // Fusion d'équipement (10 items d'un slot+rareté → 1 de la rareté suivante)
   unlockedEquipRarities: Rarity[];
   unlockEquipRarity: (rarity: Rarity) => void;
@@ -333,6 +337,7 @@ const makeInitial = () => ({
   championInventory:  {} as Record<string, number>,
   lastEquipmentDrop: null,
   focusedExpeditionId: null,
+  bankedRanks: {} as Record<string, number>,
   unlockedEquipRarities: ['C'] as Rarity[],
   unlockedEquipDropRarities: ['C'] as Rarity[],
   dpsBoostEndsAt: 0, goldBoostEndsAt: 0,
@@ -1017,7 +1022,8 @@ export const useGameStore = create<GameStore>()(
         // seulement la première fois. Chaque édition d'un perso est une
         // entrée de collection séparée (progression indépendante), reliée au
         // même templateId pour l'art/nom/ultime.
-        const edition = rollCardEdition();
+        const prestigeBonuses = getPrestigeBonuses();
+        const edition = rollCardEdition(prestigeBonuses.shinyGoldBonusPct, prestigeBonuses.shinyDiamondBonusPct);
         const instanceKey = makeInstanceKey(templateId, edition);
 
         const ex = get().collection[instanceKey];
@@ -1034,13 +1040,20 @@ export const useGameStore = create<GameStore>()(
         set(state => {
           const ex2 = state.collection[instanceKey];
           const equippedItems = ex2?.equippedItems ?? defaultEquippedItems();
+          // Rang banqué (shiny/forge/event conservés à travers un prestige) :
+          // restauré une seule fois à la première re-obtention post-prestige.
+          const banked = state.bankedRanks[instanceKey];
+          const newBankedRanks = banked !== undefined
+            ? Object.fromEntries(Object.entries(state.bankedRanks).filter(([k]) => k !== instanceKey))
+            : state.bankedRanks;
           return {
             collection: {
               ...state.collection,
               [instanceKey]: ex2
                 ? { ...ex2, copies: ex2.copies+1, rank: Math.min(ex2.rank+1, 7), equippedItems }
-                : { templateId, rank:1, copies:1, level:1, currentForm:0, xp:0, equippedItems, edition },
+                : { templateId, rank: banked ?? 1, copies: banked ?? 1, level:1, currentForm:0, xp:0, equippedItems, edition },
             },
+            bankedRanks: newBankedRanks,
           };
         });
         // "Obtenir X personnages différents" compte les TEMPLATES uniques
@@ -1195,37 +1208,54 @@ export const useGameStore = create<GameStore>()(
       focusExpedition: (id) => set(() => ({ focusedExpeditionId: id })),
 
       // ─── Prestige (New Game+) ─────────────────────────────────────────
-      // Reset : coins, palier, upgrades d'attaque/or, niveau du héros, combat en cours.
-      // Conserve : collection, gemmes, maxPalierReached, succès (store dédié),
-      //            expéditions (store dédié), inventaires, champions, monnaies premium.
+      // Débloqué au palier 41, non obligatoire, repétable à volonté au-delà.
+      // Reset : équipements, coins, collection (rang/forme/niveau des cartes),
+      //         pièces perso d'event, items de forge, héros, combat en cours.
+      // Conserve : gemmes, maxPalierReached, succès/titres (store dédié),
+      //            quêtes, expéditions en cours, monnaies premium (BossCrowns,
+      //            Orbes du Néant). Les cartes shiny (or/diamant) et les persos
+      //            forge/event gardent leur RANG en banque (bankedRanks),
+      //            restauré automatiquement à la re-obtention (addToCollection).
       doPrestige: () => {
-        const prestige = usePrestigeStore.getState();
-        const maxPalier = get().maxPalierReached;
-        if (!prestige.canPrestige(maxPalier)) return;
+        const state = get();
+        const maxPalier = state.maxPalierReached;
+        if (!usePrestigeStore.getState().canPrestige(maxPalier)) return;
 
-        // Incrémente le niveau de prestige (+1) et les points (+3) + toast.
-        prestige.doPrestige();
+        // Banque le rang des cartes shiny/forge/event AVANT de vider la collection.
+        const newBankedRanks = { ...state.bankedRanks };
+        for (const owned of Object.values(state.collection)) {
+          const edition = owned.edition ?? 'base';
+          if (isForgeOrEventCharacter(owned.templateId) || edition !== 'base') {
+            newBankedRanks[makeInstanceKey(owned.templateId, edition)] = owned.rank;
+          }
+        }
 
-        // Bonus de départ du shop de prestige (lecture après incrément : inchangés).
-        const bonuses     = getPrestigeBonuses();
-        const startPalier = Math.max(1, bonuses.startPalier);
-        const startGems   = Math.max(0, bonuses.startGems);
+        // Incrémente le niveau de prestige et crédite les jetons + toast.
+        usePrestigeStore.getState().doPrestige(maxPalier);
 
-        set(state => ({
-          // ── Reset du run ──
-          pixelCoins:        0,
-          wave:              1,
-          palier:            startPalier,
-          goldUpgradeLevel:  0,
-          hero:              { level: 1, currentForm: 0, xp: 0 },
-          currentEnemy:      generateEnemy(1, startPalier, state.maxPalierReached),
-          bossActive:        false,
-          bossTimeLeft:      0,
-          bossAvoided:       false,
-          ultUsedThisFight:  [],
-          // ── Conservé + bonus de gemmes de départ ──
-          nekoGems:          state.nekoGems + startGems,
-        }));
+        set({
+          // ── Reset ──
+          equipmentInventory: {},
+          unlockedEquipRarities: ['C'] as Rarity[],
+          unlockedEquipDropRarities: ['C'] as Rarity[],
+          pixelCoins: 0,
+          collection: {},
+          championInventory: {},
+          bankedRanks: newBankedRanks,
+          equippedTeam: [null, null, null, null],
+          inventory: {},
+          goldUpgradeLevel: 0,
+          hero: { level: 1, currentForm: 0, xp: 0 },
+          wave: 1,
+          palier: 1,
+          currentEnemy: generateEnemy(1, 1, maxPalier),
+          bossActive: false,
+          bossTimeLeft: 0,
+          bossAvoided: false,
+          ultUsedThisFight: [],
+          // ── Conservé : maxPalierReached, nekoGems, bossCrowns, voidOrbs ──
+        });
+        useExpeditionStore.setState({ dropInventory: {} });
 
         broadcastAndSaveLocal();
       },
@@ -1359,6 +1389,7 @@ export const useGameStore = create<GameStore>()(
         unlockedEquipRarities:s.unlockedEquipRarities,
         unlockedEquipDropRarities:s.unlockedEquipDropRarities,
         championInventory:s.championInventory ?? {},
+        bankedRanks:s.bankedRanks ?? {},
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         username:s.username,
@@ -1447,6 +1478,7 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
       updatePlayerScore(auth.currentUser.uid, {
         username: state.username,
         palier: next,
+        maxPalierReached: next,
         wave: 1,
         totalClicks: state.totalClicks,
         pixelCoins: coins,
@@ -1481,7 +1513,7 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
   }
   const equipDrop = getEquipmentDrop(
     state.unlockedEquipDropRarities ?? ['C'],
-    state.palier < state.maxPalierReached ? FARM_EQUIP_DROP_RATE : 1,
+    (state.palier < state.maxPalierReached ? FARM_EQUIP_DROP_RATE : 1) * getPrestigeBonuses().equipDropRateMult,
   );
   const newEquipmentInventory = equipDrop
     ? { ...state.equipmentInventory, [equipDrop]: (state.equipmentInventory[equipDrop] ?? 0) + 1 }

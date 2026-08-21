@@ -1,4 +1,5 @@
 // ── Monarque des Ombres — Boss d'événement ─────────────────────────────
+import { EVENT_TITLES } from './titles';
 
 export interface EventBossDef {
   id: string;
@@ -18,7 +19,7 @@ export interface EventBossDef {
 }
 
 export interface DropResult {
-  type: 'item' | 'gems' | 'bossCrowns' | 'nothing';
+  type: 'item' | 'gems' | 'bossCrowns' | 'title' | 'nothing';
   id?: string;
   qty?: number;
 }
@@ -39,6 +40,12 @@ function buildEventDropTable(evoItems: [string, string, string]): DropEntry[] {
   ];
 }
 
+// Titre exclusif droppable sur ce boss (1% de chance, en plus du lot
+// principal ci-dessus) — voir EVENT_TITLES dans lib/game/titles.ts.
+function titleDropEntry(title: string): DropEntry {
+  return { weight: 1.0, coinQty: 0, result: { type: 'title', id: title } };
+}
+
 export const SHADOW_MONARCH_BOSS: EventBossDef = {
   id:          'shadow_monarch',
   name:        'Monarque des Ombres',
@@ -53,7 +60,7 @@ export const SHADOW_MONARCH_BOSS: EventBossDef = {
   characterId: 'jinwoo',
   coinItemId:  'coin_jinwoo',
   buyCost:     100,
-  dropTable: buildEventDropTable(['elixir_vie', 'manteau_ombre', 'beru']),
+  dropTable: [...buildEventDropTable(['elixir_vie', 'manteau_ombre', 'beru']), titleDropEntry(EVENT_TITLES.shadow_monarch)],
 };
 
 export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
@@ -70,7 +77,7 @@ export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
   characterId: 'arthur_leywin',
   coinItemId:  'coin_arthur_leywin',
   buyCost:     300,
-  dropTable: buildEventDropTable(['cristal_ether', 'epee_ether', 'sylvia']),
+  dropTable: [...buildEventDropTable(['cristal_ether', 'epee_ether', 'sylvia']), titleDropEntry(EVENT_TITLES.arthur_leywin)],
 };
 
 export const EMINENCE_SHADOW_BOSS: EventBossDef = {
@@ -87,7 +94,7 @@ export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   characterId: 'cid_kagenou',
   coinItemId:  'coin_cid_kagenou',
   buyCost:     200,
-  dropTable: buildEventDropTable(['masque_cid', 'epee_slime', 'slime_eminence']),
+  dropTable: [...buildEventDropTable(['masque_cid', 'epee_slime', 'slime_eminence']), titleDropEntry(EVENT_TITLES.eminence_shadow)],
 };
 
 export const EVENT_BOSSES: EventBossDef[] = [SHADOW_MONARCH_BOSS, ARTHUR_LEYWIN_BOSS, EMINENCE_SHADOW_BOSS];
@@ -100,12 +107,18 @@ export interface DropEntry {
 
 // Retourne le lot principal ET les pièces de personnage gagnées en même
 // temps (deux résultats simultanés à chaque kill, voir buildEventDropTable).
-export function rollEventDrop(bossId: string): DropResult[] {
+// unlockedTitles : titres déjà obtenus — leur entrée est retirée de la table
+// (chaque titre n'est droppable qu'une seule fois, puis disparaît des drops
+// possibles ; les autres poids se répartissent naturellement sur le reste).
+export function rollEventDrop(bossId: string, unlockedTitles: string[] = []): DropResult[] {
   const boss = EVENT_BOSSES.find(b => b.id === bossId);
   if (!boss) return [{ type: 'nothing' }];
-  const totalWeight = boss.dropTable.reduce((s, e) => s + e.weight, 0);
+  const pool = boss.dropTable.filter(e =>
+    !(e.result.type === 'title' && e.result.id && unlockedTitles.includes(e.result.id))
+  );
+  const totalWeight = pool.reduce((s, e) => s + e.weight, 0);
   let roll = Math.random() * totalWeight;
-  for (const entry of boss.dropTable) {
+  for (const entry of pool) {
     roll -= entry.weight;
     if (roll <= 0) {
       return [entry.result, { type: 'item', id: boss.coinItemId, qty: entry.coinQty }];

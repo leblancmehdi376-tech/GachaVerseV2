@@ -611,12 +611,18 @@ export function getCharacterById(id: string): CharacterTemplate | undefined {
 
 // Personnages obtenables UNIQUEMENT via la Forge ou les Boss d'Événement —
 // ne doivent jamais apparaître au gacha, sinon leur exclusivité n'a plus de sens.
-const GACHA_EXCLUDED_IDS = new Set([
+export const GACHA_EXCLUDED_IDS = new Set([
   // Récompenses de recettes de Forge (lib/game/expeditions.ts)
   'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks',
   // Drops de boss d'événement (lib/game/eventBoss.ts)
   'jinwoo', 'arthur_leywin', 'cid_kagenou',
 ]);
+
+// Ces persos (+ toute édition shiny) gardent leur rang en banque à travers un
+// prestige — voir bankedRanks dans gameStore.ts.
+export function isForgeOrEventCharacter(id: string): boolean {
+  return GACHA_EXCLUDED_IDS.has(id);
+}
 
 export const BANNER_POOL = CHARACTER_POOL.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id));
 

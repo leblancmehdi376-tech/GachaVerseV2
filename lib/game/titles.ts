@@ -32,6 +32,18 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = Object.fromEntries(
 );
 TITLE_GOLD_BONUS_PCT['Six Seven'] = 6.7;
 
+// ── Titres d'événement — drop rare (1%) sur un kill de boss d'event ───────
+// Hors interpolation de TITLE_ORDER (pas liés à un succès), bonus fixé
+// directement comme demandé.
+export const EVENT_TITLES: Record<string, string> = {
+  shadow_monarch:  'Shadow Monarch',
+  eminence_shadow: 'Shadow Eminence',
+  arthur_leywin:   'Godkiller',
+};
+TITLE_GOLD_BONUS_PCT['Shadow Monarch']  = 8;
+TITLE_GOLD_BONUS_PCT['Shadow Eminence'] = 10;
+TITLE_GOLD_BONUS_PCT['Godkiller']       = 12;
+
 /** Multiplicateur d'or (1.05 → 1.60) du titre actuellement équipé. */
 export function getTitleGoldMultiplier(activeTitle: string): number {
   const pct = TITLE_GOLD_BONUS_PCT[activeTitle] ?? 0;

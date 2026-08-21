@@ -558,8 +558,12 @@ export function getPalierBossHp(palier: number): number {
 }
 
 export function generateEnemy(wave: number, palier: number, maxPalierReached: number = palier): Enemy {
-  const defs   = PALIER_ENEMIES[palier];
-  const def    = defs ? defs[wave - 1] : getFallback(wave, palier);
+  // Au-delà du palier 40, on cycle sur les mondes précédents pour le thème
+  // (sprite/nom des mobs) — seul themePalier sert au lookup ci-dessous, tout
+  // le reste (PV, coins, gemmes, id) continue d'utiliser le VRAI palier.
+  const themePalier = ((palier - 1) % 40) + 1;
+  const defs   = PALIER_ENEMIES[themePalier];
+  const def    = defs ? defs[wave - 1] : getFallback(wave, themePalier);
   const isBoss = def.isBoss ?? (wave === 10);
   const hpMult = def.hpMult ?? 1;
   const global = (palier - 1) * 10 + wave;

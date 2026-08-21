@@ -19,7 +19,7 @@ function getRankDisplay(idx: number): string {
 
 export function LeaderboardPage() {
   const { user } = useAuth();
-  const { username, palier, wave, totalClicks, pixelCoins, setUsername, getTotalDps } = useGameStore();
+  const { username, palier, maxPalierReached, wave, totalClicks, pixelCoins, setUsername, getTotalDps } = useGameStore();
 
   const [loading,   setLoading]   = useState(true);
   const [entries,   setEntries]   = useState<LeaderboardEntry[]>([]);
@@ -57,7 +57,7 @@ export function LeaderboardPage() {
     setSaving(true);
     setUsername(final);
     try {
-      await updatePlayerScore(user.uid, { username: final, palier, wave, totalClicks, pixelCoins, totalDps: getTotalDps() });
+      await updatePlayerScore(user.uid, { username: final, palier, maxPalierReached, wave, totalClicks, pixelCoins, totalDps: getTotalDps() });
       setFeedback({ ok:true, msg:'Pseudo enregistré !' });
       await loadEntries(); // refresh immédiat pour voir le nouveau pseudo
     } catch {
@@ -120,7 +120,7 @@ export function LeaderboardPage() {
             <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'1px', marginBottom:'10px' }}>TA PROGRESSION</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
               {[
-                { label:'Palier',       value: String(palier)          },
+                { label:'Palier Max',   value: String(maxPalierReached) },
                 { label:'Pixel-Coins',  value: formatNumber(pixelCoins) },
               ].map(item => (
                 <div key={item.label} style={{ padding:'10px 12px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px' }}>
@@ -162,10 +162,10 @@ export function LeaderboardPage() {
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                       {entry.username}{isMe && ' (toi)'}
                     </div>
-                    {/* Palier */}
+                    {/* Palier max atteint (ne redescend jamais après un prestige) */}
                     <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PALIER</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.palier}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PALIER MAX</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.maxPalierReached}</div>
                     </div>
                     {/* Pixel-Coins */}
                     <div style={{ textAlign:'center' }}>

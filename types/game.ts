@@ -237,8 +237,12 @@ export const PALIERS: PalierConfig[] = [
   { id:40, name:"L'ENTRE-TERRE",     universe:'Elden Ring',                   arc:"Le Royaume de l'Entre-Terre", subtitle:'Que la grâce guide tes pas',            bgGradient:'linear-gradient(180deg,#0a0a00,#050500)', accentColor:'#fde68a', bossTimerSeconds:90,  monstersPerPalier:10 },
 ];
 
+// Au-delà du dernier palier défini, on cycle sur les mondes précédents (le
+// thème/décor se répète) — seules les STATS des mobs continuent de monter
+// avec le vrai palier (voir generateEnemy dans lib/game/enemies.ts).
 export function getPalierConfig(p: number): PalierConfig {
-  return PALIERS[Math.min(p - 1, PALIERS.length - 1)];
+  const cycled = ((p - 1) % PALIERS.length) + 1;
+  return PALIERS[cycled - 1];
 }
 
 export interface Enemy {

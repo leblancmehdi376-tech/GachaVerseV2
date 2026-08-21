@@ -2,131 +2,94 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
-  PRESTIGE_UPGRADES, calcPrestigeBonuses, ActivePrestigeBonuses,
-  PRESTIGE_PASSIVE_DPS_PER_LEVEL, PRESTIGE_PASSIVE_COIN_PER_LEVEL,
+  PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, PrestigeBonusLevels,
+  ActivePrestigeBonuses, calcPrestigeBonuses, calcTokensAwarded, initialBonusLevels,
 } from '@/lib/game/prestige';
 import { toast } from '@/hooks/useToast';
 
 interface PrestigeStore {
   // Niveau de prestige (nombre de fois qu'on a reset)
   level:       number;
-  // Points de prestige non dépensés
-  points:      number;
-  // Upgrades achetés : id → nombre de niveaux achetés
-  purchased:   Record<string, number>;
+  // Jetons de prestige non dépensés
+  tokens:      number;
+  // Niveau atteint pour chaque type de bonus (voir lib/game/prestige.ts)
+  bonusLevels: PrestigeBonusLevels;
 
   // ── Actions ────────────────────────────────────────────────────────────
   canPrestige: (maxPalierReached: number) => boolean;
-  doPrestige:  () => void;   // appelé depuis gameStore
-  buyUpgrade:  (id: string) => void;
+  doPrestige:  (maxPalierReached: number) => void;   // appelé depuis gameStore
+  spendToken:  () => PrestigeBonusType | null;
 
   // ── Calculs ────────────────────────────────────────────────────────────
-  getShopBonuses: () => ActivePrestigeBonuses;
-  getTotalDpsMult:  () => number;  // passif + shop
-  getTotalCoinsMult:() => number;
-  getStartGems:     () => number;
-  getStartPalier:   () => number;
-  getUpgradeDiscount: () => number;
+  getBonuses: () => ActivePrestigeBonuses;
   resetPrestige: () => void;
 }
 
 export const usePrestigeStore = create<PrestigeStore>()(
   persist(
     (set, get) => ({
-      level:     0,
-      points:    0,
-      purchased: {},
+      level:       0,
+      tokens:      0,
+      bonusLevels: initialBonusLevels(),
 
       // Remet le prestige à zéro (utilisé par "Réinitialiser mon compte").
-      resetPrestige: () => set({ level: 0, points: 0, purchased: {} }),
+      resetPrestige: () => set({ level: 0, tokens: 0, bonusLevels: initialBonusLevels() }),
 
-      canPrestige: (maxPalierReached) => maxPalierReached >= 40,
+      canPrestige: (maxPalierReached) => maxPalierReached >= 41,
 
-      doPrestige: () => {
+      doPrestige: (maxPalierReached) => {
         const newLevel = get().level + 1;
+        const awarded = calcTokensAwarded(maxPalierReached, get().bonusLevels.tokenGain);
         set(s => ({
           level:  newLevel,
-          points: s.points + 3,  // 3 points par prestige
+          tokens: s.tokens + awarded,
         }));
         toast.palier(
           `⭐ PRESTIGE ${newLevel} ATTEINT !`,
-          `+3 Points de Prestige · Bonus passifs activés`
+          `+${awarded} jeton${awarded > 1 ? 's' : ''} de Prestige`
         );
       },
 
-      buyUpgrade: (id) => {
-        const upg = PRESTIGE_UPGRADES.find(u => u.id === id);
-        if (!upg) return;
-        const currentLevel = get().purchased[id] ?? 0;
-        if (currentLevel >= upg.maxLevel) {
-          toast.error('Niveau maximum', `${upg.name} est déjà au niveau max`);
-          return;
-        }
-        if (get().points < upg.cost) {
-          toast.error('Points insuffisants', `Il te faut ${upg.cost} points de prestige`);
-          return;
-        }
+      spendToken: () => {
+        if (get().tokens <= 0) return null;
+        const levels = get().bonusLevels;
+        const pool = PRESTIGE_BONUS_TYPES.filter(t => {
+          const maxLevel = PRESTIGE_BONUS_DEFS[t].maxLevel;
+          return !maxLevel || levels[t] < maxLevel;
+        });
+        if (pool.length === 0) return null; // tout est déjà au max (cas limite)
+        const picked = pool[Math.floor(Math.random() * pool.length)];
         set(s => ({
-          points: s.points - upg.cost,
-          purchased: {
-            ...s.purchased,
-            [id]: (s.purchased[id] ?? 0) + 1,
-          },
+          tokens: s.tokens - 1,
+          bonusLevels: { ...s.bonusLevels, [picked]: s.bonusLevels[picked] + 1 },
         }));
-        toast.levelup(`✦ ${upg.name} amélioré !`, upg.description);
+        return picked;
       },
 
-      getShopBonuses: () => calcPrestigeBonuses(get().purchased),
-
-      getTotalDpsMult: () => {
-        const passive = 1 + get().level * PRESTIGE_PASSIVE_DPS_PER_LEVEL;
-        return passive * get().getShopBonuses().dpsMult;
-      },
-
-      getTotalCoinsMult: () => {
-        const passive = 1 + get().level * PRESTIGE_PASSIVE_COIN_PER_LEVEL;
-        return passive * get().getShopBonuses().coinsMult;
-      },
-
-      getStartGems:         () => get().getShopBonuses().startGems,
-      getStartPalier:       () => get().getShopBonuses().startPalier,
-      getUpgradeDiscount:   () => get().getShopBonuses().upgradeDiscount,
+      getBonuses: () => calcPrestigeBonuses(get().bonusLevels),
     }),
     {
       name: 'gachaverse_prestige',
       partialize: (s) => ({
-        level:     s.level,
-        points:    s.points,
-        purchased: s.purchased,
+        level:       s.level,
+        tokens:      s.tokens,
+        bonusLevels: s.bonusLevels,
       }),
     }
   )
 );
 
-// Helper global pour utilisation dans gameStore sans hook
-// Mémo : chacun des 6 getters ci-dessous relance calcPrestigeBonuses() sur tout
-// le shop. Or cette fonction est appelée plusieurs fois par rendu de combat
-// (DPS total + DPS de chaque allié) et chaque seconde. On ne recalcule donc que
-// si l'état de prestige a réellement changé (niveau ou achats).
-let _pbLevel = -1;
-let _pbPurchased: unknown = null;
-let _pbValue: {
-  dpsMult: number; coinsMult: number;
-  startGems: number; startPalier: number; upgradeDiscount: number;
-} | null = null;
+// Helper global pour utilisation dans gameStore sans hook.
+// Mémo : recalculer calcPrestigeBonuses() à chaque appel serait gaspillé — cette
+// fonction est appelée plusieurs fois par rendu de combat (DPS total + DPS de
+// chaque allié) et chaque seconde. On ne recalcule que si bonusLevels a changé.
+let _pbLevels: PrestigeBonusLevels | null = null;
+let _pbValue: ActivePrestigeBonuses | null = null;
 
-export function getPrestigeBonuses() {
+export function getPrestigeBonuses(): ActivePrestigeBonuses {
   const s = usePrestigeStore.getState();
-  if (_pbValue && _pbLevel === s.level && _pbPurchased === s.purchased) return _pbValue;
-
-  _pbValue = {
-    dpsMult:          s.getTotalDpsMult(),
-    coinsMult:        s.getTotalCoinsMult(),
-    startGems:        s.getStartGems(),
-    startPalier:      s.getStartPalier(),
-    upgradeDiscount:  s.getUpgradeDiscount(),
-  };
-  _pbLevel = s.level;
-  _pbPurchased = s.purchased;
+  if (_pbValue && _pbLevels === s.bonusLevels) return _pbValue;
+  _pbValue = calcPrestigeBonuses(s.bonusLevels);
+  _pbLevels = s.bonusLevels;
   return _pbValue;
 }

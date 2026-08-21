@@ -20,6 +20,7 @@ interface AchievementState {
   setProgress: (id: string, value: number) => void;
   bumpProgress: (id: string, by?: number) => void;
   setActiveTitle: (title: string) => void;
+  unlockTitle: (title: string) => void;
   getAchievement: (id: string) => Achievement | undefined;
   getProgress: (id: string) => number;
   isUnlocked: (id: string) => boolean;
@@ -45,6 +46,12 @@ export const useAchievementStore = create<AchievementState>()(
       unlockedCount:  ()   => Object.values(get().unlocked).filter(Boolean).length,
 
       setActiveTitle: (title) => set({ activeTitle: title }),
+
+      // Octroi direct d'un titre hors succès (ex: drop rare de boss d'event —
+      // voir EVENT_TITLES dans lib/game/titles.ts).
+      unlockTitle: (title) => set(s =>
+        s.unlockedTitles.includes(title) ? s : { unlockedTitles: [...s.unlockedTitles, title] }
+      ),
 
       setProgress: (id, value) => {
         const achiev = ACHIEVEMENTS.find(a => a.id === id);

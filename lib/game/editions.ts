@@ -19,11 +19,17 @@ export const EDITION_CONFIG: Record<CardEdition, EditionInfo> = {
   diamond: { label: 'Édition Diamant',  color: '#67e8f9', glow: '#22d3ee', statMult: 4.5, dropChancePct: 0.25 },
 };
 
-/** Tire une édition au hasard, pondérée par les chances ci-dessus. */
-export function rollCardEdition(): CardEdition {
+/**
+ * Tire une édition au hasard, pondérée par les chances ci-dessus.
+ * bonusGoldPct/bonusDiamondPct : bonus de prestige additionnés aux taux de
+ * base (voir ActivePrestigeBonuses.shinyGoldBonusPct/shinyDiamondBonusPct).
+ */
+export function rollCardEdition(bonusGoldPct = 0, bonusDiamondPct = 0): CardEdition {
+  const diamondPct = EDITION_CONFIG.diamond.dropChancePct + bonusDiamondPct;
+  const goldPct    = EDITION_CONFIG.gold.dropChancePct + bonusGoldPct;
   const r = Math.random() * 100;
-  if (r < EDITION_CONFIG.diamond.dropChancePct) return 'diamond';
-  if (r < EDITION_CONFIG.diamond.dropChancePct + EDITION_CONFIG.gold.dropChancePct) return 'gold';
+  if (r < diamondPct) return 'diamond';
+  if (r < diamondPct + goldPct) return 'gold';
   return 'base';
 }
 

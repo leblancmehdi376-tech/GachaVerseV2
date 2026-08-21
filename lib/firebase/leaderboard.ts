@@ -5,6 +5,7 @@ export interface LeaderboardEntry {
   uid: string;
   username: string;
   palier: number;
+  maxPalierReached: number;
   wave: number;
   totalClicks: number;
   pixelCoins: number;
@@ -25,6 +26,8 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
     const entries: LeaderboardEntry[] = snapshot.docs.map(docSnap => {
       const data = docSnap.data() as Record<string, unknown>;
       const palier      = typeof data.palier      === 'number' ? data.palier      : 0;
+      // Compat anciens documents sans maxPalierReached : retombe sur palier.
+      const maxPalierReached = typeof data.maxPalierReached === 'number' ? data.maxPalierReached : palier;
       const wave        = typeof data.wave        === 'number' ? data.wave        : 0;
       const totalClicks = typeof data.totalClicks === 'number' ? data.totalClicks : 0;
       const pixelCoins  = typeof data.pixelCoins  === 'number' ? data.pixelCoins  : 0;
@@ -33,24 +36,25 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       return {
         uid: docSnap.id,
         username: typeof data.username === 'string' && data.username.trim() ? data.username : 'Joueur',
-        palier, wave, totalClicks, pixelCoins, score, totalDps,
+        palier, maxPalierReached, wave, totalClicks, pixelCoins, score, totalDps,
       };
     });
 
-    // Déduplique par username — garde le meilleur palier, puis le plus de coins.
+    // Déduplique par username — garde le meilleur palier max atteint, puis le plus de coins.
     const seen = new Map<string, typeof entries[0]>();
     for (const entry of entries) {
       const key = entry.username.toLowerCase();
       const existing = seen.get(key);
-      if (!existing || entry.palier > existing.palier || (entry.palier === existing.palier && entry.pixelCoins > existing.pixelCoins)) {
+      if (!existing || entry.maxPalierReached > existing.maxPalierReached || (entry.maxPalierReached === existing.maxPalierReached && entry.pixelCoins > existing.pixelCoins)) {
         seen.set(key, entry);
       }
     }
     const deduped = Array.from(seen.values());
 
-    // Tri par palier maximum atteint DESC puis Pixel-Coins DESC.
+    // Tri par palier maximum atteint DESC puis Pixel-Coins DESC — le palier max
+    // ne redescend jamais après un prestige, contrairement au palier courant.
     return deduped
-      .sort((a, b) => b.palier - a.palier || b.pixelCoins - a.pixelCoins)
+      .sort((a, b) => b.maxPalierReached - a.maxPalierReached || b.pixelCoins - a.pixelCoins)
       .slice(0, maxEntries);
   } catch (e) {
     console.error('Leaderboard error:', e);
@@ -59,7 +63,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
 }
 
 export async function updatePlayerScore(userId: string, data: Partial<{
-  username: string; palier: number; wave: number; pixelCoins: number; totalClicks: number; totalDps: number;
+  username: string; palier: number; maxPalierReached: number; wave: number; pixelCoins: number; totalClicks: number; totalDps: number;
 }>) {
   if (!db) return;
   try {
