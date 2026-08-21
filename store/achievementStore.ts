@@ -220,9 +220,9 @@ export function trackDps(dps: number) {
 export function trackCollection(ownedCount: number, hasLegendary: boolean, hasTranscendant: boolean, totalPool: number, transcendantCount: number = hasTranscendant ? 1 : 0) {
   const s = useAchievementStore.getState();
   s.setProgress('collect_1',  Math.min(ownedCount, 1));
-  s.setProgress('collect_5',  Math.min(ownedCount, 5));
-  s.setProgress('collect_15', Math.min(ownedCount, 15));
-  s.setProgress('collect_30', Math.min(ownedCount, 30));
+  s.setProgress('collect_5',  Math.min(ownedCount, 50));
+  s.setProgress('collect_15', Math.min(ownedCount, 100));
+  s.setProgress('collect_30', Math.min(ownedCount, 150));
   s.setProgress('collect_all', ownedCount >= totalPool ? 999 : ownedCount);
   if (hasLegendary)     s.setProgress('legendary_1',     1);
   if (hasTranscendant)  s.setProgress('transcendant_1',  1);
@@ -265,8 +265,8 @@ export function trackKills(totalKills: number) {
 
 export function trackUpgrades(totalUpgrades: number) {
   const s = useAchievementStore.getState();
-  s.setProgress('upgrade_10',  Math.min(totalUpgrades, 10));
-  s.setProgress('upgrade_50',  Math.min(totalUpgrades, 50));
+  s.setProgress('upgrade_10',  Math.min(totalUpgrades, 50));
+  s.setProgress('upgrade_50',  Math.min(totalUpgrades, 500));
   s.setProgress('upgrade_200', Math.min(totalUpgrades, 200));
 }
 
@@ -279,8 +279,8 @@ export function trackGems(gems: number) {
 
 export function trackPrestige(level: number) {
   const s = useAchievementStore.getState();
-  s.setProgress('prestige_10', Math.min(level, 10));
-  s.setProgress('prestige_25', Math.min(level, 25));
+  s.setProgress('prestige_10', Math.min(level, 5));
+  s.setProgress('prestige_25', Math.min(level, 20));
 }
 
 export function trackVoidOrbs(orbs: number) {

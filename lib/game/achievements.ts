@@ -167,7 +167,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'collect_30', category:'collection', icon:'📚',
     title:'Collectionneur', name:'Bibliothèque',
-    description:'Obtiens 150 personnages différents.', target:193,
+    description:'Obtiens 150 personnages différents.', target:150,
     reward:{ type:'gems', value:400 },
   },
   {
@@ -373,7 +373,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'upgrade_200', category:'progression', icon:'⚒',
     title:'Maître Artisan', name:'Maître Artisan',
-    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 2000 fois au total.', target:200,
+    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 200 fois au total.', target:200,
     reward:{ type:'gems', value:300 },
   },
 
