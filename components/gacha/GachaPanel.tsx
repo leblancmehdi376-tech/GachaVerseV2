@@ -94,7 +94,7 @@ function FlipCard({ res, index, total }: { res: PullResult; index: number; total
               paddingBottom: 12,
             }}>
               <span style={{
-                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 11,
+                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 11.3,
                 color: cfg.color, letterSpacing: 1,
                 background: 'rgba(0,0,0,0.6)', borderRadius: 6,
                 padding: '3px 10px', border: `1px solid ${cfg.color}66`,
@@ -136,9 +136,9 @@ function FlipCard({ res, index, total }: { res: PullResult; index: number; total
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                 animation: 'fadeIn 0.4s ease',
               }}>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'white' }}>{tpl.name}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'white' }}>{tpl.name}</span>
                 <RarityBadge rarity={tpl.rarity} size="xs" />
-                {res.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:9, color:'#4ade80', fontWeight:700, letterSpacing:1 }}>✦ NOUVEAU !</span>}
+                {res.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'#4ade80', fontWeight:700, letterSpacing:1 }}>✦ NOUVEAU !</span>}
               </div>
             )}
           </>) : (
@@ -196,7 +196,7 @@ function GachaRevealOverlay({ results, onClose }: { results: PullResult[]; onClo
           onClick={() => setPhase('cards')}
           style={{
             position: 'absolute', bottom: 32, right: 32,
-            fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12,
+            fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12.4,
             color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.06)',
             border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
             padding: '8px 18px', cursor: 'pointer', letterSpacing: 1,
@@ -237,7 +237,7 @@ function GachaRevealOverlay({ results, onClose }: { results: PullResult[]; onClo
                 setFlippedAll(true);
               }}
               style={{
-                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13,
+                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4,
                 color: '#c084fc', background: 'rgba(168,85,247,0.1)',
                 border: '1px solid rgba(168,85,247,0.35)', borderRadius: 8,
                 padding: '10px 24px', cursor: 'pointer', letterSpacing: 1,
@@ -247,7 +247,7 @@ function GachaRevealOverlay({ results, onClose }: { results: PullResult[]; onClo
             <button
               onClick={onClose}
               style={{
-                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13,
+                fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4,
                 color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.04)',
                 border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
                 padding: '10px 24px', cursor: 'pointer', letterSpacing: 1,
@@ -318,40 +318,40 @@ export function GachaMiniPanel() {
 
         {/* Crystal gem + boutons */}
         <div style={{ display:'flex', gap:'10px', alignItems:'stretch' }}>
-          <div style={{ width:56, flexShrink:0, background:'linear-gradient(135deg,#1a0d2e,#0e0520)', border:'1px solid var(--purple-dim)', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'32px', boxShadow:'0 0 20px rgba(168,85,247,0.2)' }}>
+          <div style={{ width:56, flexShrink:0, background:'linear-gradient(135deg,#1a0d2e,#0e0520)', border:'1px solid var(--purple-dim)', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'33px', boxShadow:'0 0 20px rgba(168,85,247,0.2)' }}>
             💎
           </div>
           <div style={{ flex:1, display:'flex', flexDirection:'column', gap:'6px' }}>
             <button onClick={doSingle} disabled={!canS || pulling}
               style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 12px', background:canS?'linear-gradient(135deg,#2d0f5e,#4c1d95)':'rgba(255,255,255,0.03)', border:`1px solid ${canS?'rgba(139,92,246,0.5)':'var(--border)'}`, borderRadius:'7px', cursor:canS&&!pulling?'pointer':'not-allowed', opacity:canS?1:0.4, transition:'all 0.15s', boxShadow:canS?'0 2px 16px rgba(109,40,217,0.25)':'none' }}>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:canS?'var(--purple-glow)':'var(--text-muted)' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canS?'var(--purple-glow)':'var(--text-muted)' }}>
                 {pulling ? '✦ Invocation...' : 'Tirage ×1'}
               </span>
               <div style={{ display:'flex', alignItems:'center', gap:'5px', background:'rgba(0,0,0,0.3)', border:'1px solid rgba(34,211,238,0.3)', borderRadius:'5px', padding:'3px 10px' }}>
-                <span style={{ fontSize:'12px' }}>💎</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:'var(--cyan)' }}>{GACHA_COSTS.single}</span>
+                <span style={{ fontSize:'12.4px' }}>💎</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--cyan)' }}>{GACHA_COSTS.single}</span>
               </div>
             </button>
 
             <button onClick={doMulti} disabled={!canM || pulling}
               style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 12px', background:canM?'linear-gradient(135deg,#3d1500,#7c2d12)':'rgba(255,255,255,0.03)', border:`1px solid ${canM?'rgba(217,119,6,0.5)':'var(--border)'}`, borderRadius:'7px', cursor:canM&&!pulling?'pointer':'not-allowed', opacity:canM?1:0.4, transition:'all 0.15s', boxShadow:canM?'0 2px 16px rgba(180,83,9,0.25)':'none', position:'relative', overflow:'hidden' }}>
-              <div style={{ position:'absolute', top:'-2px', right:'-2px', background:'#d97706', padding:'1px 8px', fontSize:'9px', fontFamily:'var(--f-ui)', fontWeight:700, color:'#000', borderBottomLeftRadius:'4px' }}>-10%</div>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:canM?'#fbbf24':'var(--text-muted)' }}>Tirage ×10</span>
+              <div style={{ position:'absolute', top:'-2px', right:'-2px', background:'#d97706', padding:'1px 8px', fontSize:'9.3px', fontFamily:'var(--f-ui)', fontWeight:700, color:'#000', borderBottomLeftRadius:'4px' }}>-10%</div>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canM?'#fbbf24':'var(--text-muted)' }}>Tirage ×10</span>
               <div style={{ display:'flex', alignItems:'center', gap:'5px', background:'rgba(0,0,0,0.3)', border:'1px solid rgba(34,211,238,0.3)', borderRadius:'5px', padding:'3px 10px' }}>
-                <span style={{ fontSize:'12px' }}>💎</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:'var(--cyan)' }}>{GACHA_COSTS.multi10}</span>
+                <span style={{ fontSize:'12.4px' }}>💎</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--cyan)' }}>{GACHA_COSTS.multi10}</span>
               </div>
             </button>
           </div>
         </div>
 
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:'10px', color:'var(--text-dim)', textAlign:'center', fontWeight:500 }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', textAlign:'center', fontWeight:500 }}>
           ★ 4+ GARANTI DANS 32 TIRAGES
         </div>
 
         {/* Taux */}
         <button onClick={() => setShowRate(!showRate)}
-          style={{ background:'none', border:'1px solid var(--border)', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontSize:'11px', color:'var(--text-dim)', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', transition:'all 0.15s' }}>
+          style={{ background:'none', border:'1px solid var(--border)', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', transition:'all 0.15s' }}>
           {showRate ? '▲' : '▼'} Taux de drop
         </button>
 
@@ -365,7 +365,7 @@ export function GachaMiniPanel() {
                 <div style={{ flex:1, height:'5px', background:'rgba(255,255,255,0.05)', borderRadius:'3px', overflow:'hidden' }}>
                   <div style={{ height:'100%', width:`${Math.min(rate,65)/65*100}%`, background:cfg.color, boxShadow:`0 0 5px ${cfg.glow}`, borderRadius:'3px' }} />
                 </div>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:cfg.color, minWidth:'38px', textAlign:'right' }}>{rate}%</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:cfg.color, minWidth:'38px', textAlign:'right' }}>{rate}%</span>
               </div>
               );
             })}

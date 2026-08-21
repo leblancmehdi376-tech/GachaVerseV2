@@ -44,10 +44,11 @@
   --orange:        #fb923c;
 
   /* ── Textes ─────────────────────────────────── */
+  /* Contraste renforcé sur les tons secondaire/atténué/muet (lisibilité) */
   --text:          #ede6ff;
-  --text-sub:      #b8a8dc;
-  --text-dim:      #6b5d90;
-  --text-muted:    #352d52;
+  --text-sub:      #cabde8;
+  --text-dim:      #9384bc;
+  --text-muted:    #574c80;
 
   /* ── Typos ──────────────────────────────────── */
   --f-title:  'Cinzel', serif;

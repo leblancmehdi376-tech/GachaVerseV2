@@ -49,8 +49,8 @@ export function ArdeurEvent() {
 
   return (
     <div style={{ position:'absolute', inset:0, zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:14, background:'rgba(3,2,10,0.4)' }}>
-      <div style={{ fontFamily:'var(--f-title)', fontSize:20, fontWeight:900, color:'#fb923c', letterSpacing:2, textShadow:'0 0 18px rgba(251,146,60,0.6)' }}>🔥 ARDEUR</div>
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-sub)' }}>
+      <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'#fb923c', letterSpacing:2, textShadow:'0 0 18px rgba(251,146,60,0.6)' }}>🔥 ARDEUR</div>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-sub)' }}>
         Maintiens le rythme ! Boost actuel <strong style={{ color: hot ? '#fbbf24' : '#fb923c' }}>×{mult.toFixed(2)} DPS</strong>
       </div>
 
@@ -62,12 +62,12 @@ export function ArdeurEvent() {
       <button onClick={hit}
         style={{ width:150, height:150, borderRadius:'50%', border:`3px solid ${hot ? '#fbbf24' : '#fb923c'}`, cursor:'pointer',
           background:`radial-gradient(circle at 50% 35%, ${hot ? '#fbbf24' : '#fb923c'}, #b45309)`, color:'#fff',
-          fontFamily:'var(--f-title)', fontWeight:900, fontSize:22, letterSpacing:1,
+          fontFamily:'var(--f-title)', fontWeight:900, fontSize:22.7, letterSpacing:1,
           boxShadow:`0 0 ${20 + pct*0.4}px rgba(251,146,60,0.7)`, transform:`scale(${1 + heatRef.current*0.08})`, transition:'transform 0.05s' }}>
         FRAPPE !
       </button>
 
-      <div style={{ fontFamily:'var(--f-num)', fontSize:11, color:'var(--text-dim)' }}>{(timeLeft/1000).toFixed(1)}s</div>
+      <div style={{ fontFamily:'var(--f-num)', fontSize:11.3, color:'var(--text-dim)' }}>{(timeLeft/1000).toFixed(1)}s</div>
     </div>
   );
 }

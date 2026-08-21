@@ -17,10 +17,10 @@ export function MaintenanceScreen() {
         textAlign: 'center',
         padding: '40px 28px',
       }}>
-        <div style={{ fontSize: 52, lineHeight: 1, marginBottom: 18 }}>🛠️</div>
+        <div style={{ fontSize: 53.6, lineHeight: 1, marginBottom: 18 }}>🛠️</div>
 
         <div style={{
-          fontFamily: 'var(--f-title, serif)', fontSize: 22, fontWeight: 900, letterSpacing: 2,
+          fontFamily: 'var(--f-title, serif)', fontSize: 22.7, fontWeight: 900, letterSpacing: 2,
           background: 'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)',
           WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent',
           marginBottom: 12,
@@ -29,7 +29,7 @@ export function MaintenanceScreen() {
         </div>
 
         <div style={{
-          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 13, color: 'rgba(255,255,255,0.7)',
+          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 13.4, color: 'rgba(255,255,255,0.7)',
           lineHeight: 1.6, marginBottom: 20,
         }}>
           GachaVerse est temporairement indisponible pendant qu&apos;on corrige un problème.
@@ -37,7 +37,7 @@ export function MaintenanceScreen() {
         </div>
 
         <div style={{
-          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 11, color: 'rgba(255,255,255,0.4)',
+          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 11.3, color: 'rgba(255,255,255,0.4)',
           letterSpacing: 0.5,
         }}>
           Reviens dans quelques instants.

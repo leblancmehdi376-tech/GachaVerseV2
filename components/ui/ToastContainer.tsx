@@ -59,7 +59,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           border: `1px solid ${style.accent}44`,
           borderRadius: '8px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '16px',
+          fontSize: '16.5px',
         }}>
           {toast.icon}
         </div>
@@ -69,7 +69,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           <div style={{
             fontFamily: 'var(--f-ui)',
             fontWeight: 800,
-            fontSize: '13px',
+            fontSize: '13.4px',
             color: style.accent,
             letterSpacing: '0.3px',
             marginBottom: toast.message ? '3px' : 0,
@@ -82,7 +82,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           {toast.message && (
             <div style={{
               fontFamily: 'var(--f-ui)',
-              fontSize: '11px',
+              fontSize: '11.3px',
               color: 'var(--text-dim)',
               lineHeight: 1.4,
               fontWeight: 600,
@@ -93,7 +93,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         </div>
 
         {/* Dismiss X */}
-        <div style={{ fontSize: '11px', color: 'var(--text-muted)', flexShrink: 0, marginTop: '1px' }}>✕</div>
+        <div style={{ fontSize: '11.3px', color: 'var(--text-muted)', flexShrink: 0, marginTop: '1px' }}>✕</div>
       </div>
 
       {/* Progress bar */}

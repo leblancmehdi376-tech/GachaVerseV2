@@ -24,7 +24,7 @@ function CycleNode({ affinity, active }: { affinity: Affinity; active: boolean }
         width: active ? 22 : 18,
         height: active ? 22 : 18,
         borderRadius: '50%',
-        fontSize: active ? 12 : 10,
+        fontSize: active ? 12.4 : 10.3,
         background: active ? `${color}33` : 'rgba(255,255,255,0.04)',
         border: active ? `1.5px solid ${color}` : '1px solid rgba(255,255,255,0.1)',
         boxShadow: active ? `0 0 10px ${color}88` : 'none',
@@ -119,8 +119,8 @@ export function AffinityTooltip({ affinity, children }: { affinity: Affinity; ch
         maxWidth: 'min(80vw, 360px)',
       }}
     >
-      <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 11, letterSpacing: 1, color: config.color, textShadow: `0 0 10px ${config.color}88`, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: 13 }}>{config.icon}</span>
+      <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 11.3, letterSpacing: 1, color: config.color, textShadow: `0 0 10px ${config.color}88`, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontSize: 13.4 }}>{config.icon}</span>
         {config.label.toUpperCase()}
       </div>
 
@@ -128,13 +128,13 @@ export function AffinityTooltip({ affinity, children }: { affinity: Affinity; ch
         {AFFINITY_ORDER.map((a) => (
           <span key={a} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <CycleNode affinity={a} active={a === affinity} />
-            <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 10 }}>→</span>
+            <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 10.3 }}>→</span>
           </span>
         ))}
         <CycleNode affinity={AFFINITY_ORDER[0]} active={AFFINITY_ORDER[0] === affinity} />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontFamily: 'var(--f-ui)', fontSize: 10.5 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontFamily: 'var(--f-ui)', fontSize: 10.8 }}>
         <MatchupLine label="Fort contre" emoji="⚔️" target={strongAgainst} tint="#4ade80" />
         <MatchupLine label="Faible contre" emoji="🛡️" target={weakAgainst} tint="#f87171" />
       </div>

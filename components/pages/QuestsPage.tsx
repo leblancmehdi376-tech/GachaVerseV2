@@ -66,11 +66,11 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
       transition:'all 0.2s', position:'relative', overflow:'hidden',
     }}>
       {canClaim && <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,var(--purple-hi),transparent)' }} />}
-      <span style={{ fontSize:'28px', flexShrink:0 }}>{q.icon}</span>
+      <span style={{ fontSize:'28.8px', flexShrink:0 }}>{q.icon}</span>
       <div style={{ flex:1 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px', gap:10 }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'var(--text)' }}>{q.label}</span>
-          <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13px', color:'var(--gold)', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', padding:'3px 12px', borderRadius:'6px', flexShrink:0 }}>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{q.label}</span>
+          <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13.4px', color:'var(--gold)', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', padding:'3px 12px', borderRadius:'6px', flexShrink:0 }}>
             {q.rewardType === 'gems' ? '💎' : '🪙'} {formatNumber(q.reward)}
           </span>
         </div>
@@ -83,19 +83,19 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
             boxShadow: q.done ? '0 0 8px #4ade8066' : canClaim ? '0 0 10px #9333ea88' : 'none',
           }} />
         </div>
-        <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-dim)', fontWeight:700 }}>
+        <div style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', color:'var(--text-dim)', fontWeight:700 }}>
           {formatNumber(q.current)} / {formatNumber(q.target)}
         </div>
       </div>
       {q.done ? (
-        <span style={{ fontSize:'26px', flexShrink:0 }}>✅</span>
+        <span style={{ fontSize:'26.8px', flexShrink:0 }}>✅</span>
       ) : canClaim ? (
         <button onClick={() => onClaim(q.id)} className="btn-primary"
-          style={{ padding:'10px 18px', fontSize:'13px', letterSpacing:'0.5px', flexShrink:0 }}>
+          style={{ padding:'10px 18px', fontSize:'13.4px', letterSpacing:'0.5px', flexShrink:0 }}>
           RÉCUPÉRER
         </button>
       ) : (
-        <div style={{ width:80, flexShrink:0, textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'11px', color:'var(--text-muted)', fontWeight:600 }}>EN COURS</div>
+        <div style={{ width:80, flexShrink:0, textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)', fontWeight:600 }}>EN COURS</div>
       )}
     </div>
   );
@@ -135,7 +135,7 @@ export function QuestsPage() {
             <div style={{ display:'flex', gap:10 }}>
               {(['daily','weekly'] as const).map(t => (
                 <div key={t} style={{ textAlign:'center', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 12px' }}>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:9, fontWeight:700, color:'var(--text-dim)', letterSpacing:1, marginBottom:3 }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, fontWeight:700, color:'var(--text-dim)', letterSpacing:1, marginBottom:3 }}>
                     {t === 'daily' ? '📅 JOURNALIER' : '📆 HEBDOMADAIRE'}
                   </div>
                   <Countdown type={t} />
@@ -151,7 +151,7 @@ export function QuestsPage() {
             const pct = t.totalCount > 0 ? Math.round((t.doneCount / t.totalCount) * 100) : 0;
             return (
               <button key={t.id} onClick={() => setTab(t.id)}
-                style={{ flex:1, padding:'10px 8px', borderRadius:10, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11, letterSpacing:0.5, transition:'all 0.15s', display:'flex', flexDirection:'column', alignItems:'center', gap:5,
+                style={{ flex:1, padding:'10px 8px', borderRadius:10, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:11.3, letterSpacing:0.5, transition:'all 0.15s', display:'flex', flexDirection:'column', alignItems:'center', gap:5,
                   background: tab===t.id ? `${t.color}18` : 'var(--bg-card)',
                   border: `1px solid ${tab===t.id ? t.color+'55' : 'var(--border)'}`,
                   color: tab===t.id ? t.color : 'var(--text-dim)',
@@ -160,7 +160,7 @@ export function QuestsPage() {
                 <div style={{ width:'100%', height:3, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden' }}>
                   <div style={{ height:'100%', width:`${pct}%`, background:t.color, borderRadius:2, transition:'width 0.4s' }} />
                 </div>
-                <span style={{ fontFamily:'var(--f-num)', fontSize:12, color:t.color }}>{t.count}</span>
+                <span style={{ fontFamily:'var(--f-num)', fontSize:12.4, color:t.color }}>{t.count}</span>
               </button>
             );
           })}
@@ -169,7 +169,7 @@ export function QuestsPage() {
         {/* ── JOURNALIÈRES ── */}
         {tab === 'daily' && (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
               Reset quotidien à <strong style={{ color:'#34d399' }}>2h00 (heure de Paris)</strong>
             </div>
             {(quests ?? []).map((q: QuestItem) => (
@@ -181,7 +181,7 @@ export function QuestsPage() {
         {/* ── HEBDOMADAIRES ── */}
         {tab === 'weekly' && (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
               Reset le <strong style={{ color:'#60a5fa' }}>lundi à 2h00 (heure de Paris)</strong>
             </div>
             {(weeklyQuests ?? []).map((q: QuestItem) => (
@@ -193,7 +193,7 @@ export function QuestsPage() {
         {/* ── ÉVÉNEMENTS ── */}
         {tab === 'event' && (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
               Quêtes permanentes — <strong style={{ color:'#e879f9' }}>disponibles jusqu'à complétion</strong>
             </div>
             {(eventQuests ?? []).map((q: QuestItem) => (

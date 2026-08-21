@@ -136,10 +136,10 @@ export function JackpotEvent() {
         <button onClick={() => setPhase('slots')}
           style={{ padding:'18px 30px', borderRadius:14, cursor:'pointer', border:'2px solid #fbbf24',
             background:'linear-gradient(135deg,#b45309,#f59e0b)', color:'#fff',
-            fontFamily:'var(--f-title)', fontWeight:900, fontSize:20, letterSpacing:2,
+            fontFamily:'var(--f-title)', fontWeight:900, fontSize:20.6, letterSpacing:2,
             boxShadow:'0 0 40px rgba(245,158,11,0.7)', animation:'jackpotBlink 0.6s infinite' }}>
           🎰 GAIN MULTIPLIÉ !
-          <div style={{ fontFamily:'var(--f-num)', fontSize:11, fontWeight:700, opacity:0.85, marginTop:4 }}>{(timeLeft/1000).toFixed(0)}s pour tenter</div>
+          <div style={{ fontFamily:'var(--f-num)', fontSize:11.3, fontWeight:700, opacity:0.85, marginTop:4 }}>{(timeLeft/1000).toFixed(0)}s pour tenter</div>
         </button>
         <style>{`@keyframes jackpotBlink { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.5)} }`}</style>
       </div>
@@ -150,18 +150,18 @@ export function JackpotEvent() {
   return (
     <div style={{ position:'absolute', inset:0, zIndex:20, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(3,2,10,0.6)' }}>
       <div style={{ width:'min(360px,92%)', borderRadius:16, border:'1px solid var(--border-glow)', background:'linear-gradient(170deg,#1a1230,#0a0818)', boxShadow:'0 20px 60px rgba(0,0,0,0.7)', padding:22, textAlign:'center' }}>
-        <div style={{ fontFamily:'var(--f-title)', fontSize:18, fontWeight:900, color:'var(--gold-hi)', letterSpacing:2, marginBottom:14 }}>🎰 MACHINE À SOUS</div>
+        <div style={{ fontFamily:'var(--f-title)', fontSize:18.5, fontWeight:900, color:'var(--gold-hi)', letterSpacing:2, marginBottom:14 }}>🎰 MACHINE À SOUS</div>
 
         <div style={{ display:'flex', gap:8, justifyContent:'center', marginBottom:16 }}>
           {reels.map((s, i) => (
-            <div key={i} style={{ width:78, height:78, borderRadius:12, background:'#050310', border:'2px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:40 }}>
+            <div key={i} style={{ width:78, height:78, borderRadius:12, background:'#050310', border:'2px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:41.2 }}>
               {s.icon}
             </div>
           ))}
         </div>
 
         {!done ? (
-          <button onClick={spin} disabled={spinning} className="btn-primary" style={{ width:'100%', padding:12, fontSize:15, opacity: spinning ? 0.6 : 1 }}>
+          <button onClick={spin} disabled={spinning} className="btn-primary" style={{ width:'100%', padding:12, fontSize:15.5, opacity: spinning ? 0.6 : 1 }}>
             {spinning ? 'ROTATION…' : 'LANCER'}
           </button>
         ) : (
@@ -169,16 +169,16 @@ export function JackpotEvent() {
             <div style={{ minHeight:44, marginBottom:12 }}>
               {result ? (
                 result.malusDivide ? (
-                  <div style={{ color:'#f87171', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14 }}>
+                  <div style={{ color:'#f87171', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14.4 }}>
                     💀💀💀 {result.label} : DPS ÷{result.malusDivide} pendant 10 min !
                   </div>
                 ) : result.bankrupt ? (
-                  <div style={{ color:'#f87171', fontFamily:'var(--f-ui)', fontWeight:900, fontSize:15 }}>
+                  <div style={{ color:'#f87171', fontFamily:'var(--f-ui)', fontWeight:900, fontSize:15.5 }}>
                     🪦🪦🪦 {result.label} !<br />
-                    <span style={{ fontSize:12, fontWeight:700, opacity:0.85 }}>Tous tes Pixel-Coins sont partis en fumée…</span>
+                    <span style={{ fontSize:12.4, fontWeight:700, opacity:0.85 }}>Tous tes Pixel-Coins sont partis en fumée…</span>
                   </div>
                 ) : (
-                  <div style={{ color:'var(--green)', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14 }}>
+                  <div style={{ color:'var(--green)', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14.4 }}>
                     {result.icon} {result.label} !{' '}
                     {result.coinMult ? `+${formatNumber(lockedCoins)}🪙 ` : ''}
                     {result.gems ? `+${result.gems}💎 ` : ''}
@@ -186,10 +186,10 @@ export function JackpotEvent() {
                   </div>
                 )
               ) : (
-                <div style={{ color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:13 }}>Pas d’alignement… pas de chance !</div>
+                <div style={{ color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:13.4 }}>Pas d’alignement… pas de chance !</div>
               )}
             </div>
-            <button onClick={handleManualClose} className="btn-secondary" style={{ width:'100%', padding:11, fontSize:14 }}>FERMER</button>
+            <button onClick={handleManualClose} className="btn-secondary" style={{ width:'100%', padding:11, fontSize:14.4 }}>FERMER</button>
           </>
         )}
       </div>

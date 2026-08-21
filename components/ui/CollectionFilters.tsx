@@ -47,7 +47,7 @@ export function CollectionFilters({
         cursor: 'pointer',
         fontFamily: 'var(--f-ui)',
         fontWeight: 700,
-        fontSize: '11px',
+        fontSize: '11.3px',
         letterSpacing: '0.5px',
         transition: 'all 0.15s',
         background: filter === k ? `${accent ?? '#60a5fa'}18` : 'rgba(255,255,255,0.03)',
@@ -62,7 +62,7 @@ export function CollectionFilters({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>FILTRE</span>
+        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10.3px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>FILTRE</span>
         <FilterBtn k="all" label="TOUS" />
         <FilterBtn k="owned" label="✓ POSSÉDÉS" accent="#4ade80" />
         <FilterBtn k="missing" label="🔒 MANQUANTS" accent="#f87171" />
@@ -74,7 +74,7 @@ export function CollectionFilters({
       </div>
 
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>UNIVERS</span>
+        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10.3px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>UNIVERS</span>
         <button
           onClick={() => onUniverseChange('all')}
           style={{
@@ -83,7 +83,7 @@ export function CollectionFilters({
             cursor: 'pointer',
             fontFamily: 'var(--f-ui)',
             fontWeight: 700,
-            fontSize: '10px',
+            fontSize: '10.3px',
             background: universe === 'all' ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.03)',
             border: `1px solid ${universe === 'all' ? 'rgba(192,132,252,0.4)' : 'var(--border)'}`,
             color: universe === 'all' ? 'var(--purple-glow)' : 'var(--text-dim)',
@@ -101,7 +101,7 @@ export function CollectionFilters({
               cursor: 'pointer',
               fontFamily: 'var(--f-ui)',
               fontWeight: 700,
-              fontSize: '10px',
+              fontSize: '10.3px',
               background: universe === u ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.03)',
               border: `1px solid ${universe === u ? 'rgba(192,132,252,0.4)' : 'var(--border)'}`,
               color: universe === u ? 'var(--purple-glow)' : 'var(--text-dim)',
@@ -113,7 +113,7 @@ export function CollectionFilters({
       </div>
 
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TYPE</span>
+        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10.3px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TYPE</span>
         <button
           onClick={() => onAffinityChange('all')}
           style={{
@@ -122,7 +122,7 @@ export function CollectionFilters({
             cursor: 'pointer',
             fontFamily: 'var(--f-ui)',
             fontWeight: 700,
-            fontSize: '10px',
+            fontSize: '10.3px',
             background: affinity === 'all' ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.03)',
             border: `1px solid ${affinity === 'all' ? 'rgba(34,211,238,0.4)' : 'var(--border)'}`,
             color: affinity === 'all' ? '#67e8f9' : 'var(--text-dim)',
@@ -142,7 +142,7 @@ export function CollectionFilters({
                 cursor: 'pointer',
                 fontFamily: 'var(--f-ui)',
                 fontWeight: 700,
-                fontSize: '10px',
+                fontSize: '10.3px',
                 background: affinity === a ? `${c.color}18` : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${affinity === a ? `${c.color}66` : 'var(--border)'}`,
                 color: affinity === a ? c.color : 'var(--text-dim)',
@@ -155,7 +155,7 @@ export function CollectionFilters({
       </div>
 
       <div style={{ display: 'flex', gap: '6px', alignItems: 'center', paddingBottom: '6px' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TRI</span>
+        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '10.3px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TRI</span>
         {(Object.keys(COLLECTION_SORT_LABELS) as CollectionSortMode[]).map(s => (
           <button
             key={s}
@@ -166,7 +166,7 @@ export function CollectionFilters({
               cursor: 'pointer',
               fontFamily: 'var(--f-ui)',
               fontWeight: 700,
-              fontSize: '10px',
+              fontSize: '10.3px',
               background: sort === s ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.03)',
               border: `1px solid ${sort === s ? 'rgba(251,191,36,0.4)' : 'var(--border)'}`,
               color: sort === s ? '#fbbf24' : 'var(--text-dim)',

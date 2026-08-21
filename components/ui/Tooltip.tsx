@@ -36,7 +36,7 @@ export function Tooltip({ content, children }: { content: React.ReactNode; child
   }, [visible]);
 
   const tip = (
-    <span ref={tipRef} style={{ position: 'fixed', top: pos.top, left: pos.left, background: 'rgba(10,10,14,0.96)', color: 'white', padding: '6px 8px', borderRadius: 8, fontSize: 12, zIndex: 9999, pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.6)', maxWidth: '70vw' }}>
+    <span ref={tipRef} style={{ position: 'fixed', top: pos.top, left: pos.left, background: 'rgba(10,10,14,0.96)', color: 'white', padding: '6px 8px', borderRadius: 8, fontSize: 12.4, zIndex: 9999, pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.6)', maxWidth: '70vw' }}>
       {content}
     </span>
   );

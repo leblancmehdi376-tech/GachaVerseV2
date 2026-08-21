@@ -46,7 +46,7 @@ export function TempeteEvent() {
     <div style={{ position:'absolute', inset:0, zIndex:20, pointerEvents:'none' }}>
       {/* Voile de neige léger */}
       <div style={{ position:'absolute', inset:0, background:'radial-gradient(120% 80% at 50% 0%, rgba(103,232,249,0.10), transparent 60%)' }} />
-      <div style={{ position:'absolute', top:12, left:0, right:0, textAlign:'center', fontFamily:'var(--f-title)', fontSize:15, fontWeight:800, color:'#a5f3fc', letterSpacing:2, textShadow:'0 0 16px rgba(165,243,252,0.7)' }}>
+      <div style={{ position:'absolute', top:12, left:0, right:0, textAlign:'center', fontFamily:'var(--f-title)', fontSize:15.5, fontWeight:800, color:'#a5f3fc', letterSpacing:2, textShadow:'0 0 16px rgba(165,243,252,0.7)' }}>
         ❄️ TEMPÊTE DE NEIGE
       </div>
 
@@ -58,8 +58,8 @@ export function TempeteEvent() {
             display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:0,
             boxShadow:'0 0 26px rgba(165,243,252,0.9), inset 0 0 14px rgba(255,255,255,0.7)',
             animation:'tempeteFloat 2.2s ease-in-out infinite, tempetePop 0.25s ease-out' }}>
-          <span style={{ fontSize:16, lineHeight:1, filter:'drop-shadow(0 1px 1px rgba(0,0,0,0.2))' }}>❄️</span>
-          <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:15, color:'#0e3a4a', lineHeight:1.1 }}>×{orb.mult.toFixed(1)}</span>
+          <span style={{ fontSize:16.5, lineHeight:1, filter:'drop-shadow(0 1px 1px rgba(0,0,0,0.2))' }}>❄️</span>
+          <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:15.5, color:'#0e3a4a', lineHeight:1.1 }}>×{orb.mult.toFixed(1)}</span>
         </button>
       )}
 

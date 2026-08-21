@@ -17,17 +17,17 @@ export function PendingApprovalScreen({ email, onLogout }: { email: string | nul
         textAlign: 'center',
         padding: '40px 28px',
       }}>
-        <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 16 }}>⏳</div>
+        <div style={{ fontSize: 49.4, lineHeight: 1, marginBottom: 16 }}>⏳</div>
 
         <div style={{
-          fontFamily: 'var(--f-title, serif)', fontSize: 20, fontWeight: 900, letterSpacing: 1.5,
+          fontFamily: 'var(--f-title, serif)', fontSize: 20.6, fontWeight: 900, letterSpacing: 1.5,
           color: '#fbbf24', marginBottom: 12,
         }}>
           COMPTE EN ATTENTE DE VALIDATION
         </div>
 
         <div style={{
-          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 13, color: 'rgba(255,255,255,0.7)',
+          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 13.4, color: 'rgba(255,255,255,0.7)',
           lineHeight: 1.6, marginBottom: 8,
         }}>
           Ta demande d&apos;accès a bien été reçue{email ? ` pour ${email}` : ''}.
@@ -35,7 +35,7 @@ export function PendingApprovalScreen({ email, onLogout }: { email: string | nul
         </div>
 
         <div style={{
-          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 11, color: 'rgba(255,255,255,0.4)',
+          fontFamily: 'var(--f-ui, sans-serif)', fontSize: 11.3, color: 'rgba(255,255,255,0.4)',
           marginBottom: 22,
         }}>
           Reviens un peu plus tard, ou reconnecte-toi.
@@ -44,7 +44,7 @@ export function PendingApprovalScreen({ email, onLogout }: { email: string | nul
         <button onClick={onLogout} style={{
           padding: '11px 24px', borderRadius: 10, cursor: 'pointer',
           background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-          color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--f-ui, sans-serif)', fontSize: 12, fontWeight: 700,
+          color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--f-ui, sans-serif)', fontSize: 12.4, fontWeight: 700,
         }}>
           Se déconnecter
         </button>

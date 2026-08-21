@@ -193,23 +193,23 @@ export function CompanionsPage() {
                       />
                       {hasEquipment && (
                         <Tooltip content={<span style={{ fontWeight: 700 }}>Équipements équipés</span>}>
-                          <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 12, zIndex: 6 }}>
+                          <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 12.4, zIndex: 6 }}>
                             ⚔️
                           </div>
                         </Tooltip>
                       )}
                       <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{tpl.name}</div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: 'var(--text)' }}>{tpl.name}</div>
                         <div style={{ marginTop: 6 }}><RarityBadge rarity={tpl.rarity} /></div>
                       </div>
                       <RankStars rank={own.rank} />
-                      <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--green)' }}>{formatNumber(dps)}/s</div>
+                      <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16.5, color: 'var(--green)' }}>{formatNumber(dps)}/s</div>
                       {(() => {
                         const ult = getUltimateDef(tpl.id);
                         return ult ? (
                           <div style={{ textAlign: 'center', padding: '0 4px' }}>
-                            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10, color: 'var(--purple-glow)' }}>{ult.name}</span>
-                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10, color: 'var(--text-dim)' }}> : {ult.description}</span>
+                            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10.3, color: 'var(--purple-glow)' }}>{ult.name}</span>
+                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10.3, color: 'var(--text-dim)' }}> : {ult.description}</span>
                           </div>
                         ) : null;
                       })()}
@@ -222,10 +222,10 @@ export function CompanionsPage() {
                     </>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 52, height: 52, border: `2px dashed ${isSelected ? 'var(--purple-hi)' : 'rgba(255,255,255,0.16)'}`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: isSelected ? 'var(--purple-glow)' : 'rgba(255,255,255,0.25)' }}>
+                      <div style={{ width: 52, height: 52, border: `2px dashed ${isSelected ? 'var(--purple-hi)' : 'rgba(255,255,255,0.16)'}`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26.8, color: isSelected ? 'var(--purple-glow)' : 'rgba(255,255,255,0.25)' }}>
                         {isSelected ? '✓' : '+'}
                       </div>
-                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: isSelected ? 'var(--purple-glow)' : 'var(--text-muted)' }}>Vide</span>
+                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, fontWeight: 700, color: isSelected ? 'var(--purple-glow)' : 'var(--text-muted)' }}>Vide</span>
                     </div>
                   )}
                 </div>
@@ -255,10 +255,10 @@ export function CompanionsPage() {
                     style={{ borderColor: `${item.color}40`, background: `${item.color}11` }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <div style={{ fontSize: 26 }}>{item.icon}</div>
+                      <div style={{ fontSize: 26.8 }}>{item.icon}</div>
                       <div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13, color: item.color }}>{item.name}</div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 15, color: 'var(--text)' }}>×{qty}</div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: item.color }}>{item.name}</div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 15.5, color: 'var(--text)' }}>×{qty}</div>
                       </div>
                     </div>
                     {/* Boutons de vente */}
@@ -268,7 +268,7 @@ export function CompanionsPage() {
                         style={{
                           flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(251,191,36,0.35)',
                           background: 'rgba(251,191,36,0.08)', cursor: 'pointer',
-                          fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10, color: '#fbbf24',
+                          fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10.3, color: '#fbbf24',
                           lineHeight: 1.3, textAlign: 'center',
                         }}
                       >
@@ -281,7 +281,7 @@ export function CompanionsPage() {
                           style={{
                             flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(248,113,113,0.35)',
                             background: 'rgba(248,113,113,0.08)', cursor: 'pointer',
-                            fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10, color: '#f87171',
+                            fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10.3, color: '#f87171',
                             lineHeight: 1.3, textAlign: 'center',
                           }}
                         >
@@ -321,7 +321,7 @@ export function CompanionsPage() {
                     height={100}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 18, color: '#fff', lineHeight: 1.15, marginBottom: 8 }}>{getCharFormName(selectedTpl, selectedCharacter.currentForm)}</div>
+                    <div style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 18.5, color: '#fff', lineHeight: 1.15, marginBottom: 8 }}>{getCharFormName(selectedTpl, selectedCharacter.currentForm)}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       <RarityBadge rarity={selectedTpl.rarity} />
                       {selectedAffinity ? (
@@ -329,7 +329,7 @@ export function CompanionsPage() {
                           <AffinityBadge affinity={selectedAffinity} size="sm" />
                         </AffinityTooltip>
                       ) : null}
-                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: 'var(--text-sub)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 999, padding: '2px 9px' }}>{selectedTpl.universe}</span>
+                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10.3, fontWeight: 700, letterSpacing: 0.5, color: 'var(--text-sub)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 999, padding: '2px 9px' }}>{selectedTpl.universe}</span>
                     </div>
                   </div>
                 </div>
@@ -338,19 +338,19 @@ export function CompanionsPage() {
                 <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {/* DPS total en vedette */}
                   <div style={{ textAlign: 'center', padding: '12px 14px', borderRadius: 12, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.22)', boxShadow: '0 0 24px rgba(74,222,128,0.08) inset' }}>
-                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 9, fontWeight: 800, letterSpacing: 2, color: 'var(--text-dim)' }}>🔥 DPS TOTAL</div>
-                    <div style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 28, color: 'var(--green)', lineHeight: 1.1, textShadow: '0 0 14px rgba(74,222,128,0.4)' }}>{formatNumber(selectedDpsWithEquip)}<span style={{ fontSize: 13, color: 'var(--text-sub)' }}>/s</span></div>
+                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 9.3, fontWeight: 800, letterSpacing: 2, color: 'var(--text-dim)' }}>🔥 DPS TOTAL</div>
+                    <div style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 28.8, color: 'var(--green)', lineHeight: 1.1, textShadow: '0 0 14px rgba(74,222,128,0.4)' }}>{formatNumber(selectedDpsWithEquip)}<span style={{ fontSize: 13.4, color: 'var(--text-sub)' }}>/s</span></div>
                   </div>
 
                   {/* Sous-stats */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <div style={{ padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', textAlign: 'center' }}>
-                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 9, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>DPS DE BASE</div>
-                      <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 15, color: 'var(--text)', marginTop: 3 }}>{formatNumber(selectedDps)}</div>
+                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 9.3, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>DPS DE BASE</div>
+                      <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 15.5, color: 'var(--text)', marginTop: 3 }}>{formatNumber(selectedDps)}</div>
                     </div>
                     <div style={{ padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', textAlign: 'center' }}>
-                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 9, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>ÉQUIPEMENT</div>
-                      <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 15, color: selectedEquipMult > 1 ? 'var(--green)' : 'var(--text-muted)', marginTop: 3 }}>×{selectedEquipMult.toFixed(2)}</div>
+                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 9.3, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>ÉQUIPEMENT</div>
+                      <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 15.5, color: selectedEquipMult > 1 ? 'var(--green)' : 'var(--text-muted)', marginTop: 3 }}>×{selectedEquipMult.toFixed(2)}</div>
                     </div>
                   </div>
 
@@ -358,19 +358,19 @@ export function CompanionsPage() {
                   {selectedUlt ? (
                     <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(147,51,234,0.09)', border: '1px solid var(--border-glow)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
-                        <span style={{ fontSize: 13 }}>⚡</span>
-                        <span style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 13, letterSpacing: 1, color: 'var(--purple-glow)' }}>{selectedUlt.name}</span>
-                        <span style={{ marginLeft: 'auto', fontFamily: 'var(--f-num)', fontSize: 9, color: 'var(--text-dim)' }}>{selectedUlt.cooldown}s CD</span>
+                        <span style={{ fontSize: 13.4 }}>⚡</span>
+                        <span style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 13.4, letterSpacing: 1, color: 'var(--purple-glow)' }}>{selectedUlt.name}</span>
+                        <span style={{ marginLeft: 'auto', fontFamily: 'var(--f-num)', fontSize: 9.3, color: 'var(--text-dim)' }}>{selectedUlt.cooldown}s CD</span>
                       </div>
-                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.5, color: 'var(--text-sub)', lineHeight: 1.4 }}>{selectedUlt.description}</div>
+                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.8, color: 'var(--text-sub)', lineHeight: 1.4 }}>{selectedUlt.description}</div>
                     </div>
                   ) : null}
 
                   {/* Synergie */}
                   {selectedSynergy ? (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px', borderRadius: 10, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.28)' }}>
-                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11, fontWeight: 700, color: '#60a5fa' }}>✦ Synergie active</span>
-                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-sub)' }}>{selectedSynergy.def.label}</span>
+                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11.3, fontWeight: 700, color: '#60a5fa' }}>✦ Synergie active</span>
+                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11.3, color: 'var(--text-sub)' }}>{selectedSynergy.def.label}</span>
                     </div>
                   ) : null}
                 </div>
@@ -379,7 +379,7 @@ export function CompanionsPage() {
               <div className="companion-equip-grid">
                 <div className="companion-card-hero">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Équipement</div>
+                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13.4, fontWeight: 700, color: 'var(--text)' }}>Équipement</div>
                     <button
                       className="companion-button companion-button--primary"
                       onClick={handleEquipBest}
@@ -397,8 +397,8 @@ export function CompanionsPage() {
                             {equippedDef ? equippedDef.icon : '—'}
                           </div>
                           <div>
-                            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{EQUIPMENT_SLOT_LABELS[slot]}</div>
-                            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-muted)' }}>{equippedDef ? equippedDef.name : 'Aucun équipement'}</div>
+                            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: 'var(--text)' }}>{EQUIPMENT_SLOT_LABELS[slot]}</div>
+                            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.3, color: 'var(--text-muted)' }}>{equippedDef ? equippedDef.name : 'Aucun équipement'}</div>
                           </div>
                         </div>
                         {equippedDef ? (
@@ -416,8 +416,8 @@ export function CompanionsPage() {
 
                 <div className="companion-card-hero">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Inventaire d’équipement</div>
-                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-muted)' }}>{ownedEquipment.reduce((sum, [, qty]) => sum + qty, 0)} objets</div>
+                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13.4, fontWeight: 700, color: 'var(--text)' }}>Inventaire d’équipement</div>
+                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)' }}>{ownedEquipment.reduce((sum, [, qty]) => sum + qty, 0)} objets</div>
                   </div>
                   <div className="companion-item-grid">
                     {ownedEquipment.map(([equipmentId, qty]) => {
@@ -431,15 +431,15 @@ export function CompanionsPage() {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                              <div style={{ fontSize: 22 }}>{item.icon}</div>
+                              <div style={{ fontSize: 22.7 }}>{item.icon}</div>
                               <div>
-                                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13, color: item.color }}>{item.name}</div>
-                                <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-muted)' }}>{item.slot}</div>
+                                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: item.color }}>{item.name}</div>
+                                <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.3, color: 'var(--text-muted)' }}>{item.slot}</div>
                               </div>
                             </div>
-                            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 14, color: 'var(--text)' }}>×{qty}</div>
+                            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 14.4, color: 'var(--text)' }}>×{qty}</div>
                           </div>
-                          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-muted)', minHeight: 32 }}>{item.description}</div>
+                          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.3, color: 'var(--text-muted)', minHeight: 32 }}>{item.description}</div>
                           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                             <button
                               className="companion-button companion-button--primary"
@@ -495,9 +495,9 @@ export function CompanionsPage() {
 
           {filteredCollection.length === 0 ? (
             <div className="companion-empty">
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
-              <div style={{ fontFamily: 'var(--f-title)', fontSize: 16, color: 'var(--text-dim)', marginBottom: 6 }}>Aucun allié invoqué</div>
-              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13, color: 'var(--text-muted)' }}>Va dans l'onglet Gacha pour invoquer !</div>
+              <div style={{ fontSize: 49.4, marginBottom: 12 }}>📭</div>
+              <div style={{ fontFamily: 'var(--f-title)', fontSize: 16.5, color: 'var(--text-dim)', marginBottom: 6 }}>Aucun allié invoqué</div>
+              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13.4, color: 'var(--text-muted)' }}>Va dans l'onglet Gacha pour invoquer !</div>
             </div>
           ) : (
             <div className="companion-item-grid">
@@ -543,21 +543,21 @@ export function CompanionsPage() {
                       />
                       {Object.values(ownedChar.equippedItems ?? {}).some(id => !!id) && (
                         <Tooltip content={<span style={{ fontWeight: 700 }}>Équipements équipés</span>}>
-                          <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '0px 6px', fontSize: 10, zIndex: 6 }}>
+                          <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '0px 6px', fontSize: 10.3, zIndex: 6 }}>
                             ⚔️
                           </div>
                         </Tooltip>
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tpl.name}</span>
+                          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tpl.name}</span>
                           {isEquipped && (
-                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10, color: cfg.color, fontWeight: 700, background: `${cfg.color}15`, border: `1px solid ${cfg.color}44`, borderRadius: 9999, padding: '3px 8px' }}>
+                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10.3, color: cfg.color, fontWeight: 700, background: `${cfg.color}15`, border: `1px solid ${cfg.color}44`, borderRadius: 9999, padding: '3px 8px' }}>
                               Équipé
                             </span>
                           )}
                           {rarLocked && (
-                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10, color: '#f87171', fontWeight: 700, background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 9999, padding: '3px 8px' }}>
+                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10.3, color: '#f87171', fontWeight: 700, background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 9999, padding: '3px 8px' }}>
                               🔒 Palier {RARITY_GATES[tpl.rarity].unlockPalier}
                             </span>
                           )}
@@ -565,22 +565,22 @@ export function CompanionsPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                           <RarityBadge rarity={tpl.rarity} />
                           {ownedChar.edition && ownedChar.edition !== 'base' && (
-                            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:9, letterSpacing:0.5,
+                            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:9.3, letterSpacing:0.5,
                               color: EDITION_CONFIG[ownedChar.edition].color, background:`${EDITION_CONFIG[ownedChar.edition].color}18`,
                               border:`1px solid ${EDITION_CONFIG[ownedChar.edition].color}55`, borderRadius:999, padding:'2px 7px' }}>
                               {ownedChar.edition === 'diamond' ? '💎 DIAMANT' : '✨ OR'}
                             </span>
                           )}
-                          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-muted)' }}>{ownedChar.copies} copies</span>
+                          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11.3, color: 'var(--text-muted)' }}>{ownedChar.copies} copies</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <RankStars rank={ownedChar.rank} />
-                          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15, color: 'var(--green)' }}>{formatNumber(dps)}/s</span>
+                          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.5, color: 'var(--green)' }}>{formatNumber(dps)}/s</span>
                         </div>
                         {ult && (
                           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 8 }}>
-                            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10, color: 'var(--purple-glow)' }}>{ult.name}</span>
-                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10, color: 'var(--text-dim)' }}> : {ult.description}</span>
+                            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 10.3, color: 'var(--purple-glow)' }}>{ult.name}</span>
+                            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 10.3, color: 'var(--text-dim)' }}> : {ult.description}</span>
                           </div>
                         )}
                       </div>

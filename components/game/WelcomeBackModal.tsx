@@ -13,8 +13,8 @@ function fmtDuration(sec: number): string {
 export function WelcomeBackModal({ gain, onClose }: { gain: OfflineGain; onClose: () => void }) {
   const row = (label: string, value: string, color = 'var(--text)') => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 0', borderTop: '1px solid var(--border)' }}>
-      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-dim)' }}>{label}</span>
-      <span style={{ fontFamily: 'var(--f-num)', fontSize: 13, fontWeight: 700, color }}>{value}</span>
+      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)' }}>{label}</span>
+      <span style={{ fontFamily: 'var(--f-num)', fontSize: 13.4, fontWeight: 700, color }}>{value}</span>
     </div>
   );
 
@@ -37,26 +37,26 @@ export function WelcomeBackModal({ gain, onClose }: { gain: OfflineGain; onClose
           padding: '20px 22px',
         }}
       >
-        <div style={{ fontFamily: 'var(--f-title)', fontSize: 16, fontWeight: 800, letterSpacing: 1.5, color: 'var(--purple-glow)', marginBottom: 4 }}>
+        <div style={{ fontFamily: 'var(--f-title)', fontSize: 16.5, fontWeight: 800, letterSpacing: 1.5, color: 'var(--purple-glow)', marginBottom: 4 }}>
           🌙 GAINS HORS-LIGNE
         </div>
-        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-sub)', marginBottom: 16 }}>
+        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-sub)', marginBottom: 16 }}>
           Absent pendant {fmtDuration(gain.rawSeconds)}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 20 }}>🪙</span>
-          <span style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 28, color: 'var(--gold-hi)', lineHeight: 1 }}>
+          <span style={{ fontSize: 20.6 }}>🪙</span>
+          <span style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 28.8, color: 'var(--gold-hi)', lineHeight: 1 }}>
             +{formatNumber(gain.coins)}
           </span>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-dim)' }}>Pixel-Coins</span>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)' }}>Pixel-Coins</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
-          <span style={{ fontSize: 16 }}>💎</span>
-          <span style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 20, color: 'var(--cyan-hi)', lineHeight: 1 }}>
+          <span style={{ fontSize: 16.5 }}>💎</span>
+          <span style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 20.6, color: 'var(--cyan-hi)', lineHeight: 1 }}>
             +{formatNumber(gain.gems)}
           </span>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-dim)' }}>Neko-Gemmes</span>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)' }}>Neko-Gemmes</span>
         </div>
 
         {row('Monstres vaincus', formatNumber(gain.kills))}
@@ -64,7 +64,7 @@ export function WelcomeBackModal({ gain, onClose }: { gain: OfflineGain; onClose
         {row('Revenu / heure', formatNumber(gain.seconds > 0 ? Math.floor(gain.coins / (gain.seconds / 3600)) : 0), 'var(--green)')}
         {gain.capped && row('Plafond', 'atteint — améliore-le 👑', 'var(--gold-hi)')}
 
-        <button onClick={onClose} className="btn-primary" style={{ width: '100%', padding: 11, fontSize: 14, marginTop: 18 }}>
+        <button onClick={onClose} className="btn-primary" style={{ width: '100%', padding: 11, fontSize: 14.4, marginTop: 18 }}>
           RÉCUPÉRER
         </button>
       </div>

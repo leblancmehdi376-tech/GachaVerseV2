@@ -108,17 +108,17 @@ export function UltCombatOverlay() {
         zIndex: 2,
       }}>
         <div style={{
-          fontFamily: 'var(--f-title)', fontSize: 22, fontWeight: 900,
+          fontFamily: 'var(--f-title)', fontSize: 22.7, fontWeight: 900,
           color: 'white', letterSpacing: 3, lineHeight: 1.2,
           textShadow: '0 0 20px rgba(168,85,247,0.8)',
         }}>{name}</div>
         <div style={{
-          fontFamily: 'var(--f-title)', fontSize: 16, fontWeight: 700,
+          fontFamily: 'var(--f-title)', fontSize: 16.5, fontWeight: 700,
           color: '#c084fc', letterSpacing: 2, marginTop: 4,
           textShadow: '0 0 12px rgba(168,85,247,0.6)',
         }}>✦ {def.name}</div>
         <div style={{
-          fontFamily: 'var(--f-ui)', fontSize: 12, color: 'rgba(255,255,255,0.65)',
+          fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'rgba(255,255,255,0.65)',
           marginTop: 4,
         }}>{def.description}</div>
       </div>
@@ -169,13 +169,13 @@ export function ActiveUltsBar() {
             borderRadius: 8, padding: '5px 10px', minWidth: 88,
             boxShadow: '0 0 10px rgba(168,85,247,0.3)',
           }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:9, color:'#c084fc', marginBottom:3, whiteSpace:'nowrap' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:9.3, color:'#c084fc', marginBottom:3, whiteSpace:'nowrap' }}>
               ⚡ {adef.name}
             </div>
             <div style={{ height:3, background:'rgba(255,255,255,0.1)', borderRadius:2, overflow:'hidden' }}>
               <div style={{ height:'100%', width:`${pct}%`, background:'linear-gradient(90deg,#7c3aed,#c084fc)', borderRadius:2, transition:'width 1s linear' }} />
             </div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:8, color:'rgba(255,255,255,0.4)', marginTop:2, textAlign:'right' }}>{remaining}s</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:8.2, color:'rgba(255,255,255,0.4)', marginTop:2, textAlign:'right' }}>{remaining}s</div>
           </div>
         );
       })}

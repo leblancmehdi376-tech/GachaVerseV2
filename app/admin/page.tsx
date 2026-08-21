@@ -150,7 +150,7 @@ export default function AdminPage() {
   if (!user || !isAdmin) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050410', flexDirection: 'column', gap: 16 }}>
-        <div style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', fontSize: 14 }}>
+        <div style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', fontSize: 14.4 }}>
           {user ? 'Ce compte n\'est pas administrateur.' : 'Connexion administrateur requise.'}
         </div>
         {!user && (
@@ -166,40 +166,40 @@ export default function AdminPage() {
   return (
     <div style={{ height: '100vh', overflowY: 'auto', background: '#050410', padding: '32px 20px', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <h1 style={{ color: '#a78bfa', fontSize: 22, fontWeight: 900, marginBottom: 6 }}>🛡️ Validation des comptes</h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 28 }}>
+        <h1 style={{ color: '#a78bfa', fontSize: 22.7, fontWeight: 900, marginBottom: 6 }}>🛡️ Validation des comptes</h1>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.4, marginBottom: 28 }}>
           {pending.length} demande(s) en attente · {approvedList.length} compte(s) déjà validé(s)
         </p>
 
         <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-          <button onClick={() => { setShowTab('requests'); load(); }} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+          <button onClick={() => { setShowTab('requests'); load(); }} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             {refreshing ? 'Actualisation…' : '🔄 Requests'}
           </button>
-          <button onClick={() => setShowTab('accounts')} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+          <button onClick={() => setShowTab('accounts')} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             👥 Comptes ({allUsers.length})
           </button>
 
-          <button onClick={() => setShowTab('balance')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='balance' ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(251,191,36,0.14)', color: '#fbbf24', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+          <button onClick={() => setShowTab('balance')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='balance' ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(251,191,36,0.14)', color: '#fbbf24', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             ⚖️ Rééquilibrer un compte
           </button>
         </div>
 
         {showTab === 'requests' && (
           <>
-            <h2 style={{ color: '#fbbf24', fontSize: 15, fontWeight: 800, marginBottom: 12 }}>En attente</h2>
-        {pending.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginBottom: 24 }}>Aucune demande en attente.</div>}
+            <h2 style={{ color: '#fbbf24', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>En attente</h2>
+        {pending.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4, marginBottom: 24 }}>Aucune demande en attente.</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
           {pending.map(r => (
             <div key={r.uid} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)' }}>
               <div>
-                <div style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{r.username}</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>{r.email}</div>
-                <div style={{ color: '#7289da', fontSize: 12, marginTop: 2 }}>Discord : {r.discordUsername}</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
+                <div style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{r.username}</div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, marginTop: 2 }}>{r.email}</div>
+                <div style={{ color: '#7289da', fontSize: 12.4, marginTop: 2 }}>Discord : {r.discordUsername}</div>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10.3, marginTop: 4 }}>
                   Demandé le {new Date(r.createdAt).toLocaleString('fr-FR')}
                 </div>
               </div>
-              <button onClick={() => handleApprove(r.uid)} disabled={busy === r.uid} style={{ padding: '9px 18px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>
+              <button onClick={() => handleApprove(r.uid)} disabled={busy === r.uid} style={{ padding: '9px 18px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 12.4, whiteSpace: 'nowrap' }}>
                 {busy === r.uid ? '...' : '✓ Valider'}
               </button>
             </div>
@@ -211,15 +211,15 @@ export default function AdminPage() {
 
         {showTab === 'accounts' && (
           <>
-            <h2 style={{ color: '#60a5fa', fontSize: 15, fontWeight: 800, marginBottom: 12 }}>Tous les comptes ({allUsers.length})</h2>
+            <h2 style={{ color: '#60a5fa', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>Tous les comptes ({allUsers.length})</h2>
             <input
               value={accountSearch}
               onChange={e => setAccountSearch(e.target.value)}
               placeholder="Filtrer par pseudo, email ou id de save…"
-              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, marginBottom: 16, boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, marginBottom: 16, boxSizing: 'border-box' }}
             />
-            {refreshing && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginBottom: 16 }}>Chargement…</div>}
-            {!refreshing && allUsers.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>Aucun compte trouvé.</div>}
+            {refreshing && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4, marginBottom: 16 }}>Chargement…</div>}
+            {!refreshing && allUsers.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4 }}>Aucun compte trouvé.</div>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {allUsers
                 .filter(u => {
@@ -232,17 +232,17 @@ export default function AdminPage() {
                 .map(u => (
                   <div key={u.uid} style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(96,165,250,0.18)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                      <span style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{u.username || '(sans pseudo)'}</span>
-                      <span style={{ color: u.approved ? '#4ade80' : '#fbbf24', fontSize: 11, fontWeight: 700 }}>
+                      <span style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{u.username || '(sans pseudo)'}</span>
+                      <span style={{ color: u.approved ? '#4ade80' : '#fbbf24', fontSize: 11.3, fontWeight: 700 }}>
                         {u.approved ? '✓ Validé' : '⏳ En attente'}
                       </span>
                     </div>
-                    <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12 }}>{u.email}</div>
-                    <div style={{ color: '#7289da', fontSize: 12 }}>Discord : {u.discordUsername || '—'}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontFamily: 'monospace', marginTop: 2 }}>
+                    <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12.4 }}>{u.email}</div>
+                    <div style={{ color: '#7289da', fontSize: 12.4 }}>Discord : {u.discordUsername || '—'}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11.3, fontFamily: 'monospace', marginTop: 2 }}>
                       ID de save : {u.uid}
                     </div>
-                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>
+                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10.3 }}>
                       Créé le {u.createdAt ? new Date(u.createdAt).toLocaleString('fr-FR') : '—'}
                     </div>
                   </div>
@@ -253,10 +253,10 @@ export default function AdminPage() {
 
         {showTab === 'requests' && (
           <>
-            <h2 style={{ color: '#4ade80', fontSize: 15, fontWeight: 800, marginBottom: 12 }}>Déjà validés ({approvedList.length})</h2>
+            <h2 style={{ color: '#4ade80', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>Déjà validés ({approvedList.length})</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {approvedList.map(r => (
-                <div key={r.uid} style={{ display: 'flex', gap: 12, padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12 }}>
+                <div key={r.uid} style={{ display: 'flex', gap: 12, padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12.4 }}>
                   <span style={{ color: '#fff', fontWeight: 700, minWidth: 140 }}>{r.username}</span>
                   <span style={{ color: 'rgba(255,255,255,0.4)' }}>{r.email}</span>
                   <span style={{ color: '#7289da' }}>{r.discordUsername}</span>
@@ -267,8 +267,8 @@ export default function AdminPage() {
         )}
         {showTab === 'balance' && (
           <>
-            <h2 style={{ color: '#fbbf24', fontSize: 15, fontWeight: 800, marginBottom: 8 }}>Rééquilibrer un compte</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 16, lineHeight: 1.5 }}>
+            <h2 style={{ color: '#fbbf24', fontSize: 15.5, fontWeight: 800, marginBottom: 8 }}>Rééquilibrer un compte</h2>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.4, marginBottom: 16, lineHeight: 1.5 }}>
               Cherche un joueur par pseudo ou email exact, puis corrige son solde. Le changement s&apos;applique automatiquement à sa prochaine connexion (rien à faire de son côté).
             </p>
 
@@ -278,97 +278,97 @@ export default function AdminPage() {
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSearchPlayer()}
                 placeholder="Pseudo ou email exact"
-                style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13 }}
+                style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }}
               />
-              <button onClick={handleSearchPlayer} disabled={searchStatus === 'searching'} style={{ padding: '10px 18px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>
+              <button onClick={handleSearchPlayer} disabled={searchStatus === 'searching'} style={{ padding: '10px 18px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12.4, whiteSpace: 'nowrap' }}>
                 {searchStatus === 'searching' ? '...' : '🔍 Chercher'}
               </button>
             </div>
 
             {searchStatus === 'notfound' && (
-              <div style={{ color: '#f87171', fontSize: 13, marginBottom: 16 }}>Aucun joueur trouvé avec ce pseudo/email exact.</div>
+              <div style={{ color: '#f87171', fontSize: 13.4, marginBottom: 16 }}>Aucun joueur trouvé avec ce pseudo/email exact.</div>
             )}
 
             {foundPlayer && playerSave && (
               <div style={{ padding: '18px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)' }}>
-                <div style={{ color: '#fff', fontWeight: 800, fontSize: 15, marginBottom: 2 }}>{foundPlayer.username}</div>
-                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, marginBottom: 4 }}>{foundPlayer.email}</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 4 }}>
+                <div style={{ color: '#fff', fontWeight: 800, fontSize: 15.5, marginBottom: 2 }}>{foundPlayer.username}</div>
+                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12.4, marginBottom: 4 }}>{foundPlayer.email}</div>
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11.3, marginBottom: 4 }}>
                   Dernière sauvegarde : {playerSave.lastSaved ? new Date(playerSave.lastSaved).toLocaleString('fr-FR') : 'jamais'}
                 </div>
-                <div style={{ color: '#c084fc', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
+                <div style={{ color: '#c084fc', fontSize: 12.4, fontWeight: 700, marginBottom: 4 }}>
                   💎 Total de gemmes dépensées : {playerSave.totalGemsSpent.toLocaleString('fr-FR')}
                 </div>
-                <div style={{ color: '#22d3ee', fontSize: 12, fontWeight: 700, marginBottom: 16 }}>
+                <div style={{ color: '#22d3ee', fontSize: 12.4, fontWeight: 700, marginBottom: 16 }}>
                   ✦ Total d&apos;invocations (gacha) : {playerSave.totalGachaPulls.toLocaleString('fr-FR')}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 5 }}>🪙 Pixel-Coins</label>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>🪙 Pixel-Coins</label>
                     <input value={editCoins} onChange={e => setEditCoins(e.target.value)} type="number"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13 }} />
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 5 }}>💎 Neko-Gemmes</label>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>💎 Neko-Gemmes</label>
                     <input value={editGems} onChange={e => setEditGems(e.target.value)} type="number"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13 }} />
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 5 }}>👑 Couronnes</label>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>👑 Couronnes</label>
                     <input value={editCrowns} onChange={e => setEditCrowns(e.target.value)} type="number"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13 }} />
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
                   </div>
                 </div>
 
-                <button onClick={handleCorrect} disabled={correctBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
+                <button onClick={handleCorrect} disabled={correctBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
                   {correctBusy ? 'Correction en cours…' : '✅ Appliquer la correction'}
                 </button>
-                {correctMsg && <div style={{ marginTop: 10, fontSize: 12, color: correctMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{correctMsg}</div>}
+                {correctMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: correctMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{correctMsg}</div>}
 
                 {/* ── Palier / progression (ex: annuler une avance obtenue via un bug) ── */}
                 <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 14, marginBottom: 4 }}>Palier / progression</div>
-                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 14 }}>
+                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 4 }}>Palier / progression</div>
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11.3, marginBottom: 14 }}>
                     Palier actuel : {playerSave.palier} · Vague : {playerSave.wave}/10 · Palier max atteint : {playerSave.maxPalierReached}
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                     <div>
-                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 5 }}>⛰️ Palier</label>
+                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>⛰️ Palier</label>
                       <input value={editPalier} onChange={e => setEditPalier(e.target.value)} type="number" min={1}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, boxSizing: 'border-box' }} />
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 5 }}>🌊 Vague (1-10)</label>
+                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.3, marginBottom: 5 }}>🌊 Vague (1-10)</label>
                       <input value={editWave} onChange={e => setEditWave(e.target.value)} type="number" min={1} max={10}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, boxSizing: 'border-box' }} />
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
                     </div>
                   </div>
 
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, cursor: 'pointer' }}>
                     <input type="checkbox" checked={capMaxPalier} onChange={e => setCapMaxPalier(e.target.checked)} />
-                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12.4 }}>
                       Limiter aussi le &quot;palier max atteint&quot; à cette valeur (à cocher pour annuler une avance obtenue via un bug)
                     </span>
                   </label>
 
-                  <button onClick={handleCorrectProgress} disabled={progressBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.5)', color: '#60a5fa', cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
+                  <button onClick={handleCorrectProgress} disabled={progressBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.5)', color: '#60a5fa', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
                     {progressBusy ? 'Correction en cours…' : '✅ Appliquer le palier'}
                   </button>
-                  {progressMsg && <div style={{ marginTop: 10, fontSize: 12, color: progressMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{progressMsg}</div>}
+                  {progressMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: progressMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{progressMsg}</div>}
                 </div>
 
                 {/* ── Gestion de la collection de personnages ────────────── */}
                 <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 14, marginBottom: 12 }}>
+                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 12 }}>
                     Personnages possédés ({playerChars.length})
                   </div>
 
                   <div style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
-                    {playerChars.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Aucun personnage.</div>}
+                    {playerChars.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Aucun personnage.</div>}
                     {playerChars.map(c => (
-                      <div key={c.instanceKey} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12 }}>
+                      <div key={c.instanceKey} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12.4 }}>
                         <span style={{ color: '#fff', fontWeight: 700, minWidth: 130 }}>{c.name}</span>
                         <span style={{ color: c.edition === 'diamond' ? '#67e8f9' : c.edition === 'gold' ? '#fbbf24' : 'rgba(255,255,255,0.4)', minWidth: 60 }}>
                           {c.edition === 'base' ? '' : c.edition === 'gold' ? '✨ Or' : '💎 Diamant'}
@@ -378,40 +378,40 @@ export default function AdminPage() {
                           type="number"
                           defaultValue={c.level}
                           onChange={e => setLevelEdits(s => ({ ...s, [c.instanceKey]: e.target.value }))}
-                          style={{ width: 70, padding: '5px 8px', borderRadius: 6, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12 }}
+                          style={{ width: 70, padding: '5px 8px', borderRadius: 6, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }}
                         />
                         <button onClick={() => handleSetLevel(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', fontSize: 11.3, fontWeight: 700 }}>
                           Niveau
                         </button>
                         <button onClick={() => handleRemoveChar(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', cursor: 'pointer', fontSize: 11, fontWeight: 700, marginLeft: 'auto' }}>
+                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', cursor: 'pointer', fontSize: 11.3, fontWeight: 700, marginLeft: 'auto' }}>
                           {charBusy === c.instanceKey ? '...' : 'Retirer'}
                         </button>
                       </div>
                     ))}
                   </div>
 
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Ajouter un personnage</div>
+                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, fontWeight: 700, marginBottom: 8 }}>Ajouter un personnage</div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     <input value={newCharId} onChange={e => setNewCharId(e.target.value)} placeholder="id exact (ex: goku)"
-                      style={{ flex: '1 1 140px', padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12 }} />
+                      style={{ flex: '1 1 140px', padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }} />
                     <select value={newCharEdition} onChange={e => setNewCharEdition(e.target.value as 'base'|'gold'|'diamond')}
-                      style={{ padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12 }}>
+                      style={{ padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }}>
                       <option value="base">Base</option>
                       <option value="gold">✨ Or</option>
                       <option value="diamond">💎 Diamant</option>
                     </select>
                     <input value={newCharLevel} onChange={e => setNewCharLevel(e.target.value)} type="number" placeholder="Niveau"
-                      style={{ width: 80, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12 }} />
+                      style={{ width: 80, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }} />
                     <input value={newCharRank} onChange={e => setNewCharRank(e.target.value)} type="number" min={1} max={7} placeholder="Rang"
-                      style={{ width: 70, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12 }} />
+                      style={{ width: 70, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }} />
                     <button onClick={handleAddChar} disabled={addCharBusy || !newCharId.trim()}
-                      style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12 }}>
+                      style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12.4 }}>
                       {addCharBusy ? '...' : '+ Ajouter'}
                     </button>
                   </div>
-                  {addCharMsg && <div style={{ marginTop: 8, fontSize: 12, color: addCharMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{addCharMsg}</div>}
+                  {addCharMsg && <div style={{ marginTop: 8, fontSize: 12.4, color: addCharMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{addCharMsg}</div>}
                 </div>
               </div>
             )}

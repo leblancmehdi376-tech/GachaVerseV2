@@ -25,16 +25,16 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
 
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 12px', background: ok ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.02)', borderRadius:8, border:`1px solid ${ok ? 'rgba(74,222,128,0.25)' : 'var(--border)'}` }}>
-      <span style={{ fontSize:18 }}>{type === 'drop' ? (PALIER_DROPS.find(d => d.id === id)?.icon ?? '📦') : '👤'}</span>
+      <span style={{ fontSize:18.5 }}>{type === 'drop' ? (PALIER_DROPS.find(d => d.id === id)?.icon ?? '📦') : '👤'}</span>
       <div style={{ flex:1 }}>
-        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color: ok ? 'var(--text)' : 'var(--text-dim)' }}>{label}</div>
+        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color: ok ? 'var(--text)' : 'var(--text-dim)' }}>{label}</div>
         {type === 'drop' && (
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:10, color:'var(--text-dim)' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)' }}>
             {PALIER_DROPS.find(d => d.id === id)?.description}
           </div>
         )}
         {type !== 'drop' && (
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:10, color: maxed ? 'var(--text-dim)' : '#f87171' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color: maxed ? 'var(--text-dim)' : '#f87171' }}>
             {maxed
               ? 'Consommé depuis l\'inventaire champions — ton exemplaire 7★ reste dans ta collection'
               : 'Nécessite le champion maxé (7★) dans ta collection'}
@@ -42,10 +42,10 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
         )}
       </div>
       <div style={{ textAlign:'right', flexShrink:0 }}>
-        <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16, color: ok ? '#4ade80' : '#f87171' }}>
+        <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.5, color: ok ? '#4ade80' : '#f87171' }}>
           {have} / {quantity}
         </div>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:9, color: ok ? '#4ade80' : '#f87171', fontWeight:700 }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color: ok ? '#4ade80' : '#f87171', fontWeight:700 }}>
           {ok ? '✓ OK' : (maxed ? '✗ INSUFFISANT' : '✗ NON MAXÉ')}
         </div>
       </div>
@@ -83,35 +83,35 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
             background: rewardCfg ? `${rewardCfg.color}18` : 'rgba(255,255,255,0.05)',
             border: `1px solid ${rewardCfg ? rewardCfg.color+'44' : 'var(--border)'}`,
             borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:26, boxShadow: rewardCfg && ok ? `0 0 16px ${rewardCfg.glow}44` : 'none',
+            fontSize:26.8, boxShadow: rewardCfg && ok ? `0 0 16px ${rewardCfg.glow}44` : 'none',
           }}>
             {recipe.icon}
           </div>
           <div style={{ flex:1 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-              <span style={{ fontFamily:'var(--f-title)', fontSize:15, color: ok ? 'var(--purple-glow)' : 'var(--text)', letterSpacing:1 }}>
+              <span style={{ fontFamily:'var(--f-title)', fontSize:15.5, color: ok ? 'var(--purple-glow)' : 'var(--text)', letterSpacing:1 }}>
                 {recipe.name}
               </span>
               {rewardTpl && rewardCfg && (
-                <span style={{ fontFamily:'var(--f-ui)', fontSize:10, fontWeight:700, color:rewardCfg.color, background:`${rewardCfg.color}15`, border:`1px solid ${rewardCfg.color}33`, borderRadius:4, padding:'2px 8px' }}>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:10.3, fontWeight:700, color:rewardCfg.color, background:`${rewardCfg.color}15`, border:`1px solid ${rewardCfg.color}33`, borderRadius:4, padding:'2px 8px' }}>
                   {rewardTpl.rarity}
                 </span>
               )}
             </div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', lineHeight:1.5 }}>{recipe.description}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', lineHeight:1.5 }}>{recipe.description}</div>
           </div>
-          <div style={{ fontSize:14, color:'var(--text-dim)', flexShrink:0, paddingTop:4 }}>{expanded ? '▲' : '▼'}</div>
+          <div style={{ fontSize:14.4, color:'var(--text-dim)', flexShrink:0, paddingTop:4 }}>{expanded ? '▲' : '▼'}</div>
         </div>
 
         {/* Statut rapide */}
         <div style={{ marginTop:10, display:'flex', alignItems:'center', gap:8 }}>
           {alreadyOwned
-            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'#4ade80', fontWeight:700 }}>✅ Déjà forgé</div>
+            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'#4ade80', fontWeight:700 }}>✅ Déjà forgé</div>
             : locked
-              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-muted)', fontWeight:700 }}>🔒 Palier {recipe.palierRequired} requis</div>
+              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-muted)', fontWeight:700 }}>🔒 Palier {recipe.palierRequired} requis</div>
               : ok
-                ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--purple-glow)', fontWeight:700, animation:'ultraPulse 1.5s ease-in-out infinite' }}>✦ PRÊT À FORGER</div>
-                : <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', fontWeight:700 }}>⚗ {recipe.ingredients.length} ingrédients requis</div>
+                ? <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--purple-glow)', fontWeight:700, animation:'ultraPulse 1.5s ease-in-out infinite' }}>✦ PRÊT À FORGER</div>
+                : <div style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', fontWeight:700 }}>⚗ {recipe.ingredients.length} ingrédients requis</div>
           }
         </div>
       </div>
@@ -121,7 +121,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
         <div style={{ padding:'0 18px 18px', borderTop:'1px solid var(--border)', paddingTop:14, display:'flex', flexDirection:'column', gap:12 }}>
           {/* Ingrédients */}
           <div>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8 }}>INGRÉDIENTS REQUIS</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10.3, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8 }}>INGRÉDIENTS REQUIS</div>
             <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {recipe.ingredients.map((ing, i) => (
                 <IngredientRow key={i} type={ing.type} id={ing.id} quantity={ing.quantity} label={ing.label} />
@@ -130,14 +130,14 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
           </div>
 
           {/* Lore */}
-          <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.5)', fontStyle:'italic', lineHeight:1.6 }}>
+          <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-ui)', fontSize:11.3, color:'rgba(255,255,255,0.5)', fontStyle:'italic', lineHeight:1.6 }}>
             {recipe.lore}
           </div>
 
           {/* Comment obtenir */}
           {!ok && !alreadyOwned && !locked && (
             <div style={{ background:'rgba(147,51,234,0.06)', border:'1px solid rgba(147,51,234,0.2)', borderRadius:8, padding:'10px 14px' }}>
-              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10, color:'var(--purple-glow)', letterSpacing:1, marginBottom:6 }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:10.3, color:'var(--purple-glow)', letterSpacing:1, marginBottom:6 }}>
                 💡 COMMENT OBTENIR LES INGRÉDIENTS
               </div>
               {recipe.ingredients.map((ing, i) => {
@@ -145,13 +145,13 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
                   const drop = PALIER_DROPS.find(d => d.id === ing.id);
                   const expDef = drop ? EXPEDITION_DEFS.find(x => x.rewards.dropId === ing.id) : null;
                   return drop ? (
-                    <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', marginBottom:3 }}>
+                    <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', marginBottom:3 }}>
                       {drop.icon} <strong style={{ color:'var(--text-sub)' }}>{drop.name}</strong> → {expDef ? expDef.name : `Expédition palier ${drop.palier}`} ({drop.universName})
                     </div>
                   ) : null;
                 }
                 return (
-                  <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', marginBottom:3 }}>
+                  <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:11.3, color:'var(--text-dim)', marginBottom:3 }}>
                     👤 <strong style={{ color:'var(--text-sub)' }}>{ing.label}</strong> → Obtiens le personnage via Gacha, puis re-tirez-le pour avoir un doublon
                   </div>
                 );
@@ -165,9 +165,9 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
               onClick={() => craftRecipe(recipe.id)}
               disabled={!ok}
               className={ok ? 'btn-primary' : 'btn-secondary'}
-              style={{ padding:'12px', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
+              style={{ padding:'12px', fontSize:14.4, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
               <span>⚗ FORGER</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, opacity:0.7 }}>{recipe.reward.icon} {recipe.reward.label}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12.4, opacity:0.7 }}>{recipe.reward.icon} {recipe.reward.label}</span>
             </button>
           )}
         </div>
@@ -191,9 +191,9 @@ export function ForgePage() {
         <div className="panel" style={{ padding:'18px 22px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5 }}>
             <div style={{ width:4, height:18, background:'linear-gradient(180deg,#e879f9,#c084fc)', borderRadius:2, boxShadow:'0 0 8px #e879f9' }} />
-            <span style={{ fontFamily:'var(--f-title)', fontSize:16, fontWeight:700, color:'#e879f9', letterSpacing:'2px' }}>FORGE ⚗</span>
+            <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, fontWeight:700, color:'#e879f9', letterSpacing:'2px' }}>FORGE ⚗</span>
           </div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)' }}>
             Combine des drops rares récoltés en expédition pour forger des personnages uniques
           </div>
         </div>
@@ -205,7 +205,7 @@ export function ForgePage() {
             { k:'inventory' as const, label:`🎒 MES DROPS (${ownedDrops.length})` },
           ]).map(t => (
             <button key={t.k} onClick={() => setTab(t.k)}
-              style={{ padding:'8px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12,
+              style={{ padding:'8px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4,
                 background: tab===t.k ? 'rgba(232,121,249,0.15)' : 'var(--bg-card)',
                 border: `1px solid ${tab===t.k ? 'rgba(232,121,249,0.4)' : 'var(--border)'}`,
                 color: tab===t.k ? '#e879f9' : 'var(--text-dim)' }}>
@@ -222,7 +222,7 @@ export function ForgePage() {
           /* ── Inventaire drops ── */
           <div>
             {ownedDrops.length === 0 ? (
-              <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:13 }}>
+              <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:13.4 }}>
                 Aucun drop pour l&apos;instant. Lance des expéditions pour récolter des objets rares !
               </div>
             ) : (
@@ -233,15 +233,15 @@ export function ForgePage() {
                   return (
                     <div key={drop.id} className="panel" style={{ padding:'14px 16px', borderColor:'rgba(192,132,252,0.25)' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                        <span style={{ fontSize:28 }}>{drop.icon}</span>
+                        <span style={{ fontSize:28.8 }}>{drop.icon}</span>
                         <div>
-                          <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24, color:'#c084fc', lineHeight:1 }}>{count}</div>
-                          <div style={{ fontFamily:'var(--f-ui)', fontSize:9, color:'var(--text-dim)', letterSpacing:1 }}>EN STOCK</div>
+                          <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24.7, color:'#c084fc', lineHeight:1 }}>{count}</div>
+                          <div style={{ fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--text-dim)', letterSpacing:1 }}>EN STOCK</div>
                         </div>
                       </div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text)', marginBottom:3 }}>{drop.name}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:10, color:'var(--text-dim)', lineHeight:1.4 }}>{drop.description}</div>
-                      <div style={{ marginTop:6, fontFamily:'var(--f-ui)', fontSize:9, color:'var(--purple-glow)', fontWeight:700 }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'var(--text)', marginBottom:3 }}>{drop.name}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:10.3, color:'var(--text-dim)', lineHeight:1.4 }}>{drop.description}</div>
+                      <div style={{ marginTop:6, fontFamily:'var(--f-ui)', fontSize:9.3, color:'var(--purple-glow)', fontWeight:700 }}>
                         📍 {drop.universName} — Palier {drop.palier}
                       </div>
                     </div>

@@ -78,23 +78,23 @@ export function ProfilePage() {
             borderRadius:'16px',
             border:'2px solid var(--border-glow)',
             display:'flex', alignItems:'center', justifyContent:'center',
-            fontFamily:'var(--f-title)', fontSize:'28px', fontWeight:900, color:'#e2d9ff',
+            fontFamily:'var(--f-title)', fontSize:'28.8px', fontWeight:900, color:'#e2d9ff',
             boxShadow:'0 0 28px rgba(109,40,217,0.35)',
           }}>
             {username.charAt(0).toUpperCase()}
           </div>
 
           <div style={{ flex:1 }}>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:'24px', fontWeight:900, color:'var(--text)', letterSpacing:'2px', marginBottom:'4px' }}>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:'24.7px', fontWeight:900, color:'var(--text)', letterSpacing:'2px', marginBottom:'4px' }}>
               {username}
             </div>
             {/* Titre actif */}
             <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.3)', borderRadius:'6px', padding:'4px 12px', marginBottom:'12px' }}>
-              <span style={{ fontSize:'12px' }}>👑</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'#fbbf24', letterSpacing:'1px' }}>
+              <span style={{ fontSize:'12.4px' }}>👑</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'#fbbf24', letterSpacing:'1px' }}>
                 « {activeTitle} »
               </span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:'11px', color:'var(--gold-hi)', background:'rgba(0,0,0,0.25)', borderRadius:'4px', padding:'1px 6px' }}>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:'11.3px', color:'var(--gold-hi)', background:'rgba(0,0,0,0.25)', borderRadius:'4px', padding:'1px 6px' }}>
                 🪙 +{TITLE_GOLD_BONUS_PCT[activeTitle] ?? 0}%
               </span>
             </div>
@@ -107,8 +107,8 @@ export function ProfilePage() {
                 { icon:'👑', label:`${unlockedTitles.length} titre${unlockedTitles.length > 1 ? 's' : ''}`, color:'#c084fc' },
               ].map((b, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', gap:'5px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', padding:'5px 12px' }}>
-                  <span style={{ fontSize:'13px' }}>{b.icon}</span>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color:b.color }}>{b.label}</span>
+                  <span style={{ fontSize:'13.4px' }}>{b.icon}</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', color:b.color }}>{b.label}</span>
                 </div>
               ))}
             </div>
@@ -117,12 +117,12 @@ export function ProfilePage() {
 
         {/* Grid de stats */}
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'12px' }}>STATISTIQUES COMPLÈTES</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'12px' }}>STATISTIQUES COMPLÈTES</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:'10px' }}>
             {STAT_ROWS.map((s, i) => (
               <div key={i} className="panel" style={{ padding:'16px 18px' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:'9px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'1.5px', marginBottom:'8px' }}>{s.label}</div>
-                <div style={{ fontFamily: s.num ? 'var(--f-num)' : 'var(--f-ui)', fontWeight:900, fontSize:'20px', color:s.color, lineHeight:1.05 }}>{s.val}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'1.5px', marginBottom:'8px' }}>{s.label}</div>
+                <div style={{ fontFamily: s.num ? 'var(--f-num)' : 'var(--f-ui)', fontWeight:900, fontSize:'20.6px', color:s.color, lineHeight:1.05 }}>{s.val}</div>
               </div>
             ))}
           </div>
@@ -130,7 +130,7 @@ export function ProfilePage() {
 
         {/* Répartition par rareté */}
         <div className="panel" style={{ padding:'18px 20px' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'14px' }}>COLLECTION PAR RARETÉ</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'14px' }}>COLLECTION PAR RARETÉ</div>
           <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
             {RARITY_ORDER.slice().reverse().map(r => {
               const count = rarityBreakdown[r] ?? 0;
@@ -140,11 +140,11 @@ export function ProfilePage() {
               const pct2 = poolCount > 0 ? Math.round((count / poolCount) * 100) : 0;
               return (
                 <div key={r} style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-                  <div style={{ width:80, flexShrink:0, fontFamily:'var(--f-ui)', fontSize:'11px', fontWeight:700, color:cfg2.color }}>{cfg2.label}</div>
+                  <div style={{ width:80, flexShrink:0, fontFamily:'var(--f-ui)', fontSize:'11.3px', fontWeight:700, color:cfg2.color }}>{cfg2.label}</div>
                   <div className="prog-track" style={{ flex:1 }}>
                     <div className="prog-fill" style={{ width:`${pct2}%`, background:`linear-gradient(90deg,${cfg2.color}88,${cfg2.color})`, boxShadow:`0 0 6px ${cfg2.glow}` }} />
                   </div>
-                  <span style={{ fontFamily:'var(--f-num)', fontSize:'12px', fontWeight:700, color:cfg2.color, minWidth:'55px', textAlign:'right' }}>{count}/{poolCount}</span>
+                  <span style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', fontWeight:700, color:cfg2.color, minWidth:'55px', textAlign:'right' }}>{count}/{poolCount}</span>
                 </div>
               );
             })}
@@ -156,24 +156,24 @@ export function ProfilePage() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px' }}>
             {highestDpsChar && (
               <div className="panel" style={{ padding:'16px', borderColor:'rgba(74,222,128,0.25)' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:'9px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>⚡ MEILLEUR DPS</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'15px', color:'var(--text)', marginBottom:'4px' }}>{highestDpsChar.name}</div>
-                <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'22px', color:'var(--green)' }}>{formatNumber(highestDpsChar.dps)}/s</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>⚡ MEILLEUR DPS</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'15.5px', color:'var(--text)', marginBottom:'4px' }}>{highestDpsChar.name}</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'22.7px', color:'var(--green)' }}>{formatNumber(highestDpsChar.dps)}/s</div>
               </div>
             )}
             <div className="panel" style={{ padding:'16px', borderColor:'rgba(192,132,252,0.25)' }}>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'9px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>👥 ÉQUIPE</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>👥 ÉQUIPE</div>
               <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
                 {equippedTeam.map((id, i) => {
                   const tpl = id ? CHARACTER_POOL.find(c => c.id === id) : null;
                   return (
-                    <div key={i} style={{ background: tpl ? 'rgba(147,51,234,0.12)' : 'rgba(255,255,255,0.03)', border:`1px solid ${tpl ? 'rgba(147,51,234,0.3)' : 'var(--border)'}`, borderRadius:'8px', padding:'6px 10px', fontFamily:'var(--f-ui)', fontSize:'11px', fontWeight:700, color: tpl ? 'var(--purple-glow)' : 'var(--text-muted)' }}>
+                    <div key={i} style={{ background: tpl ? 'rgba(147,51,234,0.12)' : 'rgba(255,255,255,0.03)', border:`1px solid ${tpl ? 'rgba(147,51,234,0.3)' : 'var(--border)'}`, borderRadius:'8px', padding:'6px 10px', fontFamily:'var(--f-ui)', fontSize:'11.3px', fontWeight:700, color: tpl ? 'var(--purple-glow)' : 'var(--text-muted)' }}>
                       {tpl ? tpl.name : `Slot ${i+1}`}
                     </div>
                   );
                 })}
               </div>
-              <div style={{ marginTop:'10px', fontFamily:'var(--f-num)', fontWeight:900, fontSize:'18px', color:'var(--purple-glow)' }}>{formatNumber(totalDps)}/s total</div>
+              <div style={{ marginTop:'10px', fontFamily:'var(--f-num)', fontWeight:900, fontSize:'18.5px', color:'var(--purple-glow)' }}>{formatNumber(totalDps)}/s total</div>
             </div>
           </div>
         )}
@@ -197,16 +197,16 @@ export function ProfilePage() {
             const maxed = cost === null;
             return (
               <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 14px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'10px' }}>
-                <span style={{ fontSize:'20px' }}>{icon}</span>
+                <span style={{ fontSize:'20.6px' }}>{icon}</span>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text)' }}>{label}</div>
-                  <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-sub)', marginTop:'2px' }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text)' }}>{label}</div>
+                  <div style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', color:'var(--text-sub)', marginTop:'2px' }}>
                     <span style={{ color:'var(--green)' }}>{current}</span>{next && !maxed && <span style={{ color:'var(--text-dim)' }}> → {next}</span>}
                   </div>
                 </div>
                 <button onClick={onBuy} disabled={maxed || !affordable}
                   className={affordable ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding:'8px 14px', fontSize:'12px', opacity: maxed ? 0.5 : 1, cursor: maxed||!affordable ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}>
+                  style={{ padding:'8px 14px', fontSize:'12.4px', opacity: maxed ? 0.5 : 1, cursor: maxed||!affordable ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}>
                   {maxed ? 'MAX' : <>👑 {cost}</>}
                 </button>
               </div>
@@ -216,24 +216,24 @@ export function ProfilePage() {
           return (
             <div className="panel panel--gold" style={{ padding:'18px 20px' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color:'var(--gold-hi)', letterSpacing:'2px' }}>🌙 GAINS HORS-LIGNE</div>
-                <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', fontWeight:700, color:'var(--cyan-hi)' }}>👑 {bossCrowns}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', color:'var(--gold-hi)', letterSpacing:'2px' }}>🌙 GAINS HORS-LIGNE</div>
+                <div style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', fontWeight:700, color:'var(--cyan-hi)' }}>👑 {bossCrowns}</div>
               </div>
 
               {/* Taux courant + dernier récap */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'14px' }}>
                 <div style={{ padding:'12px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'10px' }}>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'9px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'1.5px', marginBottom:'6px' }}>REVENU PASSIF</div>
-                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'17px', color:'var(--gold-hi)' }}>{formatNumber(Math.floor(perHour))}<span style={{ fontSize:'11px', color:'var(--text-sub)' }}> /h</span></div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'10px', color:'var(--text-dim)', marginTop:'2px' }}>×{offMult.toFixed(2)} · plafond {offCapH}h</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'1.5px', marginBottom:'6px' }}>REVENU PASSIF</div>
+                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'17.5px', color:'var(--gold-hi)' }}>{formatNumber(Math.floor(perHour))}<span style={{ fontSize:'11.3px', color:'var(--text-sub)' }}> /h</span></div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', marginTop:'2px' }}>×{offMult.toFixed(2)} · plafond {offCapH}h</div>
                 </div>
                 <div style={{ padding:'12px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'10px' }}>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'9px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'1.5px', marginBottom:'6px' }}>DERNIER RETOUR</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'1.5px', marginBottom:'6px' }}>DERNIER RETOUR</div>
                   {last ? (<>
-                    <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'17px', color:'var(--green)' }}>+{formatNumber(last.coins)}</div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'10px', color:'var(--text-dim)', marginTop:'2px' }}>pour {fmtDur(last.seconds)}{last.capped ? ' (plafonné)' : ''}</div>
+                    <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'17.5px', color:'var(--green)' }}>+{formatNumber(last.coins)}</div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-dim)', marginTop:'2px' }}>pour {fmtDur(last.seconds)}{last.capped ? ' (plafonné)' : ''}</div>
                   </>) : (
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'11px', color:'var(--text-dim)' }}>Aucun pour l&apos;instant</div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-dim)' }}>Aucun pour l&apos;instant</div>
                   )}
                 </div>
               </div>

@@ -204,12 +204,12 @@ export function MarketplacePage() {
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
         <div style={{ width:'4px', height:'22px', background:'linear-gradient(180deg,#f97316,#ea580c)', borderRadius:'2px', boxShadow:'0 0 10px #f97316' }} />
-        <span style={{ fontFamily:'var(--f-title)', fontSize:'16px', fontWeight:700, color:'#f97316', letterSpacing:'3px' }}>HÔTEL DE VILLE</span>
+        <span style={{ fontFamily:'var(--f-title)', fontSize:'16.5px', fontWeight:700, color:'#f97316', letterSpacing:'3px' }}>HÔTEL DE VILLE</span>
       </div>
 
       {/* Feedback */}
       {feedback && (
-        <div style={{ padding:'10px 16px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontSize:'13px', fontWeight:700,
+        <div style={{ padding:'10px 16px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontSize:'13.4px', fontWeight:700,
           background: feedback.ok ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
           border:`1px solid ${feedback.ok ? 'rgba(74,222,128,0.4)' : 'rgba(239,68,68,0.4)'}`,
           color: feedback.ok ? '#4ade80' : '#f87171',
@@ -223,7 +223,7 @@ export function MarketplacePage() {
         {(['market','mine'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             padding:'9px 18px', borderRadius:'8px', cursor:'pointer',
-            fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', letterSpacing:'1px',
+            fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', letterSpacing:'1px',
             background: tab===t ? 'rgba(249,115,22,0.2)' : 'rgba(255,255,255,0.04)',
             border:`1px solid ${tab===t ? '#f9731666' : 'var(--border)'}`,
             color: tab===t ? '#f97316' : 'var(--text-muted)',
@@ -231,7 +231,7 @@ export function MarketplacePage() {
             {t === 'market' ? '🏪 MARCHÉ' : '📋 MES ANNONCES'}
           </button>
         ))}
-        <button onClick={loadMarket} style={{ marginLeft:'auto', padding:'9px 14px', borderRadius:'8px', cursor:'pointer', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:'14px' }}>🔄</button>
+        <button onClick={loadMarket} style={{ marginLeft:'auto', padding:'9px 14px', borderRadius:'8px', cursor:'pointer', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:'14.4px' }}>🔄</button>
       </div>
 
       {/* ── MARCHÉ ─────────────────────────────────────────────────────── */}
@@ -242,7 +242,7 @@ export function MarketplacePage() {
             {(['all','item','equipment','character'] as const).map(f => (
               <button key={f} onClick={() => setFilterType(f)} style={{
                 padding:'5px 12px', borderRadius:'6px', cursor:'pointer',
-                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px',
+                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px',
                 background: filterType===f ? 'rgba(249,115,22,0.15)' : 'rgba(255,255,255,0.03)',
                 border:`1px solid ${filterType===f ? '#f9731644' : 'var(--border)'}`,
                 color: filterType===f ? '#f97316' : 'var(--text-muted)',
@@ -255,7 +255,7 @@ export function MarketplacePage() {
           {loading ? (
             <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)' }}>Chargement...</div>
           ) : filtered.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'13px' }}>Aucune annonce pour le moment</div>
+            <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'13.4px' }}>Aucune annonce pour le moment</div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
               {filtered.map(l => {
@@ -264,24 +264,24 @@ export function MarketplacePage() {
                 const canBuy  = !isOwn && balance >= l.price;
                 return (
                   <div key={l.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'12px 16px', display:'grid', gridTemplateColumns:'36px 1fr auto auto', gap:'12px', alignItems:'center' }}>
-                    <span style={{ fontSize:'22px', textAlign:'center' }}>{getListingIcon(l)}</span>
+                    <span style={{ fontSize:'22.7px', textAlign:'center' }}>{getListingIcon(l)}</span>
                     <div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:'var(--text-hi)' }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text-hi)' }}>
                         {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
                       </div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'11px', color:'var(--text-muted)' }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color:'var(--text-muted)' }}>
                         {TYPE_LABEL[l.type]} · par <span style={{ color:'var(--cyan)' }}>{l.sellerName}</span>
                       </div>
                     </div>
-                    <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'15px', color: l.currency === 'gems' ? '#c084fc' : l.currency === 'crowns' ? '#fbbf24' : '#fde68a', textAlign:'right', whiteSpace:'nowrap' }}>
+                    <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'15.5px', color: l.currency === 'gems' ? '#c084fc' : l.currency === 'crowns' ? '#fbbf24' : '#fde68a', textAlign:'right', whiteSpace:'nowrap' }}>
                       {CURRENCY_ICON[l.currency]} {formatNumber(l.price)}
                     </div>
                     {isOwn ? (
-                      <span style={{ fontFamily:'var(--f-ui)', fontSize:'10px', color:'var(--text-muted)', padding:'4px 8px', border:'1px solid var(--border)', borderRadius:'5px' }}>Ma vente</span>
+                      <span style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--text-muted)', padding:'4px 8px', border:'1px solid var(--border)', borderRadius:'5px' }}>Ma vente</span>
                     ) : (
                       <button onClick={() => handleBuy(l)} disabled={!canBuy} style={{
                         padding:'7px 14px', borderRadius:'7px', cursor:canBuy?'pointer':'not-allowed',
-                        fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px',
+                        fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px',
                         background:canBuy?'rgba(249,115,22,0.18)':'rgba(255,255,255,0.03)',
                         border:`1px solid ${canBuy?'#f9731666':'var(--border)'}`,
                         color:canBuy?'#f97316':'var(--text-muted)',
@@ -302,7 +302,7 @@ export function MarketplacePage() {
         <>
           <button onClick={() => setShowForm(v => !v)} style={{
             padding:'10px 20px', borderRadius:'9px', cursor:'pointer', width:'fit-content',
-            fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', letterSpacing:'1px',
+            fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', letterSpacing:'1px',
             background:'rgba(249,115,22,0.18)', border:'1px solid #f9731666', color:'#f97316',
           }}>
             {showForm ? '✕ Annuler' : '+ Mettre en vente'}
@@ -311,14 +311,14 @@ export function MarketplacePage() {
           {/* Formulaire */}
           {showForm && (
             <div style={{ background:'rgba(249,115,22,0.05)', border:'1px solid rgba(249,115,22,0.2)', borderRadius:'12px', padding:'18px', display:'flex', flexDirection:'column', gap:'12px' }}>
-              <span style={{ fontFamily:'var(--f-title)', fontSize:'13px', color:'#f97316', letterSpacing:'2px' }}>NOUVELLE ANNONCE</span>
+              <span style={{ fontFamily:'var(--f-title)', fontSize:'13.4px', color:'#f97316', letterSpacing:'2px' }}>NOUVELLE ANNONCE</span>
 
               {/* Type — personnages exclus (via Inventaire des Champions uniquement) */}
               <div style={{ display:'flex', gap:'8px' }}>
                 {(['item','equipment'] as const).map(t => (
                   <button key={t} onClick={() => { setFormType(t); setFormItemId(''); }} style={{
                     padding:'6px 14px', borderRadius:'6px', cursor:'pointer',
-                    fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px',
+                    fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px',
                     background: formType===t ? 'rgba(249,115,22,0.2)' : 'rgba(255,255,255,0.04)',
                     border:`1px solid ${formType===t ? '#f9731666' : 'var(--border)'}`,
                     color: formType===t ? '#f97316' : 'var(--text-muted)',
@@ -329,7 +329,7 @@ export function MarketplacePage() {
               {/* Sélection item */}
               <select value={formItemId} onChange={e => setFormItemId(e.target.value)} style={{
                 padding:'9px 12px', borderRadius:'7px', background:'var(--bg-card)', border:'1px solid var(--border)',
-                color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'13px', cursor:'pointer',
+                color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'13.4px', cursor:'pointer',
               }}>
                 <option value=''>-- Choisir --</option>
                 {(formType === 'item' ? availableItems : formType === 'equipment' ? availableEquip : availableChars)
@@ -339,18 +339,18 @@ export function MarketplacePage() {
               {/* Quantité (items seulement) */}
               {formType === 'item' && (
                 <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>Quantité</span>
-                  <input type='number' min={1} value={formQty} onChange={e => setFormQty(Math.max(1, Number(e.target.value)))} style={{ width:'70px', padding:'7px 10px', borderRadius:'6px', background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'13px' }} />
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-muted)' }}>Quantité</span>
+                  <input type='number' min={1} value={formQty} onChange={e => setFormQty(Math.max(1, Number(e.target.value)))} style={{ width:'70px', padding:'7px 10px', borderRadius:'6px', background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'13.4px' }} />
                 </div>
               )}
 
               {/* Prix + monnaie */}
               <div style={{ display:'flex', gap:'10px', alignItems:'center', flexWrap:'wrap' }}>
-                <input type='number' min={1} placeholder='Prix' value={formPrice} onChange={e => setFormPrice(e.target.value)} style={{ flex:1, minWidth:'120px', padding:'9px 12px', borderRadius:'7px', background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'13px' }} />
+                <input type='number' min={1} placeholder='Prix' value={formPrice} onChange={e => setFormPrice(e.target.value)} style={{ flex:1, minWidth:'120px', padding:'9px 12px', borderRadius:'7px', background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'13.4px' }} />
                 {(['coins','gems','crowns'] as const).map(c => (
                   <button key={c} onClick={() => setFormCurrency(c)} style={{
                     padding:'8px 14px', borderRadius:'7px', cursor:'pointer',
-                    fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px',
+                    fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px',
                     background: formCurrency===c ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
                     border:`1px solid ${formCurrency===c ? 'rgba(255,255,255,0.3)' : 'var(--border)'}`,
                     color: formCurrency===c ? 'var(--text-hi)' : 'var(--text-muted)',
@@ -360,7 +360,7 @@ export function MarketplacePage() {
 
               <button onClick={handleCreateListing} disabled={formLoading || !formItemId || !formPrice} style={{
                 padding:'11px', borderRadius:'9px', cursor:'pointer',
-                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px',
+                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px',
                 background:'rgba(249,115,22,0.25)', border:'1px solid #f9731688', color:'#f97316',
               }}>
                 {formLoading ? '...' : '📢 Publier l\'annonce'}
@@ -372,31 +372,31 @@ export function MarketplacePage() {
           {loading ? (
             <div style={{ textAlign:'center', padding:'30px', color:'var(--text-muted)', fontFamily:'var(--f-ui)' }}>Chargement...</div>
           ) : myListings.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'30px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'13px' }}>Aucune annonce</div>
+            <div style={{ textAlign:'center', padding:'30px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'13.4px' }}>Aucune annonce</div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
               {myListings.map(l => (
                 <div key={l.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${l.status==='active'?'rgba(255,255,255,0.08)':l.status==='sold'?'rgba(74,222,128,0.2)':'rgba(255,255,255,0.04)'}`, borderRadius:'10px', padding:'12px 16px', display:'grid', gridTemplateColumns:'36px 1fr auto auto', gap:'12px', alignItems:'center' }}>
-                  <span style={{ fontSize:'22px', textAlign:'center' }}>{getListingIcon(l)}</span>
+                  <span style={{ fontSize:'22.7px', textAlign:'center' }}>{getListingIcon(l)}</span>
                   <div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:'var(--text-hi)' }}>
+                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text-hi)' }}>
                       {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
                     </div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'11px', color: l.status==='active'?'var(--text-muted)':l.status==='sold'?'#4ade80':'#6b7280' }}>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'11.3px', color: l.status==='active'?'var(--text-muted)':l.status==='sold'?'#4ade80':'#6b7280' }}>
                       {l.status === 'active' ? '🟢 En vente' : l.status === 'sold' && !(l as any).claimed ? `✅ Vendu à ${l.soldToName}` : l.status === 'sold' ? '💰 Encaissé' : '❌ Annulé'}
                     </div>
                   </div>
-                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'15px', color:'var(--text-sub)', textAlign:'right', whiteSpace:'nowrap' }}>
+                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'15.5px', color:'var(--text-sub)', textAlign:'right', whiteSpace:'nowrap' }}>
                     {CURRENCY_ICON[l.currency]} {formatNumber(l.price)}
                   </div>
                   <div>
                     {l.status === 'active' && (
-                      <button onClick={() => handleCancel(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171' }}>
+                      <button onClick={() => handleCancel(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', color:'#f87171' }}>
                         Annuler
                       </button>
                     )}
                     {l.status === 'sold' && !(l as any).claimed && (
-                      <button onClick={() => handleClaim(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>
+                      <button onClick={() => handleClaim(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>
                         Encaisser
                       </button>
                     )}

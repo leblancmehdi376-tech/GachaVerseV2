@@ -30,18 +30,18 @@ export function CollectionMiniPanel() {
               {tpl && own ? (
                 <>
                   <PixelSprite src={getCharSprite(tpl, own.currentForm)} alt={getCharFormName(tpl, own.currentForm)} size={40} rarity={tpl.rarity} />
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color:'var(--text-sub)', textAlign:'center', lineHeight:1.2, maxWidth:'70px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11.3px', color:'var(--text-sub)', textAlign:'center', lineHeight:1.2, maxWidth:'70px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
                   <RankStars rank={own.rank} />
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--green)' }}>{formatNumber(calcCharDps(tpl, own))}/s</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--green)' }}>{formatNumber(calcCharDps(tpl, own))}/s</span>
                   <button onClick={e=>{e.stopPropagation(); unequipCharacter(i);}}
-                    style={{ fontFamily:'var(--f-ui)', fontSize:'10px', color:'var(--red)', background:'none', border:'none', cursor:'pointer', padding:'0', marginTop:'2px', opacity:0.7 }}>
+                    style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', color:'var(--red)', background:'none', border:'none', cursor:'pointer', padding:'0', marginTop:'2px', opacity:0.7 }}>
                     ✕ Retirer
                   </button>
                 </>
               ) : (
                 <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'5px' }}>
-                  <div style={{ width:34, height:34, border:`2px dashed ${isSel?'var(--purple-hi)':'rgba(255,255,255,0.1)'}`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', color: isSel?'var(--purple-glow)':'rgba(255,255,255,0.2)', transition:'all 0.15s' }}>{isSel?'✓':'+'}</div>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'10px', fontWeight:600, color: isSel?'var(--purple-glow)':'var(--text-muted)' }}>SLOT {i+1}</span>
+                  <div style={{ width:34, height:34, border:`2px dashed ${isSel?'var(--purple-hi)':'rgba(255,255,255,0.1)'}`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18.5px', color: isSel?'var(--purple-glow)':'rgba(255,255,255,0.2)', transition:'all 0.15s' }}>{isSel?'✓':'+'}</div>
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'10.3px', fontWeight:600, color: isSel?'var(--purple-glow)':'var(--text-muted)' }}>SLOT {i+1}</span>
                 </div>
               )}
             </div>
@@ -50,7 +50,7 @@ export function CollectionMiniPanel() {
       </div>
 
       {selSlot !== null && (
-        <div style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'11px', color:'var(--purple-glow)', textAlign:'center', animation:'warnFlash 1.2s infinite', letterSpacing:'0.5px' }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'11.3px', color:'var(--purple-glow)', textAlign:'center', animation:'warnFlash 1.2s infinite', letterSpacing:'0.5px' }}>
           ↓ Sélectionne un allié pour le slot {selSlot+1}
         </div>
       )}
@@ -58,7 +58,7 @@ export function CollectionMiniPanel() {
       {/* ── Collection mini-liste scrollable ── */}
       <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:'4px' }}>
         {owned.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'20px 0', color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:'12px' }}>
+          <div style={{ textAlign:'center', padding:'20px 0', color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:'12.4px' }}>
             Aucun allié invoqué
           </div>
         ) : owned.map(o => {
@@ -78,22 +78,22 @@ export function CollectionMiniPanel() {
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
-                  {isEq && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9px', color:cfg.color, fontWeight:700, flexShrink:0, marginLeft:'4px' }}>⚔</span>}
-                  {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9px', color:'#f87171', fontWeight:700, flexShrink:0, marginLeft:'4px' }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tpl.name}</span>
+                  {isEq && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:cfg.color, fontWeight:700, flexShrink:0, marginLeft:'4px' }}>⚔</span>}
+                  {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:'9.3px', color:'#f87171', fontWeight:700, flexShrink:0, marginLeft:'4px' }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'3px' }}>
                   <RarityBadge rarity={tpl.rarity} size="xs" />
                   <RankStars rank={o.rank} />
                 </div>
               </div>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13px', color:'var(--green)', flexShrink:0 }}>{formatNumber(calcCharDps(tpl, o))}/s</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--green)', flexShrink:0 }}>{formatNumber(calcCharDps(tpl, o))}/s</span>
             </div>
           );
         })}
       </div>
 
-      <button style={{ width:'100%', padding:'9px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'7px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-sub)', cursor:'pointer', letterSpacing:'1px', transition:'all 0.15s' }}
+      <button style={{ width:'100%', padding:'9px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'7px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text-sub)', cursor:'pointer', letterSpacing:'1px', transition:'all 0.15s' }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border-lit)'; }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; }}>
         GÉRER L&apos;ÉQUIPE COMPLÈTE

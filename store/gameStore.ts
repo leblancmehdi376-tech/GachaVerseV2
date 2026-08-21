@@ -428,7 +428,10 @@ export const useGameStore = create<GameStore>()(
       tickBossTimer: () => set(state => {
         if (!state.bossActive || state.bossTimeLeft <= 0) return {};
         const t = state.bossTimeLeft - 1;
-        if (t <= 0) return { bossActive:false, bossTimeLeft:0, wave:1, currentEnemy: generateEnemy(1, state.palier, state.maxPalierReached) };
+        // Défaite (timer écoulé) : même état qu'une retraite volontaire —
+        // bossAvoided:true permet de retenter le boss directement (bouton
+        // "⚡ BOSS") au lieu de forcer un reclear complet des vagues 1-9.
+        if (t <= 0) return { bossActive:false, bossTimeLeft:0, bossAvoided:true, wave:1, currentEnemy: generateEnemy(1, state.palier, state.maxPalierReached) };
         return { bossTimeLeft: t };
       }),
 
