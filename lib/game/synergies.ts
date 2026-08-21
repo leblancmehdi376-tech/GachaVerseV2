@@ -487,8 +487,8 @@ export const SYNERGIES: SynergyDef[] = [
 
   synergy({
     id: 'Apothicaire',
-    universe: 'Les Carnets de l’Apothicaire',
-    label: 'Les Carnets de l’Apothicaire',
+    universe: "Les Carnets de l'Apothicaire",
+    label: "Les Carnets de l'Apothicaire",
     color: '#4009a7',
     glow: '#b4089d',
     icon: '🧪',

@@ -23,11 +23,14 @@ export function RandomEventOverlay() {
   useEffect(() => {
     if (bossActive || wave === 10) {
       const cut = endForBoss();
+      // Coupe tout boost DPS résiduel d'Ardeur : le buff survit au mini-jeu via
+      // un timer indépendant (ARDEUR_BUFF_MS dans ArdeurEvent), donc il peut
+      // encore être actif alors que l'overlay est déjà refermé — se fier à
+      // prevActive.current==='ardeur' ne suffit pas, il faut reset dans tous les cas.
+      useGameStore.getState().setEventDpsMult(1, 0);
       if (cut || prevActive.current) {
         setBossNotice(true);
         const t = setTimeout(() => setBossNotice(false), 2600);
-        //reset DPS mult à 1 si on était en Ardeur
-        if (prevActive.current === 'ardeur') useGameStore.getState().setEventDpsMult(1, 0);
         prevActive.current = null;
         return () => clearTimeout(t);
       }
