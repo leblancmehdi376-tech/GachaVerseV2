@@ -321,6 +321,7 @@ interface GameStore extends GameState {
 const makeInitial = () => ({
   pixelCoins: 0, nekoGems: 10, totalClicks: 0,
   totalKills: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0, totalGachaPulls: 0, totalBossKills: 0, totalGemsSpent: 0,
+  totalBossCrownsEarned: 0, totalVoidOrbsEarned: 0,
   wave: 1, palier: 1, maxPalierReached: 1, runPeakPalier: null as number | null,
   currentEnemy: generateEnemy(1, 1),
   goldUpgradeLevel: 0,
@@ -562,10 +563,12 @@ export const useGameStore = create<GameStore>()(
         set(s => {
           const amount = Math.max(0, Math.floor(coins));
           const cq = bumpCoinQuests(s.quests, s.weeklyQuests ?? [], amount);
+          const crownsGained = Math.max(0, Math.floor(crowns));
           return {
             pixelCoins: s.pixelCoins + amount,
             nekoGems:   s.nekoGems + Math.max(0, Math.floor(gems)),
-            bossCrowns: s.bossCrowns + Math.max(0, Math.floor(crowns)),
+            bossCrowns: s.bossCrowns + crownsGained,
+            totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + crownsGained,
             quests: cq.quests, weeklyQuests: cq.weeklyQuests,
           };
         }),
@@ -577,7 +580,7 @@ export const useGameStore = create<GameStore>()(
       buyGoldWithGems: (packId) => {
         const pack = GEM_GOLD_PACKS.find(p => p.id === packId);
         if (!pack || get().nekoGems < pack.gems) return;
-        const scaledCoins = getGoldPackCoins(pack, get().palier);
+        const scaledCoins = getGoldPackCoins(pack, get().palier, getGoldChestMultiplier(get().goldUpgradeLevel ?? 0));
         set(state => ({ nekoGems: state.nekoGems - pack.gems, pixelCoins: state.pixelCoins + scaledCoins, totalGemsSpent: (state.totalGemsSpent ?? 0) + pack.gems }));
       },
 
@@ -631,7 +634,7 @@ export const useGameStore = create<GameStore>()(
           const inv = { ...state.championInventory };
           if (inv[templateId] <= 1) delete inv[templateId];
           else inv[templateId] -= 1;
-          return { championInventory: inv, voidOrbs: state.voidOrbs + orbs };
+          return { championInventory: inv, voidOrbs: state.voidOrbs + orbs, totalVoidOrbsEarned: (state.totalVoidOrbsEarned ?? 0) + orbs };
         });
       },
 
@@ -649,7 +652,7 @@ export const useGameStore = create<GameStore>()(
           delete nextInv[templateId];
         }
         if (count > 0) {
-          set(state => ({ championInventory: nextInv, voidOrbs: state.voidOrbs + orbs }));
+          set(state => ({ championInventory: nextInv, voidOrbs: state.voidOrbs + orbs, totalVoidOrbsEarned: (state.totalVoidOrbsEarned ?? 0) + orbs }));
         }
         return { count, orbs };
       },
@@ -1409,6 +1412,7 @@ export const useGameStore = create<GameStore>()(
         eventQuests:s.eventQuests,
         musicVolume:s.musicVolume, musicMuted:s.musicMuted,
         bossCrowns:s.bossCrowns, voidOrbs:s.voidOrbs,
+        totalBossCrownsEarned:s.totalBossCrownsEarned ?? 0, totalVoidOrbsEarned:s.totalVoidOrbsEarned ?? 0,
         inventory:s.inventory,
         equipmentInventory:s.equipmentInventory,
         unlockedEquipRarities:s.unlockedEquipRarities,
@@ -1525,7 +1529,7 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
         )
       : eventQuests;
     const newRunPeak = Math.max(runPeakPalierOf(state), next);
-    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, eventQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1 } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] }>;
+    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, eventQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1 } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] }>;
   }
   const nw = state.wave + 1;
   const runPeak = runPeakPalierOf(state);

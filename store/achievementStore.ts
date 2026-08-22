@@ -187,8 +187,8 @@ export function trackBossKills(totalBossKills: number) {
   s.setProgress('bosses_100', Math.min(totalBossKills, 100));
 }
 
-export function trackBossCrowns(bossCrowns: number) {
-  useAchievementStore.getState().setProgress('crowns_50', Math.min(bossCrowns, 50));
+export function trackBossCrowns(totalBossCrownsEarned: number) {
+  useAchievementStore.getState().setProgress('crowns_50', Math.min(totalBossCrownsEarned, 50));
 }
 
 export function trackPalier(palier: number) {
@@ -283,8 +283,8 @@ export function trackPrestige(level: number) {
   s.setProgress('prestige_25', Math.min(level, 20));
 }
 
-export function trackVoidOrbs(orbs: number) {
-  useAchievementStore.getState().setProgress('orbs_30', Math.min(orbs, 30));
+export function trackVoidOrbs(totalVoidOrbsEarned: number) {
+  useAchievementStore.getState().setProgress('orbs_30', Math.min(totalVoidOrbsEarned, 30));
 }
 
 export function trackUnlockedTitles(count: number) {

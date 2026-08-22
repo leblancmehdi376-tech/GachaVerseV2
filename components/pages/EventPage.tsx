@@ -354,6 +354,7 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
           totalBossKills: s.totalBossKills + 1,
           nekoGems: s.nekoGems + gemsGained,
           bossCrowns: s.bossCrowns + crownsGained,
+          totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + crownsGained,
         };
       });
       for (const r of results) {

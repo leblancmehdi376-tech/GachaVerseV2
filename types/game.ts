@@ -254,6 +254,9 @@ export interface Enemy {
 export interface GameState {
   pixelCoins: number; nekoGems: number; totalClicks: number;
   totalKills: number; totalQuestsCompleted: number; totalUpgradesPerformed: number; totalGachaPulls: number; totalBossKills: number; totalGemsSpent: number;
+  // Cumuls à vie (jamais décrémentés, contrairement au solde dépensable) —
+  // utilisés par les succès "au total"/"accumule X" (crowns_50, orbs_30).
+  totalBossCrownsEarned: number; totalVoidOrbsEarned: number;
   wave: number; palier: number; maxPalierReached: number;
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
   // maxPalierReached, qui ne redescend jamais et sert de référence pour le

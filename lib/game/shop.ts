@@ -39,10 +39,14 @@ export const GEM_GOLD_PACKS: GemGoldPack[] = [
 ];
 
 // Repère de calcul : vague 5 (milieu de palier), la même formule que le gain
-// par ennemi en combat normal (hors bonus de boss).
-export function getGoldPackCoins(pack: GemGoldPack, palier: number): number {
+// par ennemi en combat normal (hors bonus de boss), multipliée par le bonus
+// du Coffre d'Or actuel pour que le pack garde sa valeur réelle de
+// killsEquivalent kills même quand ce coffre est bien amélioré (avant ce
+// correctif, goldChestMult était ignoré et les packs devenaient sous-évalués
+// à mesure que le Coffre d'Or progressait).
+export function getGoldPackCoins(pack: GemGoldPack, palier: number, goldChestMult: number = 1): number {
   const global = (palier - 1) * 10 + 5;
-  const perKill = COIN_BASE * Math.pow(COIN_GROWTH, global - 1);
+  const perKill = COIN_BASE * Math.pow(COIN_GROWTH, global - 1) * goldChestMult;
   return Math.floor(perKill * pack.killsEquivalent);
 }
 

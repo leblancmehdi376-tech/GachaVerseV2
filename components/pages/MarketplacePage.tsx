@@ -190,7 +190,7 @@ export function MarketplacePage() {
     if (!ok) { showMsg(false, 'Erreur encaissement'); return; }
     // Donne la monnaie au vendeur
     if (listing.currency === 'gems')        useGameStore.setState(s => ({ nekoGems:   s.nekoGems   + listing.price }));
-    else if (listing.currency === 'crowns') useGameStore.setState(s => ({ bossCrowns: s.bossCrowns + listing.price }));
+    else if (listing.currency === 'crowns') useGameStore.setState(s => ({ bossCrowns: s.bossCrowns + listing.price, totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + listing.price }));
     else useGameStore.setState(s => ({ pixelCoins: s.pixelCoins + listing.price }));
     showMsg(true, `+${formatNumber(listing.price)} ${CURRENCY_ICON[listing.currency]} encaissés !`);
     loadMine();

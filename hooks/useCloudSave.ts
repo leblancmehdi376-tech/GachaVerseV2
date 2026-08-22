@@ -47,6 +47,8 @@ function getSerializableState() {
     musicMuted:         s.musicMuted,
     bossCrowns:         s.bossCrowns,
     voidOrbs:           s.voidOrbs,
+    totalBossCrownsEarned: s.totalBossCrownsEarned ?? 0,
+    totalVoidOrbsEarned:   s.totalVoidOrbsEarned ?? 0,
     inventory:          s.inventory,
     equipmentInventory: s.equipmentInventory,
     championInventory:  s.championInventory ?? {},

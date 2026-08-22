@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, getGoldChestMultiplier } from '@/store/gameStore';
 import { useExpeditionStore } from '@/store/expeditionStore';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge } from '@/components/ui/RarityBadge';
@@ -34,7 +34,7 @@ function msUntilNextMidnight(): number {
 
 export function ShopPage() {
   const {
-    nekoGems, bossCrowns, voidOrbs, palier, inventory,
+    nekoGems, bossCrowns, voidOrbs, palier, inventory, goldUpgradeLevel,
     dpsBoostEndsAt, goldBoostEndsAt, isDpsBoostActive, isGoldBoostActive,
     buyDpsBoost, buyGoldBoost, buyGemsWithCrowns, buyGoldWithGems,
     dailyShop, ensureDailyShop, buyShopCharacter, buyGemsWithOrbs, buyEquipmentChest,
@@ -210,8 +210,9 @@ export function ShopPage() {
             {GEM_GOLD_PACKS.map(p => {
               // Valeur alignée sur la courbe organique (voir getGoldPackCoins) :
               // le pack vaut toujours l'équivalent de killsEquivalent kills au
-              // palier courant, jamais un multiplicateur déconnecté de l'économie.
-              const scaledCoins = getGoldPackCoins(p, palier);
+              // palier courant (Coffre d'Or inclus), jamais un multiplicateur
+              // déconnecté de l'économie.
+              const scaledCoins = getGoldPackCoins(p, palier, getGoldChestMultiplier(goldUpgradeLevel ?? 0));
               const canBuy = nekoGems >= p.gems;
               return (
                 <div key={p.id} style={{ background:'rgba(56,189,248,0.05)', border:'1px solid rgba(56,189,248,0.25)', borderRadius:'10px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'6px' }}>

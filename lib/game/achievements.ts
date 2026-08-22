@@ -1,5 +1,7 @@
 // lib/game/achievements.ts — Définition de tous les succès GachaVerse
 
+import { CHARACTER_POOL } from './characters';
+
 export type AchievCategory = 'combat' | 'collection' | 'gacha' | 'progression' | 'social';
 
 export interface Achievement {
@@ -173,7 +175,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'collect_all', category:'collection', icon:'🌟',
     title:'Complétiste', name:'Tout Attraper',
-    description:'Débloque tous les personnages.', target:193,
+    description:'Débloque tous les personnages.', target:CHARACTER_POOL.length,
     reward:{ type:'gems', value:1500 },
     secret:true,
   },
@@ -409,7 +411,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'prestige_25', category:'progression', icon:'🔄',
     title:'Renaissant', name:'Renaissance Infinie',
-    description:'Atteins le niveau 20 de Prestige.', target:20.,
+    description:'Atteins le niveau 20 de Prestige.', target:20,
     reward:{ type:'gems', value:1500 },
     secret:true,
   },

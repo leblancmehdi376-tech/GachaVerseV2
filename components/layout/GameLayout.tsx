@@ -192,7 +192,7 @@ export function GameLayout() {
 
   // ── Achievement trackers ─────────────────────────────────────────────────
   const totalDps = useGameStore(s => s.getTotalDps());
-  const { bossCrowns, collection: col, equippedTeam, totalKills, totalQuestsCompleted, totalUpgradesPerformed, totalGachaPulls, voidOrbs, totalBossKills } = useGameStore();
+  const { collection: col, equippedTeam, totalKills, totalQuestsCompleted, totalUpgradesPerformed, totalGachaPulls, totalBossKills, totalBossCrownsEarned, totalVoidOrbsEarned } = useGameStore();
   const { CHARACTER_POOL: charPool } = require('@/lib/game/characters');
   const { computeActiveSynergies } = require('@/lib/game/synergies');
   const { usePrestigeStore } = require('@/store/prestigeStore');
@@ -200,12 +200,12 @@ export function GameLayout() {
   const prestigeLevel = usePrestigeStore((s: { level: number }) => s.level);
   const unlockedTitlesCount = useAchStoreForTitles((s: { unlockedTitles: string[] }) => s.unlockedTitles.length);
   useEffect(() => { trackBossKills(totalBossKills); }, [totalBossKills]);
-  useEffect(() => { trackBossCrowns(bossCrowns); }, [bossCrowns]);
+  useEffect(() => { trackBossCrowns(totalBossCrownsEarned); }, [totalBossCrownsEarned]);
   useEffect(() => { trackPalier(maxPalierReached); }, [maxPalierReached]);
   useEffect(() => { trackCoins(pixelCoins); }, [pixelCoins]);
   useEffect(() => { trackGems(nekoGems); }, [nekoGems]);
   useEffect(() => { trackPrestige(prestigeLevel); }, [prestigeLevel]);
-  useEffect(() => { trackVoidOrbs(voidOrbs); }, [voidOrbs]);
+  useEffect(() => { trackVoidOrbs(totalVoidOrbsEarned); }, [totalVoidOrbsEarned]);
   useEffect(() => { trackUnlockedTitles(unlockedTitlesCount); }, [unlockedTitlesCount]);
   useEffect(() => { trackGachaPulls(totalGachaPulls); }, [totalGachaPulls]);
   useEffect(() => {
@@ -245,8 +245,10 @@ export function GameLayout() {
     const hasTrio = trioTemplates.length > 0;
     trackShinyEditions(goldOrDiamond.length, hasGold, hasDiamond, diamondTemplates.size, hasTrio, trioTemplates.length);
 
-    // Rangs 7★ : combien d'instances au rang max, et l'équipe entière l'est-elle ?
-    const count7Star = instances.filter(o => o.rank >= 7).length;
+    // Rangs 7★ : combien de personnages DIFFÉRENTS au rang max (dédupliqué par
+    // templateId, une même carte en plusieurs éditions ne doit compter qu'une
+    // fois), et l'équipe entière l'est-elle ?
+    const count7Star = new Set(instances.filter(o => o.rank >= 7).map(o => o.templateId)).size;
     const fullTeamRank7 = equippedTeam.length === 4 && equippedTeam.every(id => id && col[id]?.rank >= 7);
     trackRank7(count7Star, fullTeamRank7);
   }, [col, equippedTeam, charPool]);
