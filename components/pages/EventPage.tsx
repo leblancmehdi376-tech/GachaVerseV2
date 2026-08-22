@@ -14,6 +14,7 @@ import { calculateEquippedTeamDps } from '@/lib/game/dpsCalculation';
 import { formatNumber } from '@/lib/game/format';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
 import { EventMusicPlayer } from '@/components/game/EventMusicPlayer';
+import { requestUrgentSave } from '@/hooks/useCloudSave';
 
 // ── Compagnons d'event : jusqu'à 3 alliés hors équipe/expédition qui
 // influencent la durée du combat selon leur type vs celui (aléatoire) du boss.
@@ -362,6 +363,9 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
         if (r.type === 'title' && r.id) useAchievementStore.getState().unlockTitle(r.id);
       }
       setTimeout(() => setDrops(results), 800);
+      // Événement majeur : sauvegarde immédiate pour ne jamais perdre la
+      // récompense d'un boss d'event (pas d'attente du prochain cycle périodique).
+      requestUrgentSave();
     }
   }, [hp, dead, addItem, boss]);
 

@@ -53,6 +53,11 @@ function getSerializableState() {
     equipmentInventory: s.equipmentInventory,
     championInventory:  s.championInventory ?? {},
     bankedRanks:         s.bankedRanks ?? {},
+    // Fusion/drop d'équipement débloqués par rareté (via expéditions) — vraie
+    // progression, jamais synchronisée avant ce correctif : revenait à ['C']
+    // sur tout nouvel appareil, rebloquant équipement et expéditions déjà acquis.
+    unlockedEquipRarities:     s.unlockedEquipRarities ?? ['C'],
+    unlockedEquipDropRarities: s.unlockedEquipDropRarities ?? ['C'],
     dpsBoostEndsAt:     s.dpsBoostEndsAt,
     goldBoostEndsAt:    s.goldBoostEndsAt,
     dailyShop:          s.dailyShop,
@@ -67,6 +72,12 @@ function getSerializableState() {
     // appareil (ses conditions sont recalculées depuis les stats, elles,
     // bien synchronisées) et redonne ses gemmes une deuxième fois.
     achievementsClaimed: useAchievementStore.getState().claimed,
+    // Titres débloqués (succès + drops de boss d'event, voir unlockTitle) et
+    // titre actif — jamais synchronisés avant ce correctif : un titre gagné
+    // par drop d'event (non dérivable des stats, contrairement aux succès)
+    // disparaissait sur tout nouvel appareil, avec son bonus d'or actif.
+    unlockedTitles: useAchievementStore.getState().unlockedTitles,
+    activeTitle:    useAchievementStore.getState().activeTitle,
     // Expéditions et forge — store séparé (expeditionStore), jamais synchronisé
     // avant ce correctif : les drops et expéditions en cours disparaissaient
     // sur tout nouvel appareil.
@@ -83,22 +94,32 @@ function getSerializableState() {
   };
 }
 
-// Fusionne les succès réclamés vus sur cet appareil, en localStorage et sur
-// Firebase — jamais un simple "dernier gagne", car un claim ne doit JAMAIS
-// pouvoir redisparaître (sinon la fenêtre de double-claim rouvre) ni être
-// perdu si la source la plus récente vient d'un appareil qui ignore encore
-// un claim fait ailleurs.
-function mergeClaimedAchievements(
+// Fusionne l'état des succès (achievementStore, jamais synchro par simple
+// "dernier gagne" comme le reste de l'état — voir plus bas) vu sur cet
+// appareil, en localStorage et sur Firebase :
+// - `claimed` et `unlockedTitles` ne font QUE grandir : un claim ou un titre
+//   débloqué (ex: drop de boss d'event, non dérivable des stats) ne doit
+//   JAMAIS pouvoir redisparaître, même si la source qui le connaît n'est pas
+//   la plus récente des trois.
+// - `activeTitle` (préférence d'affichage, pas un déblocage) suit lui la
+//   source la plus fraîche (`freshest`), comme le reste de l'état.
+function mergeAchievementState(
   remote: Record<string, unknown> | null,
-  local: Record<string, unknown> | null
-): Record<string, boolean> {
-  const merged: Record<string, boolean> = { ...useAchievementStore.getState().claimed };
+  local: Record<string, unknown> | null,
+  freshest: Record<string, unknown> | null
+): { claimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string } {
+  const current = useAchievementStore.getState();
+  const claimed: Record<string, boolean> = { ...current.claimed };
+  const unlockedTitles = new Set<string>(current.unlockedTitles);
   for (const source of [remote, local]) {
-    const claimed = source?.achievementsClaimed as Record<string, boolean> | undefined;
-    if (!claimed) continue;
-    for (const id of Object.keys(claimed)) if (claimed[id]) merged[id] = true;
+    const c = source?.achievementsClaimed as Record<string, boolean> | undefined;
+    if (c) for (const id of Object.keys(c)) if (c[id]) claimed[id] = true;
+    const t = source?.unlockedTitles as string[] | undefined;
+    if (Array.isArray(t)) for (const title of t) unlockedTitles.add(title);
   }
-  return merged;
+  const freshTitle = freshest?.activeTitle as string | undefined;
+  const activeTitle = typeof freshTitle === 'string' && unlockedTitles.has(freshTitle) ? freshTitle : current.activeTitle;
+  return { claimed, unlockedTitles: Array.from(unlockedTitles), activeTitle };
 }
 
 // ── localStorage (backup local, aucun quota) ───────────────────────────────
@@ -173,19 +194,26 @@ async function loadAndApply(userId: string) {
         usePrestigeStore.setState(prestigePatch as unknown as Parameters<typeof usePrestigeStore.setState>[0]);
       }
 
+      // unlockedTitles/activeTitle n'appartiennent pas à gameStore non plus —
+      // ils sont gérés séparément par mergeAchievementState ci-dessous (règles
+      // de fusion différentes du reste : voir son commentaire).
+      delete data.unlockedTitles;
+      delete data.activeTitle;
+
       useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);
       // Allow effects to settle, then re-enable toasts.
       setTimeout(() => { try { useGameStore.setState({ suppressToasts: false }); } catch {} }, 200);
     }
 
-    // Fusion des succès réclamés — TOUJOURS, indépendamment de la source
-    // "la plus récente" choisie ci-dessus (un claim ne doit jamais dépendre
-    // d'un timestamp : voir mergeClaimedAchievements).
-    const mergedClaimed = mergeClaimedAchievements(
+    // Fusion des succès/titres — TOUJOURS, indépendamment de la source "la
+    // plus récente" choisie ci-dessus (un claim ou un titre débloqué ne doit
+    // jamais dépendre d'un timestamp : voir mergeAchievementState).
+    const merged = mergeAchievementState(
       remote as Record<string, unknown> | null,
-      local as Record<string, unknown> | null
+      local as Record<string, unknown> | null,
+      best.data as Record<string, unknown> | null
     );
-    useAchievementStore.setState({ claimed: mergedClaimed });
+    useAchievementStore.setState(merged);
   } catch (e) {
     console.error('[CloudSave] Erreur loadAndApply:', e);
   }
@@ -233,6 +261,26 @@ async function saveToFirebase(userId: string): Promise<boolean> {
   }
 }
 
+// ── Sauvegarde immédiate après un événement majeur ─────────────────────────
+// Miroir module-level de userIdRef/loadedRef (mis à jour par useCloudSave()
+// ci-dessous) — permet aux actions des stores (gameStore, expeditionStore...)
+// de déclencher une sauvegarde sans avoir accès au hook React ni à l'userId
+// (voir les imports différés dans gameStore.ts/expeditionStore.ts, qui évitent
+// un cycle d'import avec ce fichier).
+let urgentSaveUserId: string | null = null;
+let urgentSaveReady   = false;
+let lastUrgentSaveAt  = 0;
+const URGENT_SAVE_MIN_GAP_MS = 15_000; // évite une rafale d'écritures Firestore (ex: pulls gacha en boucle)
+
+export function requestUrgentSave() {
+  if (!urgentSaveUserId || !urgentSaveReady) return;
+  const now = Date.now();
+  if (now - lastUrgentSaveAt < URGENT_SAVE_MIN_GAP_MS) return;
+  lastUrgentSaveAt = now;
+  saveToLocal();
+  saveToFirebase(urgentSaveUserId);
+}
+
 // ── Hook principal ─────────────────────────────────────────────────────────
 export function useCloudSave(userId: string | null) {
   const loadedRef = useRef(false);
@@ -246,12 +294,18 @@ export function useCloudSave(userId: string | null) {
 
   // Chargement au login
   useEffect(() => {
-    if (!userId) { loadedRef.current = false; userIdRef.current = null; setLoaded(true); return; }
+    if (!userId) {
+      loadedRef.current = false; userIdRef.current = null; setLoaded(true);
+      urgentSaveUserId = null; urgentSaveReady = false;
+      return;
+    }
     if (userId === userIdRef.current) return;
     userIdRef.current = userId;
     loadedRef.current = false;
+    urgentSaveUserId = userId;
+    urgentSaveReady = false;
     setLoaded(false);
-    loadAndApply(userId).finally(() => { loadedRef.current = true; setLoaded(true); });
+    loadAndApply(userId).finally(() => { loadedRef.current = true; urgentSaveReady = true; setLoaded(true); });
   }, [userId]);
 
   // Écoute EN DIRECT les corrections admin (solde rééquilibré) pendant que

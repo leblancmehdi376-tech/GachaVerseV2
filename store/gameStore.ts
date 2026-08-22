@@ -114,6 +114,18 @@ function broadcastAndSaveLocal() {
   } catch { /* ignore */ }
 }
 
+// Force une sauvegarde immédiate en base (localStorage + Firestore) après un
+// événement majeur (palier franchi, pull gacha, achat de coffre d'équipement,
+// boss vaincu, expédition récupérée) — sans ça, ces gains ne seraient garantis
+// en base qu'au prochain cycle périodique (jusqu'à 10min plus tard) et
+// pourraient être perdus en cas de fermeture/crash avant cette échéance.
+// Import différé : useCloudSave importe déjà gameStore, un import statique
+// créerait un cycle (voir le même correctif pour expeditionStore ci-dessus).
+function requestUrgentSave() {
+  if (typeof window === 'undefined') return;
+  try { require('@/hooks/useCloudSave').requestUrgentSave(); } catch { /* ignore */ }
+}
+
 // Écoute les mises à jour des autres onglets
 if (BROADCAST_CHANNEL) {
   BROADCAST_CHANNEL.onmessage = (event) => {
@@ -625,6 +637,7 @@ export const useGameStore = create<GameStore>()(
             [itemId]: (state.equipmentInventory[itemId] ?? 0) + 1,
           },
         }));
+        requestUrgentSave();
         return itemId;
       },
 
@@ -1016,6 +1029,7 @@ export const useGameStore = create<GameStore>()(
         get().bumpQuestProgress('w_gacha_10', 1);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + 1 }));
         broadcastAndSaveLocal();
+        requestUrgentSave();
         return { templateId: id, edition };
       },
       pullMulti: () => {
@@ -1026,6 +1040,7 @@ export const useGameStore = create<GameStore>()(
         get().bumpQuestProgress('w_gacha_10', ids.length);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
         broadcastAndSaveLocal();
+        requestUrgentSave();
         return results;
       },
       pullMulti100: () => {
@@ -1036,6 +1051,7 @@ export const useGameStore = create<GameStore>()(
         get().bumpQuestProgress('w_gacha_10', ids.length);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
         broadcastAndSaveLocal();
+        requestUrgentSave();
         return results;
       },
       addToCollection: (templateId) => {
@@ -1515,6 +1531,9 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
     // On ne pousse au classement QUE lors d'une vraie progression : re-farmer un
     // palier déjà validé (voyage) ne doit pas écraser le score avec une valeur plus basse.
     const isNewProgress = next > state.maxPalierReached;
+    // Passage à un palier jamais atteint : événement majeur, sauvegarde immédiate
+    // (pas d'attente du prochain cycle périodique) pour ne jamais perdre cette progression.
+    if (isNewProgress) requestUrgentSave();
     if (isNewProgress && auth?.currentUser?.uid) {
       updatePlayerScore(auth.currentUser.uid, {
         username: state.username,

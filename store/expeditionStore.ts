@@ -304,6 +304,12 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         if (def.unlocksEquipRarity)     parts.push(`🔓 Fusion ${RARITY_CONFIG[def.unlocksEquipRarity].label} débloquée`);
         if (def.unlocksEquipDropRarity) parts.push(`🔓 Drop ${RARITY_CONFIG[def.unlocksEquipDropRarity].label} débloqué`);
         toast.loot(`${def.icon} ${def.name} terminée !`, parts.join('  '));
+
+        // Événement majeur : sauvegarde immédiate (pas d'attente du prochain
+        // cycle périodique) pour ne jamais perdre une récompense d'expédition.
+        // Import différé : useCloudSave importe déjà expeditionStore, un import
+        // statique créerait un cycle.
+        try { require('@/hooks/useCloudSave').requestUrgentSave(); } catch { /* ignore */ }
       },
 
       cancelExpedition: (instanceId) => {
