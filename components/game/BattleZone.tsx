@@ -438,11 +438,46 @@ export function BattleZone() {
       <div style={{ position:'relative', zIndex:3, background:'linear-gradient(0deg,rgba(5,4,15,0.97),rgba(5,4,15,0.7))', borderTop:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
 
         {/* Compagnons — barre horizontale */}
-        <div style={{ display:'flex', alignItems:'flex-end', gap:10, padding:'10px 18px 8px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 8,
+          padding: '8px 12px',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}>
           {/* Panel compagnons */}
-          <div style={{ background:'linear-gradient(160deg,rgba(15,10,30,0.92),rgba(8,6,18,0.92))', border:'1px solid rgba(255,255,255,0.09)', borderRadius:12, padding:'10px 12px 8px', display:'flex', flexDirection:'column', alignItems:'center', gap:8, boxShadow:'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:2 }}>COMPAGNONS</span>
-            <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
+          <div style={{ 
+            background:'linear-gradient(160deg,rgba(15,10,30,0.92),rgba(8,6,18,0.92))', 
+            border:'1px solid rgba(255,255,255,0.09)', 
+            borderRadius:12, 
+            padding:'10px 12px 8px', 
+            display:'flex', 
+            flexDirection:'column', 
+            alignItems:'flex-start',
+            gap:8, 
+            boxShadow:'inset 0 1px 0 rgba(255,255,255,0.04)',
+            //scrollable
+            overflowX:'auto',
+            overflowY:'hidden',
+            scrollbarWidth:'thin',
+            msOverflowStyle:'-ms-autohiding-scrollbar',
+          }}>
+            <span style={{ 
+              fontFamily:'var(--f-ui)', 
+              fontSize:12, 
+              fontWeight:700, 
+              color:'rgba(255,255,255,0.35)', 
+              letterSpacing:2,
+              //center text
+              alignSelf:'center',
+            }}>COMPAGNONS</span>
+            <div style={{ 
+              display:'flex', 
+              gap:10, 
+              alignItems:'flex-start',
+            }}>
               {equippedTeam.map((tid, i) => {
                 const isLocked = !!tid && ultUsedThisFight.includes(tid);
                 return (
