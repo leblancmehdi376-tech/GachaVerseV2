@@ -185,7 +185,7 @@ export function ShopPage() {
             );
           })()}
 
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
+          <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
             {CROWN_GEM_PACKS.map(p => (
               <div key={p.id} style={{ background:'rgba(251,191,36,0.05)', border:'1px solid rgba(251,191,36,0.25)', borderRadius:'10px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'6px' }}>
                 <span style={{ fontSize:'22.7px' }}>💎</span>
@@ -206,7 +206,7 @@ export function ShopPage() {
             <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#38bdf8,#0ea5e9)', borderRadius:'2px', boxShadow:'0 0 8px #38bdf8' }} />
             <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'#38bdf8', letterSpacing:'2px' }}>ACHATS EN GEMMES</span>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
+          <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
             {GEM_GOLD_PACKS.map(p => {
               // Valeur alignée sur la courbe organique (voir getGoldPackCoins) :
               // le pack vaut toujours l'équivalent de killsEquivalent kills au
@@ -256,7 +256,7 @@ export function ShopPage() {
             </span>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
+          <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
             {dailyShop.characterIds.map(id => {
               const tpl = getCharacterById(id);
               if (!tpl) return null;
@@ -278,7 +278,7 @@ export function ShopPage() {
             })}
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
+          <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
             {ORB_GEM_PACKS.map(p => (
               <div key={p.id} style={{ background:'rgba(168,85,247,0.05)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:'10px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'6px' }}>
                 <span style={{ fontSize:'22.7px' }}>💎</span>
@@ -302,7 +302,7 @@ export function ShopPage() {
           <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginBottom:'14px' }}>
             Échange les pièces gagnées en combattant les boss d&apos;événement contre leur personnage exclusif.
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
+          <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
             {EVENT_BOSSES.map(boss => {
               const tpl = getCharacterById(boss.characterId);
               if (!tpl) return null;
@@ -350,7 +350,7 @@ export function ShopPage() {
             );
           })()}
 
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
+          <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
             {EQUIPMENT_CHESTS.map(chest => {
               const canBuy = nekoGems >= chest.gems;
               return (

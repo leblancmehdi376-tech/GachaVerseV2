@@ -670,8 +670,16 @@ html, body {
   .companion-page__stack { gap: 16px; }
   .companion-grid--4     { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .companion-split       { grid-template-columns: 1fr; }
-  .companion-stats       { gap: 8px; }
+  .companion-stats       { gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .collection-grid       { grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: 10px; }
   .companion-card-list,
   .companion-item-grid   { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+
+  /* Grilles à colonnes fixes non couvertes : trop de personnages/objets
+     compressés sur un écran de téléphone (~375px) sinon. */
+  .gacha-pull-grid       { grid-template-columns: repeat(2, 1fr) !important; }
+  .gacha-pool-grid       { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .shop-pack-grid-3      { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .upgrades-stat-grid    { grid-template-columns: 1fr !important; }
+  .synergy-all-grid      { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }

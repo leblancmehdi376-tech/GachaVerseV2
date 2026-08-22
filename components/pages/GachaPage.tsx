@@ -670,7 +670,7 @@ export function GachaPage() {
         </div>
 
         {/* Gems + Boutons */}
-        <div style={{ display:'grid', gridTemplateColumns:'auto 1fr 1fr 1fr', gap:12, alignItems:'stretch' }}>
+        <div className="gacha-pull-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr 1fr 1fr', gap:12, alignItems:'stretch' }}>
           {/* Gemmes */}
           <div className="panel" style={{ borderColor:'rgba(34,211,238,0.3)', padding:'16px 20px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, boxShadow:'0 0 24px rgba(34,211,238,0.1)' }}>
             <span style={{ fontSize:28.8 }}>💎</span>
@@ -758,7 +758,7 @@ export function GachaPage() {
               {/* Pool */}
               <div style={{ borderTop:'1px solid var(--border)', paddingTop:14 }}>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:10 }}>TOUS LES PERSONNAGES</div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
+                <div className="gacha-pool-grid" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
                   {BANNER_POOL.map(tpl => {
                     const cfg       = RARITY_CONFIG[tpl.rarity];
                     // Possédé si N'IMPORTE QUELLE édition l'est ; on affiche la meilleure (diamant > or > base).

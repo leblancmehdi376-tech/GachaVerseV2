@@ -238,7 +238,7 @@ function SynergiesPanel() {
       {/* Toutes les synergies possibles */}
       <details style={{ marginTop:12 }}>
         <summary style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', cursor:'pointer', userSelect:'none', letterSpacing:1 }}>▼ VOIR TOUTES LES SYNERGIES</summary>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:5, marginTop:10 }}>
+        <div className="synergy-all-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:5, marginTop:10 }}>
           {allSynergies.map(syn => {
             const isActive = active.some(a => a.def.id === syn.id);
             return (
@@ -319,7 +319,7 @@ export function UpgradesPage() {
       <div style={{ maxWidth:900, margin:'0 auto', display:'flex', flexDirection:'column', gap:24 }}>
 
         {/* Stats */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
+        <div className="upgrades-stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
           {[
             { label:'PIXEL-COINS', val:formatNumber(pixelCoins),    color:'var(--gold)',    icon:'🪙' },
             { label:'NEKO-GEMMES', val:formatNumber(nekoGems),      color:'var(--cyan-hi)', icon:'💎' },

@@ -334,6 +334,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward:{ type:'gems', value:200 },
   },
   {
+    id:'prestige_1', category:'progression', icon:'🔄',
+    title:'Réincarné', name:'Nouveau Départ',
+    description:'Effectue ton premier Prestige.', target:1,
+    reward:{ type:'title', value:'Réincarné' },
+  },
+  {
     id:'prestige_10', category:'progression', icon:'♾',
     title:'Ascendant', name:'Ascension Ultime',
     description:'Atteins le niveau 5 de Prestige.', target:5,

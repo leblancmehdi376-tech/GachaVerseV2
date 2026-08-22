@@ -79,6 +79,14 @@ export function JackpotEvent() {
 
   const spinIv = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Empêche de clore l'event deux fois (fermeture manuelle + auto-close) et
+  // sert de garde pour le nettoyage au démontage ci-dessous.
+  const closedRef = useRef(false);
+  const closeEvent = () => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    end();
+  };
 
   const spin = () => {
     if (spinning || done) return;
@@ -114,18 +122,24 @@ export function JackpotEvent() {
       // Fermeture automatique 3s après l'affichage du résultat — la
       // récompense est déjà accordée à ce stade, ça ne fait qu'empêcher de
       // laisser la fenêtre ouverte indéfiniment.
-      autoCloseTimeout.current = setTimeout(() => end(), 3000);
+      autoCloseTimeout.current = setTimeout(closeEvent, 3000);
     }, 1600);
   };
 
   const handleManualClose = () => {
     if (autoCloseTimeout.current) clearTimeout(autoCloseTimeout.current);
-    end();
+    closeEvent();
   };
 
+  // Si le composant est démonté avant la fermeture (ex: changement de page)
+  // alors que l'event est encore en cours, on le termine quand même dans le
+  // store — sinon `active` reste bloqué sur 'jackpot' et revenir sur la page
+  // remonte un JackpotEvent totalement neuf (phase bouton, done=false),
+  // permettant de rejouer le jackpot et de récupérer la récompense à l'infini.
   useEffect(() => () => {
     if (spinIv.current) clearInterval(spinIv.current);
     if (autoCloseTimeout.current) clearTimeout(autoCloseTimeout.current);
+    closeEvent();
   }, []);
 
 

@@ -11,7 +11,7 @@ const TITLE_ORDER: string[] = [
   'Conquérant', 'Optimisateur', 'Archiviste', 'Scintillant', 'Parieur', 'Forgeron', 'Faucheur', 'Insatiable',
   'Dompteur de Mondes', 'Tueur de Dieux', 'Collectionneur', 'Économe', 'Nébuleuse', 'Invocateur', 'Puissant', 'Fléau',
   'Harmonie Totale', 'Maître Artisan', 'Décoré', 'Fossoyeur',
-  'Maître du Multivers', 'Millionnaire', 'Complétiste',
+  'Maître du Multivers', 'Millionnaire', 'Complétiste', 'Réincarné',
   'Éclat Pur', 'Trinité', 'Néant Incarné',
   'Dévastateur', 'Grand Invocateur', 'Garde d\'Élite',
   'Annihilateur', 'Cataclysme', 'Ploutocrate', 'Ascendant', 'Prisme Absolu',

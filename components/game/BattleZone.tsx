@@ -104,7 +104,7 @@ function AllyCard({ templateId, onManage }: { templateId: string; onManage: () =
           faisant seulement 88px de large. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '5px 7px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22` }}>
         <div onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '2px 4px', marginBottom: 2, borderRadius: 4, cursor: ready ? 'pointer' : 'default',
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '7px 4px', marginBottom: 2, borderRadius: 4, cursor: ready ? 'pointer' : 'default',
             background: ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',
             border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)' }}>
           {!ready && <span style={{ fontSize: 12 }}>⏳</span>}
@@ -330,7 +330,7 @@ export function BattleZone() {
                 style={{
                   display:'inline-flex', alignItems:'center', gap:5,
                   background:'rgba(109,63,214,0.22)', border:'1px solid var(--purple-glow)',
-                  borderRadius:6, padding:'2px 10px', cursor:bossActive?'not-allowed':'pointer',
+                  borderRadius:6, padding:'6px 10px', cursor:bossActive?'not-allowed':'pointer',
                   opacity:bossActive?0.4:1, transition:'opacity 0.15s',
                 }}
               >
@@ -345,7 +345,7 @@ export function BattleZone() {
                 style={{
                   display:'inline-flex', alignItems:'center', gap:5,
                   background:'rgba(52,211,153,0.18)', border:'1px solid #34d399',
-                  borderRadius:6, padding:'2px 10px', cursor:'pointer', transition:'filter 0.15s',
+                  borderRadius:6, padding:'6px 10px', cursor:'pointer', transition:'filter 0.15s',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.filter='brightness(1.2)'; }}
                 onMouseLeave={e => { e.currentTarget.style.filter='none'; }}

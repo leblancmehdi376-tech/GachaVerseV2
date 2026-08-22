@@ -279,6 +279,7 @@ export function trackGems(gems: number) {
 
 export function trackPrestige(level: number) {
   const s = useAchievementStore.getState();
+  s.setProgress('prestige_1',  Math.min(level, 1));
   s.setProgress('prestige_10', Math.min(level, 5));
   s.setProgress('prestige_25', Math.min(level, 20));
 }

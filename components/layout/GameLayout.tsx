@@ -569,7 +569,7 @@ function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:string; 
                 {q.done ? <span style={{ fontSize:'16.5px', flexShrink:0 }}>✅</span>
                   : canClaim ? (
                     <button onClick={() => claimQuest(q.id)}
-                      style={{ background:'linear-gradient(135deg,#3b0764,#5b21b6)', border:'1px solid var(--purple)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'white', flexShrink:0, boxShadow:'0 0 8px rgba(124,58,237,0.35)', whiteSpace:'nowrap' }}>
+                      style={{ background:'linear-gradient(135deg,#3b0764,#5b21b6)', border:'1px solid var(--purple)', borderRadius:'6px', padding:'8px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'white', flexShrink:0, boxShadow:'0 0 8px rgba(124,58,237,0.35)', whiteSpace:'nowrap' }}>
                       RÉCUP
                     </button>
                   ) : (
