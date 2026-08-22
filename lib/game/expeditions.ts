@@ -336,7 +336,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   {
     id:'sanctuaire_evolution', name:'Sanctuaire des Pierres', icon:'🔷', universe:'Mystique',
     description:'Explore un sanctuaire oublié où se forment les catalyseurs d\'évolution.',
-    duration: 3*H, slots:2, palierRequired:3, minTeamDps: referenceTeamDps('U'),
+    duration: 2*H, slots:2, palierRequired:3, minTeamDps: referenceTeamDps('U'),
     isSpecialItem: true,
     rewards:{ coinsMin:100_000, coinsMax:250_000, gemsMin:1, gemsMax:3, dropId:'pierre_evolution', dropChance:1, dropQuantity:1, dropQuantityCap:3 },
   },

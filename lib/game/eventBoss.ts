@@ -55,7 +55,7 @@ export const SHADOW_MONARCH_BOSS: EventBossDef = {
   description: 'Une présence écrasante émane de cette silhouette sombre. Ses soldats de l\'ombre attendent vos ordres... ou votre mort.',
   bgGradient:  'linear-gradient(180deg,#0a0014,#05000a)',
   accentColor: '#c084fc',
-  availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
+  availableUntil: new Date('2026-08-30T23:59:59Z').getTime(),
   targetSeconds: 300,
   characterId: 'jinwoo',
   coinItemId:  'coin_jinwoo',
@@ -72,7 +72,7 @@ export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
   description: 'Le jeune héritier du soleil, prêt à frapper avec la puissance d\'une lame d\'éther.',
   bgGradient:  'linear-gradient(180deg,#071b2a,#081115)',
   accentColor: '#fbbf24',
-  availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
+  availableUntil: new Date('2026-08-30T23:59:59Z').getTime(),
   targetSeconds: 420,
   characterId: 'arthur_leywin',
   coinItemId:  'coin_arthur_leywin',
@@ -80,6 +80,8 @@ export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
   dropTable: [...buildEventDropTable(['cristal_ether', 'epee_ether', 'sylvia']), titleDropEntry(EVENT_TITLES.arthur_leywin)],
 };
 
+// ⚠️ Sprites manquants : ni eminence_shadow.webp ni eminence_shadow_bg.* n'existent
+// dans public/sprites/events/ — ce boss affiche un placeholder tant qu'ils ne sont pas ajoutés.
 export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   id:          'eminence_shadow',
   name:        "L'Éminence de l'Ombre",
@@ -89,7 +91,7 @@ export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   description: "Il ne cherche ni la gloire ni la reconnaissance. Il agit dans l'ombre, et frappe quand nul ne l'attend.",
   bgGradient:  'linear-gradient(180deg,#100a24,#05030d)',
   accentColor: '#a78bfa',
-  availableUntil: new Date('2026-08-22T23:59:59Z').getTime(),
+  availableUntil: new Date('2026-08-30T23:59:59Z').getTime(),
   targetSeconds: 360,
   characterId: 'cid_kagenou',
   coinItemId:  'coin_cid_kagenou',
