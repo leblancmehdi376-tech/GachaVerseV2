@@ -80,6 +80,8 @@ export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
   dropTable: [...buildEventDropTable(['cristal_ether', 'epee_ether', 'sylvia']), titleDropEntry(EVENT_TITLES.arthur_leywin)],
 };
 
+// ⚠️ Sprites manquants : ni eminence_shadow.webp ni eminence_shadow_bg.* n'existent
+// dans public/sprites/events/ — ce boss affiche un placeholder tant qu'ils ne sont pas ajoutés.
 export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   id:          'eminence_shadow',
   name:        "L'Éminence de l'Ombre",

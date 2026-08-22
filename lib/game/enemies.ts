@@ -195,6 +195,8 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
   ],
   // ── PALIER 14 : Zelda — Royaume du Crépuscule ────────────────────────────
   14: [
+    // ⚠️ Sprite manquant : aucun fichier public/sprites/enemies/palier14/iria.*
+    // n'existe encore — affiche un placeholder tant que l'image n'est pas ajoutée.
     { name:'Iria',                sprite: sp(14,'iria')                                },
     { name:'Telma',               sprite: sp(14,'telma'),         hpMult:1.15           },
     { name:'Machaon',             sprite: sp(14,'machaon'),       hpMult:1.3           },
@@ -402,7 +404,9 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
     { name:'Crocodile',          sprite: sp(29,'crocodile'),     isBoss:true, hpMult:10 },
   ],
   // ── PALIER 30 : Nos Animaux — Le Royaume des Animaux ─────────────────────
-  // NOTE : Ennemis 6 et 7 non renseignés dans le doc → placeholders
+  // ⚠️ Sprites manquants : le dossier public/sprites/enemies/palier30/ n'existe
+  // pas du tout — les 10 ennemis de ce palier affichent un placeholder tant
+  // qu'aucune image n'a été ajoutée.
   30: [
     { name:'Igloo',              sprite: sp(30,'igloo')                               },
     { name:'Twix',               sprite: sp(30,'twix'),          hpMult:1.15           },
