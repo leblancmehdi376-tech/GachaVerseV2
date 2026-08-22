@@ -60,7 +60,6 @@ function getSerializableState() {
     username:           s.username,
     offlineMultLevel:   s.offlineMultLevel,
     offlineCapLevel:    s.offlineCapLevel,
-    lastActiveAt:       s.lastActiveAt,
     lastOfflineGain:    s.lastOfflineGain,
     // Succès déjà réclamés — stockés dans un store séparé (achievementStore),
     // qui a son propre localStorage jamais synchronisé avec Firestore. Sans

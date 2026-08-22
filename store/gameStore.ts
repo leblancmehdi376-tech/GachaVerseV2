@@ -298,7 +298,6 @@ interface GameStore extends GameState {
   bumpEventQuest: (id: string, by?: number) => void;
   doPrestige: () => void;
   // Gains hors-ligne (idle)
-  lastActiveAt: number;
   offlineMultLevel: number;
   offlineCapLevel: number;
   lastOfflineGain: OfflineGain | null;
@@ -314,7 +313,12 @@ interface GameStore extends GameState {
   getOfflineCapCost: () => number | null;
   upgradeOfflineMult: () => void;
   upgradeOfflineCap: () => void;
-  claimOfflineEarnings: () => OfflineGain | null;
+  // Calcule (sans rien créditer) le gain hors-ligne en attente, à partir du
+  // dernier `savedAt` connu (même valeur que celle lue/écrite en base) — donc
+  // identique quel que soit l'appareil qui se reconnecte. `claimOfflineEarnings`
+  // crédite ensuite CE gain précis (calculé une fois, affiché, puis réclamé).
+  checkOfflineGain: () => OfflineGain | null;
+  claimOfflineEarnings: (gain: OfflineGain) => void;
   resetGame: () => void;
 }
 
@@ -331,7 +335,6 @@ const makeInitial = () => ({
   bossActive: false, bossTimeLeft: 0, bossAvoided: false,
   ultUsedThisFight: [] as string[],
   lastSaved: Date.now(),
-  lastActiveAt: Date.now(),
   offlineMultLevel: 0,
   offlineCapLevel: 0,
   lastOfflineGain: null as OfflineGain | null,
@@ -443,15 +446,15 @@ export const useGameStore = create<GameStore>()(
         const idleFloor = hasNoTeam ? Math.max(1, Math.floor(get().currentEnemy.maxHp * BASE_IDLE_DPS_HP_FRACTION)) : 0;
 
         const finalDps = Math.floor((baseTeamDps + bonusFlat) * enemyMult * get().getEventDpsMult()) + idleFloor;
-        if (finalDps <= 0) { set({ lastActiveAt: Date.now() }); return; }
+        if (finalDps <= 0) return;
 
         const bonusCoins = Math.floor(finalDps * damageToCoinPct / 100);
 
         set(state => {
           const newHp = Math.max(0, state.currentEnemy.currentHp - finalDps);
           const withCoins = bonusCoins > 0 ? { pixelCoins: state.pixelCoins + bonusCoins } : {};
-          if (newHp <= 0) return { ...withCoins, lastActiveAt: Date.now(), ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], eventQuests: state.eventQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
-          return { ...withCoins, lastActiveAt: Date.now(), currentEnemy: { ...state.currentEnemy, currentHp: newHp } };
+          if (newHp <= 0) return { ...withCoins, ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], eventQuests: state.eventQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
+          return { ...withCoins, currentEnemy: { ...state.currentEnemy, currentHp: newHp } };
         });
       },
 
@@ -1342,14 +1345,19 @@ export const useGameStore = create<GameStore>()(
         broadcastAndSaveLocal();
       },
 
-      // Calcule et crédite les gains depuis la dernière activité. Retourne le récap
-      // (ou null si < OFFLINE_MIN_SECONDS). Appelé une fois au chargement.
-      claimOfflineEarnings: () => {
+      // Calcule (SANS RIEN CRÉDITER) le gain depuis la dernière sauvegarde connue
+      // (`savedAt` — la même valeur, quel que soit l'appareil, que celle lue/écrite
+      // en base par useCloudSave). Comparer "maintenant" à ce timestamp unique est
+      // ce qui rend le calcul identique sur PC, téléphone ou ailleurs : on ne
+      // dépend plus d'un compteur local mis à jour pendant qu'on joue. Retourne
+      // le récap à afficher (ou null si rien à réclamer) ; ne modifie aucun état.
+      checkOfflineGain: () => {
         const s = get();
         const now  = Date.now();
-        const last = s.lastActiveAt ?? now;
+        const last = s.savedAt;
+        if (!last) return null; // jamais sauvegardé (tout nouveau compte) : rien à calculer
         const rawSeconds = Math.max(0, Math.floor((now - last) / 1000));
-        if (rawSeconds < OFFLINE_MIN_SECONDS) { set({ lastActiveAt: now }); return null; }
+        if (rawSeconds < OFFLINE_MIN_SECONDS) return null;
 
         const capSeconds = s.getOfflineCapHours() * 3600;
         const seconds    = Math.min(rawSeconds, capSeconds);
@@ -1363,19 +1371,23 @@ export const useGameStore = create<GameStore>()(
         const gems  = Math.floor(s.getOfflineGemsPerHour()   * hours * rewardScale);
 
         const gain: OfflineGain = { coins, gems, kills, seconds, rawSeconds, capped: rawSeconds > capSeconds, at: now };
+        return (coins > 0 || gems > 0) ? gain : null;
+      },
+
+      // Crédite un gain précédemment calculé par checkOfflineGain — appelé
+      // uniquement quand le joueur clique sur "RÉCUPÉRER" dans la popup.
+      claimOfflineEarnings: (gain) => {
         set(state => {
-          const cq = bumpCoinQuests(state.quests, state.weeklyQuests ?? [], coins);
+          const cq = bumpCoinQuests(state.quests, state.weeklyQuests ?? [], gain.coins);
           return {
-            pixelCoins: state.pixelCoins + coins,
-            nekoGems:   state.nekoGems + gems,
-            lastActiveAt: now,
-            savedAt: now,
+            pixelCoins: state.pixelCoins + gain.coins,
+            nekoGems:   state.nekoGems + gain.gems,
+            savedAt: gain.at,
             lastOfflineGain: gain,
             quests: cq.quests, weeklyQuests: cq.weeklyQuests,
           };
         });
         broadcastAndSaveLocal();
-        return (coins > 0 || gems > 0) ? gain : null;
       },
 
       resetGame: () => {
@@ -1422,7 +1434,7 @@ export const useGameStore = create<GameStore>()(
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         username:s.username,
-        lastActiveAt:s.lastActiveAt, offlineMultLevel:s.offlineMultLevel, offlineCapLevel:s.offlineCapLevel, lastOfflineGain:s.lastOfflineGain,
+        offlineMultLevel:s.offlineMultLevel, offlineCapLevel:s.offlineCapLevel, lastOfflineGain:s.lastOfflineGain,
         // savedAt DOIT être persisté ici : c'est ce qui permet à loadAndApply
         // (useCloudSave) de savoir que cet état local rechargé est déjà à jour.
         // Sans lui, il retombe à 0 à chaque refresh et se fait écraser par la

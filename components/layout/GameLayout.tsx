@@ -148,22 +148,28 @@ export function GameLayout() {
   }, [hasHydrated, cloudLoaded, ensureDailyQuests, ensureWeeklyQuests]);
 
   // ── Gains hors-ligne : calcul unique une fois le splash terminé ───────────
-  // IMPORTANT : on attend aussi la fin de la réhydratation Zustand (localStorage),
-  // sinon lastActiveAt peut encore valoir sa valeur par défaut ("maintenant") au
-  // lieu de la vraie dernière session — le calcul croirait alors qu'on vient de
-  // jouer il y a une seconde, et ne renverrait jamais de récap.
-  // On attend AUSSI la fin du chargement cloud (cloudLoaded) : sinon le crédit
-  // hors-ligne (pixelCoins/nekoGems) peut être écrasé juste après par
-  // loadAndApply si celui-ci résout après coup — le joueur voyait alors la
-  // popup de récompense sans jamais recevoir le gain affiché.
+  // IMPORTANT : on attend la fin de la réhydratation Zustand (localStorage) ET
+  // du chargement cloud (cloudLoaded) — sinon `savedAt` peut encore valoir une
+  // valeur périmée ou par défaut au lieu du vrai dernier timestamp de sauvegarde
+  // (le même, quel que soit l'appareil, que celui lu/écrit en base), et le calcul
+  // se tromperait sur la durée réelle d'absence.
+  // Rien n'est crédité ici : checkOfflineGain ne fait QUE lire `savedAt` et
+  // calculer — le gain n'est ajouté à la banque que si le joueur clique sur
+  // RÉCUPÉRER (voir handleClaimOffline plus bas), pour ne jamais créditer une
+  // popup qu'il n'a pas encore validée.
   const [offlineGain, setOfflineGain] = useState<OfflineGain | null>(null);
-  const offlineClaimedRef = useRef(false);
+  const offlineCheckedRef = useRef(false);
   useEffect(() => {
-    if (!hasHydrated || !cloudLoaded || offlineClaimedRef.current) return;
-    offlineClaimedRef.current = true;
-    const g = useGameStore.getState().claimOfflineEarnings();
-    if (g && (g.coins > 0 || g.gems > 0 || g.kills > 0)) setOfflineGain(g);
+    if (!hasHydrated || !cloudLoaded || offlineCheckedRef.current) return;
+    offlineCheckedRef.current = true;
+    const g = useGameStore.getState().checkOfflineGain();
+    if (g) setOfflineGain(g);
   }, [hasHydrated, cloudLoaded]);
+
+  const handleClaimOffline = () => {
+    if (offlineGain) useGameStore.getState().claimOfflineEarnings(offlineGain);
+    setOfflineGain(null);
+  };
 
   // Écran de victoire : piloté par un VRAI événement de kill de boss émis par le
   // store (et non par une surveillance du palier, qui se déclenchait à tort au
@@ -511,7 +517,7 @@ export function GameLayout() {
       </div>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-      {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={() => setOfflineGain(null)} />}
+      {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={handleClaimOffline} />}
       <UltAnimation />
       <MusicPlayer />
     </div>
