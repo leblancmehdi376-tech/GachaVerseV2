@@ -108,7 +108,7 @@ function CharCard({ templateId }: { templateId: string }) {
   const reqItem  = nextForm?.requiredItemId ? getItemDef(nextForm.requiredItemId) : null;
   const hasItem  = reqItem ? (inventory[reqItem.id] ?? 0) >= 1 : true;
   const canEvolveAtAll = !!tpl.forms && owned.currentForm < tpl.forms.length - 1;
-  const stonesNeeded = canEvolveAtAll ? evoStoneCost(tpl.rarity, owned.currentForm) : 0;
+  const stonesNeeded = canEvolveAtAll && !tpl.noEvoStones ? evoStoneCost(tpl.rarity, owned.currentForm) : 0;
   const stonesHave   = dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0;
   const hasStones    = stonesHave >= stonesNeeded;
   const evoStoneDrop = getPalierDrop(EVOLUTION_STONE_ITEM_ID);

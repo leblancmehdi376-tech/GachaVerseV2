@@ -14,12 +14,12 @@ export const HERO_TEMPLATE: CharacterTemplate = {
 function c(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDps: number, universe: string): CharacterTemplate {
   return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png` };
 }
-function ce(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDps: number, universe: string, forms: EvoForm[]): CharacterTemplate {
+function ce(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDps: number, universe: string, forms: EvoForm[], noEvoStones?: boolean): CharacterTemplate {
   // Le multiplicateur de forme ne dépend plus du personnage : c'est toujours
   // sa position (forme 1 = ×1, forme 2 = ×2, ...), quelle que soit la valeur
   // passée à f() — voir calcCharDps() dans types/game.ts.
   const numberedForms = forms.map((form, i) => ({ ...form, dpsFormMult: i + 1 }));
-  return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png`, forms: numberedForms };
+  return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png`, forms: numberedForms, noEvoStones };
 }
 function f(formId: string, name: string, id: string, levelCap: number, mult: number, requiredItemId?: string): EvoForm {
   const tag = formId.replace(`${id}_`, '');
@@ -104,7 +104,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('arthur_leywin_evo1', 'Arthur Leywin — Lame d’Éther', 'arthur_leywin', 200, 10,  'cristal_ether'),
     f('arthur_leywin_evo2', 'Arthur Leywin — Épée de l’Aube', 'arthur_leywin', 300, 112, 'epee_ether'),
     f('arthur_leywin_evo3', 'Arthur Leywin — Roi du Soleil',  'arthur_leywin', 400, 550, 'sylvia'),
-  ]),
+  ], true),
   ce('nagito_komaeda', 'Nagito Komaeda', 'L', 48, 'Danganronpa', [
     f('nagito_komaeda_base', 'Nagito Komaeda',         'nagito_komaeda', 100, 1),
     f('nagito_komaeda_evo1', 'Nagito — Espoir Ultime', 'nagito_komaeda', 200, 4.5),
@@ -164,13 +164,13 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('jinwoo_evo1', 'Sung Jin Woo — Monarque Éveillé',  'jinwoo', 200, 7,  'elixir_vie'),
     f('jinwoo_evo2', 'Sung Jin Woo — Seigneur des Ombres','jinwoo', 300, 16, 'manteau_ombre'),
     f('jinwoo_evo3', 'Sung Jin Woo — Monarque des Ombres','jinwoo', 400, 50, 'beru'),
-  ]),
+  ], true),
 
   ce('cid_kagenou', 'Cid Kagenou', 'CO', 83, 'The Eminence in Shadow', [
     f('cid_kagenou_base', 'Cid Kagenou', 'cid_kagenou', 100, 1),
     f('cid_kagenou_evo1', 'Shadow',      'cid_kagenou', 200, 7,  'masque_cid'),
     f('cid_kagenou_evo2', 'John Smith',  'cid_kagenou', 300, 16, 'epee_slime'),
-  ]),
+  ], true),
 
   // ── PRIMORDIAUX ──────────────────────────────────────────────────────────
   ce('goku', 'Goku', 'P', 87, 'Dragon Ball Z', [

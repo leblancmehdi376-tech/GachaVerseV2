@@ -897,9 +897,13 @@ export const useGameStore = create<GameStore>()(
         if (!tpl || !canEvolve(tpl, owned, get().inventory, expState.dropInventory)) return;
         const cost = evoCost(tpl.rarity, owned.currentForm);
         if (!get().spendPixelCoins(cost)) return;
-        // Consomme les Pierres d'Évolution (drop d'expédition) requises
-        const stonesCost = evoStoneCost(tpl.rarity, owned.currentForm);
-        if (stonesCost > 0) expState.consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);
+        // Consomme les Pierres d'Évolution (drop d'expédition) requises —
+        // sauf pour les persos de boss d'événement (noEvoStones), dont
+        // l'objet d'évolution dédié suffit.
+        if (!tpl.noEvoStones) {
+          const stonesCost = evoStoneCost(tpl.rarity, owned.currentForm);
+          if (stonesCost > 0) expState.consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);
+        }
         // Consomme l'item requis pour cette évolution si applicable
         const nextForm = tpl.forms?.[owned.currentForm + 1];
         const requiredItem = nextForm?.requiredItemId;

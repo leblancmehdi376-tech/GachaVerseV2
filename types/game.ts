@@ -74,6 +74,10 @@ export interface CharacterTemplate {
   universe?:   string;
   forms?:      EvoForm[];
   isHero?:     boolean;
+  // Perso de boss d'événement : l'objet d'évolution dédié (requiredItemId,
+  // acheté en Boutique avec les pièces du boss) suffit seul à faire évoluer —
+  // pas besoin de farmer des Pierres d'Évolution en plus.
+  noEvoStones?: boolean;
 }
 
 // ── Personnage possédé ────────────────────────────────────────────────────
@@ -119,6 +123,7 @@ export function canEvolve(character: CharacterTemplate, owned: OwnedCharacter, i
   if (owned.currentForm >= character.forms.length - 1) return false;
   const nextForm = character.forms[owned.currentForm + 1];
   if (nextForm.requiredItemId && (inventory[nextForm.requiredItemId] ?? 0) < 1) return false;
+  if (character.noEvoStones) return true;
   const stonesNeeded = evoStoneCost(character.rarity, owned.currentForm);
   if ((dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0) < stonesNeeded) return false;
   return true;
