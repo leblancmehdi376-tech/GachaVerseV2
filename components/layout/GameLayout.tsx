@@ -264,7 +264,14 @@ export function GameLayout() {
   }
 
   // Session conflict : plusieurs appareils/ navigateurs utilisent le même compte.
-  if (user && kickedOut) {
+  // Ne PAS conditionner sur `user` — le handler de conflit (useAuth.tsx) appelle
+  // signOut() en même temps que setKickedOut(true), ce qui met `user` à null
+  // quasi immédiatement. Si cet écran dépendait de `user`, il disparaîtrait
+  // (ou ne s'afficherait jamais) dès que le signOut aboutit, laissant l'appareil
+  // "perdant" retomber silencieusement en mode local/invité — pleinement
+  // jouable — au lieu d'être vraiment bloqué. `kickedOut` seul reste vrai
+  // jusqu'à ce que le joueur clique sur le bouton ci-dessous (dismissKickedOut).
+  if (kickedOut) {
     return (
       <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'radial-gradient(circle at center, rgba(168,85,247,0.18), rgba(2,6,23,1) 52%)', padding:'24px' }}>
         <div style={{ width:'min(560px, 92vw)', background:'rgba(12,10,30,0.92)', border:'1px solid rgba(192,132,252,0.45)', borderRadius:'20px', boxShadow:'0 0 40px rgba(168,85,247,0.35)', padding:'28px 26px', textAlign:'center' }}>
