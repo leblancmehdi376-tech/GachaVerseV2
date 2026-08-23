@@ -164,11 +164,14 @@ function CharCard({ templateId }: { templateId: string }) {
         {!canEvo_ && !hasItem && (
           <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert :</span>
-            {missingItems.map(d => (
-              <span key={d.id} style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc', display:'flex', alignItems:'center', gap:4 }}>
-                <span style={{ fontSize:14.4 }}>{d.icon}</span><b>{d.name}</b>
-              </span>
-            ))}
+            {reqItems.map(d => {
+              const have = (inventory[d.id] ?? 0) >= 1;
+              return (
+                <span key={d.id} style={{ fontFamily:'var(--f-ui)', fontSize:12, color: have ? '#4ade80' : '#c084fc', display:'flex', alignItems:'center', gap:4, opacity: have ? 0.7 : 1 }}>
+                  <span style={{ fontSize:14.4 }}>{d.icon}</span><b>{d.name}</b>{have && <span>✓</span>}
+                </span>
+              );
+            })}
           </div>
         )}
         {!canEvo_ && canEvolveAtAll && !hasStones && (
