@@ -11,7 +11,7 @@ import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 import { CollectionFilters, COLLECTION_RARITY_ORDER, CollectionFilterMode, CollectionAffinityMode, CollectionSortMode } from '@/components/ui/CollectionFilters';
 import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
-import { getAffinityForId } from '@/lib/game/affinities';
+import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 
@@ -29,9 +29,155 @@ interface CollectionEntry {
 }
 const ALL_EDITIONS: CardEdition[] = ['base', 'gold', 'diamond'];
 
+// Composant au scope module (pas défini dans le corps de CollectionPage) :
+// sinon chaque tick du jeu (tickDps re-render CollectionPage via useGameStore)
+// recréerait une nouvelle identité de fonction CharCard, forçant React à
+// démonter/remonter toutes les cartes à chaque tick — d'où le clignotement
+// perçu quand on laisse la souris dessus assez longtemps pour subir plusieurs ticks.
+const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => void }) => {
+  const { tpl, owned } = entry;
+  const cfg2  = RARITY_CONFIG[tpl.rarity];
+  const ult   = getUltimateDef(tpl.id);
+  if (!owned) {
+    return (
+      <div className="collection-card locked" onClick={onClick} style={{ cursor:'pointer' }}>
+        <div className="collection-card__body">
+          <div style={{ position:'relative' }}>
+            <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={72} height={98} />
+            <div className="collection-lock">🔒</div>
+          </div>
+          <div className="collection-card__name">{tpl.name}</div>
+          <RarityBadge rarity={tpl.rarity} />
+          {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'2px' }}>{tpl.universe}</div>}
+        </div>
+      </div>
+    );
+  }
+  const dps = calcCharDps(tpl, owned);
+  const ed  = EDITION_CONFIG[owned.edition ?? 'base'];
+  return (
+    <div className="collection-card owned" onClick={onClick} style={{ ['--accent' as string]: cfg2.color, cursor:'pointer' } as CSSProperties}>
+      <div className="collection-card__body">
+        <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={72} height={98} />
+        <div className="collection-card__name">{tpl.name}</div>
+        {owned.edition && owned.edition !== 'base' && (
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'12px', letterSpacing:0.5, color:ed.color, background:`${ed.color}18`, border:`1px solid ${ed.color}55`, borderRadius:999, padding:'1px 8px', marginTop:2 }}>
+            {owned.edition === 'diamond' ? '💎 DIAMANT' : '✨ OR'}
+          </div>
+        )}
+        <RankStars rank={owned.rank} />
+        <div className="collection-card__dps">{formatNumber(dps)}/s</div>
+        {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'1px' }}>{tpl.universe}</div>}
+        {ult && (
+          <div className="collection-card__ult">
+            <div className="collection-card__ult-name">{ult.name}</div>
+            <div className="collection-card__ult-desc">{ult.description}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Modale de détail : type (affinité), DPS de base, nb de formes, description —
+// tout ce qui n'a pas la place sur la carte compacte de la grille.
+const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: () => void }) => {
+  const { tpl, owned } = entry;
+  const cfg   = RARITY_CONFIG[tpl.rarity];
+  const ult   = getUltimateDef(tpl.id);
+  const aff   = AFFINITY_CONFIG[getAffinityForId(tpl.id)];
+  const forms = tpl.forms ?? [];
+  const dps   = owned ? calcCharDps(tpl, owned) : null;
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="panel" style={{ width:'100%', maxWidth:420, maxHeight:'85vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div style={{ padding:'16px 20px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:cfg.color, letterSpacing:1 }}>{tpl.name}</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:20.6 }}>✕</button>
+        </div>
+
+        <div style={{ flex:1, overflowY:'auto', padding:'18px 20px', display:'flex', flexDirection:'column', gap:14 }}>
+          <div style={{ display:'flex', justifyContent:'center' }}>
+            <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm ?? 0} name={owned ? getCharFormName(tpl, owned.currentForm) : tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={100} height={136} />
+          </div>
+
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'center' }}>
+            <RarityBadge rarity={tpl.rarity} />
+            <span className="chip" style={{ color:aff.color, borderColor:`${aff.color}55`, background:`${aff.color}18` }}>{aff.icon} {aff.label}</span>
+            {tpl.universe && <span className="chip">{tpl.universe}</span>}
+          </div>
+
+          {tpl.description && (
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)', lineHeight:1.5, textAlign:'center' }}>{tpl.description}</div>
+          )}
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>DPS de base</div>
+              <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{formatNumber(tpl.baseDps)}/s</div>
+            </div>
+            <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Formes</div>
+              <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{forms.length > 0 ? forms.length : 1}</div>
+            </div>
+          </div>
+
+          {owned ? (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>DPS actuel</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--green)' }}>{formatNumber(dps!)}/s</div>
+              </div>
+              <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Rang</div>
+                <RankStars rank={owned.rank} />
+              </div>
+              <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Niveau</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{owned.level}</div>
+              </div>
+              <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Forme</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{owned.currentForm + 1}/{forms.length > 0 ? forms.length : 1}</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)' }}>🔒 Personnage non possédé</div>
+          )}
+
+          {forms.length > 0 && (
+            <div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 }}>Formes d&apos;évolution</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                {forms.map((f, i) => (
+                  <div key={f.formId} style={{ display:'flex', justifyContent:'space-between', gap:8, padding:'4px 8px', borderRadius:8,
+                    background: owned && owned.currentForm === i ? `${cfg.color}18` : 'rgba(255,255,255,0.03)' }}>
+                    <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color: owned && owned.currentForm === i ? cfg.color : 'var(--text-dim)', fontWeight: owned && owned.currentForm === i ? 700 : 400 }}>{i + 1}. {f.name}</span>
+                    <span style={{ fontFamily:'var(--f-num)', fontSize:12, color:'var(--text-muted)' }}>×{f.dpsFormMult}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {ult && (
+            <div className="collection-card__ult">
+              <div className="collection-card__ult-name">{ult.name}</div>
+              <div className="collection-card__ult-desc">{ult.description}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export function CollectionPage() {
   const { collection, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters } = useGameStore();
   const [view, setView] = useState<'characters' | 'equipment'>('characters');
+  const [detailKey, setDetailKey] = useState<string | null>(null);
   const filter = collectionFilter as CollectionFilterMode;
   const universe = collectionUniverse as string | 'all';
   const affinity = collectionAffinity as CollectionAffinityMode;
@@ -116,47 +262,6 @@ export function CollectionPage() {
     }),
   []);
 
-  const CharCard = ({ entry }: { entry: CollectionEntry }) => {
-    const { tpl, owned } = entry;
-    const cfg2  = RARITY_CONFIG[tpl.rarity];
-    const ult   = getUltimateDef(tpl.id);
-    if (!owned) {
-      return (
-        <div className="collection-card locked" style={{ position:'relative' }}>
-          <div style={{ position:'relative' }}>
-            <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={72} height={98} />
-            <div className="collection-lock">🔒</div>
-          </div>
-          <div className="collection-card__name">{tpl.name}</div>
-          <RarityBadge rarity={tpl.rarity} />
-          {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'2px' }}>{tpl.universe}</div>}
-        </div>
-      );
-    }
-    const dps = calcCharDps(tpl, owned);
-    const ed  = EDITION_CONFIG[owned.edition ?? 'base'];
-    return (
-      <div className="collection-card owned" style={{ ['--accent' as string]: cfg2.color } as CSSProperties}>
-        <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={72} height={98} />
-        <div className="collection-card__name">{tpl.name}</div>
-        {owned.edition && owned.edition !== 'base' && (
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'12px', letterSpacing:0.5, color:ed.color, background:`${ed.color}18`, border:`1px solid ${ed.color}55`, borderRadius:999, padding:'1px 8px', marginTop:2 }}>
-            {owned.edition === 'diamond' ? '💎 DIAMANT' : '✨ OR'}
-          </div>
-        )}
-        <RankStars rank={owned.rank} />
-        <div className="collection-card__dps">{formatNumber(dps)}/s</div>
-        {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'1px' }}>{tpl.universe}</div>}
-        {ult && (
-          <div className="collection-card__ult">
-            <div className="collection-card__ult-name">{ult.name}</div>
-            <div className="collection-card__ult-desc">{ult.description}</div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <PageScroll>
 
@@ -230,7 +335,7 @@ export function CollectionPage() {
                       <span style={{ color:'var(--text-dim)', fontFamily:'var(--f-num)' }}>({uniqueOwned}/{uniqueTotal})</span>
                     </div>
                     <div className="collection-grid">
-                      {list.map(entry => <CharCard key={entry.key} entry={entry} />)}
+                      {list.map(entry => <CharCard key={entry.key} entry={entry} onClick={() => setDetailKey(entry.key)} />)}
                     </div>
                   </div>
                 );
@@ -238,7 +343,7 @@ export function CollectionPage() {
             ) : (
               // Vue plate (tri DPS ou nom)
               <div className="collection-grid">
-                {sorted.map(entry => <CharCard key={entry.key} entry={entry} />)}
+                {sorted.map(entry => <CharCard key={entry.key} entry={entry} onClick={() => setDetailKey(entry.key)} />)}
               </div>
             )}
           </>
@@ -263,6 +368,11 @@ export function CollectionPage() {
             ))}
           </div>
         )}
+
+        {detailKey && (() => {
+          const entry = allEntries.find(e => e.key === detailKey);
+          return entry ? <CharDetailModal entry={entry} onClose={() => setDetailKey(null)} /> : null;
+        })()}
 
     </PageScroll>
   );

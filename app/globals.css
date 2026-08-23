@@ -539,10 +539,17 @@ html, body {
 .collection-group__header span:first-child { position: relative; }
 .collection-group__header span:first-child::before { content: ''; position: absolute; left: -16px; top: 50%; transform: translateY(-50%); width: 3px; height: 14px; border-radius: 2px; background: linear-gradient(180deg,var(--accent,#60a5fa),transparent); box-shadow: 0 0 8px var(--accent,#60a5fa); }
 .collection-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 14px; }
-.collection-card { border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.012); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
-.collection-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); border-color: var(--border-lit); }
-.collection-card.locked { opacity: 0.5; }
-.collection-card.owned { background: rgba(96,165,250,0.07); border-color: rgba(96,165,250,0.22); box-shadow: 0 0 20px rgba(96,165,250,0.1); }
+/* .collection-card est le déclencheur de :hover / la hit-box — elle reste
+   immobile pour ne jamais se dérober sous le curseur. Seul son contenu
+   (.collection-card__body) se translate au survol : découpler les deux évite
+   le clignotement classique des hover à base de transform (la boîte survolée
+   qui bouge finit par sortir de sous le curseur près d'un bord, ce qui coupe
+   le survol, la fait revenir, etc. — un aller-retour perçu comme un clignotement). */
+.collection-card { display: flex; }
+.collection-card__body { border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.012); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; width: 100%; }
+.collection-card:hover .collection-card__body { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); border-color: var(--border-lit); }
+.collection-card.locked .collection-card__body { opacity: 0.5; }
+.collection-card.owned .collection-card__body { background: rgba(96,165,250,0.07); border-color: rgba(96,165,250,0.22); box-shadow: 0 0 20px rgba(96,165,250,0.1); }
 .collection-card__thumb { position: relative; }
 .collection-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
 .collection-card__name { font-family: var(--f-ui); font-size: 13px; font-weight: 700; color: var(--text); text-align: center; }
