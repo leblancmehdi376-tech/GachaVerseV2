@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, getGoldChestMultiplier } from '@/store/gameStore';
 import { useUltimateStore } from '@/store/ultimateStore';
 import { ActiveUltsBar } from '@/components/game/UltAnimation';
 import { PixelSprite } from '@/components/ui/PixelSprite';
@@ -250,7 +250,7 @@ function PalierTravelModal({
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function BattleZone() {
-  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, getEventDpsMult } = useGameStore();
+  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, getEventDpsMult, goldUpgradeLevel } = useGameStore();
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
   // maxPalierReached, qui ne redescend jamais et sert au classement) — c'est
   // ce qui doit borner le mode farm / voyage, sinon un joueur qui vient de
@@ -512,7 +512,15 @@ export function BattleZone() {
           {/* Butin de l'ennemi courant */}
           <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'7px 12px', flexShrink:0, textAlign:'right', marginRight:12 }}>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>+{formatNumber(currentEnemy.pixelCoinsReward)} 🪙</div>
+            <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
+              +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
+              {(() => {
+                const chestMult = getGoldChestMultiplier(goldUpgradeLevel ?? 0);
+                if (chestMult <= 1) return null;
+                const withChest = Math.floor(currentEnemy.pixelCoinsReward * chestMult);
+                return <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(withChest)})</span>;
+              })()}
+            </div>
             {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>

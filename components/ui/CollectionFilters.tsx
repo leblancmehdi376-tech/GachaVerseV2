@@ -42,8 +42,8 @@ export function CollectionFilters({
       key={k}
       onClick={() => onFilterChange(k)}
       style={{
-        padding: '6px 14px',
-        borderRadius: '8px',
+        padding: '3px 10px',
+        borderRadius: '7px',
         cursor: 'pointer',
         fontFamily: 'var(--f-ui)',
         fontWeight: 700,
@@ -59,123 +59,140 @@ export function CollectionFilters({
     </button>
   );
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>FILTRE</span>
-        <FilterBtn k="all" label="TOUS" />
-        <FilterBtn k="owned" label="✓ POSSÉDÉS" accent="#4ade80" />
-        <FilterBtn k="missing" label="🔒 MANQUANTS" accent="#f87171" />
-        <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 4px' }} />
-        {COLLECTION_RARITY_ORDER.map(r => {
-          const c = RARITY_CONFIG[r];
-          return <FilterBtn key={r} k={r} label={c.label} accent={c.color} />;
-        })}
-      </div>
+  const filterLabel = filter === 'all' ? 'Tous' : filter === 'owned' ? 'Possédés' : filter === 'missing' ? 'Manquants' : RARITY_CONFIG[filter].label;
+  const universeLabel = universe === 'all' ? 'Tous' : universe;
+  const affinityLabel = affinity === 'all' ? 'Tous' : AFFINITY_CONFIG[affinity].label;
 
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>UNIVERS</span>
-        <button
-          onClick={() => onUniverseChange('all')}
-          style={{
-            padding: '5px 12px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontFamily: 'var(--f-ui)',
-            fontWeight: 700,
-            fontSize: '12px',
-            background: universe === 'all' ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${universe === 'all' ? 'rgba(192,132,252,0.4)' : 'var(--border)'}`,
-            color: universe === 'all' ? 'var(--purple-glow)' : 'var(--text-dim)',
-          }}
-        >
-          TOUS
-        </button>
-        {universes.map(u => (
+  return (
+    <details style={{ marginBottom: '10px' }}>
+      <summary style={{
+        cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+        padding: '5px 10px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '8px',
+        fontFamily: 'var(--f-ui)', fontSize: '12px', fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.5px',
+      }}>
+        ▾ FILTRES &amp; TRI
+        <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>
+          {filterLabel} · {universeLabel} · {affinityLabel} · {COLLECTION_SORT_LABELS[sort]}
+        </span>
+      </summary>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
+        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>FILTRE</span>
+          <FilterBtn k="all" label="TOUS" />
+          <FilterBtn k="owned" label="✓ POSSÉDÉS" accent="#4ade80" />
+          <FilterBtn k="missing" label="🔒 MANQUANTS" accent="#f87171" />
+          <div style={{ width: '1px', height: '18px', background: 'var(--border)', margin: '0 3px' }} />
+          {COLLECTION_RARITY_ORDER.map(r => {
+            const c = RARITY_CONFIG[r];
+            return <FilterBtn key={r} k={r} label={c.label} accent={c.color} />;
+          })}
+        </div>
+
+        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>UNIVERS</span>
           <button
-            key={u}
-            onClick={() => onUniverseChange(u)}
+            onClick={() => onUniverseChange('all')}
             style={{
-              padding: '5px 12px',
-              borderRadius: '8px',
+              padding: '3px 9px',
+              borderRadius: '7px',
               cursor: 'pointer',
               fontFamily: 'var(--f-ui)',
               fontWeight: 700,
               fontSize: '12px',
-              background: universe === u ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${universe === u ? 'rgba(192,132,252,0.4)' : 'var(--border)'}`,
-              color: universe === u ? 'var(--purple-glow)' : 'var(--text-dim)',
+              background: universe === 'all' ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${universe === 'all' ? 'rgba(192,132,252,0.4)' : 'var(--border)'}`,
+              color: universe === 'all' ? 'var(--purple-glow)' : 'var(--text-dim)',
             }}
           >
-            {u}
+            TOUS
           </button>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TYPE</span>
-        <button
-          onClick={() => onAffinityChange('all')}
-          style={{
-            padding: '5px 12px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontFamily: 'var(--f-ui)',
-            fontWeight: 700,
-            fontSize: '12px',
-            background: affinity === 'all' ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${affinity === 'all' ? 'rgba(34,211,238,0.4)' : 'var(--border)'}`,
-            color: affinity === 'all' ? '#67e8f9' : 'var(--text-dim)',
-          }}
-        >
-          TOUS
-        </button>
-        {AFFINITY_ORDER.map(a => {
-          const c = AFFINITY_CONFIG[a];
-          return (
+          {universes.map(u => (
             <button
-              key={a}
-              onClick={() => onAffinityChange(a)}
+              key={u}
+              onClick={() => onUniverseChange(u)}
               style={{
-                padding: '5px 12px',
-                borderRadius: '8px',
+                padding: '3px 9px',
+                borderRadius: '7px',
                 cursor: 'pointer',
                 fontFamily: 'var(--f-ui)',
                 fontWeight: 700,
                 fontSize: '12px',
-                background: affinity === a ? `${c.color}18` : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${affinity === a ? `${c.color}66` : 'var(--border)'}`,
-                color: affinity === a ? c.color : 'var(--text-dim)',
+                background: universe === u ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${universe === u ? 'rgba(192,132,252,0.4)' : 'var(--border)'}`,
+                color: universe === u ? 'var(--purple-glow)' : 'var(--text-dim)',
               }}
             >
-              {c.label}
+              {u}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
 
-      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', paddingBottom: '6px' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TRI</span>
-        {(Object.keys(COLLECTION_SORT_LABELS) as CollectionSortMode[]).map(s => (
+        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TYPE</span>
           <button
-            key={s}
-            onClick={() => onSortChange(s)}
+            onClick={() => onAffinityChange('all')}
             style={{
-              padding: '5px 12px',
-              borderRadius: '8px',
+              padding: '3px 9px',
+              borderRadius: '7px',
               cursor: 'pointer',
               fontFamily: 'var(--f-ui)',
               fontWeight: 700,
               fontSize: '12px',
-              background: sort === s ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${sort === s ? 'rgba(251,191,36,0.4)' : 'var(--border)'}`,
-              color: sort === s ? '#fbbf24' : 'var(--text-dim)',
+              background: affinity === 'all' ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${affinity === 'all' ? 'rgba(34,211,238,0.4)' : 'var(--border)'}`,
+              color: affinity === 'all' ? '#67e8f9' : 'var(--text-dim)',
             }}
           >
-            {COLLECTION_SORT_LABELS[s]}
+            TOUS
           </button>
-        ))}
+          {AFFINITY_ORDER.map(a => {
+            const c = AFFINITY_CONFIG[a];
+            return (
+              <button
+                key={a}
+                onClick={() => onAffinityChange(a)}
+                style={{
+                  padding: '3px 9px',
+                  borderRadius: '7px',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--f-ui)',
+                  fontWeight: 700,
+                  fontSize: '12px',
+                  background: affinity === a ? `${c.color}18` : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${affinity === a ? `${c.color}66` : 'var(--border)'}`,
+                  color: affinity === a ? c.color : 'var(--text-dim)',
+                }}
+              >
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '1px', marginRight: '2px' }}>TRI</span>
+          {(Object.keys(COLLECTION_SORT_LABELS) as CollectionSortMode[]).map(s => (
+            <button
+              key={s}
+              onClick={() => onSortChange(s)}
+              style={{
+                padding: '3px 9px',
+                borderRadius: '7px',
+                cursor: 'pointer',
+                fontFamily: 'var(--f-ui)',
+                fontWeight: 700,
+                fontSize: '12px',
+                background: sort === s ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${sort === s ? 'rgba(251,191,36,0.4)' : 'var(--border)'}`,
+                color: sort === s ? '#fbbf24' : 'var(--text-dim)',
+              }}
+            >
+              {COLLECTION_SORT_LABELS[s]}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+    </details>
   );
 }

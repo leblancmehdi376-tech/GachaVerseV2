@@ -5,11 +5,10 @@ import { useExpeditionStore } from '@/store/expeditionStore';
 import { formatNumber } from '@/lib/game/format';
 import { levelUpCost, evoCost, canEvolve, calcCharDps, RARITY_CONFIG, evoStoneCost, EVOLUTION_STONE_ITEM_ID } from '@/types/game';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
-import { getItemDef } from '@/lib/game/items';
+import { getItemDef, ITEM_DEFS } from '@/lib/game/items';
 import { getPalierDrop, EXPEDITION_DEFS } from '@/lib/game/expeditions';
-import { RarityBadge } from '@/components/ui/RarityBadge';
+import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
-import { computeActiveSynergies, SYNERGIES_LIST as SYNERGIES } from '@/lib/game/synergies';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId } from '@/lib/game/affinities';
 import { CollectionFilters, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
@@ -141,11 +140,14 @@ function CharCard({ templateId }: { templateId: string }) {
             )}
           </div>
           <LevelBar level={owned.level} color={cfg.color} />
-          {tpl.forms && tpl.forms.length > 1 && (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:4 }}>
-              Forme {owned.currentForm+1}/{tpl.forms.length} · Rang {owned.rank}/7
-            </div>
-          )}
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
+            {tpl.forms && tpl.forms.length > 1 && (
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>
+                Forme {owned.currentForm+1}/{tpl.forms.length}
+              </span>
+            )}
+            <RankStars rank={owned.rank} />
+          </div>
         </div>
       </div>
       {/* Boutons */}
@@ -198,86 +200,11 @@ function CharCard({ templateId }: { templateId: string }) {
   );
 }
 
-// ── Panel synergies actives ───────────────────────────────────────────────
-function SynergiesPanel() {
-  const { equippedTeam } = useGameStore();
-  const active = computeActiveSynergies(equippedTeam);
-  const allSynergies = SYNERGIES;
-
-  return (
-    <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, padding:16 }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>SYNERGIES ACTIVES ({active.length}/{allSynergies.length})</div>
-
-      {active.length === 0 ? (
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-muted)', textAlign:'center', padding:'12px 0' }}>
-          Équipe des alliés du même univers pour activer des synergies !
-        </div>
-      ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          {active.map(syn => (
-            <div key={syn.def.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', background:`${syn.def.color}10`, border:`1px solid ${syn.def.color}44`, borderRadius:8, boxShadow:`0 0 10px ${syn.def.glow}15` }}>
-              <div style={{ width:24, height:24, flexShrink:0 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/sprites/synergies/${syn.def.id}.webp`} alt={syn.def.label}
-                  style={{ width:'100%', height:'100%', objectFit:'contain' }}
-                  onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:18px">${syn.def.icon}</span>`; }} />
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:syn.def.color }}>{syn.def.label}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:1 }}>{syn.threshold.label}</div>
-              </div>
-              <div style={{ display:'flex', gap:4 }}>
-                {syn.members.map(id => {
-                  return (
-                    <div key={id} style={{ width:24, height:24, borderRadius:5, overflow:'hidden', border:`1px solid ${syn.def.color}55`, background:`${syn.def.color}22`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <span style={{ fontSize:12.4 }}>{syn.def.icon}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:14.4, color:syn.def.color, flexShrink:0 }}>
-                {syn.count} / {syn.threshold.count}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Toutes les synergies possibles */}
-      <details style={{ marginTop:12 }}>
-        <summary style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', cursor:'pointer', userSelect:'none', letterSpacing:1 }}>▼ VOIR TOUTES LES SYNERGIES</summary>
-        <div className="synergy-all-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:5, marginTop:10 }}>
-          {allSynergies.map(syn => {
-            const isActive = active.some(a => a.def.id === syn.id);
-            return (
-              <div key={syn.id} style={{ padding:'6px 8px', background:isActive?`${syn.color}12`:'rgba(255,255,255,0.02)', border:`1px solid ${isActive?syn.color+'44':'var(--border)'}`, borderRadius:6, opacity:isActive?1:0.5 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:3 }}>
-                  <div style={{ width:16, height:16, flexShrink:0 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/sprites/synergies/${syn.id}.webp`} alt={syn.label}
-                      style={{ width:'100%', height:'100%', objectFit:'contain' }}
-                      onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:13px">${syn.icon}</span>`; }} />
-                  </div>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:syn.color }}>{syn.label}</span>
-                </div>
-                {syn.thresholds.map((t,i) => (
-                  <div key={i} style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.5 }}>
-                    ×{t.count} → {t.label}
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-        </div>
-      </details>
-    </div>
-  );
-}
-
 // ── PAGE ──────────────────────────────────────────────────────────────────
 export function UpgradesPage() {
-  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters } = useGameStore();
+  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters, inventory, sellItem } = useGameStore();
   const equippedSet = new Set(equippedTeam.filter((id): id is string => !!id));
+  const ownedItems = Object.entries(inventory).filter(([id, qty]) => qty > 0 && !ITEM_DEFS[id]?.isCoin);
   const ownedIds = Object.keys(collection).sort((a, b) => {
     const aRarity = getCharacterById(parseInstanceKey(a).templateId)?.rarity ?? 'C';
     const bRarity = getCharacterById(parseInstanceKey(b).templateId)?.rarity ?? 'C';
@@ -348,11 +275,70 @@ export function UpgradesPage() {
           </div>
         </div>
 
-        {/* Synergies */}
-        <div>
-          <SectionHead color="#a78bfa">SYNERGIES D&apos;ÉQUIPE</SectionHead>
-          <SynergiesPanel />
-        </div>
+        {/* Inventaire — objets d'évolution (consommés par le bouton ÉVOLUER
+            des cartes alliés ci-dessous, voir requiredItemIds). */}
+        {ownedItems.length > 0 && (
+          <section className="companion-section">
+            <div className="companion-section__header">
+              <div className="companion-section__title">
+                <span className="companion-section__decor" />
+                Inventaire
+              </div>
+              <div className="companion-toast">{ownedItems.length} objets stockés</div>
+            </div>
+
+            <div className="companion-item-grid">
+              {ownedItems.map(([itemId, qty]) => {
+                const item = ITEM_DEFS[itemId];
+                if (!item) return null;
+                return (
+                  <div
+                    key={itemId}
+                    className="companion-item-card"
+                    style={{ borderColor: `${item.color}40`, background: `${item.color}11` }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <div style={{ fontSize: 26.8 }}>{item.icon}</div>
+                      <div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: item.color }}>{item.name}</div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 15.5, color: 'var(--text)' }}>×{qty}</div>
+                      </div>
+                    </div>
+                    {/* Boutons de vente */}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => sellItem(itemId, 1)}
+                        style={{
+                          flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(251,191,36,0.35)',
+                          background: 'rgba(251,191,36,0.08)', cursor: 'pointer',
+                          fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: '#fbbf24',
+                          lineHeight: 1.3, textAlign: 'center',
+                        }}
+                      >
+                        VENDRE ×1<br />
+                        <span style={{ fontWeight: 400, opacity: 0.8 }}>{formatNumber(item.sellGems)} 💎</span>
+                      </button>
+                      {qty > 1 && (
+                        <button
+                          onClick={() => sellItem(itemId, qty)}
+                          style={{
+                            flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(248,113,113,0.35)',
+                            background: 'rgba(248,113,113,0.08)', cursor: 'pointer',
+                            fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: '#f87171',
+                            lineHeight: 1.3, textAlign: 'center',
+                          }}
+                        >
+                          TOUT VENDRE<br />
+                          <span style={{ fontWeight: 400, opacity: 0.8 }}>{formatNumber(item.sellGems * qty)} 💎</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Alliés */}
         {ownedIds.length > 0 && (
