@@ -1,4 +1,4 @@
-import { doc, setDoc, getDocFromServer, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocFromServer, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from './config';
 import { GameState } from '@/types/game';
 import { correctedNow } from './clockOffset';
@@ -13,22 +13,43 @@ export async function saveGameToFirestore(userId: string, state: Partial<GameSta
   }
 }
 
-// Charge la sauvegarde cloud ET mesure au passage le décalage d'horloge avec
-// Firestore (méthode NTP simplifiée) : on écrit un `serverTimestamp()` sur le
-// document du joueur (déjà autorisé en écriture, pas besoin d'un doc/règles
-// séparés), on le relit IMMÉDIATEMENT depuis le serveur — jamais le cache,
-// sinon le round-trip mesuré serait faux — et on corrige par la moitié de ce
-// round-trip pour estimer l'heure serveur au moment de la réponse. Ce même
-// appel sert aussi de lecture "remote" (le snapshot relu contient déjà toute
-// la sauvegarde) : pas de round-trip Firestore supplémentaire par rapport à
-// l'ancien loadGameFromFirestore.
+// Lecture simple de la sauvegarde cloud — UN SEUL aller-retour (getDoc, pas
+// getDocFromServer : tolère le cache si le réseau est capricieux), c'est la
+// fonction la plus robuste possible pour déterminer si Firestore est joignable.
+// Volontairement séparée de probeClockOffset() ci-dessous (qui elle a besoin
+// d'un aller-retour serveur garanti) : combiner les deux dans un seul appel
+// faisait dépendre TOUTE la synchro cloud (cloudSyncConfirmed) de la réussite
+// simultanée des deux opérations dans un même budget de 5s — bien trop fragile.
 //
 // `reachable` distingue "round-trip Firestore réussi" de "il n'y avait rien à
 // lire" : les deux cas renvoient `data: null`, mais seul le premier doit
 // autoriser la synchro cloud (voir cloudSyncConfirmed dans useCloudSave.ts) —
 // un simple compte tout neuf ne doit jamais être traité comme une panne réseau.
-export async function loadGameAndClockOffsetFromFirestore(userId: string): Promise<{ data: Partial<GameState> | null; offsetMs: number; reachable: boolean }> {
-  if (!db) return { data: null, offsetMs: 0, reachable: false };
+export async function loadGameFromFirestore(userId: string): Promise<{ data: Partial<GameState> | null; reachable: boolean }> {
+  if (!db) return { data: null, reachable: false };
+  try {
+    const ref = doc(db, 'saves', userId);
+    const snap = await Promise.race([
+      getDoc(ref),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+    ]);
+    return { data: snap.exists() ? (snap.data() as Partial<GameState>) : null, reachable: true };
+  } catch (e) {
+    console.warn('[CloudSave] Lecture cloud indisponible (quota, timeout ou réseau), repli sur le local:', e);
+    return { data: null, reachable: false };
+  }
+}
+
+// Mesure best-effort le décalage d'horloge avec Firestore (méthode NTP
+// simplifiée) : écrit un `serverTimestamp()` sur le document du joueur (déjà
+// autorisé en écriture, pas besoin d'un doc/règles séparés), le relit
+// IMMÉDIATEMENT depuis le serveur — jamais le cache, sinon le round-trip
+// mesuré serait faux — et corrige par la moitié de ce round-trip. NE DOIT
+// JAMAIS bloquer quoi que ce soit : toute erreur retombe silencieusement sur
+// un offset de 0 (= horloge locale brute, le comportement d'avant l'ajout de
+// cette sonde). Ne détermine PAS `reachable` — voir loadGameFromFirestore.
+export async function probeClockOffset(userId: string): Promise<number> {
+  if (!db) return 0;
   try {
     const ref = doc(db, 'saves', userId);
     // Nonce propre à cet appel : si un AUTRE onglet écrit sa propre sonde
@@ -38,33 +59,24 @@ export async function loadGameAndClockOffsetFromFirestore(userId: string): Promi
     // ignorer l'offset plutôt que de faire confiance à une mesure polluée.
     const nonce = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const t0 = Date.now();
-    const probe = Promise.race([
+    const snap = await Promise.race([
       (async () => {
         await setDoc(ref, { clockProbe: serverTimestamp(), clockProbeId: nonce }, { merge: true });
         return getDocFromServer(ref);
       })(),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
-    const snap = await probe;
     const t1 = Date.now();
-    if (!snap.exists()) return { data: null, offsetMs: 0, reachable: true }; // round-trip OK, doc vide
+    if (!snap.exists()) return 0;
 
-    const data = snap.data() as Partial<GameState> & { clockProbe?: Timestamp; clockProbeId?: string };
+    const data = snap.data() as { clockProbe?: Timestamp; clockProbeId?: string };
     const probeMs = data.clockProbeId === nonce ? data.clockProbe?.toMillis?.() : undefined;
-    const offsetMs = probeMs ? probeMs + (t1 - t0) / 2 - t1 : 0;
-    delete data.clockProbe; // champs techniques de la sonde, ne doivent pas polluer le state du jeu
-    delete data.clockProbeId;
+    if (!probeMs) return 0;
 
-    // Tout premier login : le merge ci-dessus vient de CRÉER le doc rien que
-    // pour la sonde — une fois les champs de sonde retirés, il ne reste plus
-    // aucune vraie donnée de sauvegarde. On renvoie null plutôt qu'un objet
-    // vide, pour que loadAndApply le traite exactement comme "pas de save cloud"
-    // (mais reachable:true — Firestore a bien répondu, ce n'est pas une panne).
-    if (Object.keys(data).length === 0) return { data: null, offsetMs, reachable: true };
-
-    return { data, offsetMs, reachable: true };
+    const roundTrip = t1 - t0;
+    return probeMs + roundTrip / 2 - t1;
   } catch (e) {
-    console.warn('[ClockOffset] Sonde/chargement cloud indisponible (quota, timeout ou réseau), repli sur le local:', e);
-    return { data: null, offsetMs: 0, reachable: false };
+    console.warn('[ClockOffset] Sonde indisponible, horloge locale non corrigée:', e);
+    return 0;
   }
 }

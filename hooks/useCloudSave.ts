@@ -6,7 +6,7 @@ import { useGameStore } from '@/store/gameStore';
 import { useAchievementStore } from '@/store/achievementStore';
 import { useExpeditionStore } from '@/store/expeditionStore';
 import { usePrestigeStore } from '@/store/prestigeStore';
-import { saveGameToFirestore, loadGameAndClockOffsetFromFirestore } from '@/lib/firebase/saveGame';
+import { saveGameToFirestore, loadGameFromFirestore, probeClockOffset } from '@/lib/firebase/saveGame';
 import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
@@ -190,6 +190,17 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   setTimeout(() => { try { useGameStore.setState({ suppressToasts: false }); } catch {} }, 200);
 }
 
+// ── Génération de session ──────────────────────────────────────────────────
+// Incrémentée à chaque login/logout (voir le hook principal). Toute opération
+// async module-level (loadAndApply, le callback de scheduleReconciliationRetry)
+// capture la génération en cours au démarrage et la revérifie après CHAQUE
+// await avant de toucher au state partagé — sans ça, un retry ou un chargement
+// encore en vol pour un utilisateur A peut résoudre après qu'on soit passé à
+// un utilisateur B (déconnexion/reconnexion rapide dans le même onglet) et
+// appliquer les données de A dans la session de B, ou confirmer à tort la
+// synchro de B avant que son propre chargement n'ait réussi.
+let sessionGeneration = 0;
+
 // ── Confirmation de synchro cloud ──────────────────────────────────────────
 // Tant que le tout premier chargement cloud d'une session n'a pas réussi à
 // JOINDRE Firestore (reachable:false — panne réseau, pas juste "rien à lire"),
@@ -204,28 +215,48 @@ function applyRemoteState(rawData: Record<string, unknown>) {
 //     jusqu'à ce que Firestore réponde : si sa sauvegarde s'avère plus récente
 //     que l'instantané figé, elle est réappliquée ; sinon la synchro est
 //     simplement déclarée confirmée et les écritures reprennent normalement.
+//  4. MAIS ce blocage ne doit jamais durer la session entière sur un simple
+//     aléa réseau : après MAX_BLOCKING_RECONCILIATION_ATTEMPTS échecs, on
+//     "fail open" (cloudSyncConfirmed repasse à true quand même) tout en
+//     continuant la reconciliation en arrière-plan pour rattraper une éventuelle
+//     sauvegarde cloud plus récente dès que Firestore redevient joignable.
 let cloudSyncConfirmed = true;
 let pendingLocalSnapshotTs: number | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 const RETRY_MIN_MS = 15_000;
 const RETRY_MAX_MS = FIREBASE_INTERVAL_MS;
 let retryDelayMs = RETRY_MIN_MS;
+let reconciliationAttempts = 0;
+const MAX_BLOCKING_RECONCILIATION_ATTEMPTS = 2; // ~45s de blocage max (15s + 30s)
 
 function clearReconciliationRetry() {
   if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
   retryDelayMs = RETRY_MIN_MS;
 }
 
-function scheduleReconciliationRetry(userId: string) {
+function scheduleReconciliationRetry(userId: string, generation: number) {
   if (retryTimer) return; // déjà planifiée
   retryTimer = setTimeout(async () => {
     retryTimer = null;
-    const { data: remote, offsetMs, reachable } = await loadGameAndClockOffsetFromFirestore(userId);
+    const [{ data: remote, reachable }, offsetMs] = await Promise.all([
+      loadGameFromFirestore(userId),
+      probeClockOffset(userId),
+    ]);
+    if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
+
     if (!reachable) {
+      reconciliationAttempts++;
+      if (reconciliationAttempts > MAX_BLOCKING_RECONCILIATION_ATTEMPTS) {
+        console.warn('[CloudSave] Cloud injoignable après plusieurs tentatives — écritures réautorisées par défaut, reconciliation continue en arrière-plan.');
+        cloudSyncConfirmed = true; // fail-open : ne bloque pas indéfiniment le jeu
+        // pendingLocalSnapshotTs n'est PAS effacé : une reconciliation réussie
+        // plus tard doit encore pouvoir détecter et appliquer un cloud plus récent.
+      }
       retryDelayMs = Math.min(retryDelayMs * 2, RETRY_MAX_MS);
-      scheduleReconciliationRetry(userId);
+      scheduleReconciliationRetry(userId, generation);
       return;
     }
+
     setClockOffset(offsetMs);
     const remoteTs = (remote as Record<string, unknown> | null)?.lastSaved as number | undefined;
     if (typeof remoteTs === 'number' && Number.isFinite(remoteTs) && pendingLocalSnapshotTs !== null && remoteTs > pendingLocalSnapshotTs) {
@@ -239,17 +270,20 @@ function scheduleReconciliationRetry(userId: string) {
     cloudSyncConfirmed = true;
     pendingLocalSnapshotTs = null;
     clearReconciliationRetry();
+    reconciliationAttempts = 0;
     console.log('[CloudSave] Synchro cloud reconfirmée, écritures réautorisées.');
   }, retryDelayMs);
 }
 
 // ── Chargement au login — compare Firebase, localStorage et état local ─────
-async function loadAndApply(userId: string) {
+async function loadAndApply(userId: string, generation: number) {
   try {
-    const [{ data: remote, offsetMs, reachable }, local] = await Promise.all([
-      loadGameAndClockOffsetFromFirestore(userId),
+    const [{ data: remote, reachable }, local, offsetMs] = await Promise.all([
+      loadGameFromFirestore(userId),
       Promise.resolve(loadFromLocal()),
+      probeClockOffset(userId),
     ]);
+    if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
     // Doit être posé AVANT de comparer les timestamps ci-dessous : local.savedAt
     // et current.savedAt ont été écrits par CET appareil avec son propre décalage
     // (stable d'une session à l'autre), donc directement comparables une fois
@@ -297,11 +331,12 @@ async function loadAndApply(userId: string) {
     if (reachable) {
       cloudSyncConfirmed = true;
       pendingLocalSnapshotTs = null;
+      reconciliationAttempts = 0;
       clearReconciliationRetry();
     } else {
       cloudSyncConfirmed = false;
       pendingLocalSnapshotTs = best.ts;
-      scheduleReconciliationRetry(userId);
+      scheduleReconciliationRetry(userId, generation);
     }
   } catch (e) {
     console.error('[CloudSave] Erreur loadAndApply:', e);
@@ -374,6 +409,34 @@ export function requestUrgentSave() {
   saveToFirebase(urgentSaveUserId);
 }
 
+// ── Attente de la réhydratation locale (zustand persist) ──────────────────
+// loadAndApply ne doit JAMAIS démarrer avant que les 4 stores persistés aient
+// fini de relire leur localStorage : sinon une réhydratation qui termine
+// APRÈS que loadAndApply ait appliqué une donnée cloud plus fraîche écraserait
+// silencieusement ce state correct avec l'ancien state local (aucune erreur,
+// aucun log — juste la progression qui "disparaît" après un login).
+type PersistCapable = { persist?: { hasHydrated?: () => boolean; onFinishHydration?: (cb: () => void) => () => void } };
+function waitForHydration(store: PersistCapable): Promise<void> {
+  return new Promise((resolve) => {
+    if (!store.persist?.hasHydrated) { resolve(); return; } // pas de persist (SSR/fallback) : ne bloque rien
+    if (store.persist.hasHydrated()) { resolve(); return; }
+    const unsub = store.persist.onFinishHydration!(() => { unsub(); resolve(); });
+    // Sécurité : si la réhydratation s'est terminée entre le check ci-dessus
+    // et l'abonnement, on ne resterait pas bloqué indéfiniment.
+    if (store.persist.hasHydrated()) { unsub(); resolve(); }
+  });
+}
+function waitForAllHydrated(): Promise<void> {
+  const stores: PersistCapable[] = [useGameStore, useExpeditionStore, usePrestigeStore, useAchievementStore];
+  return Promise.race([
+    Promise.all(stores.map(waitForHydration)).then(() => {}),
+    new Promise<void>((resolve) => setTimeout(() => {
+      console.warn('[CloudSave] Réhydratation locale incomplète après 3s — chargement cloud lancé quand même.');
+      resolve();
+    }, 3000)), // filet de sécurité seulement ; la réhydratation locale est normalement quasi instantanée
+  ]);
+}
+
 // ── Hook principal ─────────────────────────────────────────────────────────
 export function useCloudSave(userId: string | null) {
   const loadedRef = useRef(false);
@@ -387,12 +450,18 @@ export function useCloudSave(userId: string | null) {
 
   // Chargement au login
   useEffect(() => {
+    // Toute génération précédente (login/logout antérieur, éventuellement
+    // encore en vol sur un await) devient périmée dès qu'un effet tourne ici —
+    // voir le commentaire sur sessionGeneration plus haut dans ce fichier.
+    sessionGeneration++;
+    const myGeneration = sessionGeneration;
+
     if (!userId) {
       loadedRef.current = false; userIdRef.current = null; setLoaded(true);
       urgentSaveUserId = null; urgentSaveReady = false;
       // Pas de reconciliation à poursuivre pour un utilisateur déconnecté.
       clearReconciliationRetry();
-      cloudSyncConfirmed = true; pendingLocalSnapshotTs = null;
+      cloudSyncConfirmed = true; pendingLocalSnapshotTs = null; reconciliationAttempts = 0;
       return;
     }
     if (userId === userIdRef.current) return;
@@ -404,9 +473,15 @@ export function useCloudSave(userId: string | null) {
     // PRÉCÉDENT utilisateur (autre session sur cet onglet) ne doit pas
     // interférer avec ce nouveau login — loadAndApply ci-dessous redécide.
     clearReconciliationRetry();
-    cloudSyncConfirmed = true; pendingLocalSnapshotTs = null;
+    cloudSyncConfirmed = true; pendingLocalSnapshotTs = null; reconciliationAttempts = 0;
     setLoaded(false);
-    loadAndApply(userId).finally(() => { loadedRef.current = true; urgentSaveReady = true; setLoaded(true); });
+    (async () => {
+      await waitForAllHydrated();
+      if (myGeneration !== sessionGeneration) return; // supplanté pendant l'attente
+      await loadAndApply(userId, myGeneration);
+    })().finally(() => {
+      if (myGeneration === sessionGeneration) { loadedRef.current = true; urgentSaveReady = true; setLoaded(true); }
+    });
   }, [userId]);
 
   // Écoute EN DIRECT les corrections admin (solde rééquilibré) pendant que
