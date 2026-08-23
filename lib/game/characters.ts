@@ -587,10 +587,10 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('vegeto_ss',       'Végéto Super Saiyen',  'vegeto', 200, 6),
     f('vegeto_ssblue',   'Végéto SS Blue',       'vegeto', 300, 18),
   ]),
-  ce('gogeta', 'Gogeta', 'P', 89, 'Dragon Ball Z', [
+  ce('gogeta', 'Gogeta', 'P', 90, 'Dragon Ball Z', [
     f('gogeta_base',     'Gogeta',               'gogeta', 100, 1),
     f('gogeta_ss',       'Gogeta Super Saiyen',  'gogeta', 200, 6),
-    f('gogeta_ssblue',   'Gogeta SS Blue',       'gogeta', 300, 17),
+    f('gogeta_ssblue',   'Gogeta SS Blue',       'gogeta', 300, 18),
   ]),
   ce('aizen_t', 'Aizen Transcendant', 'P', 89, 'Bleach', [
     f('aizen_t_base',    'Aizen Transcendant',   'aizen_t', 100, 1),

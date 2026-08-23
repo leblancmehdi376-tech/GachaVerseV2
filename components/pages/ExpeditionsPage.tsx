@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useExpeditionStore, ActiveExpedition } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
-import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse, getDropTiers } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
@@ -23,7 +23,7 @@ function fmtDurationLabel(secs: number): string {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   if (h >= 24) return `${Math.floor(h/24)}j ${h%24}h`;
-  if (h > 0)   return `${h}h`;
+  if (h > 0)   return m > 0 ? `${h}h${m}` : `${h}h`;
   return `${m}m`;
 }
 
@@ -307,6 +307,24 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
               ) : null;
             })()}
           </div>
+          {/* Paliers de drop selon le DPS d'équipe — pour que le joueur sache */}
+          {/* quel DPS viser pour obtenir 2 ou 3 objets par succès. */}
+          {(() => {
+            const tiers = getDropTiers(def);
+            if (tiers.length <= 1) return null;
+            return (
+              <div style={{ marginBottom:10, padding:'6px 10px', background:'rgba(192,132,252,0.05)', border:'1px solid rgba(192,132,252,0.15)', borderRadius:6 }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:3 }}>Paliers de drop (DPS d&apos;équipe) :</div>
+                <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                  {tiers.map(t => (
+                    <span key={t.qty} style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>
+                      {t.qty}× dès <b>{formatNumber(Math.round(t.dps))}</b>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {alreadyUnlocked
             ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:700 }}>✅ Déjà débloqué</div>
             : locked
