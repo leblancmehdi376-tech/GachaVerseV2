@@ -33,9 +33,9 @@ export const ORB_GEM_PACKS: OrbGemPack[] = [
 // jouant, rendant ces packs dérisoires en early-game).
 export interface GemGoldPack { id: string; killsEquivalent: number; gems: number; bonusLabel?: string; }
 export const GEM_GOLD_PACKS: GemGoldPack[] = [
-  { id:'gg1', killsEquivalent:40,  gems:50 },
-  { id:'gg2', killsEquivalent:200, gems:185 },
-  { id:'gg3', killsEquivalent:500, gems:350 },
+  { id:'gg1', killsEquivalent:10,  gems:50 },
+  { id:'gg2', killsEquivalent:40, gems:185 },
+  { id:'gg3', killsEquivalent:200, gems:350 },
 ];
 
 // Repère de calcul : vague 5 (milieu de palier), la même formule que le gain
