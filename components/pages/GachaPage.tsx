@@ -110,11 +110,16 @@ function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () => void 
   const rarity: 'P' | 'T' = tpl?.rarity === 'T' ? 'T' : 'P';
   const cfg = RARITY_CONFIG[rarity];
   const quote = getCharacterQuote(res.templateId, rarity);
-  const [visible, setVisible] = useState(false);
+  const [visible,  setVisible]  = useState(false);
+  const [flipped,  setFlipped]  = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
-    const tIn = setTimeout(() => setVisible(true), 20);
-    const tOut = setTimeout(onDone, REVEAL_TEASER_MS);
+    const tIn      = setTimeout(() => setVisible(true),  20);
+    // Carte de dos + phrase d'abord, on laisse le temps de lire avant de retourner.
+    const tFlip    = setTimeout(() => setFlipped(true),   1000);
+    const tReveal  = setTimeout(() => setRevealed(true),  1000 + 700);
+    const tOut     = setTimeout(onDone, REVEAL_TEASER_MS);
 
     let audio: HTMLAudioElement | null = null;
     try {
@@ -124,10 +129,15 @@ function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () => void 
     } catch { /* pas de son disponible pour ce personnage */ }
 
     return () => {
-      clearTimeout(tIn); clearTimeout(tOut);
+      clearTimeout(tIn); clearTimeout(tFlip); clearTimeout(tReveal); clearTimeout(tOut);
       audio?.pause();
     };
   }, [res.templateId, onDone]);
+
+  // Même ratio que les cartes du tirage (306:517).
+  const CARD_RATIO = 306 / 517;
+  const h = 300;
+  const w = Math.round(h * CARD_RATIO);
 
   return (
     <div
@@ -158,39 +168,78 @@ function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () => void 
         }} />
       </div>
 
-      {/* Silhouette du personnage */}
-      {tpl && (
-        <div style={{
-          position:'relative', marginBottom:26,
-          filter:`brightness(0) drop-shadow(0 0 40px ${cfg.glow}) drop-shadow(0 0 80px ${cfg.glow}88)`,
-          opacity: visible ? 0.9 : 0,
-          transform: visible ? 'scale(1)' : 'scale(0.9)',
-          transition:'opacity 1s ease, transform 1s ease',
-        }}>
-          <CharacterCardThumb templateId={res.templateId} name={tpl.name} rarity={tpl.rarity} edition={res.edition} width={150} height={205} style={{ border:'none', boxShadow:'none' }} />
-        </div>
-      )}
-
-      <div style={{ position:'relative', zIndex:2, textAlign:'center', padding:'0 40px', maxWidth:640 }}>
+      <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', padding:'0 40px' }}>
         <div style={{
           fontFamily:'var(--f-ui)', fontSize:13, letterSpacing:4, fontWeight:700,
-          color:cfg.color, opacity:0.85, marginBottom:16,
+          color:cfg.color, opacity:0.85, marginBottom:20, textAlign:'center',
           animation:'gvGlowPulse 2s ease-in-out infinite',
         }}>
           {rarity === 'T' ? '✦ UNE PRÉSENCE TRANSCENDANTE ÉMERGE ✦' : '✦ UNE FORCE PRIMORDIALE ÉMERGE ✦'}
         </div>
+
+        {/* Carte 3D : dos → face, comme les cartes du tirage */}
+        <div style={{ position:'relative', width:w, height:h, perspective:'1000px' }}>
+          <div style={{
+            position:'relative', width:'100%', height:'100%',
+            transformStyle:'preserve-3d',
+            transition:'transform 0.7s cubic-bezier(0.4,0,0.2,1)',
+            transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}>
+            {/* DOS */}
+            <div style={{
+              position:'absolute', inset:0, backfaceVisibility:'hidden',
+              borderRadius:14, overflow:'hidden',
+              boxShadow:`0 0 0 2px ${cfg.color}, 0 0 40px ${cfg.glow}aa, 0 10px 40px rgba(0,0,0,0.8)`,
+            }}>
+              <CardBackImg rarity={rarity} />
+            </div>
+
+            {/* FACE */}
+            <div style={{
+              position:'absolute', inset:0, backfaceVisibility:'hidden',
+              transform:'rotateY(180deg)', borderRadius:14, overflow:'hidden',
+              boxShadow:`0 0 0 2px ${cfg.color}, 0 0 50px ${cfg.glow}, 0 0 100px ${cfg.glow}44, 0 10px 40px rgba(0,0,0,0.8)`,
+              animation: revealed ? 'gvUltraPulse 2s ease-in-out infinite' : undefined,
+            }}>
+              {tpl && (
+                <>
+                  <CharacterCardThumb
+                    templateId={res.templateId} name={tpl.name} rarity={tpl.rarity} edition={res.edition}
+                    width={w} height={h}
+                    style={{ border:'none', boxShadow:'none', borderRadius:0, objectFit:'contain' }}
+                  />
+                  {revealed && (
+                    <div style={{
+                      position:'absolute', bottom:0, left:0, right:0,
+                      padding:'18px 10px 12px',
+                      background:'linear-gradient(0deg,rgba(0,0,0,0.94) 0%,transparent 100%)',
+                      display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+                      animation:'gvFadeUp 0.35s ease',
+                    }}>
+                      <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:15, color:'white', textAlign:'center' }}>{tpl.name}</span>
+                      <RarityBadge rarity={tpl.rarity} size="xs" />
+                      {res.isNew && (
+                        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:800, letterSpacing:1, marginTop:1 }}>
+                          ✦ NOUVEAU
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div style={{
-          fontFamily:'var(--f-title)', fontSize:24, fontWeight:900, color:'white', lineHeight:1.5,
+          marginTop:22, textAlign:'center', maxWidth:640,
+          fontFamily:'var(--f-title)', fontSize:22, fontWeight:900, color:'white', lineHeight:1.5,
           textShadow:`0 0 30px ${cfg.glow}, 0 0 60px ${cfg.glow}88`,
         }}>
           « {quote} »
         </div>
-        {tpl && (
-          <div style={{ marginTop:20, fontFamily:'var(--f-ui)', fontSize:14, letterSpacing:3, color:cfg.color, fontWeight:800 }}>
-            {tpl.name.toUpperCase()}
-          </div>
-        )}
-        <div style={{ marginTop:28, fontFamily:'var(--f-ui)', fontSize:11, letterSpacing:1, color:'rgba(255,255,255,0.3)' }}>
+
+        <div style={{ marginTop:24, fontFamily:'var(--f-ui)', fontSize:11, letterSpacing:1, color:'rgba(255,255,255,0.3)' }}>
           cliquer pour passer
         </div>
       </div>
@@ -230,7 +279,15 @@ function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
   const doFlip = useCallback(async () => {
     if (flipped || flipping) return;
     setFlipping(true);
-    if (preReveal) await preReveal();
+    if (preReveal) {
+      // Le flip a déjà été joué dans l'écran de brouillard : on affiche
+      // directement le résultat au lieu de rejouer l'animation par-dessus.
+      await preReveal();
+      setFlipped(true);
+      setRevealed(true);
+      if (isHigh) setBurst(true);
+      return;
+    }
     setFlipped(true);
     setTimeout(() => {
       setRevealed(true);
