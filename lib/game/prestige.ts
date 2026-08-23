@@ -57,3 +57,21 @@ export function calcPrestigeBonuses(bonusLevels: PrestigeBonusLevels): ActivePre
 export function calcTokensAwarded(maxPalierReached: number, tokenGainBonus: number): number {
   return Math.floor((maxPalierReached - 40) / 10) + 1 + tokenGainBonus;
 }
+
+// ── Bonus "Mémoire des Rangs" — achat DIRECT (pas de tirage aléatoire) ─────
+// Chaque niveau (6 max) permet, lors de la toute première obtention d'une
+// carte après un Prestige, de la récupérer directement au rang qu'elle avait
+// atteint dans une vie précédente — plafonné à (niveau + 1)★ — au lieu de
+// repartir à 1★. Coût multiplié par 10 à chaque niveau (10 → 100 → ... →
+// 1 000 000 jetons). Voir historicalMaxRank/addToCollection dans gameStore.ts.
+export const RANK_RECOVERY_MAX_LEVEL = 6;
+export const RANK_RECOVERY_COSTS: number[] = [10, 100, 1_000, 10_000, 100_000, 1_000_000];
+
+export function getRankRecoveryCost(currentLevel: number): number | null {
+  return currentLevel < RANK_RECOVERY_MAX_LEVEL ? RANK_RECOVERY_COSTS[currentLevel] : null;
+}
+
+// Rang max récupérable pour ce niveau (0 = bonus pas encore acheté = pas de récupération).
+export function rankRecoveryCap(level: number): number {
+  return level > 0 ? level + 1 : 0;
+}

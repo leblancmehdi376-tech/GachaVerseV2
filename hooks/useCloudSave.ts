@@ -51,6 +51,7 @@ function getSerializableState() {
     equipmentInventory: s.equipmentInventory,
     championInventory:  s.championInventory ?? {},
     bankedRanks:         s.bankedRanks ?? {},
+    historicalMaxRank:   s.historicalMaxRank ?? {},
     // Fusion/drop d'équipement débloqués par rareté (via expéditions) — vraie
     // progression, jamais synchronisée avant ce correctif : revenait à ['C']
     // sur tout nouvel appareil, rebloquant équipement et expéditions déjà acquis.
@@ -88,6 +89,7 @@ function getSerializableState() {
     prestigeLevel:       ps.level,
     prestigeTokens:      ps.tokens,
     prestigeBonusLevels: ps.bonusLevels,
+    prestigeRankRecoveryLevel: ps.rankRecoveryLevel,
     savedAt:            Date.now(),
   };
 }
@@ -189,6 +191,7 @@ async function loadAndApply(userId: string) {
       if ('prestigeLevel' in data)       { prestigePatch.level       = data.prestigeLevel;       delete data.prestigeLevel; }
       if ('prestigeTokens' in data)      { prestigePatch.tokens      = data.prestigeTokens;      delete data.prestigeTokens; }
       if ('prestigeBonusLevels' in data) { prestigePatch.bonusLevels = data.prestigeBonusLevels; delete data.prestigeBonusLevels; }
+      if ('prestigeRankRecoveryLevel' in data) { prestigePatch.rankRecoveryLevel = data.prestigeRankRecoveryLevel; delete data.prestigeRankRecoveryLevel; }
       // Compat anciennes sauvegardes cloud (avant ce rework) : on ignore juste
       // ces champs obsolètes plutôt que de les laisser polluer le merge plus bas.
       delete data.prestigePoints;

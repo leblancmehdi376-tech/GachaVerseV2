@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { usePrestigeStore } from '@/store/prestigeStore';
 import { useGameStore } from '@/store/gameStore';
-import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded } from '@/lib/game/prestige';
+import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, RANK_RECOVERY_MAX_LEVEL, getRankRecoveryCost, rankRecoveryCap } from '@/lib/game/prestige';
+import { formatNumber } from '@/lib/game/format';
 
 const PRESTIGE_PALIER_REQUIRED = 41;
 
@@ -49,7 +50,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain }: {
           {[
             'Neko-Gemmes', 'Succès & Titres', 'Quêtes', 'BossCrowns & VoidOrbs',
             'Palier max atteint (classement)', 'Bonus de Prestige déjà obtenus',
-            'Cartes shiny (Or/Diamant) + persos Forge/Event : rang conservé en banque, à redébloquer en les re-obtenant',
+            'Rang max déjà atteint par chaque carte (toutes éditions) : récupérable à la re-obtention selon le niveau de "Mémoire des Rangs"',
           ].map(item => (
             <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(74,222,128,0.8)', marginBottom:3 }}>• {item}</div>
           ))}
@@ -106,7 +107,7 @@ function RollResultPopup({ type, onClose }: { type: PrestigeBonusType; onClose: 
 }
 
 export function PrestigePage() {
-  const { level, tokens, bonusLevels, canPrestige, spendToken } = usePrestigeStore();
+  const { level, tokens, bonusLevels, canPrestige, spendToken, rankRecoveryLevel, buyRankRecovery } = usePrestigeStore();
   const { getRunPeakPalier, doPrestige } = useGameStore();
   const [showConfirm, setShowConfirm] = useState(false);
   const [rollResult, setRollResult] = useState<PrestigeBonusType | null>(null);
@@ -197,6 +198,33 @@ export function PrestigePage() {
             style={{ padding:'12px 24px', fontSize:14.4, cursor: tokens > 0 ? 'pointer' : 'not-allowed', opacity: tokens > 0 ? 1 : 0.4 }}>
             🎲 Utiliser un jeton — bonus aléatoire
           </button>
+        </div>
+
+        {/* Mémoire des Rangs — achat direct, pas de tirage */}
+        <div className="panel" style={{ padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
+          <div style={{ flex:1, minWidth:220 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+              <span style={{ fontSize:18.5 }}>🧠</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'var(--text)' }}>Mémoire des Rangs</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)' }}>Niveau {rankRecoveryLevel} / {RANK_RECOVERY_MAX_LEVEL}</span>
+            </div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.6, maxWidth:460 }}>
+              {rankRecoveryLevel > 0
+                ? <>Une carte déjà obtenue par le passé est récupérée directement au rang atteint alors, plafonné à <strong style={{ color:'#c084fc' }}>{rankRecoveryCap(rankRecoveryLevel)}★</strong>, au lieu de repartir à 1★.</>
+                : <>Débloque la récupération du rang d’une carte déjà obtenue dans une vie précédente, au lieu de repartir à 1★.</>}
+            </div>
+          </div>
+          {(() => {
+            const cost = getRankRecoveryCost(rankRecoveryLevel);
+            const maxed = cost === null;
+            const canBuy = !maxed && tokens >= cost!;
+            return (
+              <button onClick={buyRankRecovery} disabled={!canBuy} className={canBuy ? 'btn-primary' : 'btn-secondary'}
+                style={{ padding:'12px 24px', fontSize:14.4, cursor: canBuy ? 'pointer' : 'not-allowed', opacity: maxed ? 0.6 : canBuy ? 1 : 0.4, whiteSpace:'nowrap' }}>
+                {maxed ? '✓ NIVEAU MAX' : `🧠 Améliorer — 🎫 ${formatNumber(cost!)}`}
+              </button>
+            );
+          })()}
         </div>
 
         {/* Bonus actifs */}

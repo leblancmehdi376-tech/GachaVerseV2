@@ -9,7 +9,7 @@ import {
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, RARITY_GATES } from '@/lib/game/gacha';
-import { getCharacterById, HERO_TEMPLATE, BANNER_POOL, isForgeOrEventCharacter } from '@/lib/game/characters';
+import { getCharacterById, HERO_TEMPLATE, BANNER_POOL } from '@/lib/game/characters';
 import { ITEM_DEFS, rollEquipmentChest } from '@/lib/game/items';
 import { EQUIPMENT_CHESTS } from '@/lib/game/shop';
 import { computeActiveSynergies, calcDpsWithSynergies } from '@/lib/game/synergies';
@@ -223,10 +223,19 @@ interface GameStore extends GameState {
   // en avant (onglet + surbrillance) quand on clique sur un ingrédient.
   focusedExpeditionId: string | null;
   focusExpedition: (id: string | null) => void;
-  // Rangs banqués à travers un prestige (cartes shiny + persos forge/event) —
-  // clé = instance key (templateId ou templateId::gold/diamond), voir doPrestige
-  // et addToCollection.
+  // LEGACY — ancienne banque illimitée (shiny/forge/event uniquement), avant
+  // l'unification dans historicalMaxRank. Plus jamais écrit par doPrestige ;
+  // conservé en lecture seule dans addToCollection pour replier une bonne
+  // fois les rangs déjà en attente chez des joueurs existants dans le pic
+  // historique, sans perte. Peut être supprimé une fois toutes ces entrées
+  // consommées (mappe vide chez tout joueur ayant prestigé depuis).
   bankedRanks: Record<string, number>;
+  // Rang MAX jamais atteint (toutes vies confondues) pour CHAQUE carte —
+  // shiny/forge/event compris, même traitement que les persos normaux —
+  // banqué à chaque Prestige. Sert au bonus "Mémoire des Rangs" (achat direct
+  // côté Prestige) : jamais consommé/supprimé, plafonné par le niveau du
+  // bonus à la ré-obtention (voir addToCollection).
+  historicalMaxRank: Record<string, number>;
   // Fusion d'équipement (10 items d'un slot+rareté → 1 de la rareté suivante)
   unlockedEquipRarities: Rarity[];
   unlockEquipRarity: (rarity: Rarity) => void;
@@ -359,6 +368,7 @@ const makeInitial = () => ({
   lastEquipmentDrop: null,
   focusedExpeditionId: null,
   bankedRanks: {} as Record<string, number>,
+  historicalMaxRank: {} as Record<string, number>,
   unlockedEquipRarities: ['C'] as Rarity[],
   unlockedEquipDropRarities: ['C'] as Rarity[],
   dpsBoostEndsAt: 0, goldBoostEndsAt: 0,
@@ -1074,18 +1084,27 @@ export const useGameStore = create<GameStore>()(
         set(state => {
           const ex2 = state.collection[instanceKey];
           const equippedItems = ex2?.equippedItems ?? defaultEquippedItems();
-          // Rang banqué (shiny/forge/event conservés à travers un prestige) :
-          // restauré une seule fois à la première re-obtention post-prestige.
-          const banked = state.bankedRanks[instanceKey];
-          const newBankedRanks = banked !== undefined
+          // Bonus de Prestige "Mémoire des Rangs" — même traitement pour TOUS
+          // les persos (shiny/forge/event compris, plus de banque illimitée
+          // spéciale pour eux) : récupère jusqu'au pic historique atteint dans
+          // une vie précédente (historicalMaxRank), plafonné par le niveau du
+          // bonus acheté. Jamais consommé : reste disponible pour toutes les
+          // obtentions futures. `legacyBanked` replie une seule fois l'ancien
+          // système de banque illimitée (avant cette unification) dans le pic,
+          // pour ne pas perdre le rang des joueurs qui en avaient déjà un en attente.
+          const legacyBanked = state.bankedRanks[instanceKey];
+          const newBankedRanks = legacyBanked !== undefined
             ? Object.fromEntries(Object.entries(state.bankedRanks).filter(([k]) => k !== instanceKey))
             : state.bankedRanks;
+          const recoveryCap = prestigeBonuses.rankRecoveryCap;
+          const peak = Math.max(state.historicalMaxRank[instanceKey] ?? 0, legacyBanked ?? 0) || undefined;
+          const startRank = (recoveryCap > 0 && peak) ? Math.min(peak, recoveryCap) : 1;
           return {
             collection: {
               ...state.collection,
               [instanceKey]: ex2
                 ? { ...ex2, copies: ex2.copies+1, rank: Math.min(ex2.rank+1, 7), equippedItems }
-                : { templateId, rank: banked ?? 1, copies: banked ?? 1, level:1, currentForm:0, xp:0, equippedItems, edition },
+                : { templateId, rank: startRank, copies: startRank, level:1, currentForm:0, xp:0, equippedItems, edition },
             },
             bankedRanks: newBankedRanks,
           };
@@ -1252,21 +1271,25 @@ export const useGameStore = create<GameStore>()(
       //         plus dans la collection vidée).
       // Conserve : gemmes, maxPalierReached (classement), succès/titres
       //            (store dédié), quêtes, monnaies premium (BossCrowns,
-      //            Orbes du Néant). Les cartes shiny (or/diamant) et les persos
-      //            forge/event gardent leur RANG en banque (bankedRanks),
-      //            restauré automatiquement à la re-obtention (addToCollection).
+      //            Orbes du Néant). TOUTES les cartes (shiny/forge/event
+      //            compris — même traitement que les persos normaux depuis
+      //            l'unification) ont leur rang max banqué (historicalMaxRank),
+      //            récupérable à la re-obtention seulement via le bonus de
+      //            Prestige "Mémoire des Rangs" (voir addToCollection).
       doPrestige: () => {
         const state = get();
         const runPeak = runPeakPalierOf(state);
         if (!usePrestigeStore.getState().canPrestige(runPeak)) return;
 
-        // Banque le rang des cartes shiny/forge/event AVANT de vider la collection.
-        const newBankedRanks = { ...state.bankedRanks };
+        // Rang MAX jamais atteint, TOUTES les cartes (voir bonus "Mémoire des
+        // Rangs") — Math.max pour ne jamais écraser un pic antérieur par un
+        // rang plus bas (le bonus plafonne volontairement la récup en-dessous
+        // du pic tant que son niveau n'est pas suffisant).
+        const newHistoricalMaxRank = { ...state.historicalMaxRank };
         for (const owned of Object.values(state.collection)) {
           const edition = owned.edition ?? 'base';
-          if (isForgeOrEventCharacter(owned.templateId) || edition !== 'base') {
-            newBankedRanks[makeInstanceKey(owned.templateId, edition)] = owned.rank;
-          }
+          const key = makeInstanceKey(owned.templateId, edition);
+          newHistoricalMaxRank[key] = Math.max(newHistoricalMaxRank[key] ?? 0, owned.rank);
         }
 
         // Incrémente le niveau de prestige et crédite les jetons + toast
@@ -1286,7 +1309,7 @@ export const useGameStore = create<GameStore>()(
           pixelCoins: 0,
           collection: {},
           championInventory: {},
-          bankedRanks: newBankedRanks,
+          historicalMaxRank: newHistoricalMaxRank,
           equippedTeam: [null, null, null, null],
           inventory: {},
           goldUpgradeLevel: 0,
@@ -1447,6 +1470,7 @@ export const useGameStore = create<GameStore>()(
         unlockedEquipDropRarities:s.unlockedEquipDropRarities,
         championInventory:s.championInventory ?? {},
         bankedRanks:s.bankedRanks ?? {},
+        historicalMaxRank:s.historicalMaxRank ?? {},
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         username:s.username,

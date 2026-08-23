@@ -633,12 +633,6 @@ export const GACHA_EXCLUDED_IDS = new Set([
   'jinwoo', 'arthur_leywin', 'cid_kagenou',
 ]);
 
-// Ces persos (+ toute édition shiny) gardent leur rang en banque à travers un
-// prestige — voir bankedRanks dans gameStore.ts.
-export function isForgeOrEventCharacter(id: string): boolean {
-  return GACHA_EXCLUDED_IDS.has(id);
-}
-
 export const BANNER_POOL = CHARACTER_POOL.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id));
 
 export function getCharFormName(tpl: CharacterTemplate, formIndex: number): string {

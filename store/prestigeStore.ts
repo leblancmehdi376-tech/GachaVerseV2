@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 import {
   PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, PrestigeBonusLevels,
   ActivePrestigeBonuses, calcPrestigeBonuses, calcTokensAwarded, initialBonusLevels,
+  getRankRecoveryCost, rankRecoveryCap,
 } from '@/lib/game/prestige';
 import { toast } from '@/hooks/useToast';
 
@@ -14,11 +15,15 @@ interface PrestigeStore {
   tokens:      number;
   // Niveau atteint pour chaque type de bonus (voir lib/game/prestige.ts)
   bonusLevels: PrestigeBonusLevels;
+  // Niveau du bonus "Mémoire des Rangs" (achat direct, 6 niveaux max) — voir
+  // lib/game/prestige.ts (RANK_RECOVERY_*) et addToCollection dans gameStore.ts.
+  rankRecoveryLevel: number;
 
   // ── Actions ────────────────────────────────────────────────────────────
   canPrestige: (maxPalierReached: number) => boolean;
   doPrestige:  (maxPalierReached: number) => void;   // appelé depuis gameStore
   spendToken:  () => PrestigeBonusType | null;
+  buyRankRecovery: () => boolean;
 
   // ── Calculs ────────────────────────────────────────────────────────────
   getBonuses: () => ActivePrestigeBonuses;
@@ -31,9 +36,10 @@ export const usePrestigeStore = create<PrestigeStore>()(
       level:       0,
       tokens:      0,
       bonusLevels: initialBonusLevels(),
+      rankRecoveryLevel: 0,
 
       // Remet le prestige à zéro (utilisé par "Réinitialiser mon compte").
-      resetPrestige: () => set({ level: 0, tokens: 0, bonusLevels: initialBonusLevels() }),
+      resetPrestige: () => set({ level: 0, tokens: 0, bonusLevels: initialBonusLevels(), rankRecoveryLevel: 0 }),
 
       canPrestige: (maxPalierReached) => maxPalierReached >= 41,
 
@@ -67,6 +73,15 @@ export const usePrestigeStore = create<PrestigeStore>()(
       },
 
       getBonuses: () => calcPrestigeBonuses(get().bonusLevels),
+
+      // Achat direct (pas de tirage) du niveau suivant de "Mémoire des Rangs".
+      buyRankRecovery: () => {
+        const level = get().rankRecoveryLevel;
+        const cost = getRankRecoveryCost(level);
+        if (cost === null || get().tokens < cost) return false;
+        set(s => ({ tokens: s.tokens - cost, rankRecoveryLevel: s.rankRecoveryLevel + 1 }));
+        return true;
+      },
     }),
     {
       name: 'gachaverse_prestige_v2', // bump v2.5 : force un reset local pour tous les joueurs
@@ -74,6 +89,7 @@ export const usePrestigeStore = create<PrestigeStore>()(
         level:       s.level,
         tokens:      s.tokens,
         bonusLevels: s.bonusLevels,
+        rankRecoveryLevel: s.rankRecoveryLevel,
       }),
     }
   )
@@ -86,10 +102,11 @@ export const usePrestigeStore = create<PrestigeStore>()(
 let _pbLevels: PrestigeBonusLevels | null = null;
 let _pbValue: ActivePrestigeBonuses | null = null;
 
-export function getPrestigeBonuses(): ActivePrestigeBonuses {
+export function getPrestigeBonuses(): ActivePrestigeBonuses & { rankRecoveryCap: number } {
   const s = usePrestigeStore.getState();
-  if (_pbValue && _pbLevels === s.bonusLevels) return _pbValue;
-  _pbValue = calcPrestigeBonuses(s.bonusLevels);
-  _pbLevels = s.bonusLevels;
-  return _pbValue;
+  if (!_pbValue || _pbLevels !== s.bonusLevels) {
+    _pbValue = calcPrestigeBonuses(s.bonusLevels);
+    _pbLevels = s.bonusLevels;
+  }
+  return { ..._pbValue, rankRecoveryCap: rankRecoveryCap(s.rankRecoveryLevel) };
 }
