@@ -15,6 +15,7 @@ import { EQUIPMENT_CHESTS } from '@/lib/game/shop';
 import { computeActiveSynergies, calcDpsWithSynergies } from '@/lib/game/synergies';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { auth } from '@/lib/firebase/config';
+import { correctedNow } from '@/lib/firebase/clockOffset';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { useUltimateStore, getActiveCoinMultiplier } from '@/store/ultimateStore';
 import { usePrestigeStore, getPrestigeBonuses } from '@/store/prestigeStore';
@@ -107,7 +108,7 @@ function broadcastAndSaveLocal() {
   if (typeof window === 'undefined') return;
   try {
     const s = useGameStore.getState();
-    const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory, savedAt: Date.now() };
+    const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory, savedAt: correctedNow() };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) ?? '{}'), ...snapshot }));
     BROADCAST_CHANNEL?.postMessage({ type: 'PULL_SYNC', data: snapshot });
   } catch { /* ignore */ }
@@ -1383,7 +1384,7 @@ export const useGameStore = create<GameStore>()(
       // le récap à afficher (ou null si rien à réclamer) ; ne modifie aucun état.
       checkOfflineGain: () => {
         const s = get();
-        const now  = Date.now();
+        const now  = correctedNow();
         const last = s.savedAt;
         if (!last) return null; // jamais sauvegardé (tout nouveau compte) : rien à calculer
         const rawSeconds = Math.max(0, Math.floor((now - last) / 1000));

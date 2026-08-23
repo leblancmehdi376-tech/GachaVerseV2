@@ -6,7 +6,8 @@ import { useGameStore } from '@/store/gameStore';
 import { useAchievementStore } from '@/store/achievementStore';
 import { useExpeditionStore } from '@/store/expeditionStore';
 import { usePrestigeStore } from '@/store/prestigeStore';
-import { saveGameToFirestore, loadGameFromFirestore } from '@/lib/firebase/saveGame';
+import { saveGameToFirestore, loadGameAndClockOffsetFromFirestore } from '@/lib/firebase/saveGame';
+import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
 const LOCAL_INTERVAL_MS    =  30_000; // localStorage toutes les 30s (gratuit, illimité)
@@ -90,7 +91,7 @@ function getSerializableState() {
     prestigeTokens:      ps.tokens,
     prestigeBonusLevels: ps.bonusLevels,
     prestigeRankRecoveryLevel: ps.rankRecoveryLevel,
-    savedAt:            Date.now(),
+    savedAt:            correctedNow(),
   };
 }
 
@@ -142,74 +143,142 @@ function loadFromLocal(): Record<string, unknown> | null {
   }
 }
 
+// Applique un blob de sauvegarde (cloud ou local) au store principal +
+// stores séparés (expéditions/prestige) — factorisé pour être réutilisable
+// par la reconciliation en arrière-plan (scheduleReconciliationRetry) sans
+// dupliquer toute cette redistribution de champs.
+function applyRemoteState(rawData: Record<string, unknown>) {
+  // Suppress toasts/notifications while applying remote state to avoid
+  // duplicate achievement/quest toasts when the player logs in on another device.
+  try { useGameStore.setState({ suppressToasts: true }); } catch {}
+
+  // Les champs expedition*/prestige* n'appartiennent pas à gameStore —
+  // on les extrait avant de fusionner le reste, et on les applique à
+  // leurs stores respectifs (sinon ils n'y arriveraient jamais).
+  const data = { ...rawData };
+  const expeditionPatch: Record<string, unknown> = {};
+  if ('expeditionActive' in data)         { expeditionPatch.active         = data.expeditionActive;         delete data.expeditionActive; }
+  if ('expeditionDropInventory' in data)  { expeditionPatch.dropInventory  = data.expeditionDropInventory;  delete data.expeditionDropInventory; }
+  if ('expeditionCraftedRecipes' in data) { expeditionPatch.craftedRecipes = data.expeditionCraftedRecipes; delete data.expeditionCraftedRecipes; }
+  if ('expeditionSlotLevel' in data)      { expeditionPatch.expeditionSlotLevel = data.expeditionSlotLevel; delete data.expeditionSlotLevel; }
+  if ('expeditionDefAffinities' in data)  { expeditionPatch.defAffinities  = data.expeditionDefAffinities;  delete data.expeditionDefAffinities; }
+  if (Object.keys(expeditionPatch).length) {
+    useExpeditionStore.setState(expeditionPatch as unknown as Parameters<typeof useExpeditionStore.setState>[0]);
+  }
+
+  const prestigePatch: Record<string, unknown> = {};
+  if ('prestigeLevel' in data)       { prestigePatch.level       = data.prestigeLevel;       delete data.prestigeLevel; }
+  if ('prestigeTokens' in data)      { prestigePatch.tokens      = data.prestigeTokens;      delete data.prestigeTokens; }
+  if ('prestigeBonusLevels' in data) { prestigePatch.bonusLevels = data.prestigeBonusLevels; delete data.prestigeBonusLevels; }
+  if ('prestigeRankRecoveryLevel' in data) { prestigePatch.rankRecoveryLevel = data.prestigeRankRecoveryLevel; delete data.prestigeRankRecoveryLevel; }
+  // Compat anciennes sauvegardes cloud (avant ce rework) : on ignore juste
+  // ces champs obsolètes plutôt que de les laisser polluer le merge plus bas.
+  delete data.prestigePoints;
+  delete data.prestigePurchased;
+  if (Object.keys(prestigePatch).length) {
+    usePrestigeStore.setState(prestigePatch as unknown as Parameters<typeof usePrestigeStore.setState>[0]);
+  }
+
+  // unlockedTitles/activeTitle n'appartiennent pas à gameStore non plus —
+  // ils sont gérés séparément par mergeAchievementState (règles de fusion
+  // différentes du reste : voir son commentaire).
+  delete data.unlockedTitles;
+  delete data.activeTitle;
+
+  useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);
+  // Allow effects to settle, then re-enable toasts.
+  setTimeout(() => { try { useGameStore.setState({ suppressToasts: false }); } catch {} }, 200);
+}
+
+// ── Confirmation de synchro cloud ──────────────────────────────────────────
+// Tant que le tout premier chargement cloud d'une session n'a pas réussi à
+// JOINDRE Firestore (reachable:false — panne réseau, pas juste "rien à lire"),
+// on ne sait pas si le cloud contient une sauvegarde plus récente que celle
+// chargée en repli (locale). Dans ce cas :
+//  1. cloudSyncConfirmed passe à false → saveToFirebase refuse d'écrire, pour
+//     ne jamais risquer d'écraser une sauvegarde cloud qu'on n'a jamais pu lire.
+//  2. pendingLocalSnapshotTs fige le timestamp du meilleur candidat LOCAL au
+//     moment de cet échec — pas la valeur courante, qui avancerait avec la
+//     partie en cours et fausserait la comparaison faite à la reconnexion.
+//  3. Une reconciliation est replanifiée en arrière-plan (backoff 15s→10min)
+//     jusqu'à ce que Firestore réponde : si sa sauvegarde s'avère plus récente
+//     que l'instantané figé, elle est réappliquée ; sinon la synchro est
+//     simplement déclarée confirmée et les écritures reprennent normalement.
+let cloudSyncConfirmed = true;
+let pendingLocalSnapshotTs: number | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+const RETRY_MIN_MS = 15_000;
+const RETRY_MAX_MS = FIREBASE_INTERVAL_MS;
+let retryDelayMs = RETRY_MIN_MS;
+
+function clearReconciliationRetry() {
+  if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+  retryDelayMs = RETRY_MIN_MS;
+}
+
+function scheduleReconciliationRetry(userId: string) {
+  if (retryTimer) return; // déjà planifiée
+  retryTimer = setTimeout(async () => {
+    retryTimer = null;
+    const { data: remote, offsetMs, reachable } = await loadGameAndClockOffsetFromFirestore(userId);
+    if (!reachable) {
+      retryDelayMs = Math.min(retryDelayMs * 2, RETRY_MAX_MS);
+      scheduleReconciliationRetry(userId);
+      return;
+    }
+    setClockOffset(offsetMs);
+    const remoteTs = (remote as Record<string, unknown> | null)?.lastSaved as number | undefined;
+    if (typeof remoteTs === 'number' && Number.isFinite(remoteTs) && pendingLocalSnapshotTs !== null && remoteTs > pendingLocalSnapshotTs) {
+      // Le cloud avait bel et bien une sauvegarde plus récente que celle
+      // chargée pendant la panne réseau : on l'applique maintenant — quitte à
+      // remplacer la progression faite localement pendant la fenêtre d'incertitude
+      // — plutôt que de risquer de l'écraser silencieusement au prochain autosave.
+      console.warn('[CloudSave] Sauvegarde cloud plus récente détectée après reconnexion — réapplication.');
+      applyRemoteState(remote as Record<string, unknown>);
+    }
+    cloudSyncConfirmed = true;
+    pendingLocalSnapshotTs = null;
+    clearReconciliationRetry();
+    console.log('[CloudSave] Synchro cloud reconfirmée, écritures réautorisées.');
+  }, retryDelayMs);
+}
+
 // ── Chargement au login — compare Firebase, localStorage et état local ─────
 async function loadAndApply(userId: string) {
   try {
-    const [remote, local] = await Promise.all([
-      loadGameFromFirestore(userId),
+    const [{ data: remote, offsetMs, reachable }, local] = await Promise.all([
+      loadGameAndClockOffsetFromFirestore(userId),
       Promise.resolve(loadFromLocal()),
     ]);
+    // Doit être posé AVANT de comparer les timestamps ci-dessous : local.savedAt
+    // et current.savedAt ont été écrits par CET appareil avec son propre décalage
+    // (stable d'une session à l'autre), donc directement comparables une fois
+    // l'offset de cette session appliqué au calcul ci-dessous.
+    setClockOffset(offsetMs);
 
     const current = useGameStore.getState();
 
-    // La sauvegarde serveur (Firestore) est la source de vérité entre
-    // appareils : on l'applique TOUJOURS dès qu'elle existe, sans comparer
-    // les timestamps. Comparer les dates faisait gagner un save local plus
-    // "récent" sur un appareil donné (ex: horloge légèrement en avance,
-    // ou état déjà réhydraté par le persist Zustand avant même ce chargement)
-    // — ce qui faisait diverger silencieusement mobile et PC au lieu de les
-    // garder synchronisés sur le cloud. On ne retombe sur le local que si
-    // aucune sauvegarde cloud n'existe encore (tout premier login).
-    const best = remote
-      ? { label: 'firebase',      data: remote, ts: (remote as Record<string,unknown>)?.lastSaved as number ?? 0 }
-      : local
-        ? { label: 'localStorage',  data: local,  ts: (local as Record<string,unknown>)?.savedAt as number ?? 0 }
-        : { label: 'local (store)', data: null,   ts: current.savedAt ?? 0 };
+    // "Plus récent gagne" entre les 3 sources, maintenant que les timestamps
+    // sont comparables entre appareils (corrigés du décalage d'horloge de
+    // chacun via la sonde ci-dessus) : avant ce correctif, on faisait
+    // toujours gagner Firestore par défaut, précisément parce qu'une horloge
+    // locale en avance pouvait faire gagner à tort un save local plus vieux.
+    // Number.isFinite() plutôt que ?? -1 seul : une valeur corrompue (NaN,
+    // JSON local altéré) ne doit jamais pouvoir "gagner" la comparaison — elle
+    // est ramenée à -1 comme une source absente, au lieu de fausser le reduce
+    // ci-dessous (NaN n'est jamais > ni < rien, un candidat NaN en première
+    // position piégerait sinon le reduce en le gardant à tort).
+    const safeTs = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : -1);
+    const candidates = [
+      { label: 'firebase',      data: remote as Record<string, unknown> | null, ts: safeTs((remote as Record<string,unknown> | null)?.lastSaved) },
+      { label: 'localStorage',  data: local as Record<string, unknown> | null,  ts: safeTs((local as Record<string,unknown> | null)?.savedAt) },
+      { label: 'local (store)', data: null as Record<string, unknown> | null,   ts: safeTs(current.savedAt) },
+    ];
+    const best = candidates.reduce((a, b) => (b.ts > a.ts ? b : a));
 
-    console.log('[CloudSave] Source appliquée:', best.label, best.ts ? `— ${new Date(best.ts).toLocaleTimeString()}` : '(aucune sauvegarde)');
+    console.log('[CloudSave] Source appliquée:', best.label, best.ts >= 0 ? `— ${new Date(best.ts).toLocaleTimeString()}` : '(aucune sauvegarde)');
 
-    if (best.data) {
-      // Suppress toasts/notifications while applying remote state to avoid
-      // duplicate achievement/quest toasts when the player logs in on another device.
-      try { useGameStore.setState({ suppressToasts: true }); } catch {}
-
-      // Les champs expedition*/prestige* n'appartiennent pas à gameStore —
-      // on les extrait avant de fusionner le reste, et on les applique à
-      // leurs stores respectifs (sinon ils n'y arriveraient jamais).
-      const data = { ...(best.data as Record<string, unknown>) };
-      const expeditionPatch: Record<string, unknown> = {};
-      if ('expeditionActive' in data)         { expeditionPatch.active         = data.expeditionActive;         delete data.expeditionActive; }
-      if ('expeditionDropInventory' in data)  { expeditionPatch.dropInventory  = data.expeditionDropInventory;  delete data.expeditionDropInventory; }
-      if ('expeditionCraftedRecipes' in data) { expeditionPatch.craftedRecipes = data.expeditionCraftedRecipes; delete data.expeditionCraftedRecipes; }
-      if ('expeditionSlotLevel' in data)      { expeditionPatch.expeditionSlotLevel = data.expeditionSlotLevel; delete data.expeditionSlotLevel; }
-      if ('expeditionDefAffinities' in data)  { expeditionPatch.defAffinities  = data.expeditionDefAffinities;  delete data.expeditionDefAffinities; }
-      if (Object.keys(expeditionPatch).length) {
-        useExpeditionStore.setState(expeditionPatch as unknown as Parameters<typeof useExpeditionStore.setState>[0]);
-      }
-
-      const prestigePatch: Record<string, unknown> = {};
-      if ('prestigeLevel' in data)       { prestigePatch.level       = data.prestigeLevel;       delete data.prestigeLevel; }
-      if ('prestigeTokens' in data)      { prestigePatch.tokens      = data.prestigeTokens;      delete data.prestigeTokens; }
-      if ('prestigeBonusLevels' in data) { prestigePatch.bonusLevels = data.prestigeBonusLevels; delete data.prestigeBonusLevels; }
-      if ('prestigeRankRecoveryLevel' in data) { prestigePatch.rankRecoveryLevel = data.prestigeRankRecoveryLevel; delete data.prestigeRankRecoveryLevel; }
-      // Compat anciennes sauvegardes cloud (avant ce rework) : on ignore juste
-      // ces champs obsolètes plutôt que de les laisser polluer le merge plus bas.
-      delete data.prestigePoints;
-      delete data.prestigePurchased;
-      if (Object.keys(prestigePatch).length) {
-        usePrestigeStore.setState(prestigePatch as unknown as Parameters<typeof usePrestigeStore.setState>[0]);
-      }
-
-      // unlockedTitles/activeTitle n'appartiennent pas à gameStore non plus —
-      // ils sont gérés séparément par mergeAchievementState ci-dessous (règles
-      // de fusion différentes du reste : voir son commentaire).
-      delete data.unlockedTitles;
-      delete data.activeTitle;
-
-      useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);
-      // Allow effects to settle, then re-enable toasts.
-      setTimeout(() => { try { useGameStore.setState({ suppressToasts: false }); } catch {} }, 200);
-    }
+    if (best.data) applyRemoteState(best.data as Record<string, unknown>);
 
     // Fusion des succès/titres — TOUJOURS, indépendamment de la source "la
     // plus récente" choisie ci-dessus (un claim ou un titre débloqué ne doit
@@ -220,6 +289,20 @@ async function loadAndApply(userId: string) {
       best.data as Record<string, unknown> | null
     );
     useAchievementStore.setState(merged);
+
+    // Voir le bloc de commentaire au-dessus de cloudSyncConfirmed : sans
+    // confirmation que le cloud a bien été JOINT (pas juste absent), on
+    // interdit toute écriture vers Firebase tant qu'une reconciliation en
+    // arrière-plan n'a pas tranché.
+    if (reachable) {
+      cloudSyncConfirmed = true;
+      pendingLocalSnapshotTs = null;
+      clearReconciliationRetry();
+    } else {
+      cloudSyncConfirmed = false;
+      pendingLocalSnapshotTs = best.ts;
+      scheduleReconciliationRetry(userId);
+    }
   } catch (e) {
     console.error('[CloudSave] Erreur loadAndApply:', e);
   }
@@ -233,6 +316,10 @@ async function loadAndApply(userId: string) {
 // être sauvegardé dans le cloud alors que seul le localStorage local l'a,
 // et il perd sa progression en se reconnectant depuis un autre appareil.
 async function saveToFirebase(userId: string): Promise<boolean> {
+  if (!cloudSyncConfirmed) {
+    console.warn('[CloudSave] Écriture cloud suspendue : synchro pas encore confirmée (le premier chargement cloud a échoué), reconciliation en cours.');
+    return false;
+  }
   try {
     const s    = useGameStore.getState();
     const data = getSerializableState();
@@ -303,6 +390,9 @@ export function useCloudSave(userId: string | null) {
     if (!userId) {
       loadedRef.current = false; userIdRef.current = null; setLoaded(true);
       urgentSaveUserId = null; urgentSaveReady = false;
+      // Pas de reconciliation à poursuivre pour un utilisateur déconnecté.
+      clearReconciliationRetry();
+      cloudSyncConfirmed = true; pendingLocalSnapshotTs = null;
       return;
     }
     if (userId === userIdRef.current) return;
@@ -310,6 +400,11 @@ export function useCloudSave(userId: string | null) {
     loadedRef.current = false;
     urgentSaveUserId = userId;
     urgentSaveReady = false;
+    // Repart d'un état propre : une reconciliation encore en attente pour un
+    // PRÉCÉDENT utilisateur (autre session sur cet onglet) ne doit pas
+    // interférer avec ce nouveau login — loadAndApply ci-dessous redécide.
+    clearReconciliationRetry();
+    cloudSyncConfirmed = true; pendingLocalSnapshotTs = null;
     setLoaded(false);
     loadAndApply(userId).finally(() => { loadedRef.current = true; urgentSaveReady = true; setLoaded(true); });
   }, [userId]);
@@ -330,7 +425,7 @@ export function useCloudSave(userId: string | null) {
       // Ignore la toute première lecture au montage (c'est juste l'état déjà
       // chargé par loadAndApply, pas une nouvelle correction en direct).
       if (!loadedRef.current) return;
-      const patch: Record<string, unknown> = { savedAt: Date.now() };
+      const patch: Record<string, unknown> = { savedAt: correctedNow() };
       if (typeof data.pixelCoins === 'number') patch.pixelCoins = data.pixelCoins;
       if (typeof data.nekoGems   === 'number') patch.nekoGems   = data.nekoGems;
       if (typeof data.bossCrowns === 'number') patch.bossCrowns = data.bossCrowns;
