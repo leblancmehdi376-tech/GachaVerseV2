@@ -1,7 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { EXPEDITION_DEFS, CRAFT_RECIPES, ExpeditionDef, getExpeditionTeamDps, hasRealUniverse, rollExpeditionRewards } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, CRAFT_RECIPES, getExpeditionTeamDps, hasRealUniverse, rollExpeditionRewards } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { parseInstanceKey } from '@/lib/game/editions';

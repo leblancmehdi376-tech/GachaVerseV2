@@ -1,4 +1,4 @@
-import { Rarity, RARITY_CONFIG } from '@/types/game';
+import { Rarity } from '@/types/game';
 import { BANNER_POOL } from './characters';
 
 export const GACHA_COSTS = { single: 10, multi10: 95, multi100: 900 };
@@ -94,7 +94,4 @@ export function rollMulti(maxPalier = 1): string[] {
 export function rollMulti100(maxPalier = 1): string[] {
   return Array.from({ length: 100 }, () => rollCharacter(maxPalier));
 }
-
-// Pour compatibilité avec les affichages (taux à palier actuel)
-export const DISPLAY_RATES = getDynamicRates;
 

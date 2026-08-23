@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { getCharacterById } from '@/lib/game/characters';
 import { auth } from '@/lib/firebase/config';
-import { formatNumber } from '@/lib/game/format';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { getVoidOrbsForRarity } from '@/lib/game/shop';
 import { createListing, ListingCurrency } from '@/lib/firebase/marketplace';

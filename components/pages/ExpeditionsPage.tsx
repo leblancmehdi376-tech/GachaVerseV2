@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useExpeditionStore, ActiveExpedition } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
 import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty } from '@/lib/game/expeditions';
@@ -44,7 +44,7 @@ function CharSelector({ def, onConfirm, onClose }: {
   onConfirm: (ids: string[]) => void;
   onClose: () => void;
 }) {
-  const { collection, maxPalierReached, equippedTeam } = useGameStore();
+  const { collection, equippedTeam } = useGameStore();
   const { isCharOnExpedition, getExpeditionAffinity } = useExpeditionStore();
   const [selected, setSelected] = useState<string[]>([]);
 

@@ -38,7 +38,7 @@ import { ToastContainer } from '@/components/ui/ToastContainer';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { BossVictoryScreen } from '@/components/game/BossVictoryScreen';
 import { toast } from '@/hooks/useToast';
-import { useAchievementStore, trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection, trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige, trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax } from '@/store/achievementStore';
+import { trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection, trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige, trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax } from '@/store/achievementStore';
 import { makeInstanceKey } from '@/lib/game/editions';
 
 type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment';
@@ -601,12 +601,3 @@ function StatsCard({ maxPalierReached }: { maxPalierReached: number }) {
   );
 }
 
-function PlaceholderPage({ icon, title, desc }: { icon: string; title: string; desc: string }) {
-  return (
-    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'16px', opacity:0.5 }}>
-      <span style={{ fontSize:'57.7px' }}>{icon}</span>
-      <span style={{ fontFamily:'var(--f-title)', fontSize:'18.5px', color:'var(--text-dim)', letterSpacing:'2px' }}>{title}</span>
-      <span style={{ fontFamily:'var(--f-ui)', fontSize:'13.4px', color:'var(--text-muted)', maxWidth:'300px', textAlign:'center', lineHeight:1.6 }}>{desc}</span>
-    </div>
-  );
-}

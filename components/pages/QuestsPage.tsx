@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 

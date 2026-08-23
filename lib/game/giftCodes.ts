@@ -3,8 +3,6 @@
 // le consomme définitivement (tracké côté Firestore, voir lib/firebase/giftCodes.ts).
 // Pour ajouter/retirer des codes, modifie simplement ce tableau.
 
-import { CHARACTER_POOL } from '@/lib/game/characters';
-
 export interface GiftCodeDef {
   code: string;           // stocké en MAJUSCULES, la saisie est normalisée avant comparaison
   gems?: number;          // Neko-Gemmes à distribuer (optionnel)

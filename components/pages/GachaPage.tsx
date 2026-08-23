@@ -455,7 +455,6 @@ function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClose: () 
   const [phase, setPhase]         = useState<'portal' | 'cards' | 'summary'>('portal');
   const [autoFlip, setAutoFlip]   = useState(false);
   const [allFlipped, setAllFlipped] = useState(false);
-  const flippedCount = useRef(0);
 
   const handlePortalDone = useCallback(() => {
     setPhase('cards');

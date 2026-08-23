@@ -1,7 +1,6 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { useAchievementStore } from '@/store/achievementStore';
-import { useGameStore } from '@/store/gameStore';
 import { ACHIEVEMENTS, CATEGORY_LABELS, AchievCategory } from '@/lib/game/achievements';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
@@ -11,7 +10,6 @@ const CATEGORIES: (AchievCategory | 'all')[] = ['all', 'combat', 'progression', 
 
 export function AchievementsPage() {
   const { unlocked, progress, activeTitle, unlockedTitles, setActiveTitle, unlockedCount, isClaimed, claimAchievement } = useAchievementStore();
-  const { nekoGems } = useGameStore();
   const [cat, setCat]   = useState<AchievCategory | 'all'>('all');
   const [tab, setTab]   = useState<'achievements' | 'prestige' | 'titles'>('achievements');
 

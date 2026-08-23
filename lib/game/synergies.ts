@@ -646,9 +646,6 @@ export function calcDpsWithSynergies(
   return Math.floor(baseDps * mult);
 }
 
-export const getSynergyByUniverse = (universe: string) =>
-  UNIQUE_SYNERGIES.find(s => s.universe === universe);
-
 export { UNIQUE_SYNERGIES as SYNERGIES_LIST };
 
 export default UNIQUE_SYNERGIES;

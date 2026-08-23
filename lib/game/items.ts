@@ -493,10 +493,6 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
 export const getItemDef = (id: string): ItemDef | undefined => ITEM_DEFS[id];
 export const getEquipmentDef = (id: string): EquipmentDef | undefined => EQUIPMENT_DEFS[id];
 
-export function getEquipmentForSlot(slot: EquipmentDef['slot']): EquipmentDef[] {
-  return Object.values(EQUIPMENT_DEFS).filter(item => item.slot === slot);
-}
-
 // Tous les objets d'un slot+rareté donnés (générique + variantes personnalisées
 // "bonusFor" le cas échéant). Sert à la fois de pool de fodder et de pool de
 // sortie pour la fusion d'équipement (upgradeEquipment dans gameStore.ts).
@@ -554,42 +550,6 @@ export function getEquipmentDrop(unlockedDropRarities: string[], rateMult = 1): 
       const pool = Object.values(EQUIPMENT_DEFS).filter(item => item.rarity === r);
       return pool.length ? pool[Math.floor(Math.random() * pool.length)].id : null;
     }
-  }
-  return null;
-}
-
-export function getEquipmentDpsMultiplier(owned: { equippedItems: Record<string, string | null> }, templateId?: string): number {
-  let mult = 1;
-  for (const equippedId of Object.values(owned.equippedItems)) {
-    if (!equippedId) continue;
-    const item = getEquipmentDef(equippedId);
-    if (!item) continue;
-    mult *= item.dpsMultiplier;
-    if (item.bonusFor?.templateId && templateId === item.bonusFor.templateId) {
-      mult *= item.bonusFor.multiplier;
-    }
-  }
-  return mult;
-}
-
-export function getEquipmentEquippedCount(collection: { [templateId: string]: { equippedItems: Record<string, string | null> } }, equipmentId: string): number {
-  return Object.values(collection).reduce((count, owned) => {
-    return count + Object.values(owned.equippedItems).filter(eid => eid === equipmentId).length;
-  }, 0);
-}
-
-/**
- * Drop d'items d'évolution sur les mobs normaux.
- * Chaque item droppable est listé avec sa chance (en %).
- * Retourne l'id de l'item dropé, ou null.
- */
-const ITEM_DROP_TABLE: { id: string; chance: number }[] = [
-  { id: 'clef_babylone', chance: 0.4 }, // ~1 drop toutes les 250 vagues
-];
-
-export function getItemDrop(): string | null {
-  for (const entry of ITEM_DROP_TABLE) {
-    if (Math.random() * 100 < entry.chance) return entry.id;
   }
   return null;
 }

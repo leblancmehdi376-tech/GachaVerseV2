@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     if (!auth) throw new Error('Firebase non configuré');
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+    await signInWithEmailAndPassword(auth, email, password);
     // Le verrou de session et la fiche "users" sont désormais réclamés de
     // façon centralisée dans le listener onAuthStateChanged ci-dessus (avant
     // setUser), pour éviter la course avec watchSession — voir son commentaire.
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInGoogle = async () => {
     if (!auth) throw new Error('Firebase non configuré');
     const provider = new GoogleAuthProvider();
-    const cred = await signInWithPopup(auth, provider);
+    await signInWithPopup(auth, provider);
     // Idem signIn() ci-dessus : verrou de session + fiche "users" gérés
     // centralement dans le listener onAuthStateChanged.
   };

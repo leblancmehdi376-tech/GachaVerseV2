@@ -641,7 +641,3 @@ export function getCharFormName(tpl: CharacterTemplate, formIndex: number): stri
   return tpl.forms[formIndex]?.name ?? tpl.name;
 }
 
-export function getCharSprite(tpl: CharacterTemplate, formIndex: number): string {
-  if (!tpl.forms || tpl.forms.length === 0) return tpl.spritePath;
-  return tpl.forms[formIndex]?.spritePath ?? tpl.spritePath;
-}

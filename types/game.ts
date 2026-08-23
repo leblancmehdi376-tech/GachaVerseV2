@@ -104,10 +104,6 @@ export interface HeroState {
 }
 
 // ── Fonctions de calcul de niveau ─────────────────────────────────────────
-export function xpToNextLevel(level: number): number {
-  return Math.floor(100 * Math.pow(1.08, level - 1));
-}
-
 export function getLevelCap(character: CharacterTemplate, formIndex: number): number {
   if (!character.forms || character.forms.length === 0) return 100;
   return character.forms[formIndex]?.levelCap ?? 100 * (formIndex + 1);

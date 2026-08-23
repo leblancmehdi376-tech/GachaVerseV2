@@ -74,7 +74,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
   const [expanded, setExpanded] = useState(false);
 
   const locked = getRunPeakPalier() < recipe.palierRequired;
-  const { ok, missing } = canCraft(recipe.id);
+  const { ok } = canCraft(recipe.id);
   const alreadyOwned = recipe.reward.type === 'character' && recipe.reward.characterId
     ? !!collection[recipe.reward.characterId] : false;
 
@@ -195,7 +195,6 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
 
 export function ForgePage() {
   const { dropInventory } = useExpeditionStore();
-  const { maxPalierReached } = useGameStore();
   const [tab, setTab] = useState<'recipes' | 'inventory'>('recipes');
 
   const ownedDrops = PALIER_DROPS.filter(d => (dropInventory[d.id] ?? 0) > 0);

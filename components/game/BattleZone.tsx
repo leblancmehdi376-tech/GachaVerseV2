@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { useUltimateStore } from '@/store/ultimateStore';
-import { ActiveUltsBar, UltCombatOverlay } from '@/components/game/UltAnimation';
+import { ActiveUltsBar } from '@/components/game/UltAnimation';
 import { PixelSprite } from '@/components/ui/PixelSprite';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
@@ -15,7 +15,6 @@ import { AffinityBadge } from '@/components/ui/AffinityBadge';
 import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { RandomEventOverlay } from '@/components/game/events/RandomEventOverlay';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
-import { getEquipmentDef } from '@/lib/game/items';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { BattleParticles } from '@/components/game/BattleParticles';
@@ -251,7 +250,7 @@ function PalierTravelModal({
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function BattleZone() {
-  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, lastEquipmentDrop, setLastEquipmentDrop, getEventDpsMult } = useGameStore();
+  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, getEventDpsMult } = useGameStore();
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
   // maxPalierReached, qui ne redescend jamais et sert au classement) — c'est
   // ce qui doit borner le mode farm / voyage, sinon un joueur qui vient de

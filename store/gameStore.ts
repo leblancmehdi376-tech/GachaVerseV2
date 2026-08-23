@@ -3,8 +3,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
-  calcCharDps, xpToNextLevel, levelUpCost, heroLevelUpCost,
-  evoCost, canEvolve, canEvolveHero, getLevelCap, RARITY_CONFIG, Rarity, getNextRarity,
+  calcCharDps, levelUpCost, heroLevelUpCost,
+  evoCost, canEvolve, canEvolveHero, getLevelCap, Rarity, getNextRarity,
   evoStoneCost, EVOLUTION_STONE_ITEM_ID,
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
@@ -108,7 +108,6 @@ function broadcastAndSaveLocal() {
   try {
     const s = useGameStore.getState();
     const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory, savedAt: Date.now() };
-    const raw = JSON.stringify(snapshot);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) ?? '{}'), ...snapshot }));
     BROADCAST_CHANNEL?.postMessage({ type: 'PULL_SYNC', data: snapshot });
   } catch { /* ignore */ }
@@ -1175,9 +1174,6 @@ export const useGameStore = create<GameStore>()(
       claimQuest: (id) => set(s => {
         const q = s.quests.find(q => q.id === id);
         if (!q || q.current < q.target || q.done) return {};
-        try {
-          const uid = require('@/lib/firebase/config').auth?.currentUser?.uid ?? null;
-        } catch {}
         return {
           quests: s.quests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
           nekoGems:   q.rewardType==='gems'  ? s.nekoGems  + q.reward : s.nekoGems,
@@ -1222,9 +1218,6 @@ export const useGameStore = create<GameStore>()(
       claimWeeklyQuest: (id) => set(s => {
         const q = s.weeklyQuests?.find(q => q.id === id);
         if (!q || q.current < q.target || q.done) return {};
-        try {
-          const uid = require('@/lib/firebase/config').auth?.currentUser?.uid ?? null;
-        } catch {}
         return {
           weeklyQuests: s.weeklyQuests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
           nekoGems:   q.rewardType==='gems'  ? s.nekoGems   + q.reward : s.nekoGems,
@@ -1236,9 +1229,6 @@ export const useGameStore = create<GameStore>()(
       claimEventQuest: (id) => set(s => {
         const q = s.eventQuests?.find(q => q.id === id);
         if (!q || q.current < q.target || q.done) return {};
-        try {
-          const uid = require('@/lib/firebase/config').auth?.currentUser?.uid ?? null;
-        } catch {}
         return {
           eventQuests: s.eventQuests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
           nekoGems:   q.rewardType==='gems'  ? s.nekoGems   + q.reward : s.nekoGems,

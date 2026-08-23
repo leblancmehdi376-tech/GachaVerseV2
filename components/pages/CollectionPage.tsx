@@ -11,7 +11,7 @@ import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 import { CollectionFilters, COLLECTION_RARITY_ORDER, CollectionFilterMode, CollectionAffinityMode, CollectionSortMode } from '@/components/ui/CollectionFilters';
 import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
-import { getAffinityForId, type Affinity } from '@/lib/game/affinities';
+import { getAffinityForId } from '@/lib/game/affinities';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 

@@ -76,7 +76,7 @@ export const useAchievementStore = create<AchievementState>()(
             if (!gs.suppressToasts) {
               toast.levelup(`🏆 ${achiev.name}`, 'Récompense disponible — clique sur RÉCUP !');
             }
-          } catch (e) {
+          } catch {
             // If require fails for any reason, fallback to showing the toast.
             toast.levelup(`🏆 ${achiev.name}`, 'Récompense disponible — clique sur RÉCUP !');
           }
@@ -102,11 +102,6 @@ export const useAchievementStore = create<AchievementState>()(
           useGameStore.setState((gs: { nekoGems: number }) => ({ nekoGems: gs.nekoGems + (achiev.reward!.value as number) }));
         }
 
-        // Audit log
-        try {
-          const uid = require('@/lib/firebase/config').auth?.currentUser?.uid ?? null;
-        } catch {}
-
         const rewardMsg = achiev.reward
           ? achiev.reward.type === 'gems'
             ? `+${achiev.reward.value} 💎`
@@ -119,7 +114,7 @@ export const useAchievementStore = create<AchievementState>()(
           if (!gs.suppressToasts) {
             toast.levelup(`✅ Récompense reçue`, rewardMsg || achiev.description);
           }
-        } catch (e) {
+        } catch {
           toast.levelup(`✅ Récompense reçue`, rewardMsg || achiev.description);
         }
       },

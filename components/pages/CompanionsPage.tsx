@@ -11,12 +11,12 @@ import { calculateEquippedTeamDps, calculateCharacterEquippedDps, getEquipmentMu
 import { calcCharDps, EQUIPMENT_SLOT_LABELS, EQUIPMENT_SLOTS } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { RARITY_CONFIG } from '@/types/game';
-import { AFFINITY_ORDER, getAffinityForId } from '@/lib/game/affinities';
+import { getAffinityForId } from '@/lib/game/affinities';
 import { AffinityBadge } from '@/components/ui/AffinityBadge';
 import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { CollectionFilters, COLLECTION_RARITY_ORDER, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
+import { CollectionFilters, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
 import { RARITY_GATES } from '@/lib/game/gacha';
 
 const RARITY_PRIORITY: Record<string, number> = {
@@ -71,7 +71,7 @@ export function CompanionsPage() {
     return RARITY_PRIORITY[aRarity] - RARITY_PRIORITY[bRarity];
   });
   const universeOptions = (Array.from(new Set(Object.values(collection).map(c => getCharacterById(c.templateId)?.universe).filter(Boolean))) as string[]).sort();
-  const filteredCollection = [...owned].filter(([instanceKey, ownedChar]) => {
+  const filteredCollection = [...owned].filter(([, ownedChar]) => {
     const tpl = getCharacterById(ownedChar.templateId);
     if (!tpl) return false;
     const matchesAffinity = affinity === 'all' ? true : getAffinityForId(tpl.id) === affinity;
@@ -80,7 +80,7 @@ export function CompanionsPage() {
     if (filter !== 'all') return tpl.rarity === filter && matchesAffinity;
     if (universe !== 'all' && tpl.universe !== universe) return false;
     return matchesAffinity;
-  }).filter(([instanceKey, ownedChar]) => {
+  }).filter(([, ownedChar]) => {
     const tpl = getCharacterById(ownedChar.templateId);
     if (!tpl) return false;
     return universe === 'all' ? true : tpl.universe === universe;

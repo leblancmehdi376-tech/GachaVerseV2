@@ -85,18 +85,6 @@ export async function ensureUserDoc(
   }
 }
 
-/** Le compte est-il validé et peut-il jouer ? */
-export async function isApproved(uid: string): Promise<boolean> {
-  if (!db) return true; // pas de Firebase configuré : ne bloque rien
-  try {
-    const snap = await getDoc(doc(db, 'users', uid));
-    if (!snap.exists()) return false; // pas de demande trouvée = pas validé
-    return !!snap.data().approved;
-  } catch {
-    return true; // en cas d'erreur réseau, on ne bloque pas injustement le joueur
-  }
-}
-
 /** Liste toutes les demandes en attente (page d'admin). */
 export async function getPendingRequests(): Promise<AccessRequest[]> {
   if (!db) return [];

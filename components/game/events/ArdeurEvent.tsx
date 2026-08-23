@@ -11,7 +11,7 @@ import {
 export function ArdeurEvent() {
   const end             = useRandomEventStore(s => s.end);
   const setEventDpsMult = useGameStore(s => s.setEventDpsMult);
-  const [heat, setHeat] = useState(0);          // 0 → 1
+  const [, setHeat] = useState(0);              // force un re-render à chaque tick (valeur lue via heatRef)
   const [timeLeft, setTimeLeft] = useState(ARDEUR_DURATION_MS);
   const heatRef = useRef(0);
 

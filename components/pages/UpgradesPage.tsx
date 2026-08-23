@@ -11,8 +11,8 @@ import { RarityBadge } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { computeActiveSynergies, SYNERGIES_LIST as SYNERGIES } from '@/lib/game/synergies';
 import { parseInstanceKey } from '@/lib/game/editions';
-import { getAffinityForId, AFFINITY_ORDER } from '@/lib/game/affinities';
-import { CollectionFilters, COLLECTION_RARITY_ORDER, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
+import { getAffinityForId } from '@/lib/game/affinities';
+import { CollectionFilters, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
 
 const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
