@@ -46,17 +46,17 @@ export const ITEM_DEFS: Record<string, ItemDef> = {
   },
   masque_cid: {
     id: 'masque_cid', name: 'Masque de Cid', icon: '🎭', color: '#a78bfa',
-    description: "Débloque la 1ère évolution de Cid Kagenou (Shadow) — aussi requis pour son évolution suivante.",
+    description: "Débloque la 1ère évolution de Cid Kagenou (Shadow) — aussi requis (en plus des suivants) pour ses évolutions ultérieures.",
     sellGems: 100,
   },
   epee_slime: {
     id: 'epee_slime', name: 'Épée de Slime', icon: '🗡️', color: '#38bdf8',
-    description: "Débloque la 2ème évolution de Cid Kagenou (John Smith), en plus du Masque de Cid.",
+    description: "Débloque la 2ème évolution de Cid Kagenou (John Smith), en plus du Masque de Cid — aussi requise pour l'évolution finale.",
     sellGems: 100,
   },
   slime_eminence: {
     id: 'slime_eminence', name: 'Slime', icon: '🫧', color: '#67e8f9',
-    description: "Armure de slime de l'Éminence de l'Ombre — trophée rare.",
+    description: "Débloque l'évolution finale de Cid Kagenou (L'Éminence des Ombres), en plus du Masque de Cid et de l'Épée de Slime.",
     sellGems: 250,
   },
 
