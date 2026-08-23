@@ -9,7 +9,7 @@ export const FLIP_DELAY_MS = 3000;
 export const REVEAL_TEASER_MS = 5200;
 
 export const CHARACTER_QUOTES: Record<string, string> = {
-  arthur_leywin: 'Je deviendrai plus fort, quel qu’en soit le prix.',
+  arthur_leywin: 'Je protégerai ceux que j’aime, peu importe le prix.',
   goku:          'I AM THE SUPER SAYEN, SON GOKU',
   limule:        'Je ne suis pas un slime méchant !',
   nekoz:         'Nan, Jpeut pas jouer j’ai la reine de ce monde !',
@@ -23,13 +23,13 @@ export const CHARACTER_QUOTES: Record<string, string> = {
   rayquaza:      'ROAR !',
   ouchuu:        'Marche ou Crève, C’est mieux de crever',
   qin_shi_huang: 'Quel genre de roi a besoin de regarder derrière lui ?',
-  vegeto:        'La fusion parfaite pour un pouvoir absolu.',
-  gogeta:        'Ensemble, nous sommes invincibles.',
-  aizen_t:       'Tout n’était que théâtre... jusqu’à cet instant.',
-  yoriichi:      'Ma lame ne connaît pas la défaite.',
-  brunhilde:     'Au nom des Valkyries, je porte le jugement.',
-  chara:         'Determination.',
-  shanks:        'Je n’ai qu’un seul bras, mais une volonté sans limites.',
+  vegeto:        'Qu’est-ce qu’il y a ? Tu trouves que mes mouvements sont trop rapides pour toi ?',
+  gogeta:        'Je ne suis ni Goku ni Vegeta... Je vais t’anéantir !',
+  aizen_t:       'Personne n’a jamais siégé au sommet des cieux... À partir de maintenant, ce sera moi.',
+  yoriichi:      'As-tu déjà vu le véritable éclat du Soleil ?',
+  brunhilde:     'Il est grand temps de montrer aux dieux la terreur qu’inspire l’humanité.',
+  chara:         'Greetings. I am',
+  shanks:        'Je suis venu... pour mettre fin à cette guerre !',
 };
 
 const FALLBACK_QUOTES: Record<'P' | 'T', string[]> = {
