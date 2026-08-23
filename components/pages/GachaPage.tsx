@@ -9,12 +9,14 @@ import { RARITY_CONFIG, Rarity, CardEdition } from '@/types/game';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { formatNumber } from '@/lib/game/format';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
+import { REVEAL_TEASER_MS, getCharacterQuote, getCharacterSoundPath } from '@/lib/game/gachaReveal';
 
 /* ─────────────────────────────────────────────────────────────────
    CONSTANTS
 ───────────────────────────────────────────────────────────────── */
 const HIGH_RARITY: Rarity[] = ['L','M','S','CO','P','T'];
 const ULTRA_RARITY: Rarity[] = ['S','CO','P','T'];
+const TEASED_RARITY: Rarity[] = ['P','T']; // déclenchent l'écran de brouillard avant le flip
 
 type Res = { templateId: string; isNew: boolean; edition: CardEdition };
 
@@ -100,12 +102,122 @@ function RarityBurst({ color, active }: { color: string; active: boolean }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   ÉCRAN DE BROUILLARD — teaser affiché juste avant qu'une carte
+   Primordiale/Transcendante ne se retourne
+───────────────────────────────────────────────────────────────── */
+function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () => void }) {
+  const tpl = getCharacterById(res.templateId);
+  const rarity: 'P' | 'T' = tpl?.rarity === 'T' ? 'T' : 'P';
+  const cfg = RARITY_CONFIG[rarity];
+  const quote = getCharacterQuote(res.templateId, rarity);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const tIn = setTimeout(() => setVisible(true), 20);
+    const tOut = setTimeout(onDone, REVEAL_TEASER_MS);
+
+    let audio: HTMLAudioElement | null = null;
+    try {
+      audio = new Audio(getCharacterSoundPath(res.templateId));
+      audio.volume = 0.8;
+      audio.play().catch(() => {});
+    } catch { /* pas de son disponible pour ce personnage */ }
+
+    return () => {
+      clearTimeout(tIn); clearTimeout(tOut);
+      audio?.pause();
+    };
+  }, [res.templateId, onDone]);
+
+  return (
+    <div
+      onClick={onDone}
+      style={{
+        position:'absolute', inset:0, zIndex:50, overflow:'hidden', cursor:'pointer',
+        background:'#050208',
+        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+        opacity: visible ? 1 : 0, transition:'opacity 0.6s ease',
+      }}
+    >
+      {/* Brouillard */}
+      <div style={{ position:'absolute', inset:'-15%', filter:'blur(60px)', pointerEvents:'none' }}>
+        <div style={{
+          position:'absolute', width:'60%', height:'60%', left:'10%', top:'15%', borderRadius:'50%',
+          background:`radial-gradient(circle, ${cfg.color}55, transparent 70%)`,
+          animation:'gvFogDrift1 9s ease-in-out infinite',
+        }} />
+        <div style={{
+          position:'absolute', width:'55%', height:'55%', right:'8%', bottom:'12%', borderRadius:'50%',
+          background:`radial-gradient(circle, ${cfg.glow}44, transparent 70%)`,
+          animation:'gvFogDrift2 11s ease-in-out infinite',
+        }} />
+        <div style={{
+          position:'absolute', width:'40%', height:'40%', left:'32%', top:'32%', borderRadius:'50%',
+          background:`radial-gradient(circle, ${cfg.color}33, transparent 70%)`,
+          animation:'gvFogDrift1 7s ease-in-out infinite reverse',
+        }} />
+      </div>
+
+      {/* Silhouette du personnage */}
+      {tpl && (
+        <div style={{
+          position:'relative', marginBottom:26,
+          filter:`brightness(0) drop-shadow(0 0 40px ${cfg.glow}) drop-shadow(0 0 80px ${cfg.glow}88)`,
+          opacity: visible ? 0.9 : 0,
+          transform: visible ? 'scale(1)' : 'scale(0.9)',
+          transition:'opacity 1s ease, transform 1s ease',
+        }}>
+          <CharacterCardThumb templateId={res.templateId} name={tpl.name} rarity={tpl.rarity} edition={res.edition} width={150} height={205} style={{ border:'none', boxShadow:'none' }} />
+        </div>
+      )}
+
+      <div style={{ position:'relative', zIndex:2, textAlign:'center', padding:'0 40px', maxWidth:640 }}>
+        <div style={{
+          fontFamily:'var(--f-ui)', fontSize:13, letterSpacing:4, fontWeight:700,
+          color:cfg.color, opacity:0.85, marginBottom:16,
+          animation:'gvGlowPulse 2s ease-in-out infinite',
+        }}>
+          {rarity === 'T' ? '✦ UNE PRÉSENCE TRANSCENDANTE ÉMERGE ✦' : '✦ UNE FORCE PRIMORDIALE ÉMERGE ✦'}
+        </div>
+        <div style={{
+          fontFamily:'var(--f-title)', fontSize:24, fontWeight:900, color:'white', lineHeight:1.5,
+          textShadow:`0 0 30px ${cfg.glow}, 0 0 60px ${cfg.glow}88`,
+        }}>
+          « {quote} »
+        </div>
+        {tpl && (
+          <div style={{ marginTop:20, fontFamily:'var(--f-ui)', fontSize:14, letterSpacing:3, color:cfg.color, fontWeight:800 }}>
+            {tpl.name.toUpperCase()}
+          </div>
+        )}
+        <div style={{ marginTop:28, fontFamily:'var(--f-ui)', fontSize:11, letterSpacing:1, color:'rgba(255,255,255,0.3)' }}>
+          cliquer pour passer
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes gvFogDrift1 {
+          0%,100% { transform:translate(-6%,-4%) scale(1); }
+          50%     { transform:translate(6%,4%) scale(1.18); }
+        }
+        @keyframes gvFogDrift2 {
+          0%,100% { transform:translate(5%,3%) scale(1.1); }
+          50%     { transform:translate(-5%,-5%) scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
    SINGLE FLIP CARD
 ───────────────────────────────────────────────────────────────── */
-function FlipCard({ res, index, total, autoFlip, delay }: {
+function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
   res: Res; index: number; total: number; autoFlip: boolean; delay: number;
+  preReveal?: () => Promise<void>;
 }) {
   const [flipped,  setFlipped]  = useState(false);
+  const [flipping, setFlipping] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [burst,    setBurst]    = useState(false);
   const [hovered,  setHovered]  = useState(false);
@@ -115,14 +227,16 @@ function FlipCard({ res, index, total, autoFlip, delay }: {
   const isHigh  = tpl ? HIGH_RARITY.includes(tpl.rarity)  : false;
   const isUltra = tpl ? ULTRA_RARITY.includes(tpl.rarity) : false;
 
-  const doFlip = useCallback(() => {
-    if (flipped) return;
+  const doFlip = useCallback(async () => {
+    if (flipped || flipping) return;
+    setFlipping(true);
+    if (preReveal) await preReveal();
     setFlipped(true);
     setTimeout(() => {
       setRevealed(true);
       if (isHigh) setBurst(true);
     }, 340);
-  }, [flipped, isHigh]);
+  }, [flipped, flipping, isHigh, preReveal]);
 
   useEffect(() => {
     if (!autoFlip) return;
@@ -456,6 +570,40 @@ function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClose: () 
   const [autoFlip, setAutoFlip]   = useState(false);
   const [allFlipped, setAllFlipped] = useState(false);
 
+  // File d'attente des écrans "brouillard" Primordial/Transcendant : une seule
+  // instance à l'écran à la fois, les cartes en attente patientent leur tour.
+  const [activeTeaser, setActiveTeaser] = useState<{ index: number; res: Res } | null>(null);
+  const teaserQueueRef  = useRef<{ index: number; res: Res; resolve: () => void }[]>([]);
+  const teasedRef       = useRef<Set<number>>(new Set());
+  const activeTeaserRef = useRef<{ index: number; res: Res; resolve: () => void } | null>(null);
+
+  const processTeaserQueue = useCallback(() => {
+    if (activeTeaserRef.current) return;
+    const next = teaserQueueRef.current.shift();
+    if (!next) return;
+    activeTeaserRef.current = next;
+    setActiveTeaser(next);
+  }, []);
+
+  const requestReveal = useCallback((index: number, res: Res) => {
+    if (teasedRef.current.has(index)) return Promise.resolve();
+    return new Promise<void>(resolve => {
+      teaserQueueRef.current.push({ index, res, resolve });
+      processTeaserQueue();
+    });
+  }, [processTeaserQueue]);
+
+  const handleTeaserDone = useCallback(() => {
+    const current = activeTeaserRef.current;
+    if (current) {
+      teasedRef.current.add(current.index);
+      activeTeaserRef.current = null;
+      current.resolve();
+    }
+    setActiveTeaser(null);
+    processTeaserQueue();
+  }, [processTeaserQueue]);
+
   const handlePortalDone = useCallback(() => {
     setPhase('cards');
     // Début du flip auto séquentiel après 300ms
@@ -464,13 +612,17 @@ function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClose: () 
 
   // Quand toutes les cartes sont retournées → montrer résumé
   const totalCards = results.length;
+  const teasedCount = results.filter(r => {
+    const tpl = getCharacterById(r.templateId);
+    return tpl && TEASED_RARITY.includes(tpl.rarity);
+  }).length;
   useEffect(() => {
     if (!autoFlip) return;
-    // Délai total = dernière carte + animation flip
-    const lastDelay = (totalCards - 1) * 120 + 900;
+    // Délai total = dernière carte + animation flip + écrans brouillard éventuels
+    const lastDelay = (totalCards - 1) * 120 + 900 + teasedCount * REVEAL_TEASER_MS;
     const t = setTimeout(() => setAllFlipped(true), lastDelay);
     return () => clearTimeout(t);
-  }, [autoFlip, totalCards]);
+  }, [autoFlip, totalCards, teasedCount]);
 
   return (
     <div
@@ -492,6 +644,11 @@ function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClose: () 
       {/* ── PHASE : PORTAIL ── */}
       {phase === 'portal' && (
         <InvocationPortal onDone={handlePortalDone} />
+      )}
+
+      {/* ── ÉCRAN BROUILLARD (Primordial/Transcendant) ── */}
+      {activeTeaser && (
+        <PrimordialRevealScreen res={activeTeaser.res} onDone={handleTeaserDone} />
       )}
 
       {/* ── PHASE : CARTES ── */}
@@ -519,16 +676,21 @@ function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClose: () 
                 display:'flex', flexWrap:'wrap', gap:results.length > 5 ? 10 : 14,
                 justifyContent:'center', alignItems:'flex-start',
               }}>
-                {results.map((res, i) => (
-                  <FlipCard
-                    key={i}
-                    res={res}
-                    index={i}
-                    total={results.length}
-                    autoFlip={autoFlip}
-                    delay={i * 120}
-                  />
-                ))}
+                {results.map((res, i) => {
+                  const tpl = getCharacterById(res.templateId);
+                  const isTeased = tpl ? TEASED_RARITY.includes(tpl.rarity) : false;
+                  return (
+                    <FlipCard
+                      key={i}
+                      res={res}
+                      index={i}
+                      total={results.length}
+                      autoFlip={autoFlip}
+                      delay={i * 120}
+                      preReveal={isTeased ? () => requestReveal(i, res) : undefined}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>
