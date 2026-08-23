@@ -25,8 +25,14 @@ export interface Achievement {
   };
 }
 
+// Regroupés par category (voir AchievCategory), puis par thème de description
+// au sein de chaque catégorie (ex: tous les "kills_*" ensemble, tous les
+// "dps_*" ensemble...), triés par target croissante dans chaque sous-groupe.
+// Quand un succès n'a pas d'équivalent thématique dans sa catégorie, il forme
+// son propre groupe d'un seul élément, ordonné par target parmi les autres.
 export const ACHIEVEMENTS: Achievement[] = [
   // ── COMBAT ──────────────────────────────────────────────────────────────
+  // — Vaincre des monstres —
   {
     id:'kills_1', category:'combat', icon:'🗡',
     title:'Premier Sang', name:'Baptême du Feu',
@@ -63,6 +69,16 @@ export const ACHIEVEMENTS: Achievement[] = [
     resetsOnPrestige:true,
   },
   {
+    id:'kills_1000000', category:'combat', icon:'🔥',
+    title:'Apocalypse', name:'Extermination Totale',
+    description:'Vaincs 1 000 000 de monstres à vie.', target:1000000,
+    reward:{ type:'gems', value:1000 },
+    secret:true,
+    resetsOnPrestige:true,
+  },
+
+  // — Vaincre des boss —
+  {
     id:'first_boss', category:'combat', icon:'💀',
     title:'Briseur de Cornes', name:'Chasseur de Boss',
     description:'Vaincs ton premier boss.', target:1,
@@ -87,6 +103,14 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward:{ type:'title', value:'Six Seven' },
   },
   {
+    id:'bosses_100', category:'combat', icon:'⚰',
+    title:'Fossoyeur', name:'Chasseur de Titans',
+    description:'Vaincs 100 boss au total.', target:100,
+    reward:{ type:'gems', value:250 },
+  },
+
+  // — Atteindre un DPS —
+  {
     id:'dps_1000', category:'combat', icon:'📈',
     title:'Puissant', name:'Machine de Guerre',
     description:'Atteins 1 000 DPS.', target:1000,
@@ -100,8 +124,33 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward:{ type:'gems', value:20 },
     resetsOnPrestige:true,
   },
+  {
+    id:'dps_100m', category:'combat', icon:'💢',
+    title:'Cataclysme', name:'Puissance Infinie',
+    description:'Atteins 100 000 000 DPS.', target:100000000,
+    reward:{ type:'gems', value:50 },
+    secret:true,
+    resetsOnPrestige:true,
+  },
+  {
+    id:'dps_1b', category:'combat', icon:'🌀',
+    title:'Singularité', name:'Singularité',
+    description:'Atteins 1 000 000 000 DPS.', target:1000000000,
+    reward:{ type:'gems', value:90 },
+    secret:true,
+    resetsOnPrestige:true,
+  },
+
+  // — Couronnes de Boss (sans équivalent thématique) —
+  {
+    id:'crowns_50', category:'combat', icon:'👑',
+    title:'Souverain', name:'Souverain',
+    description:'Obtiens 50 Couronnes de Boss au total.', target:50,
+    reward:{ type:'gems', value:200 },
+  },
 
   // ── PROGRESSION ──────────────────────────────────────────────────────────
+  // — Atteindre un palier —
   {
     id:'palier_5', category:'progression', icon:'🌍',
     title:'Voyageur', name:'Cinq Mondes',
@@ -128,6 +177,15 @@ export const ACHIEVEMENTS: Achievement[] = [
     secret:true,
   },
   {
+    id:'palier_40', category:'progression', icon:'🏁',
+    title:'Finisseur', name:'Le Bout du Voyage',
+    description:'Atteins le palier 40, la fin du voyage.', target:40,
+    reward:{ type:'gems', value:1000 },
+    secret:true,
+  },
+
+  // — Accumuler des Pixel-Coins —
+  {
     id:'coins_100k', category:'progression', icon:'🪙',
     title:'Économe', name:'Cent Mille',
     description:'Accumule 100 000 Pixel-Coins.', target:100000,
@@ -150,10 +208,35 @@ export const ACHIEVEMENTS: Achievement[] = [
     resetsOnPrestige:true,
   },
   {
+    id:'coins_10b', category:'progression', icon:'🏦',
+    title:'Ploutocrate', name:'Au-delà des Étoiles',
+    description:'Accumule 10 000 000 000 Pixel-Coins.', target:10000000000,
+    reward:{ type:'gems', value:60 },
+    secret:true,
+    resetsOnPrestige:true,
+  },
+  {
+    id:'coins_100b', category:'progression', icon:'🏛',
+    title:'Empereur', name:'Empereur Économique',
+    description:'Accumule 100 000 000 000 Pixel-Coins.', target:100000000000,
+    reward:{ type:'gems', value:100 },
+    secret:true,
+    resetsOnPrestige:true,
+  },
+
+  // — Améliorer (perso, héros, Coffre d'Or) —
+  {
     id:'upgrade_10', category:'progression', icon:'⬆',
     title:'Optimisateur', name:'Toujours Plus Fort',
     description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 50 fois au total.', target:50,
     reward:{ type:'gems', value:10 },
+    resetsOnPrestige:true,
+  },
+  {
+    id:'upgrade_200', category:'progression', icon:'⚒',
+    title:'Maître Artisan', name:'Maître Artisan',
+    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 200 fois au total.', target:200,
+    reward:{ type:'gems', value:300 },
     resetsOnPrestige:true,
   },
   {
@@ -164,7 +247,44 @@ export const ACHIEVEMENTS: Achievement[] = [
     resetsOnPrestige:true,
   },
 
+  // — Prestige —
+  {
+    id:'prestige_1', category:'progression', icon:'🔄',
+    title:'Réincarné', name:'Nouveau Départ',
+    description:'Effectue ton premier Prestige.', target:1,
+    reward:{ type:'title', value:'Réincarné' },
+  },
+  {
+    id:'prestige_10', category:'progression', icon:'♾',
+    title:'Ascendant', name:'Ascension Ultime',
+    description:'Atteins le niveau 5 de Prestige.', target:5,
+    reward:{ type:'gems', value:3000 },
+    secret:true,
+  },
+  {
+    id:'prestige_25', category:'progression', icon:'🔄',
+    title:'Renaissant', name:'Renaissance Infinie',
+    description:'Atteins le niveau 20 de Prestige.', target:20,
+    reward:{ type:'gems', value:1500 },
+    secret:true,
+  },
+
+  // — Accumuler une ressource (sans équivalent thématique chacune) —
+  {
+    id:'gems_1000', category:'progression', icon:'💠',
+    title:'Trésorier', name:'Trésor Sans Fond',
+    description:'Accumule 1 000 Neko-Gemmes en stock.', target:1000,
+    reward:{ type:'gems', value:150 },
+  },
+  {
+    id:'orbs_30', category:'progression', icon:'🔮',
+    title:'Néant Incarné', name:'Le Vide t\'Appelle',
+    description:'Accumule 30 Orbes du Néant.', target:30,
+    reward:{ type:'gems', value:20 },
+  },
+
   // ── COLLECTION ──────────────────────────────────────────────────────────
+  // — Obtenir des personnages différents —
   {
     id:'collect_1', category:'collection', icon:'🐣',
     title:'Recruteur', name:'Premier Allié',
@@ -201,12 +321,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     secret:true,
     resetsOnPrestige:true,
   },
-  {
-    id:'legendary_1', category:'collection', icon:'✨',
-    title:'Chanceux', name:'Or Pur',
-    description:'Obtiens un personnage Légendaire.', target:1,
-    reward:{ type:'gems', value:20 },
-  },
+
+  // — Personnages Transcendants —
   {
     id:'transcendant_1', category:'collection', icon:'🌈',
     title:'Élu', name:'Au-Delà de Tout',
@@ -215,13 +331,110 @@ export const ACHIEVEMENTS: Achievement[] = [
     secret:true,
   },
   {
+    id:'transcendant_3', category:'collection', icon:'🌈',
+    title:'Élu Suprême', name:'Élu des Élus',
+    description:'Possède 3 personnages Transcendants différents.', target:3,
+    reward:{ type:'gems', value:1800 },
+    secret:true,
+  },
+
+  // — Éditions Or/Diamant —
+  {
+    id:'gold_1', category:'collection', icon:'✨',
+    title:'Étincelant', name:'Première Étincelle',
+    description:'Obtiens ta première carte Édition Or.', target:1,
+    reward:{ type:'gems', value:400 },
+  },
+  {
+    id:'diamond_1', category:'collection', icon:'💠',
+    title:'Éclat Pur', name:'Diamant Brut',
+    description:'Obtiens ta première carte Édition Diamant.', target:1,
+    reward:{ type:'gems', value:600 },
+    secret:true,
+  },
+  {
+    id:'diamond_3', category:'collection', icon:'👑',
+    title:'Prisme Absolu', name:'Le Nec Plus Ultra',
+    description:'Possède 3 personnages Diamant différents.', target:3,
+    reward:{ type:'gems', value:1000 },
+    secret:true,
+  },
+  {
+    id:'diamond_10', category:'collection', icon:'💎',
+    title:'Éternel', name:'Diamant Éternel',
+    description:'Possède 10 personnages différents en édition Diamant.', target:10,
+    reward:{ type:'gems', value:2000 },
+    secret:true,
+  },
+  {
+    id:'shiny_10', category:'collection', icon:'🌟',
+    title:'Scintillant', name:'Collection Étincelante',
+    description:'Possède 10 cartes Or ou Diamant au total.', target:10,
+    reward:{ type:'gems', value:550 },
+  },
+
+  // — Même personnage en Base + Or + Diamant —
+  {
+    id:'trio_perfect', category:'collection', icon:'🔱',
+    title:'Trinité', name:'Trio Parfait',
+    description:'Possède un même personnage en Base, Or ET Diamant.', target:1,
+    reward:{ type:'gems', value:300 },
+    secret:true,
+  },
+  {
+    id:'pantheon_5', category:'collection', icon:'🏺',
+    title:'Architecte du Panthéon', name:'Panthéon Complet',
+    description:'Possède 5 personnages différents en Base, Or ET Diamant à la fois.', target:5,
+    reward:{ type:'gems', value:1000 },
+    secret:true,
+  },
+
+  // — Rang 7★ —
+  {
+    id:'rank7_1', category:'collection', icon:'⭐',
+    title:'Astre', name:'Étoile Filante',
+    description:'Monte un personnage au rang 7★ maximum.', target:1,
+    reward:{ type:'gems', value:40 },
+    resetsOnPrestige:true,
+  },
+  {
+    id:'rank7_5', category:'collection', icon:'🌌',
+    title:'Nébuleuse', name:'Constellation',
+    description:'Monte 5 personnages différents au rang 7★.', target:5,
+    reward:{ type:'gems', value:70 },
+    resetsOnPrestige:true,
+  },
+  {
+    id:'rank7_team', category:'collection', icon:'🛡',
+    title:'Garde d\'Élite', name:'Escouade d\'Élite',
+    description:'Équipe une équipe complète (4/4) de personnages rang 7★.', target:1,
+    reward:{ type:'gems', value:200 },
+    secret:true,
+    resetsOnPrestige:true,
+  },
+
+  // — Sans équivalent thématique —
+  {
+    id:'legendary_1', category:'collection', icon:'✨',
+    title:'Chanceux', name:'Or Pur',
+    description:'Obtiens un personnage Légendaire.', target:1,
+    reward:{ type:'gems', value:20 },
+  },
+  {
     id:'equip_team', category:'collection', icon:'⚙',
     title:'Tacticien', name:'Équipe Complète',
     description:'Équipe les 4 emplacements d\'allié.', target:4,
     reward:{ type:'gems', value:15 },
   },
+  {
+    id:'synergy_max', category:'collection', icon:'🔗',
+    title:'Harmonie Totale', name:'Synergie Parfaite',
+    description:'Active une synergie d\'univers à son palier maximum.', target:1,
+    reward:{ type:'gems', value:180 },
+  },
 
   // ── GACHA ────────────────────────────────────────────────────────────────
+  // — Effectuer des tirages —
   {
     id:'pull_1', category:'gacha', icon:'🎰',
     title:'Joueur', name:'Premier Tirage',
@@ -252,6 +465,24 @@ export const ACHIEVEMENTS: Achievement[] = [
     resetsOnPrestige:true,
   },
   {
+    id:'pull_1000', category:'gacha', icon:'🌀',
+    title:'Insatiable', name:'Chance Insolente',
+    description:'Effectue 1 000 tirages gacha.', target:1000,
+    reward:{ type:'gems', value:400 },
+    resetsOnPrestige:true,
+  },
+  {
+    id:'pull_5000', category:'gacha', icon:'🎡',
+    title:'Insatiable Absolu', name:'Addiction Sans Limite',
+    description:'Effectue 5 000 tirages gacha.', target:5000,
+    reward:{ type:'gems', value:1000 },
+    secret:true,
+    resetsOnPrestige:true,
+  },
+
+  // ── SOCIAL (MISSIONS) ────────────────────────────────────────────────────
+  // — Compléter des quêtes —
+  {
     id:'quest_10', category:'social', icon:'📜',
     title:'Serviteur', name:'Dix Missions',
     description:'Complète 10 quêtes.', target:10,
@@ -279,209 +510,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward:{ type:'gems', value:180 },
     resetsOnPrestige:true,
   },
-
-  // ── DIFFICILES — ÉDITIONS SHINY ────────────────────────────────────────
-  {
-    id:'gold_1', category:'collection', icon:'✨',
-    title:'Étincelant', name:'Première Étincelle',
-    description:'Obtiens ta première carte Édition Or.', target:1,
-    reward:{ type:'gems', value:400 },
-  },
-  {
-    id:'diamond_1', category:'collection', icon:'💠',
-    title:'Éclat Pur', name:'Diamant Brut',
-    description:'Obtiens ta première carte Édition Diamant.', target:1,
-    reward:{ type:'gems', value:600 },
-    secret:true,
-  },
-  {
-    id:'shiny_10', category:'collection', icon:'🌟',
-    title:'Scintillant', name:'Collection Étincelante',
-    description:'Possède 10 cartes Or ou Diamant au total.', target:10,
-    reward:{ type:'gems', value:550 },
-  },
-  {
-    id:'trio_perfect', category:'collection', icon:'🔱',
-    title:'Trinité', name:'Trio Parfait',
-    description:'Possède un même personnage en Base, Or ET Diamant.', target:1,
-    reward:{ type:'gems', value:300 },
-    secret:true,
-  },
-  {
-    id:'diamond_3', category:'collection', icon:'👑',
-    title:'Prisme Absolu', name:'Le Nec Plus Ultra',
-    description:'Possède 3 personnages Diamant différents.', target:3,
-    reward:{ type:'gems', value:1000 },
-    secret:true,
-  },
-
-  // ── DIFFICILES — RANG & PUISSANCE ──────────────────────────────────────
-  {
-    id:'rank7_1', category:'collection', icon:'⭐',
-    title:'Astre', name:'Étoile Filante',
-    description:'Monte un personnage au rang 7★ maximum.', target:1,
-    reward:{ type:'gems', value:40 },
-    resetsOnPrestige:true,
-  },
-  {
-    id:'rank7_5', category:'collection', icon:'🌌',
-    title:'Nébuleuse', name:'Constellation',
-    description:'Monte 5 personnages différents au rang 7★.', target:5,
-    reward:{ type:'gems', value:70 },
-    resetsOnPrestige:true,
-  },
-  {
-    id:'rank7_team', category:'collection', icon:'🛡',
-    title:'Garde d\'Élite', name:'Escouade d\'Élite',
-    description:'Équipe une équipe complète (4/4) de personnages rang 7★.', target:1,
-    reward:{ type:'gems', value:200 },
-    secret:true,
-    resetsOnPrestige:true,
-  },
-  {
-    id:'dps_100m', category:'combat', icon:'💢',
-    title:'Cataclysme', name:'Puissance Infinie',
-    description:'Atteins 100 000 000 DPS.', target:100000000,
-    reward:{ type:'gems', value:50 },
-    secret:true,
-    resetsOnPrestige:true,
-  },
-
-  // ── DIFFICILES — ÉCONOMIE ───────────────────────────────────────────────
-  {
-    id:'coins_10b', category:'progression', icon:'🏦',
-    title:'Ploutocrate', name:'Au-delà des Étoiles',
-    description:'Accumule 10 000 000 000 Pixel-Coins.', target:10000000000,
-    reward:{ type:'gems', value:60 },
-    secret:true,
-    resetsOnPrestige:true,
-  },
-  {
-    id:'gems_1000', category:'progression', icon:'💠',
-    title:'Trésorier', name:'Trésor Sans Fond',
-    description:'Accumule 1 000 Neko-Gemmes en stock.', target:1000,
-    reward:{ type:'gems', value:150 },
-  },
-  {
-    id:'crowns_50', category:'combat', icon:'👑',
-    title:'Souverain', name:'Souverain',
-    description:'Obtiens 50 Couronnes de Boss au total.', target:50,
-    reward:{ type:'gems', value:200 },
-  },
-  {
-    id:'prestige_1', category:'progression', icon:'🔄',
-    title:'Réincarné', name:'Nouveau Départ',
-    description:'Effectue ton premier Prestige.', target:1,
-    reward:{ type:'title', value:'Réincarné' },
-  },
-  {
-    id:'prestige_10', category:'progression', icon:'♾',
-    title:'Ascendant', name:'Ascension Ultime',
-    description:'Atteins le niveau 5 de Prestige.', target:5,
-    reward:{ type:'gems', value:3000 },
-    secret:true,
-  },
-
-  // ── DIFFICILES — COMBAT & DIVERS ───────────────────────────────────────
-  {
-    id:'bosses_100', category:'combat', icon:'⚰',
-    title:'Fossoyeur', name:'Chasseur de Titans',
-    description:'Vaincs 100 boss au total.', target:100,
-    reward:{ type:'gems', value:250 },
-  },
-  {
-    id:'orbs_30', category:'progression', icon:'🔮',
-    title:'Néant Incarné', name:'Le Vide t\'Appelle',
-    description:'Accumule 30 Orbes du Néant.', target:30,
-    reward:{ type:'gems', value:20 },
-  },
-  {
-    id:'titles_25', category:'social', icon:'🎖',
-    title:'Décoré', name:'Collectionneur de Titres',
-    description:'Débloque 25 titres différents.', target:25,
-    reward:{ type:'gems', value:300 },
-  },
-  {
-    id:'pull_1000', category:'gacha', icon:'🌀',
-    title:'Insatiable', name:'Chance Insolente',
-    description:'Effectue 1 000 tirages gacha.', target:1000,
-    reward:{ type:'gems', value:400 },
-    resetsOnPrestige:true,
-  },
-  {
-    id:'synergy_max', category:'collection', icon:'🔗',
-    title:'Harmonie Totale', name:'Synergie Parfaite',
-    description:'Active une synergie d\'univers à son palier maximum.', target:1,
-    reward:{ type:'gems', value:180 },
-  },
-  {
-    id:'upgrade_200', category:'progression', icon:'⚒',
-    title:'Maître Artisan', name:'Maître Artisan',
-    description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 200 fois au total.', target:200,
-    reward:{ type:'gems', value:300 },
-    resetsOnPrestige:true,
-  },
-
-  // ── EXTRÊMEMENT DIFFICILES ──────────────────────────────────────────────
-  {
-    id:'diamond_10', category:'collection', icon:'💎',
-    title:'Éternel', name:'Diamant Éternel',
-    description:'Possède 10 personnages différents en édition Diamant.', target:10,
-    reward:{ type:'gems', value:2000 },
-    secret:true,
-  },
-  {
-    id:'palier_40', category:'progression', icon:'🏁',
-    title:'Finisseur', name:'Le Bout du Voyage',
-    description:'Atteins le palier 40, la fin du voyage.', target:40,
-    reward:{ type:'gems', value:1000 },
-    secret:true,
-  },
-  {
-    id:'dps_1b', category:'combat', icon:'🌀',
-    title:'Singularité', name:'Singularité',
-    description:'Atteins 1 000 000 000 DPS.', target:1000000000,
-    reward:{ type:'gems', value:90 },
-    secret:true,
-    resetsOnPrestige:true,
-  },
-  {
-    id:'coins_100b', category:'progression', icon:'🏛',
-    title:'Empereur', name:'Empereur Économique',
-    description:'Accumule 100 000 000 000 Pixel-Coins.', target:100000000000,
-    reward:{ type:'gems', value:100 },
-    secret:true,
-    resetsOnPrestige:true,
-  },
-  {
-    id:'prestige_25', category:'progression', icon:'🔄',
-    title:'Renaissant', name:'Renaissance Infinie',
-    description:'Atteins le niveau 20 de Prestige.', target:20,
-    reward:{ type:'gems', value:1500 },
-    secret:true,
-  },
-  {
-    id:'pantheon_5', category:'collection', icon:'🏺',
-    title:'Architecte du Panthéon', name:'Panthéon Complet',
-    description:'Possède 5 personnages différents en Base, Or ET Diamant à la fois.', target:5,
-    reward:{ type:'gems', value:1000 },
-    secret:true,
-  },
-  {
-    id:'transcendant_3', category:'collection', icon:'🌈',
-    title:'Élu Suprême', name:'Élu des Élus',
-    description:'Possède 3 personnages Transcendants différents.', target:3,
-    reward:{ type:'gems', value:1800 },
-    secret:true,
-  },
-  {
-    id:'pull_5000', category:'gacha', icon:'🎡',
-    title:'Insatiable Absolu', name:'Addiction Sans Limite',
-    description:'Effectue 5 000 tirages gacha.', target:5000,
-    reward:{ type:'gems', value:1000 },
-    secret:true,
-    resetsOnPrestige:true,
-  },
   {
     id:'quest_500', category:'social', icon:'📖',
     title:'Légende Vivante', name:'Héros Légendaire',
@@ -490,13 +518,13 @@ export const ACHIEVEMENTS: Achievement[] = [
     secret:true,
     resetsOnPrestige:true,
   },
+
+  // — Sans équivalent thématique —
   {
-    id:'kills_1000000', category:'combat', icon:'🔥',
-    title:'Apocalypse', name:'Extermination Totale',
-    description:'Vaincs 1 000 000 de monstres à vie.', target:1000000,
-    reward:{ type:'gems', value:1000 },
-    secret:true,
-    resetsOnPrestige:true,
+    id:'titles_25', category:'social', icon:'🎖',
+    title:'Décoré', name:'Collectionneur de Titres',
+    description:'Débloque 25 titres différents.', target:25,
+    reward:{ type:'gems', value:300 },
   },
 ];
 

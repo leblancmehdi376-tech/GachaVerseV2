@@ -13,15 +13,116 @@ export function AchievementsPage() {
   const { unlocked, progress, activeTitle, unlockedTitles, setActiveTitle, unlockedCount, isClaimed, claimAchievement } = useAchievementStore();
   const { nekoGems } = useGameStore();
   const [cat, setCat]   = useState<AchievCategory | 'all'>('all');
-  const [tab, setTab]   = useState<'achievements' | 'titles'>('achievements');
+  const [tab, setTab]   = useState<'achievements' | 'prestige' | 'titles'>('achievements');
 
   const filtered = useMemo(() =>
     cat === 'all' ? ACHIEVEMENTS : ACHIEVEMENTS.filter(a => a.category === cat),
   [cat]);
 
+  // Succès qui survivent au Prestige (resetsOnPrestige absent/false) — voir
+  // le commentaire sur ce champ dans lib/game/achievements.ts.
+  const prestigeAchievements = useMemo(() =>
+    ACHIEVEMENTS.filter(a => !a.resetsOnPrestige),
+  []);
+
   const total    = ACHIEVEMENTS.length;
   const unlockd  = unlockedCount();
   const pct      = Math.round((unlockd / total) * 100);
+
+  const renderAchievementCard = (a: typeof ACHIEVEMENTS[number]) => {
+    const done = !!unlocked[a.id];
+    const prog = progress[a.id] ?? 0;
+    const pct2 = Math.min((prog / a.target) * 100, 100);
+    const isSecret = a.secret && !done;
+
+    return (
+      <div key={a.id} className="panel" style={{
+        padding:'14px 16px',
+        borderColor: done ? 'rgba(251,191,36,0.35)' : 'var(--border)',
+        boxShadow: done ? '0 0 20px rgba(251,191,36,0.1)' : 'none',
+        opacity: isSecret ? 0.5 : 1,
+        transition:'all 0.2s',
+        position:'relative',
+        overflow:'hidden',
+      }}>
+        {/* Bande dorée en haut si terminé */}
+        {done && <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,#fbbf24,transparent)' }} />}
+
+        <div style={{ display:'flex', alignItems:'flex-start', gap:'12px' }}>
+          {/* Icône */}
+          <div style={{
+            width:40, height:40, flexShrink:0,
+            background: done ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${done ? 'rgba(251,191,36,0.4)' : 'var(--border)'}`,
+            borderRadius:'10px',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:'18.5px',
+            filter: done ? 'none' : 'grayscale(0.7)',
+          }}>
+            {isSecret ? '❓' : a.icon}
+          </div>
+
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', marginBottom:'3px' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'13.4px', color: done ? '#fbbf24' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {isSecret ? '???' : a.name}
+              </span>
+              {done && <span style={{ fontSize:'14.4px', flexShrink:0 }}>✅</span>}
+            </div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginBottom:'8px', lineHeight:1.4 }}>
+              {isSecret ? 'Succès secret — continue à jouer pour le découvrir' : a.description}
+            </div>
+
+            {!done && !isSecret && (
+              <>
+                <div className="prog-track" style={{ marginBottom:'4px' }}>
+                  <div className="prog-fill" style={{ width:`${pct2}%`, background:'linear-gradient(90deg,#78350f,#d97706,#fbbf24)', boxShadow:'0 0 6px rgba(251,191,36,0.4)' }} />
+                </div>
+                <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-dim)' }}>
+                  {formatNumber(prog)} / {formatNumber(a.target)}
+                </div>
+              </>
+            )}
+
+            {a.reward && !isSecret && (() => {
+              const alreadyClaimed = isClaimed(a.id);
+              const rewardLabel = a.reward.type === 'title'
+                ? `Titre « ${a.reward.value} »`
+                : a.reward.type === 'gems'
+                  ? `+${a.reward.value} 💎`
+                  : `+${formatNumber(a.reward.value as number)} 🪙`;
+
+              // Débloqué mais pas encore réclamé : gros bouton RÉCUP cliquable.
+              if (done && !alreadyClaimed) {
+                return (
+                  <button onClick={() => claimAchievement(a.id)}
+                    style={{ marginTop:'6px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', width:'100%',
+                      background:'linear-gradient(135deg,#f59e0b,#fbbf24)', border:'1px solid #fbbf24', borderRadius:'8px', padding:'6px 10px',
+                      cursor:'pointer', animation:'pulseGlow 1.6s ease-in-out infinite' }}>
+                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:'12px', color:'#1a1305', letterSpacing:'0.5px' }}>
+                      🎁 RÉCUP — {rewardLabel}
+                    </span>
+                  </button>
+                );
+              }
+
+              // Déjà réclamé, ou pas encore débloqué : badge statique normal.
+              return (
+                <div style={{ marginTop:'6px', display:'inline-flex', alignItems:'center', gap:'5px', background: alreadyClaimed ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.03)', border:`1px solid ${alreadyClaimed ? 'rgba(74,222,128,0.3)' : 'var(--border)'}`, borderRadius:'6px', padding:'3px 8px' }}>
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
+                    {alreadyClaimed ? '✓ Reçu :' : '🔒 Récompense :'}
+                  </span>
+                  <span style={{ fontFamily:'var(--f-num)', fontSize:'12px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
+                    {rewardLabel}
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <PageScroll>
@@ -46,13 +147,13 @@ export function AchievementsPage() {
 
         {/* Onglets */}
         <div style={{ display:'flex', gap:'8px' }}>
-          {(['achievements','titles'] as const).map(t => (
+          {(['achievements','prestige','titles'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               style={{ padding:'8px 18px', borderRadius:'8px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', letterSpacing:'0.5px', transition:'all 0.15s',
                 background: tab===t ? 'rgba(251,191,36,0.15)' : 'var(--bg-card)',
                 border: `1px solid ${tab===t ? '#fbbf2466' : 'var(--border)'}`,
                 color: tab===t ? '#fbbf24' : 'var(--text-dim)' }}>
-              {t === 'achievements' ? '🏆 SUCCÈS' : '👑 TITRES'}
+              {t === 'achievements' ? '🏆 SUCCÈS' : t === 'prestige' ? '🏆 SUCCÈS PRESTIGIEUX' : '👑 TITRES'}
             </button>
           ))}
         </div>
@@ -74,100 +175,18 @@ export function AchievementsPage() {
 
             {/* Grille succès */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(290px, 1fr))', gap:'10px' }}>
-              {filtered.map(a => {
-                const done = !!unlocked[a.id];
-                const prog = progress[a.id] ?? 0;
-                const pct2 = Math.min((prog / a.target) * 100, 100);
-                const isSecret = a.secret && !done;
+              {filtered.map(renderAchievementCard)}
+            </div>
+          </>
+        ) : tab === 'prestige' ? (
+          <>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>
+              Ces succès sont acquis pour toujours : contrairement aux autres, ils ne sont jamais remis à zéro par un Prestige.
+            </div>
 
-                return (
-                  <div key={a.id} className="panel" style={{
-                    padding:'14px 16px',
-                    borderColor: done ? 'rgba(251,191,36,0.35)' : 'var(--border)',
-                    boxShadow: done ? '0 0 20px rgba(251,191,36,0.1)' : 'none',
-                    opacity: isSecret ? 0.5 : 1,
-                    transition:'all 0.2s',
-                    position:'relative',
-                    overflow:'hidden',
-                  }}>
-                    {/* Bande dorée en haut si terminé */}
-                    {done && <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,#fbbf24,transparent)' }} />}
-
-                    <div style={{ display:'flex', alignItems:'flex-start', gap:'12px' }}>
-                      {/* Icône */}
-                      <div style={{
-                        width:40, height:40, flexShrink:0,
-                        background: done ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${done ? 'rgba(251,191,36,0.4)' : 'var(--border)'}`,
-                        borderRadius:'10px',
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                        fontSize:'18.5px',
-                        filter: done ? 'none' : 'grayscale(0.7)',
-                      }}>
-                        {isSecret ? '❓' : a.icon}
-                      </div>
-
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', marginBottom:'3px' }}>
-                          <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'13.4px', color: done ? '#fbbf24' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                            {isSecret ? '???' : a.name}
-                          </span>
-                          {done && <span style={{ fontSize:'14.4px', flexShrink:0 }}>✅</span>}
-                        </div>
-                        <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginBottom:'8px', lineHeight:1.4 }}>
-                          {isSecret ? 'Succès secret — continue à jouer pour le découvrir' : a.description}
-                        </div>
-
-                        {!done && !isSecret && (
-                          <>
-                            <div className="prog-track" style={{ marginBottom:'4px' }}>
-                              <div className="prog-fill" style={{ width:`${pct2}%`, background:'linear-gradient(90deg,#78350f,#d97706,#fbbf24)', boxShadow:'0 0 6px rgba(251,191,36,0.4)' }} />
-                            </div>
-                            <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-dim)' }}>
-                              {formatNumber(prog)} / {formatNumber(a.target)}
-                            </div>
-                          </>
-                        )}
-
-                        {a.reward && !isSecret && (() => {
-                          const alreadyClaimed = isClaimed(a.id);
-                          const rewardLabel = a.reward.type === 'title'
-                            ? `Titre « ${a.reward.value} »`
-                            : a.reward.type === 'gems'
-                              ? `+${a.reward.value} 💎`
-                              : `+${formatNumber(a.reward.value as number)} 🪙`;
-
-                          // Débloqué mais pas encore réclamé : gros bouton RÉCUP cliquable.
-                          if (done && !alreadyClaimed) {
-                            return (
-                              <button onClick={() => claimAchievement(a.id)}
-                                style={{ marginTop:'6px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', width:'100%',
-                                  background:'linear-gradient(135deg,#f59e0b,#fbbf24)', border:'1px solid #fbbf24', borderRadius:'8px', padding:'6px 10px',
-                                  cursor:'pointer', animation:'pulseGlow 1.6s ease-in-out infinite' }}>
-                                <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:'12px', color:'#1a1305', letterSpacing:'0.5px' }}>
-                                  🎁 RÉCUP — {rewardLabel}
-                                </span>
-                              </button>
-                            );
-                          }
-
-                          // Déjà réclamé, ou pas encore débloqué : badge statique normal.
-                          return (
-                            <div style={{ marginTop:'6px', display:'inline-flex', alignItems:'center', gap:'5px', background: alreadyClaimed ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.03)', border:`1px solid ${alreadyClaimed ? 'rgba(74,222,128,0.3)' : 'var(--border)'}`, borderRadius:'6px', padding:'3px 8px' }}>
-                              <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
-                                {alreadyClaimed ? '✓ Reçu :' : '🔒 Récompense :'}
-                              </span>
-                              <span style={{ fontFamily:'var(--f-num)', fontSize:'12px', color: alreadyClaimed ? '#4ade80' : 'var(--text-dim)', fontWeight:700 }}>
-                                {rewardLabel}
-                              </span>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Grille succès prestigieux */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(290px, 1fr))', gap:'10px' }}>
+              {prestigeAchievements.map(renderAchievementCard)}
             </div>
           </>
         ) : (
