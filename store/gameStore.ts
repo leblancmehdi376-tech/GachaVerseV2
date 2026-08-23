@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 import {
   GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
   calcCharDps, levelUpCost, heroLevelUpCost,
-  evoCost, canEvolve, canEvolveHero, getLevelCap, Rarity, getNextRarity,
+  evoCost, canEvolve, canEvolveHero, Rarity, getNextRarity,
   evoStoneCost, EVOLUTION_STONE_ITEM_ID,
 } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
@@ -1137,7 +1137,7 @@ export const useGameStore = create<GameStore>()(
         const tpl = getCharacterById(templateId);
         if (!tpl) return;
         const lastForm = Math.max(0, (tpl.forms?.length ?? 1) - 1);
-        const level = getLevelCap(tpl, lastForm);
+        const level = 1000;
         const key = makeInstanceKey(templateId, edition);
         set(state => ({
           collection: {

@@ -57,7 +57,6 @@ export interface EvoForm {
   formId:      string;
   name:        string;
   spritePath:  string;
-  levelCap:    number;
   dpsFormMult: number; // toujours = position de la forme (1, 2, 3...), fixé par ce() — jamais un réglage par personnage
   description: string;
   // Objets d'évolution requis (consommés, 1 exemplaire chacun) pour débloquer
@@ -101,12 +100,6 @@ export interface HeroState {
   level:       number;
   currentForm: number;
   xp:          number;
-}
-
-// ── Fonctions de calcul de niveau ─────────────────────────────────────────
-export function getLevelCap(character: CharacterTemplate, formIndex: number): number {
-  if (!character.forms || character.forms.length === 0) return 100;
-  return character.forms[formIndex]?.levelCap ?? 100 * (formIndex + 1);
 }
 
 // Coût en Pierres d'Évolution (drop d'expédition, voir lib/game/expeditions.ts
