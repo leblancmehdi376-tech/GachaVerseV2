@@ -108,8 +108,6 @@ function CharCard({ templateId }: { templateId: string }) {
   const reqItems   = (nextForm?.requiredItemIds ?? []).map(id => getItemDef(id)).filter((d): d is NonNullable<typeof d> => !!d);
   const missingItems = reqItems.filter(d => (inventory[d.id] ?? 0) < 1);
   const hasItem  = missingItems.length === 0;
-  // Icône du premier item requis, pour le bouton ÉVOLUER (voir plus bas).
-  const reqItem  = reqItems[0] ?? null;
   const canEvolveAtAll = !!tpl.forms && owned.currentForm < tpl.forms.length - 1;
   const stonesNeeded = canEvolveAtAll && !tpl.noEvoStones ? evoStoneCost(tpl.rarity, owned.currentForm) : 0;
   const stonesHave   = dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0;
@@ -189,7 +187,7 @@ function CharCard({ templateId }: { templateId: string }) {
           <button onClick={() => evolveCharacter(templateId)} disabled={pixelCoins < evoCostV}
             style={{ flex:1, padding:'8px 10px', background:pixelCoins>=evoCostV?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=evoCostV?'#d97706':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=evoCostV?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:pixelCoins>=evoCostV?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
             <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:pixelCoins>=evoCostV?'#fbbf24':'var(--text-muted)' }}>
-              {reqItem ? `${reqItem.icon} ÉVOLUER` : '✦ ÉVOLUER'}
+              {reqItems.length > 0 ? `${reqItems.map(d => d.icon).join('')} ÉVOLUER` : '✦ ÉVOLUER'}
             </span>
             <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
             <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
