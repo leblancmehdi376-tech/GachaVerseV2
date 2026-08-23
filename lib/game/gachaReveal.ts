@@ -2,7 +2,11 @@
 // ne se retourne lors d'une invocation. Phrase de personnage + emplacement
 // pour un fichier son (soundboard fourni séparément, voir getCharacterSoundPath).
 
-export const REVEAL_TEASER_MS = 3200;
+// Temps avant que la carte de dos ne commence à se retourner (le joueur a le
+// temps de lire la phrase), puis durée totale de l'écran (dos + flip + face
+// tenue un moment avant fermeture).
+export const FLIP_DELAY_MS = 3000;
+export const REVEAL_TEASER_MS = 5200;
 
 export const CHARACTER_QUOTES: Record<string, string> = {
   arthur_leywin: 'Je deviendrai plus fort, quel qu’en soit le prix.',

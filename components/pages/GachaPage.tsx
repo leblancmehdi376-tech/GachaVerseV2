@@ -9,7 +9,7 @@ import { RARITY_CONFIG, Rarity, CardEdition } from '@/types/game';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { formatNumber } from '@/lib/game/format';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
-import { REVEAL_TEASER_MS, getCharacterQuote, getCharacterSoundPath } from '@/lib/game/gachaReveal';
+import { REVEAL_TEASER_MS, FLIP_DELAY_MS, getCharacterQuote, getCharacterSoundPath } from '@/lib/game/gachaReveal';
 
 /* ─────────────────────────────────────────────────────────────────
    CONSTANTS
@@ -117,8 +117,8 @@ function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () => void 
   useEffect(() => {
     const tIn      = setTimeout(() => setVisible(true),  20);
     // Carte de dos + phrase d'abord, on laisse le temps de lire avant de retourner.
-    const tFlip    = setTimeout(() => setFlipped(true),   1000);
-    const tReveal  = setTimeout(() => setRevealed(true),  1000 + 700);
+    const tFlip    = setTimeout(() => setFlipped(true),   FLIP_DELAY_MS);
+    const tReveal  = setTimeout(() => setRevealed(true),  FLIP_DELAY_MS + 700);
     const tOut     = setTimeout(onDone, REVEAL_TEASER_MS);
 
     let audio: HTMLAudioElement | null = null;
