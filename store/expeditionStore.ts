@@ -9,6 +9,7 @@ import { Affinity, AFFINITY_ORDER, AFFINITY_CONFIG, getAffinityForId } from '@/l
 import { useGameStore } from '@/store/gameStore';
 import { toast } from '@/hooks/useToast';
 import { formatNumber } from '@/lib/game/format';
+import { correctedNow } from '@/lib/firebase/clockOffset';
 
 function rollAffinity(): Affinity {
   return AFFINITY_ORDER[Math.floor(Math.random() * AFFINITY_ORDER.length)];
@@ -121,7 +122,7 @@ export const useExpeditionStore = create<ExpeditionStore>()(
       isCharOnExpedition: (charId) => !!get().getActiveForChar(charId),
 
       getFinished: () =>
-        get().active.filter(e => !e.claimed && Date.now() >= e.endTime),
+        get().active.filter(e => !e.claimed && correctedNow() >= e.endTime),
 
       canStart: (defId, characterIds) => {
         const def = EXPEDITION_DEFS.find(d => d.id === defId);
@@ -207,7 +208,7 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         if (!ok) { toast.error('Expédition impossible', reason); return; }
 
         const def = EXPEDITION_DEFS.find(d => d.id === defId)!;
-        const now = Date.now();
+        const now = correctedNow();
         const inst: ActiveExpedition = {
           id: `exp_${now}_${_seq++}`,
           defId,
@@ -218,11 +219,17 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         };
         set(s => ({ active: [...s.active, inst] }));
         toast.info(`${def.icon} Expédition lancée`, `${def.name} — ${Math.round(def.duration / 3600)}h`);
+
+        // Événement majeur : sauvegarde immédiate, sinon une expédition tout
+        // juste lancée n'atteint le cloud qu'au prochain cycle périodique
+        // (jusqu'à 10min plus tard) — invisible depuis un autre appareil
+        // pendant tout ce temps, alors que claimExpedition, lui, le fait déjà.
+        try { require('@/hooks/useCloudSave').requestUrgentSave(); } catch { /* ignore */ }
       },
 
       claimExpedition: (instanceId) => {
         const exp = get().active.find(e => e.id === instanceId);
-        if (!exp || exp.claimed || Date.now() < exp.endTime) return;
+        if (!exp || exp.claimed || correctedNow() < exp.endTime) return;
 
         const def = EXPEDITION_DEFS.find(d => d.id === exp.defId);
         if (!def) return;

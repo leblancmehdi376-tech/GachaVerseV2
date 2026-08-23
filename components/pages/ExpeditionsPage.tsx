@@ -8,6 +8,7 @@ import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
 import { AFFINITY_CONFIG, getAffinityForId } from '@/lib/game/affinities';
+import { correctedNow } from '@/lib/firebase/clockOffset';
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
 function fmtDuration(secs: number): string {
@@ -34,7 +35,7 @@ function Countdown({ endTime }: { endTime: number }) {
     const id = setInterval(() => tick(n => n + 1), 1000);
     return () => clearInterval(id);
   }, []);
-  const rem = Math.max(0, endTime - Date.now());
+  const rem = Math.max(0, endTime - correctedNow());
   return <span style={{ fontFamily:'var(--f-num)', fontWeight:700 }}>{fmtDuration(rem / 1000)}</span>;
 }
 
@@ -220,8 +221,8 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
   const def = EXPEDITION_DEFS.find(d => d.id === exp.defId);
   if (!def) return null;
 
-  const done = Date.now() >= exp.endTime;
-  const pct  = Math.min(((Date.now() - exp.startTime) / (exp.endTime - exp.startTime)) * 100, 100);
+  const done = correctedNow() >= exp.endTime;
+  const pct  = Math.min(((correctedNow() - exp.startTime) / (exp.endTime - exp.startTime)) * 100, 100);
 
   return (
     <div className="panel" style={{ padding:'14px 16px', borderColor: done ? 'rgba(74,222,128,0.4)' : 'var(--border)', boxShadow: done ? '0 0 20px rgba(74,222,128,0.12)' : 'none', transition:'all 0.3s' }}>
