@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useExpeditionStore, ActiveExpedition } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
-import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse, getDropTiers } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
@@ -56,6 +56,43 @@ function CharSelector({ def, onConfirm, onClose }: {
     .sort((a, b) => getCharacterExpeditionDps(collection, b.id) - getCharacterExpeditionDps(collection, a.id));
   const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
   const score = getExpeditionTeamDps(collection, selected);
+  const reqMet = score >= def.minTeamDps;
+
+  // Tentatives de drop (voir computeDropAttempts dans expeditions.ts) : au-delà
+  // du seuil minTeamDps, chaque palier supplémentaire (×10 DPS) accorde 1
+  // tentative de drop de plus. La barre visualise la progression VERS LE
+  // PROCHAIN palier — elle se "reset" à chaque fois qu'un palier est franchi.
+  const hasDrop = !!def.rewards.dropId;
+  const baseAttempts = def.rewards.dropQuantity ?? 1;
+  const cap = def.rewards.dropQuantityCap;
+  const attempts = hasDrop && reqMet ? computeDropAttempts(def, score) : 0;
+  const atCap = hasDrop && cap !== undefined && attempts >= cap;
+  const bonusRolls = Math.max(0, attempts - baseAttempts);
+
+  // Bornes du segment de barre actuellement affiché.
+  let segLower = 0;
+  let segUpper = def.minTeamDps;
+  if (hasDrop && reqMet && !atCap) {
+    segLower = dpsForDropQty(def, attempts);
+    segUpper = dpsForDropQty(def, attempts + 1);
+  } else if (hasDrop && atCap) {
+    segLower = dpsForDropQty(def, attempts);
+    segUpper = segLower; // plafonné : plus de progression à afficher
+  }
+  const segProgress = atCap ? 100 : Math.min(Math.max(((score - segLower) / (segUpper - segLower)) * 100, 0), 100);
+
+  // Flash "+1 drop" quand on vient de franchir un palier de tentative.
+  const [justGainedRoll, setJustGainedRoll] = useState(false);
+  const prevBonusRolls = useRef(bonusRolls);
+  useEffect(() => {
+    if (bonusRolls > prevBonusRolls.current) {
+      setJustGainedRoll(true);
+      const t = setTimeout(() => setJustGainedRoll(false), 1200);
+      prevBonusRolls.current = bonusRolls;
+      return () => clearTimeout(t);
+    }
+    prevBonusRolls.current = bonusRolls;
+  }, [bonusRolls]);
 
   // Exigence d'univers (ou de type pour les expéditions sans univers de perso
   // réel, ex: Atelier/Chasse/Mystique) : TOUTE l'équipe envoyée doit correspondre.
@@ -96,15 +133,28 @@ function CharSelector({ def, onConfirm, onClose }: {
         </div>
 
         {/* Score */}
-        <div style={{ padding:'10px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12 }}>
-          <div className="prog-track" style={{ flex:1 }}>
-            <div className="prog-fill" style={{ width:`${Math.min((score/def.minTeamDps)*100,100)}%`,
-              background: score >= def.minTeamDps ? 'linear-gradient(90deg,#166534,#4ade80)' : undefined,
-              boxShadow: score >= def.minTeamDps ? '0 0 8px #4ade8088' : undefined }} />
+        <div style={{ padding:'10px 22px', borderBottom:'1px solid var(--border)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div className="prog-track" style={{ flex:1 }}>
+              <div className="prog-fill" style={{ width:`${segProgress}%`,
+                transition: justGainedRoll ? 'none' : undefined,
+                background: reqMet ? 'linear-gradient(90deg,#166534,#4ade80)' : undefined,
+                boxShadow: reqMet ? (justGainedRoll ? '0 0 16px #4ade80cc' : '0 0 8px #4ade8088') : undefined }} />
+            </div>
+            <span style={{ fontFamily:'var(--f-num)', fontSize:14.4, color: reqMet ? '#4ade80' : 'var(--text-dim)', whiteSpace:'nowrap' }}>
+              {formatNumber(score)} / {atCap ? formatNumber(segLower) : formatNumber(segUpper)}
+            </span>
           </div>
-          <span style={{ fontFamily:'var(--f-num)', fontSize:14.4, color: score >= def.minTeamDps ? '#4ade80' : 'var(--text-dim)', whiteSpace:'nowrap' }}>
-            {formatNumber(score)} / {formatNumber(def.minTeamDps)}
-          </span>
+          {hasDrop && reqMet && (
+            <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:6, fontFamily:'var(--f-ui)', fontSize:12 }}>
+              <span style={{ color:'#c084fc', transform: justGainedRoll ? 'scale(1.15)' : 'scale(1)', transition:'transform 0.25s' }}>
+                🎲 {atCap ? `${attempts} tentatives (MAX)` : `${attempts} tentative${attempts > 1 ? 's' : ''} de drop`}
+              </span>
+              {justGainedRoll && (
+                <span style={{ color:'#4ade80', fontWeight:700 }}>+1 tentative de drop !</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Liste persos */}
@@ -149,9 +199,9 @@ function CharSelector({ def, onConfirm, onClose }: {
         {/* Footer */}
         <div style={{ padding:'14px 22px', borderTop:'1px solid var(--border)', display:'flex', gap:10, justifyContent:'flex-end' }}>
           <button onClick={onClose} className="btn-secondary" style={{ padding:'10px 20px', fontSize:13.4, cursor:'pointer' }}>ANNULER</button>
-          <button onClick={() => { if (selected.length > 0 && score >= def.minTeamDps) onConfirm(selected); }}
+          <button onClick={() => { if (selected.length > 0 && reqMet) onConfirm(selected); }}
             className="btn-primary"
-            disabled={selected.length === 0 || score < def.minTeamDps}
+            disabled={selected.length === 0 || !reqMet}
             style={{ padding:'10px 24px', fontSize:13.4 }}>
             LANCER ({selected.length}/{def.slots})
           </button>
@@ -302,23 +352,24 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
               const drop = getPalierDrop(def.rewards.dropId);
               return drop ? (
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc', background:'rgba(192,132,252,0.1)', border:'1px solid rgba(192,132,252,0.25)', borderRadius:6, padding:'3px 8px' }}>
-                  ✦ {drop.icon} {drop.name}
+                  ✦ {drop.icon} {drop.name} ({Math.round((def.rewards.dropChance ?? 0) * 100)}%)
                 </div>
               ) : null;
             })()}
           </div>
           {/* Paliers de drop selon le DPS d'équipe — pour que le joueur sache */}
-          {/* quel DPS viser pour obtenir 2 ou 3 objets par succès. */}
+          {/* quel DPS viser pour débloquer 2 ou 3 tentatives de drop (chacune */}
+          {/* à dropChance, pas une quantité garantie). */}
           {(() => {
             const tiers = getDropTiers(def);
             if (tiers.length <= 1) return null;
             return (
               <div style={{ marginBottom:10, padding:'6px 10px', background:'rgba(192,132,252,0.05)', border:'1px solid rgba(192,132,252,0.15)', borderRadius:6 }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:3 }}>Paliers de drop (DPS d&apos;équipe) :</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:3 }}>Tentatives de drop (DPS d&apos;équipe) :</div>
                 <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
                   {tiers.map(t => (
                     <span key={t.qty} style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>
-                      {t.qty}× dès <b>{formatNumber(Math.round(t.dps))}</b>
+                      {t.qty} dés dès <b>{formatNumber(Math.round(t.dps))}</b>
                     </span>
                   ))}
                 </div>
@@ -364,7 +415,9 @@ export function ExpeditionsPage() {
   const finished   = getFinished();
   const maxActive  = getMaxActiveExpeditions();
 
-  const filtered = EXPEDITION_DEFS.filter(d => tabOf(d) === filter);
+  const filtered = EXPEDITION_DEFS
+    .filter(d => tabOf(d) === filter)
+    .sort((a, b) => a.minTeamDps - b.minTeamDps || a.duration - b.duration);
 
   // Arrivée depuis la Forge (clic sur un ingrédient) : bascule sur le bon
   // onglet, scroll jusqu'à la carte et la met en surbrillance quelques secondes.

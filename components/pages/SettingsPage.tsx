@@ -4,6 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { formatNumber } from '@/lib/game/format';
 import { redeemGiftCode } from '@/lib/firebase/giftCodes';
+import { useExpeditionStore } from '@/store/expeditionStore';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 
@@ -72,6 +73,17 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
         const { addEquipment } = useGameStore.getState();
         result.equipment.forEach(id => addEquipment(id, 1));
       }
+      // Drops spéciaux d'expédition (ex: Pierres d'Évolution) — dropInventory,
+      // distinct de l'inventaire d'items classique (voir dropId dans expeditions.ts).
+      if (result.drops && Object.keys(result.drops).length > 0) {
+        useExpeditionStore.setState(s => {
+          const dropInventory = { ...s.dropInventory };
+          for (const [dropId, qty] of Object.entries(result.drops)) {
+            dropInventory[dropId] = (dropInventory[dropId] ?? 0) + qty;
+          }
+          return { dropInventory };
+        });
+      }
       const parts: string[] = [];
       if (result.gems              > 0) parts.push(`+${result.gems} 💎`);
       if (result.pixelCoins        > 0) parts.push(`+${result.pixelCoins.toLocaleString()} 🪙`);
@@ -79,6 +91,7 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
       if (result.maxCharacters?.length > 0) parts.push(`${result.maxCharacters.length} personnage(s) 💎 MAX`);
       if (result.items?.length      > 0) parts.push(`${result.items.length} item(s) 🎁`);
       if (result.equipment?.length  > 0) parts.push(`${result.equipment.length} équipement(s) ⚔️`);
+      if (result.drops && Object.keys(result.drops).length > 0) parts.push(`${Object.values(result.drops).reduce((a,b) => a+b, 0)} drop(s) spécial(aux) ✦`);
       setGiftFeedback({ ok: true, msg: `${parts.join('  ')} ajoutés !` });
       setGiftInput('');
     } else {

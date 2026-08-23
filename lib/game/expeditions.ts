@@ -326,26 +326,26 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     id:'foret_kame', name:'Forêt de la Tortue', icon:'🐢', universe:'Dragon Ball Z',
     description:'Cherche les pierres secrètes cachées par Maître Roshi.',
     duration: H30, slots:1, palierRequired:1, minTeamDps: referenceTeamDps('P'),
-    rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'ore_kame', dropChance:0.6, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'ore_kame', dropChance:0.6, dropQuantity:1, dropQuantityCap:5 },
   },
   {
     id:'entrainement_saiyen', name:'Entraînement Intensif — Capsule Corp', icon:'🔥', universe:'Dragon Ball Z',
     description:'Repousse tes limites dans la chambre de gravité pour éveiller ta puissance Saiyenne.',
     duration: H30, slots:1, palierRequired:1, minTeamDps: referenceTeamDps('P'),
-    rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'saiyen_power', dropChance:0.6, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:80_000, coinsMax:200_000, dropId:'saiyen_power', dropChance:0.6, dropQuantity:1, dropQuantityCap:5 },
   },
   {
     id:'sanctuaire_evolution', name:'Sanctuaire des Pierres', icon:'🔷', universe:'Mystique',
     description:'Explore un sanctuaire oublié où se forment les catalyseurs d\'évolution.',
-    duration: 2*H, slots:2, palierRequired:3, minTeamDps: referenceTeamDps('U'),
+    duration: 2*H, slots:2, palierRequired:3, minTeamDps: referenceTeamDps('R'),
     isSpecialItem: true,
-    rewards:{ coinsMin:100_000, coinsMax:250_000, gemsMin:1, gemsMax:3, dropId:'pierre_evolution', dropChance:1, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:100_000, coinsMax:250_000, gemsMin:1, gemsMax:3, dropId:'pierre_evolution', dropChance:1, dropQuantity:1, dropQuantityCap:25 },
   },
   {
     id:'patrol_easblue', name:'Patrouille East Blue', icon:'🌊', universe:'One Piece',
     description:'Croise les mers d\'East Blue pour récupérer du butin.',
     duration: 5*H, slots:2, palierRequired:2, minTeamDps: referenceTeamDps('T'),
-    rewards:{ coinsMin:150_000, coinsMax:400_000, gemsMin:2, gemsMax:5, dropId:'sea_fragment', dropChance:0.5, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:150_000, coinsMax:400_000, gemsMin:2, gemsMax:5, dropId:'sea_fragment', dropChance:0.5, dropQuantity:1, dropQuantityCap:5 },
   },
   {
     id:'ile_fruit_demon', name:'Île Mystérieuse aux Fruits', icon:'🍈', universe:'One Piece',
@@ -366,7 +366,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     description:'Retourne sur la planète Namek pour récolter les légendaires Boucles Potara.',
     duration: H30, slots:3, palierRequired:24, minTeamDps: referenceTeamDps('P'),
     isFarming:true, farmingPalier:24,
-    rewards:{ coinsMin:1_000_000, coinsMax:3_000_000, gemsMin:8, gemsMax:20, dropId:'potala', dropChance:0.7, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:1_000_000, coinsMax:3_000_000, gemsMin:8, gemsMax:20, dropId:'potala', dropChance:0.7, dropQuantity:1, dropQuantityCap:5 },
   },
   {
     id:'farm_bleach', name:'Soul Society — Secteur 1', icon:'💠', universe:'Bleach',
@@ -386,7 +386,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     description:'Escalade la montagne sacrée pour forger du minerai sous la lumière du soleil.',
     duration: H30, slots:3, palierRequired:25, minTeamDps: referenceTeamDps('P'),
     isFarming:true, farmingPalier:25,
-    rewards:{ coinsMin:2_000_000, coinsMax:5_000_000, gemsMin:12, gemsMax:28, dropId:'ore_soleil', dropChance:0.6, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:2_000_000, coinsMax:5_000_000, gemsMin:12, gemsMax:28, dropId:'ore_soleil', dropChance:0.6, dropQuantity:1, dropQuantityCap:5 },
   },
   {
     id:'forge_nichirin', name:'Forge du Sabre Nichirin', icon:'🗡️', universe:'Demon Slayer',
@@ -399,14 +399,14 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     description:'Affronte les dieux pour récupérer leurs Bijoux Divins perdus.',
     duration: H30, slots:4, palierRequired:31, minTeamDps: referenceTeamDps('CO'),
     isFarming:true, farmingPalier:31,
-    rewards:{ coinsMin:3_000_000, coinsMax:7_000_000, gemsMin:15, gemsMax:35, dropId:'bijou_divin', dropChance:0.6, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:3_000_000, coinsMax:7_000_000, gemsMin:15, gemsMax:35, dropId:'bijou_divin', dropChance:0.6, dropQuantity:1, dropQuantityCap:5 },
   },
   {
     id:'farm_undertale', name:'Monde Souterrain Profond', icon:'❤', universe:'Undertale',
     description:'Descends dans les abysses pour récolter les Âmes Humaines éparpillées.',
     duration: H30, slots:4, palierRequired:38, minTeamDps: referenceTeamDps('P'),
     isFarming:true, farmingPalier:38,
-    rewards:{ coinsMin:5_000_000, coinsMax:12_000_000, gemsMin:20, gemsMax:50, dropId:'ame_humaine', dropChance:0.55, dropQuantity:1, dropQuantityCap:3 },
+    rewards:{ coinsMin:5_000_000, coinsMax:12_000_000, gemsMin:20, gemsMax:50, dropId:'ame_humaine', dropChance:0.55, dropQuantity:1, dropQuantityCap:5 },
   },
   // ── Ateliers — déblocage de la fusion d'équipement par rareté ────────────
   // Une expédition dédiée par rareté (Peu Commun → Transcendant, Commun étant
@@ -416,22 +416,72 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   ...EQUIP_DROP_UNLOCK_EXPEDITIONS,
 ];
 
-// ── Paliers de DPS par quantité de drop ────────────────────────────────────
-// Reflète EXACTEMENT le calcul de claimExpedition (store/expeditionStore.ts) :
-// ratio = teamDps / minTeamDps, bonusMult = 1 + log2(ratio), qty = floor(base
-// * bonusMult) plafonné à dropQuantityCap. Inversée ici pour donner, à partir
-// d'une quantité cible, le DPS d'équipe minimum à atteindre — affiché aux
-// joueurs (voir ExpeditionsPage.tsx) pour qu'ils sachent quel DPS viser.
+// ── Récompenses d'expédition (seule source de vérité pour les formules) ───
+// Bonus de TENTATIVES de drop à rendements décroissants (pas de palier fixe à
+// x3) : ratio = teamDps / minTeamDps -> bonusMult = 1 + log10(ratio), donc
+// ratio=1 -> x1, ratio=10 -> x2, ratio=100 -> x3, ratio=1000 -> x4...
+function dropBonusMult(ratio: number): number {
+  return 1 + Math.log10(Math.max(1, ratio));
+}
+
+// Nombre de "dés" à lancer pour le drop spécial, pour un DPS d'équipe donné.
+// Dépasser le seuil minTeamDps n'augmente PAS la quantité obtenue directement
+// (le seuil, déjà garanti par canStart, ne fait que débloquer le premier dé) :
+// ça augmente le nombre de tirages à dropChance, chacun indépendant. Le
+// résultat final est donc aléatoire entre 0 et ce nombre de tentatives
+// (loi binomiale), pas une quantité garantie.
+export function computeDropAttempts(def: ExpeditionDef, teamDps: number): number {
+  const base = def.rewards.dropQuantity ?? 1;
+  const ratio = def.minTeamDps > 0 ? teamDps / def.minTeamDps : 1;
+  let attempts = Math.max(base, Math.floor(base * dropBonusMult(ratio)));
+  if (def.rewards.dropQuantityCap) attempts = Math.min(attempts, def.rewards.dropQuantityCap);
+  return attempts;
+}
+
+export interface ExpeditionRewardRoll {
+  coins:      number;
+  gems:       number;
+  dropGained: number;
+}
+
+// Tire les récompenses d'une expédition terminée (pièces/gemmes aléatoires
+// entre min/max, + drop spécial : un dé à dropChance par tentative accordée
+// par computeDropAttempts, chaque succès valant 1 item). Utilisé par
+// claimExpedition (expeditionStore.ts).
+export function rollExpeditionRewards(def: ExpeditionDef, teamDps: number): ExpeditionRewardRoll {
+  const coins = Math.floor(
+    def.rewards.coinsMin + Math.random() * (def.rewards.coinsMax - def.rewards.coinsMin)
+  );
+  const gems = def.rewards.gemsMin !== undefined
+    ? Math.floor(def.rewards.gemsMin + Math.random() * ((def.rewards.gemsMax ?? def.rewards.gemsMin) - def.rewards.gemsMin))
+    : 0;
+
+  let dropGained = 0;
+  if (def.rewards.dropId) {
+    const attempts = computeDropAttempts(def, teamDps);
+    for (let i = 0; i < attempts; i++) {
+      if (Math.random() < (def.rewards.dropChance ?? 0)) dropGained++;
+    }
+  }
+
+  return { coins, gems, dropGained };
+}
+
+// ── Paliers de DPS par nombre de tentatives de drop ────────────────────────
+// Inverse algébrique de dropBonusMult/computeDropAttempts : donne, à partir
+// d'un nombre de tentatives cible, le DPS d'équipe minimum à atteindre —
+// affiché aux joueurs (voir ExpeditionsPage.tsx) pour qu'ils sachent quel DPS
+// viser. NB : atteindre ce DPS débloque N tentatives, pas N items garantis.
 export function dpsForDropQty(def: ExpeditionDef, qty: number): number {
   const base = def.rewards.dropQuantity ?? 1;
-  return def.minTeamDps * Math.pow(2, qty / base - 1);
+  return def.minTeamDps * Math.pow(10, qty / base - 1);
 }
 
 export interface DropTier { qty: number; dps: number }
 
-// Ne s'applique qu'aux expéditions à quantité plafonnée explicitement
-// (dropQuantityCap défini) : sans plafond, la quantité grandit indéfiniment
-// avec le DPS (log2), donc aucun "palier final" n'a de sens à afficher.
+// Ne s'applique qu'aux expéditions à tentatives plafonnées explicitement
+// (dropQuantityCap défini) : sans plafond, le nombre de tentatives grandit
+// indéfiniment avec le DPS (log10), donc aucun "palier final" n'a de sens.
 export function getDropTiers(def: ExpeditionDef): DropTier[] {
   if (!def.rewards.dropId || def.rewards.dropQuantityCap === undefined) return [];
   const cap = def.rewards.dropQuantityCap;

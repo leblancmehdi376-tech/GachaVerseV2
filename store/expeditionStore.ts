@@ -1,7 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { EXPEDITION_DEFS, CRAFT_RECIPES, ExpeditionDef, getExpeditionTeamDps, hasRealUniverse } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, CRAFT_RECIPES, ExpeditionDef, getExpeditionTeamDps, hasRealUniverse, rollExpeditionRewards } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { parseInstanceKey } from '@/lib/game/editions';
@@ -229,29 +229,10 @@ export const useExpeditionStore = create<ExpeditionStore>()(
 
         const gs = useGameStore.getState();
 
-        // Calculer les récompenses
-        const coins = Math.floor(
-          def.rewards.coinsMin +
-          Math.random() * (def.rewards.coinsMax - def.rewards.coinsMin)
-        );
-        const gems = def.rewards.gemsMin !== undefined
-          ? Math.floor(def.rewards.gemsMin + Math.random() * ((def.rewards.gemsMax ?? def.rewards.gemsMin) - def.rewards.gemsMin))
-          : 0;
-
-        // Drop spécial — le seuil de DPS (déjà garanti par canStart) conditionne
-        // le fait d'avoir un drop ; le dépasser augmente la QUANTITÉ selon une
-        // échelle logarithmique (rendements décroissants, pas de palier fixe à
-        // x3) : ratio=1 -> x1, ratio=2 -> x2, ratio=4 -> x3, ratio=8 -> x4...
-        let dropGained = 0;
-        if (def.rewards.dropId && Math.random() < (def.rewards.dropChance ?? 0)) {
-          const teamDps = getExpeditionTeamDps(gs.collection, exp.characterIds);
-          const ratio = def.minTeamDps > 0 ? Math.max(1, teamDps / def.minTeamDps) : 1;
-          const bonusMult = 1 + Math.log2(ratio);
-          const base = def.rewards.dropQuantity ?? 1;
-          let qty = Math.max(base, Math.floor(base * bonusMult));
-          if (def.rewards.dropQuantityCap) qty = Math.min(qty, def.rewards.dropQuantityCap);
-          dropGained = qty;
-        }
+        // Récompenses (formules centralisées dans lib/game/expeditions.ts —
+        // c'est là qu'il faut les modifier, pas ici).
+        const teamDps = getExpeditionTeamDps(gs.collection, exp.characterIds);
+        const { coins, gems, dropGained } = rollExpeditionRewards(def, teamDps);
 
         // Appliquer les récompenses monétaires
         useGameStore.setState(s => ({

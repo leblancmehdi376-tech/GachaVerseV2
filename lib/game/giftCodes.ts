@@ -3,6 +3,8 @@
 // le consomme définitivement (tracké côté Firestore, voir lib/firebase/giftCodes.ts).
 // Pour ajouter/retirer des codes, modifie simplement ce tableau.
 
+import { CHARACTER_POOL } from '@/lib/game/characters';
+
 export interface GiftCodeDef {
   code: string;           // stocké en MAJUSCULES, la saisie est normalisée avant comparaison
   gems?: number;          // Neko-Gemmes à distribuer (optionnel)
@@ -11,9 +13,24 @@ export interface GiftCodeDef {
   maxCharacters?: string[]; // IDs de personnages octroyés déjà MAX (7★, dernière évo, niveau max, édition Diamant)
   items?: string[];       // IDs d'items à ajouter à l'inventaire (optionnel)
   equipment?: string[];   // IDs d'équipements (armes/armures) à ajouter à l'équipementInventaire (optionnel)
+  drops?: Record<string, number>; // Drops spéciaux d'expédition (dropInventory) à ajouter, ex: { pierre_evolution: 1000 }
 }
 
 export const GIFT_CODES: GiftCodeDef[] = [
+  // Débloque tous les personnages du jeu (édition tirée normalement, pas
+  // de bonus max) — liste calculée depuis CHARACTER_POOL pour ne jamais
+  // devenir obsolète quand le roster change.
+  /*{
+    code:       'GACHAVERSE-ALL-CHARS',
+    characters: CHARACTER_POOL.map(c => c.id),
+  },
+
+  // Dev code de test : 1000 Pierres d'Évolution (voir evoStoneCost dans types/game.ts).
+  {
+    code:  'PIERRE-EVO-TEST-1000',
+    drops: { pierre_evolution: 1000 },
+  },*/
+
   //{ code: 'NEKOZ-TEST-neklo',  characters:   ['atsushi'] },
 
   // Dev code: grants Atsushi (forme de base, niveau 1)
@@ -44,6 +61,10 @@ export const GIFT_CODES: GiftCodeDef[] = [
     pixelCoins:   10_000_000,
     gems: 200,
     characters:   ['dazai', 'sanji', 'naruto'],
+  },
+  {
+    code:         'COIN',
+    pixelCoins:   1_000_000_000_000_000_000_000,
   },
   {
     code:         'BLOCK-SYLVIA',

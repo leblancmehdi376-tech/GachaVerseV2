@@ -116,10 +116,17 @@ export function getLevelCap(character: CharacterTemplate, formIndex: number): nu
 // Coût en Pierres d'Évolution (drop d'expédition, voir lib/game/expeditions.ts
 // — dropId 'pierre_evolution') : plus la rareté est haute et plus la forme
 // actuelle est avancée, plus l'évolution suivante coûte cher en pierres.
+// Le facteur de rareté est exponentiel (C -> ×1, T -> ×EVO_RARITY_MULT_MAX) —
+// inverse de la courbe log10 des tentatives de drop (lib/game/expeditions.ts
+// ::dropBonusMult) : là où le DPS d'équipe a des rendements décroissants, le
+// coût en pierres a des rendements CROISSANTS — chaque palier de rareté coûte
+// proportionnellement plus cher que le précédent.
 export const EVOLUTION_STONE_ITEM_ID = 'pierre_evolution';
+const EVO_RARITY_MULT_MAX = 25; // T coûte 25x plus cher que C (écart large)
 export function evoStoneCost(rarity: Rarity, currentForm: number): number {
   const rarityIdx = RARITY_ORDER_ASC.indexOf(rarity);
-  return (rarityIdx + 1) * (currentForm + 1) * 3;
+  const rarityMult = Math.pow(EVO_RARITY_MULT_MAX, rarityIdx / (RARITY_ORDER_ASC.length - 1));
+  return Math.round(rarityMult * (currentForm + 1) * 3);
 }
 
 export function canEvolve(character: CharacterTemplate, owned: OwnedCharacter, inventory: Record<string, number> = {}, dropInventory: Record<string, number> = {}): boolean {
