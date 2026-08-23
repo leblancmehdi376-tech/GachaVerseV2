@@ -179,11 +179,12 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   })(), true),
 
   ce('cid_kagenou', 'Cid Kagenou', 'CO', 83, 'The Eminence in Shadow', (() => {
-    const items = ['masque_cid', 'epee_slime'];
+    const items = ['masque_cid', 'epee_slime', 'slime_eminence'];
     return [
       f('cid_kagenou_base', 'Cid Kagenou', 'cid_kagenou', 100, 1),
       f('cid_kagenou_evo1', 'Shadow',      'cid_kagenou', 200, 7,  cumulative(items, 1)),
       f('cid_kagenou_evo2', 'John Smith',  'cid_kagenou', 300, 16, cumulative(items, 2)),
+      f('cid_kagenou_evo3', 'Cid Kagenou — L’Éminence des Ombres', 'cid_kagenou', 400, 50, cumulative(items, 3)),
     ];
   })(), true),
 
