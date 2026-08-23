@@ -8,7 +8,7 @@ import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 
 export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<boolean> }) {
-  const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, musicVolume, musicMuted, setMusicVolume, toggleMusicMuted, username, setUsername } = useGameStore();
+  const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, username, setUsername } = useGameStore();
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
@@ -121,29 +121,6 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
   return (
     <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
       <div style={{ maxWidth:'600px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'20px' }}>
-
-        {/* ── MUSIQUE ── */}
-        <div className="panel" style={{ padding:'20px' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px' }}>
-            <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,var(--cyan),#0e7490)', borderRadius:'2px', boxShadow:'0 0 8px var(--cyan)' }} />
-            <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'var(--cyan)', letterSpacing:'2px' }}>🎵 MUSIQUE</span>
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:'14px' }}>
-            <button onClick={toggleMusicMuted}
-              style={{ width:40, height:40, flexShrink:0, background: musicMuted ? 'rgba(248,113,113,0.1)' : 'rgba(74,222,128,0.1)', border:`1px solid ${musicMuted?'rgba(248,113,113,0.3)':'rgba(74,222,128,0.3)'}`, borderRadius:'8px', cursor:'pointer', fontSize:'18.5px', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              {musicMuted ? '🔇' : '🔊'}
-            </button>
-            <input
-              type="range" min={0} max={1} step={0.01}
-              value={musicMuted ? 0 : musicVolume}
-              onChange={e => { setMusicVolume(parseFloat(e.target.value)); if (musicMuted) toggleMusicMuted(); }}
-              style={{ flex:1, accentColor:'var(--cyan)' }}
-            />
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text-dim)', width:'40px', textAlign:'right' }}>
-              {Math.round((musicMuted ? 0 : musicVolume) * 100)}%
-            </span>
-          </div>
-        </div>
 
         {/* ── COMPTE ── */}
         <div className="panel" style={{ padding:'20px' }}>

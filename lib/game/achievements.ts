@@ -13,6 +13,12 @@ export interface Achievement {
   description: string;
   target:      number;           // valeur cible
   secret?:     boolean;
+  // true : progression/déblocage/récompense remis à zéro à chaque Prestige
+  // (succès "de run" — kills, dps, coins, pulls, améliorations, collection
+  // en cours, quêtes, rang 7★). Par défaut (absent/false) : permanent, comme
+  // les titres, les éditions shiny et tout ce qui touche à la progression
+  // de Prestige elle-même.
+  resetsOnPrestige?: boolean;
   reward?: {
     type:  'title' | 'gems' | 'coins';
     value: number | string;
@@ -32,18 +38,21 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Exterminateur', name:'Chasse Ouverte',
     description:'Vaincs 500 monstres au total.', target:500,
     reward:{ type:'gems', value:15 },
+    resetsOnPrestige:true,
   },
   {
     id:'kills_5000', category:'combat', icon:'💥',
     title:'Faucheur', name:'Purge Totale',
     description:'Vaincs 5 000 monstres au total.', target:5000,
     reward:{ type:'gems', value:50 },
+    resetsOnPrestige:true,
   },
   {
     id:'kills_50000', category:'combat', icon:'🔥',
     title:'Fléau', name:'Apocalypse Ambulante',
     description:'Vaincs 50 000 monstres au total.', target:50000,
     reward:{ type:'gems', value:150 },
+    resetsOnPrestige:true,
   },
   {
     id:'kills_500000', category:'combat', icon:'☄',
@@ -51,6 +60,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Vaincs 500 000 monstres au total.', target:500000,
     reward:{ type:'gems', value:500 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'first_boss', category:'combat', icon:'💀',
@@ -81,12 +91,14 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Puissant', name:'Machine de Guerre',
     description:'Atteins 1 000 DPS.', target:1000,
     reward:{ type:'gems', value:10 },
+    resetsOnPrestige:true,
   },
   {
     id:'dps_1m', category:'combat', icon:'🌊',
     title:'Dévastateur', name:'Force Brute',
     description:'Atteins 1 000 000 DPS.', target:1000000,
-    reward:{ type:'gems', value:50 },
+    reward:{ type:'gems', value:20 },
+    resetsOnPrestige:true,
   },
 
   // ── PROGRESSION ──────────────────────────────────────────────────────────
@@ -120,31 +132,36 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Économe', name:'Cent Mille',
     description:'Accumule 100 000 Pixel-Coins.', target:100000,
     reward:{ type:'gems', value:10 },
+    resetsOnPrestige:true,
   },
   {
     id:'coins_10m', category:'progression', icon:'💰',
     title:'Millionnaire', name:'Dix Millions',
     description:'Accumule 10 000 000 Pixel-Coins.', target:10000000,
-    reward:{ type:'gems', value:40 },
+    reward:{ type:'gems', value:20 },
+    resetsOnPrestige:true,
   },
   {
     id:'coins_1b', category:'progression', icon:'💎',
     title:'Oligarque', name:'Milliardaire',
     description:'Accumule 1 000 000 000 Pixel-Coins.', target:1000000000,
-    reward:{ type:'gems', value:200 },
+    reward:{ type:'gems', value:40 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'upgrade_10', category:'progression', icon:'⬆',
     title:'Optimisateur', name:'Toujours Plus Fort',
     description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 50 fois au total.', target:50,
     reward:{ type:'gems', value:10 },
+    resetsOnPrestige:true,
   },
   {
     id:'upgrade_50', category:'progression', icon:'🔧',
     title:'Forgeron', name:'Perfectionniste',
     description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 500 fois au total.', target:500,
     reward:{ type:'gems', value:50 },
+    resetsOnPrestige:true,
   },
 
   // ── COLLECTION ──────────────────────────────────────────────────────────
@@ -153,24 +170,28 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Recruteur', name:'Premier Allié',
     description:'Obtiens ton premier personnage.', target:1,
     reward:{ type:'gems', value:5 },
+    resetsOnPrestige:true,
   },
   {
     id:'collect_5', category:'collection', icon:'👥',
     title:'Meneur', name:'L\'Équipe se Forme',
     description:'Obtiens 50 personnages différents.', target:50,
     reward:{ type:'gems', value:30 },
+    resetsOnPrestige:true,
   },
   {
     id:'collect_15', category:'collection', icon:'🏛',
     title:'Archiviste', name:'Petite Collection',
     description:'Obtiens 100 personnages différents.', target:100,
     reward:{ type:'gems', value:150 },
+    resetsOnPrestige:true,
   },
   {
     id:'collect_30', category:'collection', icon:'📚',
     title:'Collectionneur', name:'Bibliothèque',
     description:'Obtiens 150 personnages différents.', target:150,
     reward:{ type:'gems', value:400 },
+    resetsOnPrestige:true,
   },
   {
     id:'collect_all', category:'collection', icon:'🌟',
@@ -178,6 +199,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Débloque tous les personnages.', target:CHARACTER_POOL.length,
     reward:{ type:'gems', value:1500 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'legendary_1', category:'collection', icon:'✨',
@@ -205,18 +227,21 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Joueur', name:'Premier Tirage',
     description:'Effectue ton premier tirage.', target:1,
     reward:{ type:'gems', value:5 },
+    resetsOnPrestige:true,
   },
   {
     id:'pull_10', category:'gacha', icon:'🎲',
     title:'Parieur', name:'Dix Invocations',
     description:'Effectue 10 tirages.', target:10,
     reward:{ type:'gems', value:10 },
+    resetsOnPrestige:true,
   },
   {
     id:'pull_100', category:'gacha', icon:'🎯',
     title:'Invocateur', name:'Cent Tirages',
     description:'Effectue 100 tirages.', target:100,
     reward:{ type:'gems', value:30 },
+    resetsOnPrestige:true,
   },
   {
     id:'pull_500', category:'gacha', icon:'🔮',
@@ -224,30 +249,35 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Effectue 500 tirages.', target:500,
     reward:{ type:'gems', value:150 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'quest_10', category:'social', icon:'📜',
     title:'Serviteur', name:'Dix Missions',
     description:'Complète 10 quêtes.', target:10,
     reward:{ type:'gems', value:20 },
+    resetsOnPrestige:true,
   },
   {
     id:'quest_20', category:'social', icon:'📯',
     title:'Émissaire', name:'Vingt Missions',
     description:'Complète 20 quêtes.', target:20,
     reward:{ type:'gems', value:45 },
+    resetsOnPrestige:true,
   },
   {
     id:'quest_50', category:'social', icon:'🗺',
     title:'Aventurier', name:'Cinquante Missions',
     description:'Complète 50 quêtes.', target:50,
     reward:{ type:'gems', value:80 },
+    resetsOnPrestige:true,
   },
   {
     id:'quest_100', category:'social', icon:'🏅',
     title:'Légat', name:'Cent Missions',
     description:'Complète 100 quêtes.', target:100,
     reward:{ type:'gems', value:180 },
+    resetsOnPrestige:true,
   },
 
   // ── DIFFICILES — ÉDITIONS SHINY ────────────────────────────────────────
@@ -291,12 +321,14 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Astre', name:'Étoile Filante',
     description:'Monte un personnage au rang 7★ maximum.', target:1,
     reward:{ type:'gems', value:40 },
+    resetsOnPrestige:true,
   },
   {
     id:'rank7_5', category:'collection', icon:'🌌',
     title:'Nébuleuse', name:'Constellation',
     description:'Monte 5 personnages différents au rang 7★.', target:5,
     reward:{ type:'gems', value:70 },
+    resetsOnPrestige:true,
   },
   {
     id:'rank7_team', category:'collection', icon:'🛡',
@@ -304,13 +336,15 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Équipe une équipe complète (4/4) de personnages rang 7★.', target:1,
     reward:{ type:'gems', value:200 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'dps_100m', category:'combat', icon:'💢',
     title:'Cataclysme', name:'Puissance Infinie',
     description:'Atteins 100 000 000 DPS.', target:100000000,
-    reward:{ type:'gems', value:600 },
+    reward:{ type:'gems', value:50 },
     secret:true,
+    resetsOnPrestige:true,
   },
 
   // ── DIFFICILES — ÉCONOMIE ───────────────────────────────────────────────
@@ -318,8 +352,9 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'coins_10b', category:'progression', icon:'🏦',
     title:'Ploutocrate', name:'Au-delà des Étoiles',
     description:'Accumule 10 000 000 000 Pixel-Coins.', target:10000000000,
-    reward:{ type:'gems', value:600 },
+    reward:{ type:'gems', value:60 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'gems_1000', category:'progression', icon:'💠',
@@ -371,6 +406,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Insatiable', name:'Chance Insolente',
     description:'Effectue 1 000 tirages gacha.', target:1000,
     reward:{ type:'gems', value:400 },
+    resetsOnPrestige:true,
   },
   {
     id:'synergy_max', category:'collection', icon:'🔗',
@@ -383,6 +419,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Maître Artisan', name:'Maître Artisan',
     description:'Améliore un personnage, ton héros ou ton Coffre d\'Or 200 fois au total.', target:200,
     reward:{ type:'gems', value:300 },
+    resetsOnPrestige:true,
   },
 
   // ── EXTRÊMEMENT DIFFICILES ──────────────────────────────────────────────
@@ -404,15 +441,17 @@ export const ACHIEVEMENTS: Achievement[] = [
     id:'dps_1b', category:'combat', icon:'🌀',
     title:'Singularité', name:'Singularité',
     description:'Atteins 1 000 000 000 DPS.', target:1000000000,
-    reward:{ type:'gems', value:1000 },
+    reward:{ type:'gems', value:90 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'coins_100b', category:'progression', icon:'🏛',
     title:'Empereur', name:'Empereur Économique',
     description:'Accumule 100 000 000 000 Pixel-Coins.', target:100000000000,
-    reward:{ type:'gems', value:1200 },
+    reward:{ type:'gems', value:100 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'prestige_25', category:'progression', icon:'🔄',
@@ -441,6 +480,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Effectue 5 000 tirages gacha.', target:5000,
     reward:{ type:'gems', value:1000 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'quest_500', category:'social', icon:'📖',
@@ -448,6 +488,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Complète 500 quêtes au total.', target:500,
     reward:{ type:'gems', value:1000 },
     secret:true,
+    resetsOnPrestige:true,
   },
   {
     id:'kills_1000000', category:'combat', icon:'🔥',
@@ -455,6 +496,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Vaincs 1 000 000 de monstres à vie.', target:1000000,
     reward:{ type:'gems', value:1000 },
     secret:true,
+    resetsOnPrestige:true,
   },
 ];
 

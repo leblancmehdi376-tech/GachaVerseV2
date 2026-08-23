@@ -22,7 +22,7 @@ import { BattleParticles } from '@/components/game/BattleParticles';
 import { SkillTooltip } from '@/components/ui/SkillTooltip';
 
 
-interface Dmg { id: number; x: number; y: number; val: number; crit: boolean; }
+interface Dmg { id: number; x: number; y: number; val: number; }
 
 function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(`/backgrounds/bg_palier_${palier}`));
@@ -251,7 +251,7 @@ function PalierTravelModal({
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function BattleZone() {
-  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, lastEquipmentDrop, setLastEquipmentDrop, ultUsedThisFight, getEventDpsMult } = useGameStore();
+  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, lastEquipmentDrop, setLastEquipmentDrop, getEventDpsMult } = useGameStore();
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
   // maxPalierReached, qui ne redescend jamais et sert au classement) — c'est
   // ce qui doit borner le mode farm / voyage, sinon un joueur qui vient de
@@ -277,7 +277,6 @@ export function BattleZone() {
         x: 40 + Math.random() * 40,   // % approx dans la zone
         y: 30 + Math.random() * 30,
         val: dps,
-        crit: false,
       };
       setDmgs(p => [...p, d]);
       setTimeout(() => setDmgs(p => p.filter(x => x.id !== d.id)), 800);
@@ -425,11 +424,10 @@ export function BattleZone() {
         </div>
         {dmgs.map(d=>(
           <div key={d.id} style={{ position:'absolute', left:`${d.x}%`, top:`${d.y}%`, pointerEvents:'none', transform:'translate(-50%,-50%)',
-            fontFamily:d.crit?'var(--f-title)':'var(--f-ui)', fontWeight:800,
-            fontSize:d.crit?'26px':'18px', color:d.crit?'#f87171':'#fbbf24',
-            textShadow:d.crit?'0 0 16px #ef4444':'0 0 12px #f59e0b',
+            fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'18px', color:'#fbbf24',
+            textShadow:'0 0 12px #f59e0b',
             animation:'floatDmg 0.8s ease-out forwards', whiteSpace:'nowrap', zIndex:10 }}>
-            {d.crit&&<span style={{fontSize:13.4,marginRight:4}}>CRIT!</span>}{formatNumber(d.val)}
+            {formatNumber(d.val)}
           </div>
         ))}
       </div>
@@ -478,20 +476,11 @@ export function BattleZone() {
               gap:10, 
               alignItems:'flex-start',
             }}>
-              {equippedTeam.map((tid, i) => {
-                const isLocked = !!tid && ultUsedThisFight.includes(tid);
-                return (
-                  <div key={i} style={{ position:'relative', width:88, flexShrink:0 }}>
-                    <AllyCard templateId={tid ?? ''} onManage={() => {}} />
-                    {isLocked && (
-                      <div title="Ult utilisé — retrait bloqué jusqu'à la fin du combat"
-                        style={{ position:'absolute', top:2, right:2, background:'rgba(0,0,0,0.75)', borderRadius:4, padding:'1px 3px', fontSize:12, lineHeight:1, pointerEvents:'none' }}>
-                        🔒
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {equippedTeam.map((tid, i) => (
+                <div key={i} style={{ position:'relative', width:88, flexShrink:0 }}>
+                  <AllyCard templateId={tid ?? ''} onManage={() => {}} />
+                </div>
+              ))}
             </div>
           </div>
 

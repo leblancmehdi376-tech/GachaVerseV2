@@ -21,10 +21,16 @@ function ce(id: string, name: string, rarity: CharacterTemplate['rarity'], baseD
   const numberedForms = forms.map((form, i) => ({ ...form, dpsFormMult: i + 1 }));
   return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png`, forms: numberedForms, noEvoStones };
 }
-function f(formId: string, name: string, id: string, levelCap: number, mult: number, requiredItemId?: string): EvoForm {
+function f(formId: string, name: string, id: string, levelCap: number, mult: number, requiredItemIds?: string[]): EvoForm {
   const tag = formId.replace(`${id}_`, '');
   const sprite = tag === 'base' ? `/sprites/allies/${id}.png` : `/sprites/allies/${id}_${tag}.png`;
-  return { formId, name, spritePath: sprite, levelCap, dpsFormMult: mult, description: name, requiredItemId };
+  return { formId, name, spritePath: sprite, levelCap, dpsFormMult: mult, description: name, requiredItemIds };
+}
+
+// Perso de boss d'événement : la forme N requiert les N premiers objets
+// d'évolution du perso (ex: [a,b,c] -> forme1:[a], forme2:[a,b], forme3:[a,b,c]).
+function cumulative(items: string[], stage: number): string[] {
+  return items.slice(0, stage);
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -99,12 +105,15 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('kioraku_evo1', 'Kyoraku — Bankai', 'kioraku', 200, 5),
   ]),
   c('arthur_pandragon', 'Arthur Pandragon', 'L', 50, 'Fate'),
-  ce('arthur_leywin', 'Arthur Leywin', 'P', 91, 'Tbate', [
-    f('arthur_leywin_base', 'Arthur Leywin',           'arthur_leywin', 100, 1),
-    f('arthur_leywin_evo1', 'Arthur Leywin — Lame d’Éther', 'arthur_leywin', 200, 10,  'cristal_ether'),
-    f('arthur_leywin_evo2', 'Arthur Leywin — Épée de l’Aube', 'arthur_leywin', 300, 112, 'epee_ether'),
-    f('arthur_leywin_evo3', 'Arthur Leywin — Roi du Soleil',  'arthur_leywin', 400, 550, 'sylvia'),
-  ], true),
+  ce('arthur_leywin', 'Arthur Leywin', 'P', 91, 'Tbate', (() => {
+    const items = ['cristal_ether', 'epee_ether', 'sylvia'];
+    return [
+      f('arthur_leywin_base', 'Arthur Leywin',           'arthur_leywin', 100, 1),
+      f('arthur_leywin_evo1', 'Arthur Leywin — Lame d’Éther',   'arthur_leywin', 200, 10,  cumulative(items, 1)),
+      f('arthur_leywin_evo2', 'Arthur Leywin — Épée de l’Aube', 'arthur_leywin', 300, 112, cumulative(items, 2)),
+      f('arthur_leywin_evo3', 'Arthur Leywin — Roi du Soleil',  'arthur_leywin', 400, 550, cumulative(items, 3)),
+    ];
+  })(), true),
   ce('nagito_komaeda', 'Nagito Komaeda', 'L', 48, 'Danganronpa', [
     f('nagito_komaeda_base', 'Nagito Komaeda',         'nagito_komaeda', 100, 1),
     f('nagito_komaeda_evo1', 'Nagito — Espoir Ultime', 'nagito_komaeda', 200, 4.5),
@@ -159,18 +168,24 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('link_midona_evo1', 'Link Loup & Midona',                'link_midona', 200, 7.5),
     f('link_midona_evo2', 'Link & Midona — Princesse Twili',   'link_midona', 300, 20),
   ]),
-  ce('jinwoo', 'Sung Jin Woo', 'S', 71, 'Solo Leveling', [
-    f('jinwoo_base', 'Sung Jin Woo',                     'jinwoo', 100, 1),
-    f('jinwoo_evo1', 'Sung Jin Woo — Monarque Éveillé',  'jinwoo', 200, 7,  'elixir_vie'),
-    f('jinwoo_evo2', 'Sung Jin Woo — Seigneur des Ombres','jinwoo', 300, 16, 'manteau_ombre'),
-    f('jinwoo_evo3', 'Sung Jin Woo — Monarque des Ombres','jinwoo', 400, 50, 'beru'),
-  ], true),
+  ce('jinwoo', 'Sung Jin Woo', 'S', 71, 'Solo Leveling', (() => {
+    const items = ['elixir_vie', 'manteau_ombre', 'beru'];
+    return [
+      f('jinwoo_base', 'Sung Jin Woo',                      'jinwoo', 100, 1),
+      f('jinwoo_evo1', 'Sung Jin Woo — Monarque Éveillé',   'jinwoo', 200, 7,  cumulative(items, 1)),
+      f('jinwoo_evo2', 'Sung Jin Woo — Seigneur des Ombres','jinwoo', 300, 16, cumulative(items, 2)),
+      f('jinwoo_evo3', 'Sung Jin Woo — Monarque des Ombres','jinwoo', 400, 50, cumulative(items, 3)),
+    ];
+  })(), true),
 
-  ce('cid_kagenou', 'Cid Kagenou', 'CO', 83, 'The Eminence in Shadow', [
-    f('cid_kagenou_base', 'Cid Kagenou', 'cid_kagenou', 100, 1),
-    f('cid_kagenou_evo1', 'Shadow',      'cid_kagenou', 200, 7,  'masque_cid'),
-    f('cid_kagenou_evo2', 'John Smith',  'cid_kagenou', 300, 16, 'epee_slime'),
-  ], true),
+  ce('cid_kagenou', 'Cid Kagenou', 'CO', 83, 'The Eminence in Shadow', (() => {
+    const items = ['masque_cid', 'epee_slime'];
+    return [
+      f('cid_kagenou_base', 'Cid Kagenou', 'cid_kagenou', 100, 1),
+      f('cid_kagenou_evo1', 'Shadow',      'cid_kagenou', 200, 7,  cumulative(items, 1)),
+      f('cid_kagenou_evo2', 'John Smith',  'cid_kagenou', 300, 16, cumulative(items, 2)),
+    ];
+  })(), true),
 
   // ── PRIMORDIAUX ──────────────────────────────────────────────────────────
   ce('goku', 'Goku', 'P', 87, 'Dragon Ball Z', [

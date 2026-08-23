@@ -43,8 +43,6 @@ function getSerializableState() {
     weeklyQuests:       s.weeklyQuests,
     weeklyQuestsDayKey: s.weeklyQuestsDayKey,
     eventQuests:        s.eventQuests,
-    musicVolume:        s.musicVolume,
-    musicMuted:         s.musicMuted,
     bossCrowns:         s.bossCrowns,
     voidOrbs:           s.voidOrbs,
     totalBossCrownsEarned: s.totalBossCrownsEarned ?? 0,
@@ -152,18 +150,23 @@ async function loadAndApply(userId: string) {
 
     const current = useGameStore.getState();
 
-    // Cherche la sauvegarde la plus récente parmi les 3 sources
-    const sources = [
-      { label: 'firebase',      data: remote,  ts: (remote  as Record<string,unknown>)?.lastSaved as number ?? 0 },
-      { label: 'localStorage',  data: local,   ts: (local   as Record<string,unknown>)?.savedAt   as number ?? 0 },
-      { label: 'local (store)', data: null,    ts: current.savedAt ?? 0 },
-    ];
+    // La sauvegarde serveur (Firestore) est la source de vérité entre
+    // appareils : on l'applique TOUJOURS dès qu'elle existe, sans comparer
+    // les timestamps. Comparer les dates faisait gagner un save local plus
+    // "récent" sur un appareil donné (ex: horloge légèrement en avance,
+    // ou état déjà réhydraté par le persist Zustand avant même ce chargement)
+    // — ce qui faisait diverger silencieusement mobile et PC au lieu de les
+    // garder synchronisés sur le cloud. On ne retombe sur le local que si
+    // aucune sauvegarde cloud n'existe encore (tout premier login).
+    const best = remote
+      ? { label: 'firebase',      data: remote, ts: (remote as Record<string,unknown>)?.lastSaved as number ?? 0 }
+      : local
+        ? { label: 'localStorage',  data: local,  ts: (local as Record<string,unknown>)?.savedAt as number ?? 0 }
+        : { label: 'local (store)', data: null,   ts: current.savedAt ?? 0 };
 
-    const best = sources.reduce((a, b) => (b.ts > a.ts ? b : a));
-    console.log('[CloudSave] Sources:', sources.map(s => `${s.label}=${new Date(s.ts).toLocaleTimeString()}`).join(' | '));
-    console.log('[CloudSave] Meilleure source:', best.label, '—', new Date(best.ts).toLocaleTimeString());
+    console.log('[CloudSave] Source appliquée:', best.label, best.ts ? `— ${new Date(best.ts).toLocaleTimeString()}` : '(aucune sauvegarde)');
 
-    if (best.data && best.ts > (current.savedAt ?? 0)) {
+    if (best.data) {
       // Suppress toasts/notifications while applying remote state to avoid
       // duplicate achievement/quest toasts when the player logs in on another device.
       try { useGameStore.setState({ suppressToasts: true }); } catch {}

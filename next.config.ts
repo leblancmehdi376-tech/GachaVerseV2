@@ -14,16 +14,7 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // ── Musiques & vidéos ─────────────────────────────────────────────
-      {
-        source: '/music/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=2592000, stale-while-revalidate=86400',
-          },
-        ],
-      },
+      // ── Vidéos ─────────────────────────────────────────────────────────
       {
         source: '/videos/:path*',
         headers: [
@@ -54,15 +45,6 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/:path*.jpg',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=2592000, stale-while-revalidate=86400',
-          },
-        ],
-      },
-      {
-        source: '/:path*.mp3',
         headers: [
           {
             key: 'Cache-Control',

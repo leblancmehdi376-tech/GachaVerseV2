@@ -31,6 +31,7 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = Object.fromEntries(
   ])
 );
 TITLE_GOLD_BONUS_PCT['Six Seven'] = 6.7;
+TITLE_GOLD_BONUS_PCT['Réincarné'] = 15;
 
 // ── Titres d'événement — drop rare (1%) sur un kill de boss d'event ───────
 // Hors interpolation de TITLE_ORDER (pas liés à un succès), bonus fixé

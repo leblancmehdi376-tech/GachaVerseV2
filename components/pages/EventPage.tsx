@@ -13,7 +13,6 @@ import { Affinity, AFFINITY_ORDER, AFFINITY_CONFIG, affinityMatchupKind, getAffi
 import { calculateEquippedTeamDps } from '@/lib/game/dpsCalculation';
 import { formatNumber } from '@/lib/game/format';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
-import { EventMusicPlayer } from '@/components/game/EventMusicPlayer';
 import { requestUrgentSave } from '@/hooks/useCloudSave';
 
 // ── Compagnons d'event : jusqu'à 3 alliés hors équipe/expédition qui
@@ -391,7 +390,6 @@ function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void })
       flexDirection:'column'
     }}>
       <EventBg boss={boss} />
-      <EventMusicPlayer />
 
       {drops && (
         <DropPopup

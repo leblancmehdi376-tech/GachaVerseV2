@@ -190,13 +190,6 @@ interface GameStore extends GameState {
   weeklyQuests: Quest[];
   weeklyQuestsDayKey: string;
   eventQuests: Quest[];
-  // Musique
-  musicVolume: number;
-  musicMuted:  boolean;
-  setMusicVolume: (v: number) => void;
-  toggleMusicMuted: () => void;
-  eventMusicActive: boolean;          // true tant qu'une page d'event avec sa propre musique est ouverte
-  setEventMusicActive: (v: boolean) => void;
   // Monnaies additionnelles
   bossCrowns: number;
   voidOrbs: number;
@@ -357,7 +350,6 @@ const makeInitial = () => ({
   weeklyQuests: WEEKLY_QUESTS.map(q => ({ ...q, current: 0, done: false })),
   weeklyQuestsDayKey: getThisWeekKey(),
   eventQuests: EVENT_QUESTS.map(q => ({ ...q, current: 0, done: false })),
-  musicVolume: 0.5, musicMuted: false, eventMusicActive: false,
   // Flag to temporarily suppress toasts/notifications during state restore
   suppressToasts: false,
   bossCrowns: 0, voidOrbs: 0,
@@ -533,10 +525,7 @@ export const useGameStore = create<GameStore>()(
         return true;
       },
 
-      // ─── Musique ──────────────────────────────────────────────────────
-      setMusicVolume:   (v) => set({ musicVolume: Math.max(0, Math.min(1, v)) }),
-      toggleMusicMuted: () => set(s => ({ musicMuted: !s.musicMuted })),
-      setEventMusicActive: (v) => set({ eventMusicActive: v }),      setUsername: (name) => set({ username: name.trim().slice(0, 20) }),
+      setUsername: (name) => set({ username: name.trim().slice(0, 20) }),
       // ─── Boutique : BossCrown (boosts + gemmes) ─────────────────────────
       isDpsBoostActive:  () => Date.now() < get().dpsBoostEndsAt,
       isGoldBoostActive: () => Date.now() < get().goldBoostEndsAt,
@@ -904,13 +893,17 @@ export const useGameStore = create<GameStore>()(
           const stonesCost = evoStoneCost(tpl.rarity, owned.currentForm);
           if (stonesCost > 0) expState.consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);
         }
-        // Consomme l'item requis pour cette évolution si applicable
+        // Consomme les items requis pour cette évolution si applicable (1 de
+        // chacun — cumulatif d'une forme à l'autre, voir EvoForm.requiredItemIds)
         const nextForm = tpl.forms?.[owned.currentForm + 1];
-        const requiredItem = nextForm?.requiredItemId;
+        const requiredItems = nextForm?.requiredItemIds;
         set(state => {
-          const newInventory = requiredItem
-            ? { ...state.inventory, [requiredItem]: Math.max(0, (state.inventory[requiredItem] ?? 0) - 1) }
+          const newInventory = requiredItems?.length
+            ? { ...state.inventory }
             : state.inventory;
+          if (requiredItems?.length) {
+            for (const id of requiredItems) newInventory[id] = Math.max(0, (newInventory[id] ?? 0) - 1);
+          }
           return {
             inventory: newInventory,
             collection: {
@@ -1281,6 +1274,10 @@ export const useGameStore = create<GameStore>()(
         // lifetime — sinon represtiger juste après en donnerait déjà plein).
         usePrestigeStore.getState().doPrestige(runPeak);
 
+        // Succès "de run" (kills, dps, coins, pulls, amélios, collection,
+        // quêtes, rang 7★) remis à zéro — voir lib/game/achievements.ts.
+        useAchievementStore.getState().resetPrestigeAchievements();
+
         set({
           // ── Reset ──
           equipmentInventory: {},
@@ -1442,7 +1439,6 @@ export const useGameStore = create<GameStore>()(
         quests:s.quests, questsDayKey:s.questsDayKey,
         weeklyQuests:s.weeklyQuests, weeklyQuestsDayKey:s.weeklyQuestsDayKey,
         eventQuests:s.eventQuests,
-        musicVolume:s.musicVolume, musicMuted:s.musicMuted,
         bossCrowns:s.bossCrowns, voidOrbs:s.voidOrbs,
         totalBossCrownsEarned:s.totalBossCrownsEarned ?? 0, totalVoidOrbsEarned:s.totalVoidOrbsEarned ?? 0,
         inventory:s.inventory,

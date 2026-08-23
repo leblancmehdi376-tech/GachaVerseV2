@@ -28,6 +28,7 @@ interface AchievementState {
   claimAchievement: (id: string) => void;
   unlockedCount: () => number;
   resetAchievements: () => void;
+  resetPrestigeAchievements: () => void;
 }
 
 export const useAchievementStore = create<AchievementState>()(
@@ -135,6 +136,23 @@ export const useAchievementStore = create<AchievementState>()(
         claimed: {},
         activeTitle: 'Novice',
         unlockedTitles: ['Novice'],
+      }),
+
+      // Remet à zéro uniquement les succès marqués `resetsOnPrestige` (kills,
+      // dps, coins, pulls, améliorations, collection en cours, quêtes, rang
+      // 7★ — voir lib/game/achievements.ts). Les succès permanents (titres,
+      // shiny, boss, gemmes, prestige, boss crowns...) ne sont pas touchés.
+      resetPrestigeAchievements: () => set(s => {
+        const progress = { ...s.progress };
+        const unlocked = { ...s.unlocked };
+        const claimed  = { ...s.claimed };
+        for (const a of ACHIEVEMENTS) {
+          if (!a.resetsOnPrestige) continue;
+          delete progress[a.id];
+          delete unlocked[a.id];
+          delete claimed[a.id];
+        }
+        return { progress, unlocked, claimed };
       }),
     }),
     {

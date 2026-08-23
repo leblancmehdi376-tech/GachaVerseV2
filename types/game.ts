@@ -60,7 +60,11 @@ export interface EvoForm {
   levelCap:    number;
   dpsFormMult: number; // toujours = position de la forme (1, 2, 3...), fixé par ce() — jamais un réglage par personnage
   description: string;
-  requiredItemId?: string; // objet d'évolution requis (consommé) pour débloquer cette forme
+  // Objets d'évolution requis (consommés, 1 exemplaire chacun) pour débloquer
+  // cette forme — cumulatif d'un perso de boss d'événement à l'autre : la
+  // forme N requiert les N premiers objets d'évolution du perso (voir ce()
+  // dans lib/game/characters.ts, qui construit ces listes automatiquement).
+  requiredItemIds?: string[];
 }
 
 // ── Template personnage ───────────────────────────────────────────────────
@@ -74,8 +78,8 @@ export interface CharacterTemplate {
   universe?:   string;
   forms?:      EvoForm[];
   isHero?:     boolean;
-  // Perso de boss d'événement : l'objet d'évolution dédié (requiredItemId,
-  // acheté en Boutique avec les pièces du boss) suffit seul à faire évoluer —
+  // Perso de boss d'événement : les objets d'évolution dédiés (requiredItemIds,
+  // achetés en Boutique avec les pièces du boss) suffisent seuls à faire évoluer —
   // pas besoin de farmer des Pierres d'Évolution en plus.
   noEvoStones?: boolean;
 }
@@ -122,7 +126,7 @@ export function canEvolve(character: CharacterTemplate, owned: OwnedCharacter, i
   if (!character.forms || character.forms.length === 0) return false;
   if (owned.currentForm >= character.forms.length - 1) return false;
   const nextForm = character.forms[owned.currentForm + 1];
-  if (nextForm.requiredItemId && (inventory[nextForm.requiredItemId] ?? 0) < 1) return false;
+  if (nextForm.requiredItemIds?.some(id => (inventory[id] ?? 0) < 1)) return false;
   if (character.noEvoStones) return true;
   const stonesNeeded = evoStoneCost(character.rarity, owned.currentForm);
   if ((dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0) < stonesNeeded) return false;

@@ -1,7 +1,7 @@
 // ── Objets d'évolution ─────────────────────────────────────────────────
 // Items obtenus via les boss d'événement, stockés dans l'inventaire du
 // joueur (gameStore.inventory), et consommés pour débloquer certaines
-// évolutions spéciales (voir EvoForm.requiredItemId dans characters.ts).
+// évolutions spéciales (voir EvoForm.requiredItemIds dans characters.ts).
 
 export interface ItemDef {
   id: string;
@@ -16,42 +16,42 @@ export interface ItemDef {
 export const ITEM_DEFS: Record<string, ItemDef> = {
   elixir_vie: {
     id: 'elixir_vie', name: 'Élixir de Vie', icon: '🧪', color: '#4ade80',
-    description: "Débloque la 1ère évolution de Sung Jin Woo.",
+    description: "Débloque la 1ère évolution de Sung Jin Woo — aussi requis (en plus des suivants) pour ses évolutions ultérieures.",
     sellGems: 100,
   },
   manteau_ombre: {
     id: 'manteau_ombre', name: "Manteau de l'Ombre", icon: '🧥', color: '#818cf8',
-    description: "Débloque la 2ème évolution de Sung Jin Woo.",
+    description: "Débloque la 2ème évolution de Sung Jin Woo, en plus de l'Élixir de Vie — aussi requis pour l'évolution finale.",
     sellGems: 100,
   },
   beru: {
     id: 'beru', name: 'Beru', icon: '🐜', color: '#a855f7',
-    description: "Débloque l'évolution finale de Sung Jin Woo.",
+    description: "Débloque l'évolution finale de Sung Jin Woo, en plus de l'Élixir de Vie et du Manteau de l'Ombre.",
     sellGems: 100,
   },
   cristal_ether: {
     id: 'cristal_ether', name: 'Cristal d’Éther', icon: '💎', color: '#38bdf8',
-    description: 'Matériau d’évolution requis pour Arthur Leywin.',
+    description: 'Débloque la 1ère évolution d’Arthur Leywin — aussi requis (en plus des suivants) pour ses évolutions ultérieures.',
     sellGems: 100,
   },
   epee_ether: {
     id: 'epee_ether', name: 'Épée d’Éther', icon: '⚔️', color: '#f59e0b',
-    description: 'Arme d’évolution requise pour Arthur Leywin.',
+    description: 'Débloque la 2ème évolution d’Arthur Leywin, en plus du Cristal d’Éther — aussi requise pour l’évolution finale.',
     sellGems: 100,
   },
   sylvia: {
     id: 'sylvia', name: 'Sylvia', icon: '👑', color: '#f97316',
-    description: 'Trophée de Sylvia, utilisé pour la dernière évolution d’Arthur Leywin.',
+    description: 'Débloque l’évolution finale d’Arthur Leywin, en plus du Cristal d’Éther et de l’Épée d’Éther.',
     sellGems: 100,
   },
   masque_cid: {
     id: 'masque_cid', name: 'Masque de Cid', icon: '🎭', color: '#a78bfa',
-    description: "Débloque la 1ère évolution de Cid Kagenou (Shadow).",
+    description: "Débloque la 1ère évolution de Cid Kagenou (Shadow) — aussi requis pour son évolution suivante.",
     sellGems: 100,
   },
   epee_slime: {
     id: 'epee_slime', name: 'Épée de Slime', icon: '🗡️', color: '#38bdf8',
-    description: "Débloque la 2ème évolution de Cid Kagenou (John Smith).",
+    description: "Débloque la 2ème évolution de Cid Kagenou (John Smith), en plus du Masque de Cid.",
     sellGems: 100,
   },
   slime_eminence: {

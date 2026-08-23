@@ -23,7 +23,6 @@ import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
 import { PrestigePage } from '@/components/pages/PrestigePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
-import { MusicPlayer } from '@/components/game/MusicPlayer';
 import { useGameStore, getPalierPassGems } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useCloudSave } from '@/hooks/useCloudSave';
@@ -519,7 +518,6 @@ export function GameLayout() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={handleClaimOffline} />}
       <UltAnimation />
-      <MusicPlayer />
     </div>
   );
 }
