@@ -7,8 +7,9 @@ import { redeemGiftCode } from '@/lib/firebase/giftCodes';
 import { useExpeditionStore } from '@/store/expeditionStore';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
+import { formatSyncStatus, type CloudSyncStatus } from '@/hooks/useCloudSave';
 
-export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<boolean> }) {
+export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
   const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, username, setUsername } = useGameStore();
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
@@ -194,6 +195,18 @@ export function SettingsPage({ onForceSave }: { onForceSave?: () => Promise<bool
                 <span>{saving ? 'SAUVEGARDE...' : saveError ? 'ÉCHEC — réessaie ou vérifie ta connexion' : saveOk ? 'SAUVEGARDÉ !' : 'FORCER LA SAUVEGARDE'}</span>
               </button>
             )}
+
+            {/* ── État de synchro cloud — confirme sur QUEL appareil on est à
+                jour, sans avoir à ouvrir la console navigateur. */}
+            {user && syncStatus && (() => {
+              const st = formatSyncStatus(syncStatus, lastSyncedAt ?? null);
+              return (
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>
+                  <span style={{ width:8, height:8, borderRadius:'50%', background:st.color, flexShrink:0 }} />
+                  <span>{st.label}</span>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

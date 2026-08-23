@@ -25,7 +25,7 @@ import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
 import { useGameStore, getPalierPassGems } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
-import { useCloudSave } from '@/hooks/useCloudSave';
+import { useCloudSave, formatSyncStatus } from '@/hooks/useCloudSave';
 import { useDpsTick } from '@/hooks/useDpsTick';
 import { formatNumber } from '@/lib/game/format';
 import { getPalierConfig } from '@/types/game';
@@ -104,7 +104,7 @@ export function GameLayout() {
   const [victory, setVictory] = useState<{ palier: number; gems: number; coins: number } | null>(null);
   const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, ensureWeeklyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory, focusedExpeditionId } = useGameStore();
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
-  const { forceSave, loaded: cloudLoaded } = useCloudSave(user?.uid ?? null);
+  const { forceSave, loaded: cloudLoaded, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
 
   // Navigation Forge → Expéditions : dès qu'un ingrédient à récolter est
   // "focusé", on bascule automatiquement sur la page Expéditions (qui se
@@ -346,7 +346,16 @@ export function GameLayout() {
             boxShadow: user ? 'none' : '0 0 16px rgba(168,85,247,0.4)' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.15)'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
-          <div style={{ width:36, height:36, background:'linear-gradient(135deg,#3b0764,#6d28d9)', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18.5px', border:'1px solid var(--purple-dim)', boxShadow:'0 0 12px rgba(109,40,217,0.35)', flexShrink:0 }}>🐱</div>
+          <div style={{ position:'relative', width:36, height:36, flexShrink:0 }} title={formatSyncStatus(syncStatus, lastSyncedAt).label}>
+            <div style={{ width:36, height:36, background:'linear-gradient(135deg,#3b0764,#6d28d9)', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18.5px', border:'1px solid var(--purple-dim)', boxShadow:'0 0 12px rgba(109,40,217,0.35)' }}>🐱</div>
+            {/* Badge de synchro cloud — confirme d'un coup d'œil si CET appareil
+                est bien à jour avec le cloud, sans avoir à ouvrir la console. */}
+            <div style={{ position:'absolute', bottom:-2, right:-2, width:11, height:11, borderRadius:'50%',
+              background: formatSyncStatus(syncStatus, lastSyncedAt).color,
+              border:'2px solid var(--bg-dark)',
+              boxShadow: syncStatus === 'synced' ? '0 0 6px rgba(74,222,128,0.7)' : 'none',
+              transition:'background 0.3s' }} />
+          </div>
           {!isMobile && <div style={{ textAlign:'left' }}>
             {user ? (<>
               <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
@@ -505,7 +514,7 @@ export function GameLayout() {
                   {page === 'shop'       && <ShopPage />}
                   {page === 'quests'     && <QuestsPage />}
                   {page === 'events'     && <EventPage />}
-                  {page === 'settings'     && <SettingsPage onForceSave={forceSave} />}
+                  {page === 'settings'     && <SettingsPage onForceSave={forceSave} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} />}
                   {page === 'leaderboard'  && <LeaderboardPage />}
                   {page === 'marketplace'  && <MarketplacePage />}
                   {page === 'champions'    && <ChampionInventoryPage />}

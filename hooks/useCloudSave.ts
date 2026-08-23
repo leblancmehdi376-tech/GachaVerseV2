@@ -229,6 +229,44 @@ let retryDelayMs = RETRY_MIN_MS;
 let reconciliationAttempts = 0;
 const MAX_BLOCKING_RECONCILIATION_ATTEMPTS = 2; // ~45s de blocage max (15s + 30s)
 
+// ── État de synchro exposé aux composants (badge dans GameLayout + détail
+// dans Paramètres) ─────────────────────────────────────────────────────────
+// cloudSyncConfirmed/lastSyncedAt sont des variables module-level (lues par du
+// code hors React — voir requestUrgentSave), donc pas nativement réactives :
+// ce petit pub-sub permet à useCloudSave() de re-render quand elles changent,
+// sans dupliquer l'état dans un store zustand pour si peu.
+let lastSyncedAt: number | null = null;
+type SyncListener = () => void;
+const syncListeners = new Set<SyncListener>();
+function notifySyncListeners() { syncListeners.forEach(l => l()); }
+function setCloudSyncConfirmed(value: boolean) {
+  if (cloudSyncConfirmed === value) return;
+  cloudSyncConfirmed = value;
+  notifySyncListeners();
+}
+function markSynced(atMs: number) {
+  lastSyncedAt = atMs;
+  notifySyncListeners();
+}
+
+export type CloudSyncStatus = 'offline' | 'loading' | 'syncing' | 'synced';
+
+// Couleur + libellé partagés entre le badge (GameLayout) et le détail
+// (SettingsPage), pour ne jamais les faire diverger.
+export function formatSyncStatus(status: CloudSyncStatus, lastSyncedAtMs: number | null): { color: string; label: string } {
+  switch (status) {
+    case 'offline': return { color: '#6b7280', label: 'Hors ligne — sauvegarde locale uniquement' };
+    case 'loading': return { color: '#eab308', label: 'Chargement de la sauvegarde cloud...' };
+    case 'syncing': return { color: '#eab308', label: 'Synchronisation en cours...' };
+    case 'synced': {
+      if (!lastSyncedAtMs) return { color: '#4ade80', label: 'Synchronisé' };
+      const secs = Math.max(0, Math.floor((Date.now() - lastSyncedAtMs) / 1000));
+      const rel = secs < 60 ? `${secs}s` : secs < 3600 ? `${Math.floor(secs / 60)}min` : `${Math.floor(secs / 3600)}h`;
+      return { color: '#4ade80', label: `Synchronisé — il y a ${rel}` };
+    }
+  }
+}
+
 function clearReconciliationRetry() {
   if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
   retryDelayMs = RETRY_MIN_MS;
@@ -248,7 +286,7 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
       reconciliationAttempts++;
       if (reconciliationAttempts > MAX_BLOCKING_RECONCILIATION_ATTEMPTS) {
         console.warn('[CloudSave] Cloud injoignable après plusieurs tentatives — écritures réautorisées par défaut, reconciliation continue en arrière-plan.');
-        cloudSyncConfirmed = true; // fail-open : ne bloque pas indéfiniment le jeu
+        setCloudSyncConfirmed(true); // fail-open : ne bloque pas indéfiniment le jeu
         // pendingLocalSnapshotTs n'est PAS effacé : une reconciliation réussie
         // plus tard doit encore pouvoir détecter et appliquer un cloud plus récent.
       }
@@ -267,7 +305,7 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
       console.warn('[CloudSave] Sauvegarde cloud plus récente détectée après reconnexion — réapplication.');
       applyRemoteState(remote as Record<string, unknown>);
     }
-    cloudSyncConfirmed = true;
+    setCloudSyncConfirmed(true);
     pendingLocalSnapshotTs = null;
     clearReconciliationRetry();
     reconciliationAttempts = 0;
@@ -329,12 +367,12 @@ async function loadAndApply(userId: string, generation: number) {
     // interdit toute écriture vers Firebase tant qu'une reconciliation en
     // arrière-plan n'a pas tranché.
     if (reachable) {
-      cloudSyncConfirmed = true;
+      setCloudSyncConfirmed(true);
       pendingLocalSnapshotTs = null;
       reconciliationAttempts = 0;
       clearReconciliationRetry();
     } else {
-      cloudSyncConfirmed = false;
+      setCloudSyncConfirmed(false);
       pendingLocalSnapshotTs = best.ts;
       scheduleReconciliationRetry(userId, generation);
     }
@@ -380,6 +418,7 @@ async function saveToFirebase(userId: string): Promise<boolean> {
     ]);
 
     useGameStore.setState({ savedAt: data.savedAt });
+    markSynced(Date.now());
 
     console.log('[CloudSave] Firebase OK —', new Date().toLocaleTimeString());
     return true;
@@ -398,12 +437,34 @@ async function saveToFirebase(userId: string): Promise<boolean> {
 let urgentSaveUserId: string | null = null;
 let urgentSaveReady   = false;
 let lastUrgentSaveAt  = 0;
+let pendingUrgentSaveTimer: ReturnType<typeof setTimeout> | null = null;
 const URGENT_SAVE_MIN_GAP_MS = 15_000; // évite une rafale d'écritures Firestore (ex: pulls gacha en boucle)
 
+// Avant ce correctif, un appel trop rapproché (throttle) ou trop précoce
+// (chargement initial pas encore terminé — ex: lancer une expédition juste
+// après avoir ouvert le jeu) était simplement IGNORÉ, sans aucun rattrapage :
+// l'événement ne finissait par se synchroniser qu'au prochain cycle périodique
+// (jusqu'à 10min plus tard), ce qui pouvait ressembler à une désync entre
+// appareils. Chaque demande ignorée reprogramme maintenant un unique rattrapage.
 export function requestUrgentSave() {
-  if (!urgentSaveUserId || !urgentSaveReady) return;
+  if (!urgentSaveUserId) return; // pas connecté, rien à synchroniser
+
+  if (!urgentSaveReady) {
+    if (!pendingUrgentSaveTimer) {
+      pendingUrgentSaveTimer = setTimeout(() => { pendingUrgentSaveTimer = null; requestUrgentSave(); }, 2000);
+    }
+    return;
+  }
+
   const now = Date.now();
-  if (now - lastUrgentSaveAt < URGENT_SAVE_MIN_GAP_MS) return;
+  const elapsed = now - lastUrgentSaveAt;
+  if (elapsed < URGENT_SAVE_MIN_GAP_MS) {
+    if (!pendingUrgentSaveTimer) {
+      pendingUrgentSaveTimer = setTimeout(() => { pendingUrgentSaveTimer = null; requestUrgentSave(); }, URGENT_SAVE_MIN_GAP_MS - elapsed);
+    }
+    return;
+  }
+
   lastUrgentSaveAt = now;
   saveToLocal();
   saveToFirebase(urgentSaveUserId);
@@ -448,6 +509,16 @@ export function useCloudSave(userId: string | null) {
   // crédité localement (voir claimOfflineEarnings).
   const [loaded, setLoaded] = useState(!userId);
 
+  // Re-render quand cloudSyncConfirmed/lastSyncedAt changent (variables
+  // module-level, pas nativement réactives — voir le pub-sub plus haut) pour
+  // que syncStatus/lastSyncedAt ci-dessous reflètent toujours l'état courant.
+  const [, forceSyncRerender] = useState(0);
+  useEffect(() => {
+    const listener = () => forceSyncRerender(n => n + 1);
+    syncListeners.add(listener);
+    return () => { syncListeners.delete(listener); };
+  }, []);
+
   // Chargement au login
   useEffect(() => {
     // Toute génération précédente (login/logout antérieur, éventuellement
@@ -461,7 +532,7 @@ export function useCloudSave(userId: string | null) {
       urgentSaveUserId = null; urgentSaveReady = false;
       // Pas de reconciliation à poursuivre pour un utilisateur déconnecté.
       clearReconciliationRetry();
-      cloudSyncConfirmed = true; pendingLocalSnapshotTs = null; reconciliationAttempts = 0;
+      setCloudSyncConfirmed(true); pendingLocalSnapshotTs = null; reconciliationAttempts = 0;
       return;
     }
     if (userId === userIdRef.current) return;
@@ -473,7 +544,7 @@ export function useCloudSave(userId: string | null) {
     // PRÉCÉDENT utilisateur (autre session sur cet onglet) ne doit pas
     // interférer avec ce nouveau login — loadAndApply ci-dessous redécide.
     clearReconciliationRetry();
-    cloudSyncConfirmed = true; pendingLocalSnapshotTs = null; reconciliationAttempts = 0;
+    setCloudSyncConfirmed(true); pendingLocalSnapshotTs = null; reconciliationAttempts = 0;
     setLoaded(false);
     (async () => {
       await waitForAllHydrated();
@@ -554,5 +625,16 @@ export function useCloudSave(userId: string | null) {
     return saveToFirebase(userId);
   };
 
-  return { forceSave, loaded };
+  // Statut affiché au joueur (badge + Paramètres) — voir CloudSyncStatus :
+  // 'offline' = pas connecté (progression locale uniquement, pas de risque de
+  // désync puisqu'il n'y a rien à synchroniser) ; 'loading' = chargement cloud
+  // initial en cours ; 'syncing' = synchro pas encore confirmée (reconciliation
+  // après une panne réseau au login, voir cloudSyncConfirmed) ; 'synced' = OK.
+  const syncStatus: CloudSyncStatus =
+    !userId ? 'offline' :
+    !loaded ? 'loading' :
+    !cloudSyncConfirmed ? 'syncing' :
+    'synced';
+
+  return { forceSave, loaded, syncStatus, lastSyncedAt };
 }
