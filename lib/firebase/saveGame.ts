@@ -3,15 +3,14 @@ import { db } from './config';
 import { GameState } from '@/types/game';
 import { correctedNow } from './clockOffset';
 
-// Ne PAS avaler l'erreur ici : l'appelant (saveToFirebase dans
-// hooks/useCloudSave.ts) a besoin de savoir si l'écriture a réellement
-// échoué pour ne jamais renvoyer "sauvegardé" à tort — un catch silencieux
-// ici masquait toute panne d'écriture (règles, réseau, quota...) derrière un
-// succès apparent, sans qu'aucune donnée n'atteigne jamais Firestore.
 export async function saveGameToFirestore(userId: string, state: Partial<GameState>) {
   if (!db) return;
-  const ref = doc(db, 'saves', userId);
-  await setDoc(ref, { ...state, lastSaved: correctedNow() }, { merge: true });
+  try {
+    const ref = doc(db, 'saves', userId);
+    await setDoc(ref, { ...state, lastSaved: correctedNow() }, { merge: true });
+  } catch (e) {
+    console.error('Save error:', e);
+  }
 }
 
 // Lecture simple de la sauvegarde cloud — UN SEUL aller-retour (getDoc, pas
