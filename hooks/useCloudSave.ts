@@ -227,85 +227,6 @@ function clearReconciliationRetry() {
 
 let loadPhaseListeners: ((phase: LoadPhase) => void) | null = null;
 
-// ── Récupération ponctuelle des anciennes sauvegardes locales ─────────────
-// Avant le passage à la connexion obligatoire (suppression de tout save
-// local), le jeu avait un mode invité qui ne sauvegardait qu'en localStorage.
-// Ce changement a coupé toute lecture locale SANS migrer une éventuelle
-// progression déjà là : un compte qui se connecte pour la première fois et
-// n'a donc aucun doc "saves/{uid}" verrait sinon sa partie repartir de zéro,
-// alors que sa vraie progression dort encore dans ce navigateur. On ne
-// déclenche cette récupération QUE quand aucune sauvegarde cloud n'existe —
-// jamais pour écraser une vraie sauvegarde cloud existante.
-const LEGACY_KEYS = {
-  save: 'gachaverse_save_v2',
-  achievements: 'gachaverse_achievements_v2',
-  expeditions: 'gachaverse_expeditions_v2',
-  prestige: 'gachaverse_prestige_v2',
-  gameStore: 'nekoz-world-v8',
-  ultimates: 'nekoz-ult-v2',
-} as const;
-
-function readLegacyZustandState(key: string): Record<string, unknown> | null {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(key) ?? 'null');
-    const state = parsed?.state;
-    return state && typeof state === 'object' ? state as Record<string, unknown> : null;
-  } catch {
-    return null;
-  }
-}
-
-function tryRecoverLegacyLocalSave(): Record<string, unknown> | null {
-  try {
-    const raw = localStorage.getItem(LEGACY_KEYS.save);
-    if (!raw) return null;
-    const data = JSON.parse(raw) as Record<string, unknown>;
-
-    const hasProgress =
-      (typeof data.palier === 'number' && data.palier > 1) ||
-      (typeof data.pixelCoins === 'number' && data.pixelCoins > 0) ||
-      (!!data.collection && typeof data.collection === 'object' && Object.keys(data.collection as object).length > 0);
-    if (!hasProgress) return null;
-
-    // Complète avec les stores séparés (succès/expéditions/prestige) — leur
-    // propre ancienne clé locale, potentiellement plus à jour que ce qu'avait
-    // capturé gachaverse_save_v2 lors de son dernier cycle de 30s. Chaque
-    // échec individuel est ignoré, il ne doit pas empêcher la récupération du
-    // reste.
-    const ach = readLegacyZustandState(LEGACY_KEYS.achievements);
-    if (ach) {
-      if (ach.claimed)        data.achievementsClaimed = ach.claimed;
-      if (ach.unlockedTitles) data.unlockedTitles = ach.unlockedTitles;
-      if (ach.activeTitle)    data.activeTitle = ach.activeTitle;
-    }
-    const exp = readLegacyZustandState(LEGACY_KEYS.expeditions);
-    if (exp) {
-      if (exp.active)                                data.expeditionActive = exp.active;
-      if (exp.dropInventory)                          data.expeditionDropInventory = exp.dropInventory;
-      if (exp.craftedRecipes)                         data.expeditionCraftedRecipes = exp.craftedRecipes;
-      if (typeof exp.expeditionSlotLevel === 'number') data.expeditionSlotLevel = exp.expeditionSlotLevel;
-      if (exp.defAffinities)                          data.expeditionDefAffinities = exp.defAffinities;
-    }
-    const pr = readLegacyZustandState(LEGACY_KEYS.prestige);
-    if (pr) {
-      if (typeof pr.level  === 'number') data.prestigeLevel  = pr.level;
-      if (typeof pr.tokens === 'number') data.prestigeTokens = pr.tokens;
-      if (pr.bonusLevels)                data.prestigeBonusLevels = pr.bonusLevels;
-      if (typeof pr.rankRecoveryLevel === 'number') data.prestigeRankRecoveryLevel = pr.rankRecoveryLevel;
-    }
-
-    return data;
-  } catch {
-    return null;
-  }
-}
-
-function clearLegacyLocalKeys() {
-  try {
-    for (const key of Object.values(LEGACY_KEYS)) localStorage.removeItem(key);
-  } catch { /* ignore */ }
-}
-
 function scheduleReconciliationRetry(userId: string, generation: number) {
   if (retryTimer) return; // déjà planifiée
   retryTimer = setTimeout(() => attemptLoad(userId, generation), retryDelayMs);
@@ -329,21 +250,12 @@ async function attemptLoad(userId: string, generation: number): Promise<void> {
   }
 
   if (offsetMs !== null) setClockOffset(offsetMs);
-
-  const legacy = remote ? null : tryRecoverLegacyLocalSave();
-  const source = (remote ?? legacy) as Record<string, unknown> | null;
-  if (source) applyRemoteState(source);
-  mergeAchievementState(source);
+  if (remote) applyRemoteState(remote as Record<string, unknown>);
+  mergeAchievementState(remote as Record<string, unknown> | null);
 
   clearReconciliationRetry();
   setCloudSyncConfirmed(true);
   loadPhaseListeners?.('ready');
-
-  if (legacy) {
-    console.warn('[CloudSave] Aucune sauvegarde cloud — ancienne sauvegarde locale récupérée et importée.');
-    const ok = await saveToFirebase(userId);
-    if (ok) clearLegacyLocalKeys(); // migration one-shot : ne plus jamais la retenter une fois durable
-  }
 }
 
 // ── Firebase (avec gestion quota + timeout 5s) ────────────────────────────
@@ -471,15 +383,6 @@ export function useCloudSave(userId: string | null) {
 
   // Chargement au login
   useEffect(() => {
-    // Repli StrictMode (dev) : cet effet est invoqué deux fois d'affilée sans
-    // cleanup entre les deux quand userId ne change pas réellement. Si ce
-    // userId a déjà été pris en charge (chargement déjà lancé, ou déjà
-    // déconnecté), la deuxième invocation ne doit RIEN refaire — incrémenter
-    // sessionGeneration ici invaliderait à tort le chargement encore en vol
-    // de la première invocation (celui-ci ne s'appliquerait alors jamais,
-    // laissant le jeu bloqué sur l'écran de chargement indéfiniment).
-    if (userId === userIdRef.current) return;
-
     // Toute génération précédente (login/logout antérieur, éventuellement
     // encore en vol sur un await) devient périmée dès qu'un effet tourne ici —
     // voir le commentaire sur sessionGeneration plus haut dans ce fichier.
@@ -493,6 +396,7 @@ export function useCloudSave(userId: string | null) {
       setCloudSyncConfirmed(true);
       return;
     }
+    if (userId === userIdRef.current) return;
     userIdRef.current = userId;
     loadedRef.current = false;
     urgentSaveUserId = userId;
