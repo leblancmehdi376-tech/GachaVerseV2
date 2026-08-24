@@ -7,7 +7,7 @@ import { redeemGiftCode } from '@/lib/firebase/giftCodes';
 import { useExpeditionStore } from '@/store/expeditionStore';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { formatSyncStatus, hasLegacyLocalSave, importLegacyLocalSave, type CloudSyncStatus } from '@/hooks/useCloudSave';
+import { formatSyncStatus, type CloudSyncStatus } from '@/hooks/useCloudSave';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
   const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, username, setUsername } = useGameStore();
@@ -21,23 +21,6 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const [saving,    setSaving]          = useState(false);
   const [saveOk,    setSaveOk]          = useState(false);
   const [saveError, setSaveError]       = useState(false);
-
-  // ── Import d'une ancienne sauvegarde locale (voir hooks/useCloudSave.ts) ──
-  const [showLegacyImport, setShowLegacyImport] = useState(false);
-  const [confirmImport,    setConfirmImport]    = useState(false);
-  const [importing,        setImporting]        = useState(false);
-  const [importResult,     setImportResult]     = useState<'ok' | 'error' | null>(null);
-  useEffect(() => { setShowLegacyImport(hasLegacyLocalSave()); }, []);
-  const handleImportLegacy = async () => {
-    if (!confirmImport) { setConfirmImport(true); return; }
-    setImporting(true);
-    const ok = await importLegacyLocalSave();
-    setImporting(false);
-    setConfirmImport(false);
-    setImportResult(ok ? 'ok' : 'error');
-    if (ok) setShowLegacyImport(false);
-    setTimeout(() => setImportResult(null), 5000);
-  };
 
   // ── Code cadeau ──────────────────────────────────────────────────────
   const [nameInput,   setNameInput]   = useState(username);
@@ -327,49 +310,6 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
             ))}
           </div>
         </div>
-
-        {/* ── RÉCUPÉRATION D'UNE ANCIENNE SAUVEGARDE LOCALE ── */}
-        {showLegacyImport && (
-          <div className="panel" style={{ padding:'20px', border:'1px solid rgba(234,179,8,0.4)', boxShadow:'0 0 16px rgba(234,179,8,0.08)' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'12px' }}>
-              <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#eab308,#a16207)', borderRadius:'2px', boxShadow:'0 0 8px #eab308' }} />
-              <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'#eab308', letterSpacing:'2px' }}>ANCIENNE SAUVEGARDE DÉTECTÉE</span>
-            </div>
-            {importResult === 'ok' ? (
-              <div style={{ textAlign:'center', padding:'16px', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.25)', borderRadius:'8px' }}>
-                <div style={{ fontSize:'28.8px', marginBottom:'8px' }}>✅</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--green)' }}>Sauvegarde importée !</div>
-              </div>
-            ) : (
-              <>
-                <p style={{ fontFamily:'var(--f-ui)', fontSize:'13.4px', color:'var(--text-dim)', lineHeight:1.6, marginBottom:'14px' }}>
-                  Ce navigateur garde une progression enregistrée avant le passage à la sauvegarde cloud. Tu peux l&apos;importer ici — <strong style={{ color:'#eab308' }}>ça remplacera ta sauvegarde cloud actuelle</strong> par celle de cet appareil.
-                </p>
-                {importResult === 'error' && (
-                  <div style={{ marginBottom:'12px', fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--red)' }}>❌ Échec de l&apos;import — vérifie ta connexion et réessaie.</div>
-                )}
-                {confirmImport && (
-                  <div style={{ background:'rgba(113,63,18,0.2)', border:'1px solid rgba(234,179,8,0.35)', borderRadius:'8px', padding:'12px 14px', marginBottom:'14px', display:'flex', alignItems:'center', gap:'10px' }}>
-                    <span style={{ fontSize:'20.6px' }}>⚠️</span>
-                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#fde047' }}>Ta sauvegarde cloud actuelle sera écrasée. Confirmer ?</span>
-                  </div>
-                )}
-                <div style={{ display:'flex', gap:'10px' }}>
-                  <button onClick={handleImportLegacy} disabled={importing}
-                    style={{ flex:1, padding:'11px', background:confirmImport?'linear-gradient(135deg,#a16207,#ca8a04)':'rgba(234,179,8,0.08)', border:`1px solid ${confirmImport?'#eab308':'rgba(234,179,8,0.3)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:confirmImport?'white':'#eab308', cursor:importing?'wait':'pointer', transition:'all 0.15s' }}>
-                    {importing ? '⏳ IMPORT...' : confirmImport ? '📥 CONFIRMER L’IMPORT' : '📥 IMPORTER CETTE SAUVEGARDE'}
-                  </button>
-                  {confirmImport && !importing && (
-                    <button onClick={() => setConfirmImport(false)}
-                      style={{ padding:'11px 18px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text-dim)', cursor:'pointer' }}>
-                      Annuler
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
 
         {/* ── RESET ── */}
         <div className="panel" style={{ padding:'20px', border: confirmReset ? '1px solid rgba(239,68,68,0.4)' : '1px solid var(--border)', boxShadow: confirmReset ? '0 0 20px rgba(239,68,68,0.1)' : 'none', transition:'all 0.2s' }}>

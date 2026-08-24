@@ -306,40 +306,6 @@ function clearLegacyLocalKeys() {
   } catch { /* ignore */ }
 }
 
-// Détecte si CET appareil/navigateur a encore une ancienne sauvegarde locale
-// exploitable — pour afficher (ou non) le bouton d'import manuel en Réglages.
-export function hasLegacyLocalSave(): boolean {
-  if (typeof window === 'undefined') return false;
-  return tryRecoverLegacyLocalSave() !== null;
-}
-
-// Import MANUEL, déclenché par le joueur (bouton Paramètres) — contrairement
-// à la récupération automatique au premier login (qui ne se déclenche que si
-// AUCUNE sauvegarde cloud n'existe, pour ne jamais écraser une vraie save à
-// son insu), celle-ci écrase délibérément la sauvegarde cloud actuelle par
-// l'ancienne sauvegarde locale de CET appareil : l'utilisateur le demande
-// explicitement, donc l'écrasement est l'effet recherché. Nécessaire quand la
-// récupération automatique a raté sa fenêtre (ex: un autre appareil du même
-// compte a recréé un doc Firestore entre-temps).
-// Remplace (et non fusionne) l'état des succès : le joueur veut restaurer
-// EXACTEMENT l'état de cet appareil, pas le mélanger avec l'état courant en
-// mémoire (qui peut provenir d'un autre appareil).
-export async function importLegacyLocalSave(): Promise<boolean> {
-  const legacy = tryRecoverLegacyLocalSave();
-  if (!legacy) return false;
-
-  applyRemoteState(legacy);
-  const claimed = (legacy.achievementsClaimed as Record<string, boolean> | undefined) ?? {};
-  const unlockedTitles = (legacy.unlockedTitles as string[] | undefined) ?? ['Novice'];
-  const activeTitle = (legacy.activeTitle as string | undefined) ?? 'Novice';
-  useAchievementStore.setState({ claimed, unlockedTitles, activeTitle });
-  ensureAchievementInvariants();
-
-  const ok = await forceSaveNow();
-  if (ok) clearLegacyLocalKeys();
-  return ok;
-}
-
 function scheduleReconciliationRetry(userId: string, generation: number) {
   if (retryTimer) return; // déjà planifiée
   retryTimer = setTimeout(() => attemptLoad(userId, generation), retryDelayMs);
