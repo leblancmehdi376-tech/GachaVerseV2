@@ -52,10 +52,10 @@ export function calcPrestigeBonuses(bonusLevels: PrestigeBonusLevels): ActivePre
   };
 }
 
-// Jetons gagnés en prestigeant au palier `maxPalierReached` (>=41) : +1 jeton
-// par tranche de 10 paliers au-delà de 40, plus le bonus tokenGain éventuel.
+// Jetons gagnés en prestigeant au palier `maxPalierReached` (>=41) :
+// ARRONDI(1 + 2*((palier-40)/10)^1,7 ; 0), plus le bonus tokenGain éventuel.
 export function calcTokensAwarded(maxPalierReached: number, tokenGainBonus: number): number {
-  return Math.floor((maxPalierReached - 40) / 10) + 1 + tokenGainBonus;
+  return Math.round(1 + 2 * Math.pow((maxPalierReached - 40) / 10, 1.7)) + tokenGainBonus;
 }
 
 // ── Bonus "Mémoire des Rangs" — achat DIRECT (pas de tirage aléatoire) ─────
