@@ -2,21 +2,45 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/layout/AuthModal';
-import { getPendingRequests, getApprovedUsers, getAllUsers, approveUser, AccessRequest } from '@/lib/firebase/accessRequests';
-import { findPlayer, getPlayerSave, correctPlayerBalance, correctPlayerProgress, getPlayerCollection, removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, PlayerLookup, PlayerSaveSummary, OwnedCharacterSummary } from '@/lib/firebase/adminTools';
+import { getAllUsers, approveUser, AccessRequest } from '@/lib/firebase/accessRequests';
+import { findPlayer, getPlayerSaveAndCollection, correctPlayerBalance, correctPlayerProgress, removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, PlayerLookup, PlayerSaveSummary, OwnedCharacterSummary } from '@/lib/firebase/adminTools';
 import { checkIsAdmin } from '@/lib/admin';
 
+// Cache module-level (hors composant) : survit à un démontage/remontage de
+// la page dans la même session (ex: navigation vers un autre onglet puis
+// retour) sans jamais relire Firestore — seul le bouton "Actualiser" force
+// une vraie relecture. `accountsCacheAt` sert à afficher "chargé il y a Xmin".
+let accountsCache: AccessRequest[] | null = null;
+let accountsCacheAt: number | null = null;
+
+function formatRelative(ms: number): string {
+  const secs = Math.max(0, Math.floor(ms / 1000));
+  if (secs < 60) return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}min`;
+  return `${Math.floor(secs / 3600)}h`;
+}
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth]   = useState(false);
-  const [pending, setPending]     = useState<AccessRequest[]>([]);
-  const [approvedList, setApprovedList] = useState<AccessRequest[]>([]);
-  const [allUsers, setAllUsers]   = useState<AccessRequest[]>([]);
+  const [allUsers, setAllUsers]   = useState<AccessRequest[]>(accountsCache ?? []);
+  const [loadedAt, setLoadedAt]   = useState<number | null>(accountsCacheAt);
+  // `now` vit en state (rafraîchi périodiquement) plutôt que d'appeler
+  // Date.now() directement dans le JSX au rendu — un rendu doit rester pur.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
   const [accountSearch, setAccountSearch] = useState('');
   const [busy, setBusy]           = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showTab, setShowTab] = useState<'requests'|'accounts'|'balance'>('requests');
+
+  // Dérivés localement depuis `allUsers` (déjà chargé en un seul aller-retour
+  // par getAllUsers) au lieu de deux requêtes Firestore séparées.
+  const pending = allUsers.filter(u => !u.approved).sort((a, b) => a.createdAt - b.createdAt);
+  const approvedList = allUsers.filter(u => u.approved); // déjà triés par getAllUsers (plus récent d'abord)
 
   // ── Correction de solde (onglet "Rééquilibrer un compte") ─────────────
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,13 +69,15 @@ export default function AdminPage() {
   const [addCharMsg, setAddCharMsg]   = useState<string | null>(null);
   const [addCharBusy, setAddCharBusy] = useState(false);
 
-  const loadPlayerChars = async (uid: string) => setPlayerChars(await getPlayerCollection(uid));
-
+  // Retire/modifie l'entrée localement plutôt que de recharger toute la
+  // collection depuis Firestore après chaque action (voir adminTools.ts :
+  // removePlayerCharacter/setPlayerCharacterLevel n'ont plus besoin de lire
+  // le doc avant d'écrire, donc plus rien à relire ensuite non plus).
   const handleRemoveChar = async (instanceKey: string) => {
     if (!foundPlayer) return;
     setCharBusy(instanceKey);
     const ok = await removePlayerCharacter(foundPlayer.uid, instanceKey);
-    if (ok) await loadPlayerChars(foundPlayer.uid);
+    if (ok) setPlayerChars(chars => chars.filter(c => c.instanceKey !== instanceKey));
     setCharBusy(null);
   };
 
@@ -61,7 +87,7 @@ export default function AdminPage() {
     if (!val || val < 1) return;
     setCharBusy(instanceKey);
     const ok = await setPlayerCharacterLevel(foundPlayer.uid, instanceKey, val);
-    if (ok) await loadPlayerChars(foundPlayer.uid);
+    if (ok) setPlayerChars(chars => chars.map(c => c.instanceKey === instanceKey ? { ...c, level: val } : c));
     setCharBusy(null);
   };
 
@@ -70,7 +96,14 @@ export default function AdminPage() {
     setAddCharBusy(true); setAddCharMsg(null);
     const res = await addPlayerCharacter(foundPlayer.uid, newCharId.trim(), newCharEdition, Number(newCharLevel) || 1, Number(newCharRank) || 1);
     setAddCharMsg(res.ok ? '✅ Personnage ajouté.' : `❌ ${res.error}`);
-    if (res.ok) { await loadPlayerChars(foundPlayer.uid); setNewCharId(''); }
+    if (res.ok && res.char) {
+      const added = res.char;
+      setPlayerChars(chars => {
+        const rest = chars.filter(c => c.instanceKey !== added.instanceKey);
+        return [...rest, added].sort((a, b) => a.name.localeCompare(b.name));
+      });
+      setNewCharId('');
+    }
     setAddCharBusy(false);
   };
 
@@ -80,27 +113,30 @@ export default function AdminPage() {
     const p = await findPlayer(searchQuery);
     if (!p) { setSearchStatus('notfound'); return; }
     setFoundPlayer(p);
-    const save = await getPlayerSave(p.uid);
+    // Une seule lecture du doc saves/{uid} pour le solde ET la collection
+    // (avant : deux lectures séparées du même document).
+    const { save, chars } = await getPlayerSaveAndCollection(p.uid);
     setPlayerSave(save);
+    setPlayerChars(chars);
     setEditCoins(save ? String(save.pixelCoins) : '');
     setEditGems(save ? String(save.nekoGems) : '');
     setEditCrowns(save ? String(save.bossCrowns) : '');
     setEditPalier(save ? String(save.palier) : '');
     setEditWave(save ? String(save.wave) : '');
-    await loadPlayerChars(p.uid);
     setSearchStatus('idle');
   };
 
   const handleCorrect = async () => {
     if (!foundPlayer) return;
     setCorrectBusy(true); setCorrectMsg(null);
-    const ok = await correctPlayerBalance(foundPlayer.uid, {
-      pixelCoins: Math.max(0, Number(editCoins) || 0),
-      nekoGems:   Math.max(0, Number(editGems) || 0),
-      bossCrowns: Math.max(0, Number(editCrowns) || 0),
-    });
+    const newCoins  = Math.max(0, Number(editCoins) || 0);
+    const newGems   = Math.max(0, Number(editGems) || 0);
+    const newCrowns = Math.max(0, Number(editCrowns) || 0);
+    const ok = await correctPlayerBalance(foundPlayer.uid, { pixelCoins: newCoins, nekoGems: newGems, bossCrowns: newCrowns });
     setCorrectMsg(ok ? '✅ Corrigé — appliqué immédiatement s\'il est en ligne.' : '❌ Échec de la correction.');
-    if (ok) { const save = await getPlayerSave(foundPlayer.uid); setPlayerSave(save); }
+    // On connaît déjà les valeurs qu'on vient d'écrire — pas besoin de
+    // relire le doc pour rafraîchir l'affichage.
+    if (ok) setPlayerSave(s => s ? { ...s, pixelCoins: newCoins, nekoGems: newGems, bossCrowns: newCrowns } : s);
     setCorrectBusy(false);
   };
 
@@ -113,15 +149,12 @@ export default function AdminPage() {
     setProgressBusy(true); setProgressMsg(null);
     const newPalier = Math.max(1, Number(editPalier) || 1);
     const newWave   = Math.max(1, Math.min(10, Number(editWave) || 1));
-    const ok = await correctPlayerProgress(foundPlayer.uid, {
-      palier: newPalier,
-      wave: newWave,
-      maxPalierReached: capMaxPalier
-        ? Math.min(playerSave.maxPalierReached, newPalier)
-        : Math.max(playerSave.maxPalierReached, newPalier),
-    });
+    const newMaxPalierReached = capMaxPalier
+      ? Math.min(playerSave.maxPalierReached, newPalier)
+      : Math.max(playerSave.maxPalierReached, newPalier);
+    const ok = await correctPlayerProgress(foundPlayer.uid, { palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached });
     setProgressMsg(ok ? '✅ Palier corrigé — appliqué immédiatement s\'il est en ligne.' : '❌ Échec de la correction.');
-    if (ok) { const save = await getPlayerSave(foundPlayer.uid); setPlayerSave(save); }
+    if (ok) setPlayerSave(s => s ? { ...s, palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached } : s);
     setProgressBusy(false);
   };
 
@@ -136,19 +169,32 @@ export default function AdminPage() {
 
   const load = async () => {
     setRefreshing(true);
-    const [p, a, all] = await Promise.all([getPendingRequests(), getApprovedUsers(), getAllUsers()]);
-    setPending(p);
-    setApprovedList(a);
+    const all = await getAllUsers();
+    accountsCache = all;
+    accountsCacheAt = Date.now();
     setAllUsers(all);
+    setLoadedAt(accountsCacheAt);
     setRefreshing(false);
   };
 
-  useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
+  // Ne charge qu'une fois par session (cache module-level) — un aller-retour
+  // sur cette page (changement d'onglet du site, etc.) ne redéclenche plus
+  // ~3×N lectures Firestore à chaque fois. Le bouton "Actualiser" force une
+  // vraie relecture quand besoin.
+  useEffect(() => { if (isAdmin && accountsCache === null) load(); }, [isAdmin]);
 
   const handleApprove = async (uid: string) => {
     setBusy(uid);
     const ok = await approveUser(uid);
-    if (ok) await load();
+    // Le statut "approved" est déjà connu localement (c'est ce qu'on vient
+    // d'écrire) — pas besoin de tout recharger pour un seul champ.
+    if (ok) {
+      setAllUsers(list => {
+        const updated = list.map(u => u.uid === uid ? { ...u, approved: true } : u);
+        accountsCache = updated;
+        return updated;
+      });
+    }
     setBusy(null);
   };
 
@@ -173,21 +219,34 @@ export default function AdminPage() {
   return (
     <div style={{ height: '100vh', overflowY: 'auto', background: '#050410', padding: '32px 20px', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
+        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.45)', fontSize: 12.4, textDecoration: 'none', marginBottom: 16 }}>
+          ← Retour
+        </a>
         <h1 style={{ color: '#a78bfa', fontSize: 22.7, fontWeight: 900, marginBottom: 6 }}>🛡️ Validation des comptes</h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.4, marginBottom: 28 }}>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.4, marginBottom: 8 }}>
           {pending.length} demande(s) en attente · {approvedList.length} compte(s) déjà validé(s)
         </p>
+        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 20 }}>
+          {loadedAt ? `Liste chargée il y a ${formatRelative(now - loadedAt)}` : 'Liste jamais chargée'}
+        </p>
 
-        <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-          <button onClick={() => { setShowTab('requests'); load(); }} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            {refreshing ? 'Actualisation…' : '🔄 Requests'}
+        <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
+          <button onClick={() => setShowTab('requests')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+            Requests
           </button>
-          <button onClick={() => setShowTab('accounts')} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+          <button onClick={() => setShowTab('accounts')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             👥 Comptes ({allUsers.length})
           </button>
 
           <button onClick={() => setShowTab('balance')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='balance' ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(251,191,36,0.14)', color: '#fbbf24', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             ⚖️ Rééquilibrer un compte
+          </button>
+
+          {/* Seul déclencheur d'une vraie relecture Firestore de la liste des
+              comptes — sinon la liste en cache (module-level) est réutilisée
+              telle quelle, même en changeant d'onglet ou en revenant sur la page. */}
+          <button onClick={load} disabled={refreshing} title="Recharger la liste des comptes depuis Firestore" style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 8, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', cursor: refreshing ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+            {refreshing ? 'Actualisation…' : '🔄 Actualiser'}
           </button>
         </div>
 

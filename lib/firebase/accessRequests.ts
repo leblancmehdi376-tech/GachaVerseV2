@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, getDocs, collection, query, where, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocs, collection, updateDoc } from 'firebase/firestore';
 import { db } from './config';
 
 export interface AccessRequest {
@@ -83,24 +83,6 @@ export async function ensureUserDoc(
   } catch (e) {
     console.error('[Access] ensureUserDoc:', e);
   }
-}
-
-/** Liste toutes les demandes en attente (page d'admin). */
-export async function getPendingRequests(): Promise<AccessRequest[]> {
-  if (!db) return [];
-  try {
-    const snap = await getDocs(query(collection(db, 'users'), where('approved', '==', false)));
-    return snap.docs.map(d => d.data() as AccessRequest).sort((a, b) => a.createdAt - b.createdAt);
-  } catch (e) { console.error('[Access] getPendingRequests:', e); return []; }
-}
-
-/** Liste tous les comptes déjà validés (pour information dans la page d'admin). */
-export async function getApprovedUsers(): Promise<AccessRequest[]> {
-  if (!db) return [];
-  try {
-    const snap = await getDocs(query(collection(db, 'users'), where('approved', '==', true)));
-    return snap.docs.map(d => d.data() as AccessRequest).sort((a, b) => b.createdAt - a.createdAt);
-  } catch (e) { console.error('[Access] getApprovedUsers:', e); return []; }
 }
 
 /**

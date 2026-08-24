@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit, deleteField, FieldPath } from 'firebase/firestore';
 import { db } from './config';
 import { getCharacterById } from '@/lib/game/characters';
 import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
@@ -68,14 +68,30 @@ export async function findPlayer(search: string): Promise<PlayerLookup | null> {
   }
 }
 
-/** Lit le résumé de la sauvegarde cloud d'un joueur (uniquement les champs pertinents pour la modération). */
-export async function getPlayerSave(uid: string): Promise<PlayerSaveSummary | null> {
-  if (!db) return null;
+function summarizeCollection(raw: Record<string, { templateId: string; edition?: string; level: number; rank: number }>): OwnedCharacterSummary[] {
+  return Object.entries(raw).map(([instanceKey, c]) => ({
+    instanceKey,
+    templateId: c.templateId,
+    name: getCharacterById(c.templateId)?.name ?? c.templateId,
+    edition: c.edition ?? 'base',
+    level: c.level ?? 1,
+    rank: c.rank ?? 1,
+  })).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Lit en UNE SEULE lecture le résumé de solde ET la collection d'un joueur —
+ * les deux vivent dans le même doc `saves/{uid}`. Avant ce correctif,
+ * getPlayerSave + getPlayerCollection relisaient séparément ce même
+ * document à chaque recherche dans le panel admin.
+ */
+export async function getPlayerSaveAndCollection(uid: string): Promise<{ save: PlayerSaveSummary | null; chars: OwnedCharacterSummary[] }> {
+  if (!db) return { save: null, chars: [] };
   try {
     const snap = await getDoc(doc(db, 'saves', uid));
-    if (!snap.exists()) return null;
+    if (!snap.exists()) return { save: null, chars: [] };
     const d = snap.data();
-    return {
+    const save: PlayerSaveSummary = {
       pixelCoins:       d.pixelCoins ?? 0,
       nekoGems:         d.nekoGems ?? 0,
       totalGemsSpent:   d.totalGemsSpent ?? 0,
@@ -86,9 +102,10 @@ export async function getPlayerSave(uid: string): Promise<PlayerSaveSummary | nu
       maxPalierReached: d.maxPalierReached ?? 1,
       lastSaved:        d.lastSaved ?? null,
     };
+    return { save, chars: summarizeCollection(d.collection ?? {}) };
   } catch (e) {
-    console.error('[AdminTools] getPlayerSave:', e);
-    return null;
+    console.error('[AdminTools] getPlayerSaveAndCollection:', e);
+    return { save: null, chars: [] };
   }
 }
 
@@ -148,40 +165,25 @@ export async function correctPlayerProgress(
 }
 
 // ── Gestion de la collection de personnages ────────────────────────────────
-
-/** Liste tous les personnages possédés par le joueur, avec un nom lisible. */
-export async function getPlayerCollection(uid: string): Promise<OwnedCharacterSummary[]> {
-  if (!db) return [];
-  try {
-    const snap = await getDoc(doc(db, 'saves', uid));
-    if (!snap.exists()) return [];
-    const raw = (snap.data().collection ?? {}) as Record<string, { templateId: string; edition?: string; level: number; rank: number }>;
-    return Object.entries(raw).map(([instanceKey, c]) => ({
-      instanceKey,
-      templateId: c.templateId,
-      name: getCharacterById(c.templateId)?.name ?? c.templateId,
-      edition: c.edition ?? 'base',
-      level: c.level ?? 1,
-      rank: c.rank ?? 1,
-    })).sort((a, b) => a.name.localeCompare(b.name));
-  } catch (e) {
-    console.error('[AdminTools] getPlayerCollection:', e);
-    return [];
-  }
-}
+// removePlayerCharacter/setPlayerCharacterLevel ciblent directement la clé
+// `collection.{instanceKey}` du doc via FieldPath, au lieu de lire tout le
+// doc pour réécrire toute la map `collection` — pas de lecture du tout pour
+// ces deux actions (le panel admin n'appelle ces fonctions que sur des
+// personnages déjà listés depuis une recherche précédente, donc déjà
+// vérifiés existants).
 
 /** Retire un personnage (une édition précise) de la collection d'un joueur. */
 export async function removePlayerCharacter(uid: string, instanceKey: string): Promise<boolean> {
   if (!db) return false;
   try {
-    const snap = await getDoc(doc(db, 'saves', uid));
-    if (!snap.exists()) return false;
-    const collectionData = { ...(snap.data().collection ?? {}) };
-    delete collectionData[instanceKey];
     // adminCorrectionAt : même mécanisme que pour le solde — permet au client
     // du joueur (s'il est en ligne) d'appliquer le changement en direct au
     // lieu de le laisser écraser par son propre autosave (voir useCloudSave.ts).
-    await updateDoc(doc(db, 'saves', uid), { collection: collectionData, lastSaved: Date.now(), adminCorrectionAt: Date.now() });
+    await updateDoc(doc(db, 'saves', uid),
+      new FieldPath('collection', instanceKey), deleteField(),
+      'lastSaved', Date.now(),
+      'adminCorrectionAt', Date.now(),
+    );
     return true;
   } catch (e) {
     console.error('[AdminTools] removePlayerCharacter:', e);
@@ -196,28 +198,37 @@ export async function removePlayerCharacter(uid: string, instanceKey: string): P
  */
 export async function addPlayerCharacter(
   uid: string, templateId: string, edition: CardEdition, level: number, rank: number
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; char?: OwnedCharacterSummary }> {
   if (!db) return { ok: false, error: 'Firebase non configuré' };
   const tpl = getCharacterById(templateId);
   if (!tpl) return { ok: false, error: `Personnage "${templateId}" introuvable — vérifie l'id exact` };
   try {
+    // Lecture nécessaire ici (contrairement à remove/setLevel ci-dessous) :
+    // pour un perso déjà possédé, il faut préserver copies/currentForm/xp/
+    // equippedItems — des champs invisibles côté résumé admin, donc pas
+    // déductibles de l'état déjà affiché dans le panel.
     const snap = await getDoc(doc(db, 'saves', uid));
     if (!snap.exists()) return { ok: false, error: 'Sauvegarde introuvable pour ce joueur' };
     const instanceKey = makeInstanceKey(templateId, edition);
-    const collectionData = { ...(snap.data().collection ?? {}) };
-    const existing = collectionData[instanceKey];
-    collectionData[instanceKey] = {
+    const existing = (snap.data().collection ?? {})[instanceKey];
+    const clampedLevel = Math.max(1, Math.min(999, Math.floor(level)));
+    const clampedRank  = Math.max(1, Math.min(7, Math.floor(rank)));
+    const entry = {
       templateId,
       edition,
-      level: Math.max(1, Math.min(999, Math.floor(level))),
-      rank: Math.max(1, Math.min(7, Math.floor(rank))),
+      level: clampedLevel,
+      rank: clampedRank,
       copies: existing?.copies ?? 1,
       currentForm: existing?.currentForm ?? 0,
       xp: existing?.xp ?? 0,
       ...(existing?.equippedItems ? { equippedItems: existing.equippedItems } : {}),
     };
-    await updateDoc(doc(db, 'saves', uid), { collection: collectionData, lastSaved: Date.now(), adminCorrectionAt: Date.now() });
-    return { ok: true };
+    await updateDoc(doc(db, 'saves', uid),
+      new FieldPath('collection', instanceKey), entry,
+      'lastSaved', Date.now(),
+      'adminCorrectionAt', Date.now(),
+    );
+    return { ok: true, char: { instanceKey, templateId, name: tpl.name, edition, level: clampedLevel, rank: clampedRank } };
   } catch (e) {
     console.error('[AdminTools] addPlayerCharacter:', e);
     return { ok: false, error: 'Erreur lors de l\'écriture' };
@@ -228,12 +239,11 @@ export async function addPlayerCharacter(
 export async function setPlayerCharacterLevel(uid: string, instanceKey: string, newLevel: number): Promise<boolean> {
   if (!db) return false;
   try {
-    const snap = await getDoc(doc(db, 'saves', uid));
-    if (!snap.exists()) return false;
-    const collectionData = { ...(snap.data().collection ?? {}) };
-    if (!collectionData[instanceKey]) return false;
-    collectionData[instanceKey] = { ...collectionData[instanceKey], level: Math.max(1, Math.min(999, Math.floor(newLevel))) };
-    await updateDoc(doc(db, 'saves', uid), { collection: collectionData, lastSaved: Date.now(), adminCorrectionAt: Date.now() });
+    await updateDoc(doc(db, 'saves', uid),
+      new FieldPath('collection', instanceKey, 'level'), Math.max(1, Math.min(999, Math.floor(newLevel))),
+      'lastSaved', Date.now(),
+      'adminCorrectionAt', Date.now(),
+    );
     return true;
   } catch (e) {
     console.error('[AdminTools] setPlayerCharacterLevel:', e);
