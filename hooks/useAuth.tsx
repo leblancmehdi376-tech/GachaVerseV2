@@ -12,7 +12,6 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { claimSession, watchSession, clearLocalSession, releaseSession } from '@/lib/firebase/session';
 import { createAccessRequest, ensureUserDoc } from '@/lib/firebase/accessRequests';
-import { forceSaveNow } from '@/hooks/useCloudSave';
 
 interface AuthContextType {
   user: User | null;
@@ -100,12 +99,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     if (!auth) { clearLocalSession(); return; }
     const uid = auth.currentUser?.uid ?? null;
-    // Sauvegarde bloquante AVANT toute déconnexion : signOut() invalide le
-    // token d'auth utilisé par une écriture Firestore encore en vol (ex: un
-    // urgent-save déclenché par un palier franchi juste avant de cliquer sur
-    // Déconnexion) — sans sauvegarde locale de secours, cette course perdait
-    // silencieusement la progression la plus récente à chaque déco rapide.
-    if (uid) await forceSaveNow().catch(() => {});
     // Libère le verrou Firestore AVANT signOut (tant qu'on est encore
     // authentifié, sinon les règles Firestore refuseraient l'écriture) —
     // sinon un nouvel appareil doit attendre jusqu'à 150s (TTL) que ce verrou
