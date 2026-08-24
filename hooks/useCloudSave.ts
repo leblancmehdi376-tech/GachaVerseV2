@@ -255,40 +255,17 @@ function readLegacyZustandState(key: string): Record<string, unknown> | null {
   }
 }
 
-// Score grossier de "quantité de progression" d'un blob candidat — sert à
-// choisir entre les deux sources locales possibles (voir tryRecoverLegacyLocalSave),
-// pas une vraie mesure, juste de quoi comparer "plus avancé que".
-function progressScore(d: Record<string, unknown> | null): number {
-  if (!d) return -1;
-  const palier = typeof d.palier === 'number' ? d.palier : 0;
-  const coins = typeof d.pixelCoins === 'number' ? d.pixelCoins : 0;
-  const collectionSize = d.collection && typeof d.collection === 'object' ? Object.keys(d.collection as object).length : 0;
-  if (palier <= 1 && coins <= 0 && collectionSize === 0) return -1; // rien d'exploitable
-  return palier * 1_000_000 + collectionSize * 1_000 + Math.min(coins, 999);
-}
-
 function tryRecoverLegacyLocalSave(): Record<string, unknown> | null {
   try {
-    // Deux sources locales possibles pour l'état de base (monnaies, palier,
-    // collection...) — `gachaverse_save_v2` (écrit toutes les 30s + sur
-    // événements majeurs) ET `nekoz-world-v8` (le store zustand `persist` de
-    // gameStore, écrit lui à CHAQUE changement d'état, donc potentiellement
-    // plus à jour). Ne lire que le premier a raté de la vraie progression
-    // quand il s'était figé plus tôt que le second — on prend le meilleur
-    // des deux plutôt que de supposer qu'un seul fait foi.
-    let fromSave: Record<string, unknown> | null = null;
-    try {
-      const raw = localStorage.getItem(LEGACY_KEYS.save);
-      fromSave = raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
-    } catch { fromSave = null; }
-    const fromGameStore = readLegacyZustandState(LEGACY_KEYS.gameStore);
+    const raw = localStorage.getItem(LEGACY_KEYS.save);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as Record<string, unknown>;
 
-    const saveScore      = progressScore(fromSave);
-    const gameStoreScore = progressScore(fromGameStore);
-    console.log('[CloudSave][DEBUG] tryRecoverLegacyLocalSave — gachaverse_save_v2.palier =', fromSave?.palier, '(score', saveScore, ') | nekoz-world-v8.palier =', fromGameStore?.palier, '(score', gameStoreScore, ')');
-    if (saveScore < 0 && gameStoreScore < 0) return null;
-
-    const data = { ...(saveScore >= gameStoreScore ? fromSave : fromGameStore) } as Record<string, unknown>;
+    const hasProgress =
+      (typeof data.palier === 'number' && data.palier > 1) ||
+      (typeof data.pixelCoins === 'number' && data.pixelCoins > 0) ||
+      (!!data.collection && typeof data.collection === 'object' && Object.keys(data.collection as object).length > 0);
+    if (!hasProgress) return null;
 
     // Complète avec les stores séparés (succès/expéditions/prestige) — leur
     // propre ancienne clé locale, potentiellement plus à jour que ce qu'avait
@@ -401,7 +378,7 @@ async function attemptLoad(userId: string, generation: number): Promise<void> {
   if (legacy) {
     console.warn('[CloudSave] Aucune sauvegarde cloud — ancienne sauvegarde locale récupérée et importée.');
     const ok = await saveToFirebase(userId);
-    //if (ok) clearLegacyLocalKeys(); // migration one-shot : ne plus jamais la retenter une fois durable
+    if (ok) clearLegacyLocalKeys(); // migration one-shot : ne plus jamais la retenter une fois durable
   }
 }
 
