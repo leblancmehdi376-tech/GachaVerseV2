@@ -11,6 +11,7 @@ export interface LeaderboardEntry {
   pixelCoins: number;
   score: number;
   totalDps: number;
+  prestigeLevel: number;
 }
 
 export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEntry[]> {
@@ -33,10 +34,11 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       const pixelCoins  = typeof data.pixelCoins  === 'number' ? data.pixelCoins  : 0;
       const score       = typeof data.score       === 'number' ? data.score       : palier * 100 + wave;
       const totalDps    = typeof data.totalDps    === 'number' ? data.totalDps    : 0;
+      const prestigeLevel = typeof data.prestigeLevel === 'number' ? data.prestigeLevel : 0;
       return {
         uid: docSnap.id,
         username: typeof data.username === 'string' && data.username.trim() ? data.username : 'Joueur',
-        palier, maxPalierReached, wave, totalClicks, pixelCoins, score, totalDps,
+        palier, maxPalierReached, wave, totalClicks, pixelCoins, score, totalDps, prestigeLevel,
       };
     });
 

@@ -179,7 +179,7 @@ export function LeaderboardPage() {
                 const isMe = entry.uid === user?.uid;
                 return (
                   <div key={entry.uid} style={{
-                    display:'grid', gridTemplateColumns:'48px 1fr 100px 120px',
+                    display:'grid', gridTemplateColumns:'48px 1fr 90px 100px 120px',
                     alignItems:'center', gap:'8px',
                     padding:'12px 16px', borderRadius:'10px',
                     background: isMe ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
@@ -198,6 +198,11 @@ export function LeaderboardPage() {
                     <div style={{ textAlign:'center' }}>
                       <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PALIER MAX</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.maxPalierReached}</div>
+                    </div>
+                    {/* Nombre de prestiges — affichage uniquement, n'influence pas le tri */}
+                    <div style={{ textAlign:'center' }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PRESTIGE</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'#a855f7' }}>{entry.prestigeLevel}</div>
                     </div>
                     {/* Pixel-Coins */}
                     <div style={{ textAlign:'center' }}>
