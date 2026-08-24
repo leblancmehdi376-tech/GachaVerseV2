@@ -1,6 +1,5 @@
 'use client';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { ACHIEVEMENTS, Achievement } from '@/lib/game/achievements';
 import { toast } from '@/hooks/useToast';
 
@@ -32,7 +31,6 @@ interface AchievementState {
 }
 
 export const useAchievementStore = create<AchievementState>()(
-  persist(
     (set, get) => ({
       progress: {},
       unlocked: {},
@@ -149,42 +147,37 @@ export const useAchievementStore = create<AchievementState>()(
         }
         return { progress, unlocked, claimed };
       }),
-    }),
-    {
-      name: 'gachaverse_achievements_v2', // bump v2.5 : force un reset local pour tous les joueurs
-      partialize: (s) => ({
-        progress: s.progress,
-        unlocked: s.unlocked,
-        claimed: s.claimed,
-        activeTitle: s.activeTitle,
-        unlockedTitles: s.unlockedTitles,
-      }),
-      // Migration pour les sauvegardes existantes : "Novice" doit toujours
-      // être débloqué (c'est le titre de départ gratuit), même pour les
-      // parties commencées avant l'ajout de ce correctif.
-      onRehydrateStorage: () => (state) => {
-        if (!state) return;
-
-        // Titre de départ garanti.
-        if (!state.unlockedTitles.includes('Novice')) {
-          state.unlockedTitles = [...state.unlockedTitles, 'Novice'];
-        }
-
-        // Migration des titres déjà débloqués avant l'ajout de la récompense de titre.
-        // On reconstruit le set à partir des succès validés, puis on ajoute les titres manquants.
-        const missingTitles = ACHIEVEMENTS.filter(a => {
-          if (a.reward?.type !== 'title' || typeof a.reward.value !== 'string') return false;
-          if (state.unlockedTitles.includes(a.reward.value)) return false;
-          return !!state.unlocked[a.id];
-        }).map(a => a.reward!.value as string);
-
-        if (missingTitles.length > 0) {
-          state.unlockedTitles = [...new Set([...state.unlockedTitles, ...missingTitles])];
-        }
-      },
-    }
-  )
+    })
 );
+
+// Garantit que "Novice" (titre de départ gratuit) et les titres déjà
+// débloqués via un succès validé sont bien présents dans unlockedTitles —
+// portée ici depuis l'ancienne migration onRehydrateStorage (persist
+// localStorage, supprimée) : appelée désormais après chaque chargement de
+// sauvegarde cloud (voir loadAndApply dans hooks/useCloudSave.ts), pour que
+// les comptes créés avant l'ajout de cette garantie restent corrects.
+export function ensureAchievementInvariants() {
+  const state = useAchievementStore.getState();
+  let unlockedTitles = state.unlockedTitles;
+
+  if (!unlockedTitles.includes('Novice')) {
+    unlockedTitles = [...unlockedTitles, 'Novice'];
+  }
+
+  const missingTitles = ACHIEVEMENTS.filter(a => {
+    if (a.reward?.type !== 'title' || typeof a.reward.value !== 'string') return false;
+    if (unlockedTitles.includes(a.reward.value)) return false;
+    return !!state.unlocked[a.id];
+  }).map(a => a.reward!.value as string);
+
+  if (missingTitles.length > 0) {
+    unlockedTitles = [...new Set([...unlockedTitles, ...missingTitles])];
+  }
+
+  if (unlockedTitles !== state.unlockedTitles) {
+    useAchievementStore.setState({ unlockedTitles });
+  }
+}
 
 // ── Helpers appelés depuis gameStore / GameLayout ─────────────────────────
 

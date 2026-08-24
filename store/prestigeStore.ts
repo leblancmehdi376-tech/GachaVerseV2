@@ -1,6 +1,5 @@
 'use client';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import {
   PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, PrestigeBonusLevels,
   ActivePrestigeBonuses, calcPrestigeBonuses, calcTokensAwarded, initialBonusLevels,
@@ -31,7 +30,6 @@ interface PrestigeStore {
 }
 
 export const usePrestigeStore = create<PrestigeStore>()(
-  persist(
     (set, get) => ({
       level:       0,
       tokens:      0,
@@ -82,17 +80,7 @@ export const usePrestigeStore = create<PrestigeStore>()(
         set(s => ({ tokens: s.tokens - cost, rankRecoveryLevel: s.rankRecoveryLevel + 1 }));
         return true;
       },
-    }),
-    {
-      name: 'gachaverse_prestige_v2', // bump v2.5 : force un reset local pour tous les joueurs
-      partialize: (s) => ({
-        level:       s.level,
-        tokens:      s.tokens,
-        bonusLevels: s.bonusLevels,
-        rankRecoveryLevel: s.rankRecoveryLevel,
-      }),
-    }
-  )
+    })
 );
 
 // Helper global pour utilisation dans gameStore sans hook.

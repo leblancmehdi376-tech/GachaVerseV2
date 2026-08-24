@@ -17,6 +17,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const ALL_UNIVERSES = [...new Set(CHARACTER_POOL.map(c => c.universe).filter((u): u is string => !!u))].sort((a, b) => a.localeCompare(b, 'fr'));
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetDone, setResetDone]       = useState(false);
+  const [resetting, setResetting]       = useState(false);
   const [saving,    setSaving]          = useState(false);
   const [saveOk,    setSaveOk]          = useState(false);
   const [saveError, setSaveError]       = useState(false);
@@ -113,10 +114,14 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   );
 
   // ── Reset ─────────────────────────────────────────────────────────────
-  const handleReset = () => {
+  // Async : attend que l'état réinitialisé soit bien écrit en base avant
+  // d'annoncer le succès — sans sauvegarde locale de secours, un refresh
+  // avant la fin de l'écriture ferait réapparaître l'ancienne save cloud.
+  const handleReset = async () => {
     if (!confirmReset) { setConfirmReset(true); return; }
-    try { localStorage.clear(); } catch {}
-    resetGame();
+    setResetting(true);
+    await resetGame();
+    setResetting(false);
     setConfirmReset(false);
     setResetDone(true);
     setTimeout(() => setResetDone(false), 3000);
@@ -330,11 +335,11 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
                 </div>
               )}
               <div style={{ display:'flex', gap:'10px' }}>
-                <button onClick={handleReset}
-                  style={{ flex:1, padding:'11px', background:confirmReset?'linear-gradient(135deg,#7f1d1d,#991b1b)':'rgba(239,68,68,0.08)', border:`1px solid ${confirmReset?'#ef4444':'rgba(239,68,68,0.3)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:confirmReset?'white':'var(--red)', cursor:'pointer', transition:'all 0.15s' }}>
-                  {confirmReset ? '🗑 CONFIRMER' : '🔄 RÉINITIALISER LA PARTIE'}
+                <button onClick={handleReset} disabled={resetting}
+                  style={{ flex:1, padding:'11px', background:confirmReset?'linear-gradient(135deg,#7f1d1d,#991b1b)':'rgba(239,68,68,0.08)', border:`1px solid ${confirmReset?'#ef4444':'rgba(239,68,68,0.3)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:confirmReset?'white':'var(--red)', cursor:resetting?'wait':'pointer', transition:'all 0.15s' }}>
+                  {resetting ? '⏳ RÉINITIALISATION...' : confirmReset ? '🗑 CONFIRMER' : '🔄 RÉINITIALISER LA PARTIE'}
                 </button>
-                {confirmReset && (
+                {confirmReset && !resetting && (
                   <button onClick={() => setConfirmReset(false)}
                     style={{ padding:'11px 18px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text-dim)', cursor:'pointer' }}>
                     Annuler

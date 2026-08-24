@@ -1,6 +1,5 @@
 'use client';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { EXPEDITION_DEFS, CRAFT_RECIPES, getExpeditionTeamDps, hasRealUniverse, rollExpeditionRewards } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
@@ -79,7 +78,6 @@ function initialDefAffinities(): Record<string, Affinity> {
 }
 
 export const useExpeditionStore = create<ExpeditionStore>()(
-  persist(
     (set, get) => ({
       active:        [],
       dropInventory: {},
@@ -377,16 +375,5 @@ export const useExpeditionStore = create<ExpeditionStore>()(
 
         return true;
       },
-    }),
-    {
-      name: 'gachaverse_expeditions_v2', // bump v2.5 : force un reset local pour tous les joueurs
-      partialize: (s) => ({
-        active:         s.active,
-        dropInventory:  s.dropInventory,
-        craftedRecipes: s.craftedRecipes,
-        expeditionSlotLevel: s.expeditionSlotLevel,
-        defAffinities:  s.defAffinities,
-      }),
-    }
-  )
+    })
 );

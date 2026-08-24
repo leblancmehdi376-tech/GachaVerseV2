@@ -1,6 +1,5 @@
 'use client';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { getUltimateDef, UltimateEffect } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
 
@@ -30,7 +29,6 @@ interface UltState {
 }
 
 export const useUltimateStore = create<UltState>()(
-  persist(
     (set, get) => ({
   cooldowns:  {},
   activeUlts: [],
@@ -128,13 +126,7 @@ export const useUltimateStore = create<UltState>()(
 
   getActiveDamageToCoinPct: () =>
     get().activeUlts.reduce((sum, a) => sum + (a.effect.damageToCoinPct ?? 0), 0),
-    }),
-    {
-      name: 'nekoz-ult-v2', // bump v2.5 : force un reset local pour tous les joueurs
-      // Ne persiste QUE les cooldowns (pas les actives — elles expirent au reload)
-      partialize: (s) => ({ cooldowns: s.cooldowns }),
-    }
-  )
+    })
 );
 
 // ── Sélecteur coin (utilisé dans resolveEnemyDeath de gameStore) ──────────
