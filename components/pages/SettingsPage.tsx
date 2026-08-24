@@ -150,16 +150,22 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginTop:'2px' }}>{user ? user.email : 'Sans compte'}</div>
               </div>
             </div>
-            <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
-              <input type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
-                placeholder="Ton pseudo"
-                style={{ flex:1, minWidth:'180px', padding:'12px 14px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'10px', color:'var(--text)', fontFamily:'var(--f-ui)', fontWeight:700 }} />
-              <button onClick={handleSaveName}
-                style={{ padding:'12px 20px', background:'linear-gradient(135deg,#6d28d9,#a855f7)', border:'1px solid #c084fc', borderRadius:'10px', fontFamily:'var(--f-ui)', fontWeight:700, color:'white', cursor:'pointer' }}>
-                ENREGISTRER
-              </button>
-            </div>
-            {nameFeedback && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>{nameFeedback}</div>}
+            {user ? (
+              <>
+                <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
+                  <input type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
+                    placeholder="Ton pseudo"
+                    style={{ flex:1, minWidth:'180px', padding:'12px 14px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'10px', color:'var(--text)', fontFamily:'var(--f-ui)', fontWeight:700 }} />
+                  <button onClick={handleSaveName}
+                    style={{ padding:'12px 20px', background:'linear-gradient(135deg,#6d28d9,#a855f7)', border:'1px solid #c084fc', borderRadius:'10px', fontFamily:'var(--f-ui)', fontWeight:700, color:'white', cursor:'pointer' }}>
+                    ENREGISTRER
+                  </button>
+                </div>
+                {nameFeedback && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>{nameFeedback}</div>}
+              </>
+            ) : (
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>Connecte-toi pour définir un pseudo.</div>
+            )}
             {user ? (
               <button onClick={async () => { if (onForceSave) await onForceSave(); await logout(); }}
                 style={{ padding:'10px 16px', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--red)', cursor:'pointer', width:'fit-content' }}>

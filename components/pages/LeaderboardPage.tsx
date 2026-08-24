@@ -1,11 +1,18 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { getTopLeaderboard, updatePlayerScore, LeaderboardEntry } from '@/lib/firebase/leaderboard';
 
-const REFRESH_INTERVAL_MS = 90_000;
+// Chaque appel à getTopLeaderboard coûte ~100 lectures Firestore — sans
+// cooldown, spammer le bouton "Actualiser" spammerait autant d'appels à
+// 100 lectures chacun.
+const REFRESH_COOLDOWN_MS = 15_000;
+// handleSaveName écrit sur Firestore (updatePlayerScore) puis refait un
+// getTopLeaderboard (~100 lectures) — même logique de cooldown pour éviter
+// qu'un spam du bouton SAUVEGARDER multiplie écritures + lectures.
+const SAVE_NAME_COOLDOWN_MS = 15_000;
 
 const RANK_COLORS = ['#fbbf24', '#94a3b8', '#b45309', '#a855f7', '#6366f1'];
 const RANK_ICONS  = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
@@ -26,25 +33,37 @@ export function LeaderboardPage() {
   const [nameInput, setNameInput] = useState(username || '');
   const [feedback,  setFeedback]  = useState<{ ok: boolean; msg: string } | null>(null);
   const [saving,    setSaving]    = useState(false);
+  const [refreshFeedback, setRefreshFeedback] = useState<string | null>(null);
+  const lastLoadAtRef = useRef(0);
+  const lastSaveNameAtRef = useRef(0);
 
   const loadEntries = async () => {
     setLoading(true);
     setEntries(await getTopLeaderboard(50));
+    lastLoadAtRef.current = Date.now();
     setLoading(false);
   };
 
-  // Chargement initial
-  useEffect(() => { loadEntries(); }, []);
+  // Bouton "Actualiser" — ignore silencieusement les clics rapprochés
+  // (voir REFRESH_COOLDOWN_MS) pour ne pas laisser un spam de clics
+  // multiplier les lectures Firestore.
+  const handleManualRefresh = () => {
+    if (loading) return;
+    const elapsed = Date.now() - lastLoadAtRef.current;
+    if (elapsed < REFRESH_COOLDOWN_MS) {
+      const secs = Math.ceil((REFRESH_COOLDOWN_MS - elapsed) / 1000);
+      setRefreshFeedback(`Attends encore ${secs}s avant de réessayer.`);
+      return;
+    }
+    setRefreshFeedback(null);
+    loadEntries();
+  };
 
-  // Auto-refresh périodique — mis en pause si l'onglet n'est pas visible,
-  // sinon un onglet Classement oublié en arrière-plan continue de facturer
-  // des lectures Firestore indéfiniment (voir getTopLeaderboard).
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (document.visibilityState === 'visible') loadEntries();
-    }, REFRESH_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, []);
+  // Chargement initial uniquement — pas d'auto-refresh : un onglet Classement
+  // laissé ouvert ne doit pas facturer des lectures Firestore indéfiniment
+  // (chaque appel à getTopLeaderboard coûte ~100 lectures). Le joueur peut
+  // rafraîchir manuellement via le bouton.
+  useEffect(() => { loadEntries(); }, []);
 
   // Sync input si le username change dans le store (ex: chargé depuis Firestore)
   useEffect(() => { setNameInput(username || ''); }, [username]);
@@ -54,10 +73,18 @@ export function LeaderboardPage() {
     if (!final) { setFeedback({ ok:false, msg:'Le pseudo ne peut pas être vide.' }); return; }
     if (!user)  { setFeedback({ ok:false, msg:'Tu dois être connecté pour changer ton pseudo.' }); return; }
 
+    const elapsed = Date.now() - lastSaveNameAtRef.current;
+    if (elapsed < SAVE_NAME_COOLDOWN_MS) {
+      const secs = Math.ceil((SAVE_NAME_COOLDOWN_MS - elapsed) / 1000);
+      setFeedback({ ok:false, msg:`Attends encore ${secs}s avant de réessayer.` });
+      return;
+    }
+
     setSaving(true);
     setUsername(final);
     try {
       await updatePlayerScore(user.uid, { username: final, palier, maxPalierReached, wave, totalClicks, pixelCoins, totalDps: getTotalDps() });
+      lastSaveNameAtRef.current = Date.now();
       setFeedback({ ok:true, msg:'Pseudo enregistré !' });
       await loadEntries(); // refresh immédiat pour voir le nouveau pseudo
     } catch {
@@ -77,8 +104,13 @@ export function LeaderboardPage() {
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
           <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:'2px', boxShadow:'0 0 8px #fbbf24' }} />
           <span style={{ fontFamily:'var(--f-title)', fontSize:'16.5px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>🏆 CLASSEMENT</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginLeft:4 }}>Mis à jour toutes les 30s</span>
-          {loading && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>⏳</span>}
+          <button onClick={handleManualRefresh} disabled={loading}
+            style={{ marginLeft:4, padding:'4px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'6px', fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color:'var(--text-muted)', cursor: loading ? 'not-allowed' : 'pointer' }}>
+            {loading ? '⏳' : '🔄'} Actualiser
+          </button>
+          {refreshFeedback && (
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color:'var(--red)' }}>❌ {refreshFeedback}</span>
+          )}
         </div>
 
         {/* Pseudo + Ma progression */}
