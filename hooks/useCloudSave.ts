@@ -336,7 +336,7 @@ export async function importLegacyLocalSave(): Promise<boolean> {
   ensureAchievementInvariants();
 
   const ok = await forceSaveNow();
-  if (ok) clearLegacyLocalKeys();
+  //if (ok) clearLegacyLocalKeys();
   return ok;
 }
 
