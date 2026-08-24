@@ -56,7 +56,7 @@ export const SHADOW_MONARCH_BOSS: EventBossDef = {
   bgGradient:  'linear-gradient(180deg,#0a0014,#05000a)',
   accentColor: '#c084fc',
   availableUntil: new Date('2026-08-30T23:59:59Z').getTime(),
-  targetSeconds: 300,
+  targetSeconds: 420,
   characterId: 'jinwoo',
   coinItemId:  'coin_jinwoo',
   buyCost:     100,
@@ -92,7 +92,7 @@ export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   bgGradient:  'linear-gradient(180deg,#100a24,#05030d)',
   accentColor: '#a78bfa',
   availableUntil: new Date('2026-08-30T23:59:59Z').getTime(),
-  targetSeconds: 360,
+  targetSeconds: 420,
   characterId: 'cid_kagenou',
   coinItemId:  'coin_cid_kagenou',
   buyCost:     200,
@@ -100,6 +100,13 @@ export const EMINENCE_SHADOW_BOSS: EventBossDef = {
 };
 
 export const EVENT_BOSSES: EventBossDef[] = [SHADOW_MONARCH_BOSS, ARTHUR_LEYWIN_BOSS, EMINENCE_SHADOW_BOSS];
+
+// Le prix d'achat du perso d'événement augmente de 10% à chaque achat déjà
+// effectué (achats répétables : chaque achat supplémentaire monte le rang du
+// perso, voir buyEventCharacter dans store/gameStore.ts).
+export function getEventCharacterCost(boss: EventBossDef, purchases: number): number {
+  return Math.round(boss.buyCost * Math.pow(1.1, purchases));
+}
 
 export interface DropEntry {
   weight: number;
@@ -133,8 +140,8 @@ export function rollEventDrop(bossId: string, unlockedTitles: string[] = []): Dr
 // Le boss est dimensionné par rapport à la puissance ACTUELLE du joueur
 // (DPS d'équipe), pas par un chiffre fixe — ça reste équilibré même
 // si l'économie du jeu (ultimates...) est rééquilibrée plus tard.
-const FIGHT_TARGET_SECONDS = 300;       // durée visée d'un combat via DPS passif seul (~4 min) pour un joueur déjà puissant
-const MIN_POWER_FLOOR      = 50;        // évite un calcul à 0 pour un joueur sans équipe
+const FIGHT_TARGET_SECONDS = 420;       // durée visée d'un combat via DPS passif seul (~4 min) pour un joueur déjà puissant
+const MIN_POWER_FLOOR      = 5;        // évite un calcul à 0 pour un joueur sans équipe
 
 // durationMult : influence de l'équipe de compagnons (types forts/faibles
 // contre le type du boss, ±10% cumulable par compagnon — voir EventPage.tsx).

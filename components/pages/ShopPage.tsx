@@ -13,7 +13,7 @@ import {
   EQUIPMENT_CHESTS,
 } from '@/lib/game/shop';
 import { getEquipmentDef, getItemDef } from '@/lib/game/items';
-import { EVENT_BOSSES } from '@/lib/game/eventBoss';
+import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return '00:00';
@@ -39,6 +39,7 @@ export function ShopPage() {
     buyDpsBoost, buyGoldBoost, buyGemsWithCrowns, buyGoldWithGems,
     dailyShop, ensureDailyShop, buyShopCharacter, buyGemsWithOrbs, buyEquipmentChest,
     starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyEventCharacter,
+    eventCharacterPurchases,
   } = useGameStore();
   const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useExpeditionStore();
 
@@ -309,14 +310,15 @@ export function ShopPage() {
               const cfg   = RARITY_CONFIG[tpl.rarity];
               const coin  = getItemDef(boss.coinItemId);
               const owned = inventory[boss.coinItemId] ?? 0;
-              const canBuy = owned >= boss.buyCost;
+              const cost  = getEventCharacterCost(boss, eventCharacterPurchases[boss.id] ?? 0);
+              const canBuy = owned >= cost;
               return (
                 <div key={boss.id} style={{ background:`${cfg.color}0c`, border:`1px solid ${cfg.color}55`, borderRadius:'12px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'8px' }}>
                   <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', textAlign:'center' }}>{tpl.name}</span>
                   <RarityBadge rarity={tpl.rarity} />
                   <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12.4px', color: canBuy?'#fbbf24':'var(--text-muted)' }}>
-                    {coin?.icon ?? '🪙'} {formatNumber(owned)} / {formatNumber(boss.buyCost)}
+                    {coin?.icon ?? '🪙'} {formatNumber(owned)} / {formatNumber(cost)}
                   </span>
                   <button onClick={() => buyEventCharacter(boss.id)} disabled={!canBuy}
                     style={{ width:'100%', padding:'8px', background:canBuy?'rgba(251,191,36,0.18)':'rgba(255,255,255,0.03)', border:`1px solid ${canBuy?'#fbbf2466':'var(--border)'}`, borderRadius:'7px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:canBuy?'#fbbf24':'var(--text-muted)', cursor:canBuy?'pointer':'not-allowed' }}>

@@ -25,7 +25,7 @@ import { rollCardEdition, makeInstanceKey, parseInstanceKey, CardEdition } from 
 import { useAchievementStore } from '@/store/achievementStore';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { getEquipmentDrop, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput } from '@/lib/game/items';
-import { EVENT_BOSSES } from '@/lib/game/eventBoss';
+import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
 import {
   CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, getGoldPackCoins, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
   getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, getThisWeekKey, generateDailyShopCharacters,
@@ -300,6 +300,9 @@ interface GameStore extends GameState {
   addToCollection: (id: string) => CardEdition;
   grantMaxedCharacter: (templateId: string, edition?: CardEdition) => void;
   // Boutique — achat d'un perso d'événement contre ses pièces (voir lib/game/eventBoss.ts)
+  // Nombre d'achats déjà effectués par boss : le prix (getEventCharacterCost)
+  // augmente de 10% à chaque achat.
+  eventCharacterPurchases: Record<string, number>;
   buyEventCharacter: (bossId: string) => boolean;
   // Quêtes
   bumpQuestProgress: (id: string, by?: number) => void;
@@ -368,6 +371,7 @@ const makeInitial = () => ({
   lastEquipmentDrop: null,
   focusedExpeditionId: null,
   bankedRanks: {} as Record<string, number>,
+  eventCharacterPurchases: {} as Record<string, number>,
   historicalMaxRank: {} as Record<string, number>,
   unlockedEquipRarities: ['C'] as Rarity[],
   unlockedEquipDropRarities: ['C'] as Rarity[],
@@ -1121,10 +1125,13 @@ export const useGameStore = create<GameStore>()(
       buyEventCharacter: (bossId) => {
         const boss = EVENT_BOSSES.find(b => b.id === bossId);
         if (!boss) return false;
+        const purchases = get().eventCharacterPurchases[bossId] ?? 0;
+        const cost = getEventCharacterCost(boss, purchases);
         const owned = get().inventory[boss.coinItemId] ?? 0;
-        if (owned < boss.buyCost) return false;
+        if (owned < cost) return false;
         set(state => ({
-          inventory: { ...state.inventory, [boss.coinItemId]: owned - boss.buyCost },
+          inventory: { ...state.inventory, [boss.coinItemId]: owned - cost },
+          eventCharacterPurchases: { ...state.eventCharacterPurchases, [bossId]: purchases + 1 },
         }));
         get().addToCollection(boss.characterId);
         return true;
