@@ -143,8 +143,8 @@ export function getPalierPassGems(palier: number): number {
   return palier * 10;
 }
 export const MOB_GEM_DROP_CHANCE = 0.005;  // 0.5% de chance de looter 1 gemme bonus sur N'IMPORTE QUEL ennemi tué
-// Taux de drop d'équipement en mode farm (palier < runPeakPalier) : ×0.25 = 4× plus lent.
-export const FARM_EQUIP_DROP_RATE = 0.25;
+// Taux de drop d'équipement en mode farm (palier < runPeakPalier) : ×0.5 = 2× plus lent.
+export const FARM_EQUIP_DROP_RATE = 0.5;
 
 // Palier max atteint DEPUIS LE DERNIER PRESTIGE — détermine le mode farm
 // (palier déjà validé CETTE run), la portée du voyage, et l'éligibilité/le

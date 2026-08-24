@@ -557,54 +557,31 @@ export function getEquipmentDrop(unlockedDropRarities: string[], rateMult = 1): 
 // ── Coffres d'équipement ────────────────────────────────────────────────────
 export type ChestTier = 'common' | 'rare' | 'epic';
 
+// Drop rate (%) par rareté et par tier de coffre — c'est la SEULE chose à
+// modifier pour rééquilibrer un coffre : les seuils cumulatifs consommés par
+// rollEquipmentChest ci-dessous sont dérivés automatiquement de ces valeurs
+// (plus besoin de recalculer à la main tous les seuils suivants à chaque
+// changement, comme avant ce refacto). Chaque colonne doit sommer à 100.
+// Plus de Commun (C:0) dans les coffres. Poids relatifs voulus par tier,
+// mis à l'échelle pour sommer à 100 (les valeurs brutes de la version
+// précédente ne sommaient pas toutes à 100 — ex: common brut = 61.75).
+export const CHEST_RARITY_RATES: Record<ChestTier, Record<string, number>> = {
+  common: { T: 0,    P: 0,    CO: 0.40, S: 0.81, M: 1.62,  L: 6.48,  E: 12.96, R: 25.91, U: 51.82, C: 0 },
+  rare:   { T: 0,    P: 0.54, CO: 1.09, S: 2.17, M: 4.35,  L: 17.39, E: 34.78, R: 34.79, U: 4.89,  C: 0 },
+  epic:   { T: 1.00, P: 2.00, CO: 4.00, S: 8.00, M: 16.00, L: 32.00, E: 32.00, R: 5.00,  U: 0,     C: 0 },
+};
+
 // Retourne un ID d'équipement aléatoire selon les drop rates du coffre
 export function rollEquipmentChest(tier: ChestTier): string {
   const roll = Math.random() * 100;
 
   // Seuils cumulatifs du plus rare au plus commun (aligné sur EQUIP_RARITY_ORDER).
-  const thresholds: Record<ChestTier, { rarity: string; threshold: number }[]> = {
-    common: [
-      { rarity:'T',  threshold: 0    },   // 0.00% — pas de T dans coffre commun
-      { rarity:'P',  threshold: 0.01 },   // 0.01%
-      { rarity:'CO', threshold: 0.10 },   // 0.09%
-      { rarity:'S',  threshold: 0.30 },   // 0.20%
-      { rarity:'M',  threshold: 0.45 },   // 0.15%
-      { rarity:'L',  threshold: 0.95 },   // 0.50%
-      { rarity:'E',  threshold: 2.25 },   // 1.30%
-      { rarity:'R',  threshold: 5.05 },   // 2.80%
-      { rarity:'U',  threshold: 7.05 },   // 2.00%
-      { rarity:'C',  threshold: 100  },   // 92.95%
-    ],
-    rare: [
-      { rarity:'T',  threshold: 0.05 },   // 0.05%
-      { rarity:'P',  threshold: 0.83 },   // 0.78%
-      { rarity:'CO', threshold: 1.83 },   // 1.00%
-      { rarity:'S',  threshold: 3.43 },   // 1.60%
-      { rarity:'M',  threshold: 4.43 },   // 1.00%
-      { rarity:'L',  threshold: 9.43 },   // 5.00%
-      { rarity:'E',  threshold: 21.43 },  // 12.00%
-      { rarity:'R',  threshold: 46.43 },  // 25.00%
-      { rarity:'U',  threshold: 54.43 },  // 8.00%
-      { rarity:'C',  threshold: 100   },  // 45.57%
-    ],
-    epic: [
-      { rarity:'T',  threshold: 0.91 },   // 0.91%
-      { rarity:'P',  threshold: 7.43 },   // 6.52%
-      { rarity:'CO', threshold: 15.43 },  // 8.00%
-      { rarity:'S',  threshold: 24.43 },  // 9.00%
-      { rarity:'M',  threshold: 32.43 },  // 8.00%
-      { rarity:'L',  threshold: 47.43 },  // 15.00%
-      { rarity:'E',  threshold: 77.43 },  // 30.00%
-      { rarity:'R',  threshold: 89.43 },  // 12.00%
-      { rarity:'U',  threshold: 97.43 },  // 8.00%
-      { rarity:'C',  threshold: 100   },  // 2.57%
-    ],
-  };
-
-  const steps = thresholds[tier];
+  const rates = CHEST_RARITY_RATES[tier];
+  let acc = 0;
   let selectedRarity = 'C';
-  for (const step of steps) {
-    if (roll < step.threshold) { selectedRarity = step.rarity; break; }
+  for (const rarity of EQUIP_RARITY_ORDER) {
+    acc += rates[rarity] ?? 0;
+    if (roll < acc) { selectedRarity = rarity; break; }
   }
 
   // Filtre les équipements de cette rareté

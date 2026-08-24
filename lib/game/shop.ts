@@ -1,6 +1,7 @@
-import { Rarity } from '@/types/game';
+import { Rarity, RARITY_CONFIG, RARITY_ORDER_ASC } from '@/types/game';
 import { rollCharacter } from './gacha';
 import { COIN_BASE, COIN_GROWTH } from './enemies';
+import { ChestTier, CHEST_RARITY_RATES } from './items';
 
 // ── BossCrown : packs de gemmes ───────────────────────────────────────────
 export interface CrownGemPack { id: string; crowns: number; gems: number; bonusLabel?: string; }
@@ -35,7 +36,7 @@ export interface GemGoldPack { id: string; killsEquivalent: number; gems: number
 export const GEM_GOLD_PACKS: GemGoldPack[] = [
   { id:'gg1', killsEquivalent:10,  gems:50 },
   { id:'gg2', killsEquivalent:40, gems:185 },
-  { id:'gg3', killsEquivalent:200, gems:350 },
+  { id:'gg3', killsEquivalent:200, gems:800 }
 ];
 
 // Repère de calcul : vague 5 (milieu de palier), la même formule que le gain
@@ -142,47 +143,34 @@ export interface EquipmentChestDef {
   dropRates: { label: string; pct: string; color: string }[];
 }
 
+// Dérivé de CHEST_RARITY_RATES (lib/game/items.ts) — la seule source de
+// vérité pour les probas de tirage réelles. Avant ce refacto, ces % étaient
+// recopiés à la main ici pour l'affichage, et avaient fini par diverger des
+// vraies valeurs (2 raretés sur 10 manquaient même complètement). Toute
+// modif de CHEST_RARITY_RATES se répercute maintenant automatiquement ici.
+function buildChestDropRates(tier: ChestTier): { label: string; pct: string; color: string }[] {
+  const rates = CHEST_RARITY_RATES[tier];
+  return RARITY_ORDER_ASC.map(r => ({
+    label: RARITY_CONFIG[r].label,
+    pct: `${(rates[r] ?? 0).toFixed(2)}%`,
+    color: RARITY_CONFIG[r].color,
+  }));
+}
+
 export const EQUIPMENT_CHESTS: EquipmentChestDef[] = [
   {
-    id: 'chest_common', label: 'Coffre Commun', emoji: '📦', gems: 80,
+    id: 'chest_common', label: 'Coffre Commun', emoji: '📦', gems: 125,
     color: '#9ca3af', glow: '#6b7280',
-    dropRates: [
-      { label:'Commun',      pct:'94.13%', color:'#9ca3af' },
-      { label:'Rare',        pct:'3.21%',  color:'#60a5fa' },
-      { label:'Épique',      pct:'1.53%',  color:'#c084fc' },
-      { label:'Légendaire',  pct:'0.72%',  color:'#fbbf24' },
-      { label:'Stellaire',   pct:'0.30%',  color:'#ffffff' },
-      { label:'Cosmique',    pct:'0.10%',  color:'#34d399' },
-      { label:'Primordial',  pct:'0.01%',  color:'#ff6b35' },
-      { label:'Transcendant',pct:'0.00%',  color:'#e879f9' },
-    ],
+    dropRates: buildChestDropRates('common'),
   },
   {
-    id: 'chest_rare', label: 'Coffre Rare', emoji: '🎁', gems: 280,
+    id: 'chest_rare', label: 'Coffre Rare', emoji: '🎁', gems: 250,
     color: '#60a5fa', glow: '#3b82f6',
-    dropRates: [
-      { label:'Commun',      pct:'45.92%', color:'#9ca3af' },
-      { label:'Rare',        pct:'29.18%', color:'#60a5fa' },
-      { label:'Épique',      pct:'14.51%', color:'#c084fc' },
-      { label:'Légendaire',  pct:'6.58%',  color:'#fbbf24' },
-      { label:'Stellaire',   pct:'1.98%',  color:'#ffffff' },
-      { label:'Cosmique',    pct:'1.00%',  color:'#34d399' },
-      { label:'Primordial',  pct:'0.78%',  color:'#ff6b35' },
-      { label:'Transcendant',pct:'0.05%',  color:'#e879f9' },
-    ],
+    dropRates: buildChestDropRates('rare'),
   },
   {
     id: 'chest_epic', label: 'Coffre Épique', emoji: '💎', gems: 500,
     color: '#c084fc', glow: '#9333ea',
-    dropRates: [
-      { label:'Commun',      pct:'6.54%',  color:'#9ca3af' },
-      { label:'Rare',        pct:'14.03%', color:'#60a5fa' },
-      { label:'Épique',      pct:'35.72%', color:'#c084fc' },
-      { label:'Légendaire',  pct:'16.94%', color:'#fbbf24' },
-      { label:'Stellaire',   pct:'10.83%',  color:'#ffffff' },
-      { label:'Cosmique',    pct:'8.51%',  color:'#34d399' },
-      { label:'Primordial',  pct:'6.52%',  color:'#ff6b35' },
-      { label:'Transcendant',pct:'0.91%',  color:'#e879f9' },
-    ],
+    dropRates: buildChestDropRates('epic'),
   },
 ];
