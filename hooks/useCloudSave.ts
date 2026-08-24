@@ -97,27 +97,25 @@ function getSerializableState() {
 
 // Fusionne l'état des succès (achievementStore, jamais synchro par simple
 // "dernier gagne" comme le reste de l'état — voir plus bas) vu sur cet
-// appareil, en localStorage et sur Firebase :
+// appareil et sur Firebase (le localStorage n'est plus une source à la
+// connexion — voir loadAndApply) :
 // - `claimed` et `unlockedTitles` ne font QUE grandir : un claim ou un titre
 //   débloqué (ex: drop de boss d'event, non dérivable des stats) ne doit
 //   JAMAIS pouvoir redisparaître, même si la source qui le connaît n'est pas
-//   la plus récente des trois.
+//   la plus récente des deux.
 // - `activeTitle` (préférence d'affichage, pas un déblocage) suit lui la
 //   source la plus fraîche (`freshest`), comme le reste de l'état.
 function mergeAchievementState(
   remote: Record<string, unknown> | null,
-  local: Record<string, unknown> | null,
   freshest: Record<string, unknown> | null
 ): { claimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string } {
   const current = useAchievementStore.getState();
   const claimed: Record<string, boolean> = { ...current.claimed };
   const unlockedTitles = new Set<string>(current.unlockedTitles);
-  for (const source of [remote, local]) {
-    const c = source?.achievementsClaimed as Record<string, boolean> | undefined;
-    if (c) for (const id of Object.keys(c)) if (c[id]) claimed[id] = true;
-    const t = source?.unlockedTitles as string[] | undefined;
-    if (Array.isArray(t)) for (const title of t) unlockedTitles.add(title);
-  }
+  const c = remote?.achievementsClaimed as Record<string, boolean> | undefined;
+  if (c) for (const id of Object.keys(c)) if (c[id]) claimed[id] = true;
+  const t = remote?.unlockedTitles as string[] | undefined;
+  if (Array.isArray(t)) for (const title of t) unlockedTitles.add(title);
   const freshTitle = freshest?.activeTitle as string | undefined;
   const activeTitle = typeof freshTitle === 'string' && unlockedTitles.has(freshTitle) ? freshTitle : current.activeTitle;
   return { claimed, unlockedTitles: Array.from(unlockedTitles), activeTitle };
@@ -131,15 +129,6 @@ function saveToLocal() {
     useGameStore.setState({ savedAt: data.savedAt });
   } catch (e) {
     console.warn('[CloudSave] localStorage write failed:', e);
-  }
-}
-
-function loadFromLocal(): Record<string, unknown> | null {
-  try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
   }
 }
 
@@ -276,10 +265,16 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
   if (retryTimer) return; // déjà planifiée
   retryTimer = setTimeout(async () => {
     retryTimer = null;
-    const [{ data: remote, reachable }, offsetMs] = await Promise.all([
-      loadGameFromFirestore(userId),
-      probeClockOffset(userId),
-    ]);
+    // Séquentiel, PAS Promise.all : probeClockOffset() écrit (merge) sur ce
+    // MÊME document saves/{uid} (clockProbe/clockProbeId) — lancé en parallèle,
+    // son setDoc optimiste pollue le cache local que getDoc() (dans
+    // loadGameFromFirestore, tolérant le cache) peut lire en même temps,
+    // renvoyant alors UNIQUEMENT ces deux champs de probe au lieu de la vraie
+    // sauvegarde (vu en prod : premier login récupère {clockProbeId, clockProbe:
+    // null} et rien d'autre, un second login juste après récupère tout).
+    const { data: remote, reachable } = await loadGameFromFirestore(userId);
+    const offsetMs = await probeClockOffset(userId);
+    console.log('[CloudSave] ⇠ Reçu de Firestore (reconciliation):', { reachable, remote });
     if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
 
     if (!reachable) {
@@ -313,19 +308,23 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
   }, retryDelayMs);
 }
 
-// ── Chargement au login — compare Firebase, localStorage et état local ─────
+// ── Chargement au login — compare Firebase et l'état déjà en mémoire ───────
 async function loadAndApply(userId: string, generation: number) {
   try {
-    const [{ data: remote, reachable }, local, offsetMs] = await Promise.all([
-      loadGameFromFirestore(userId),
-      Promise.resolve(loadFromLocal()),
-      probeClockOffset(userId),
-    ]);
+    console.log('[CloudSave] ⇢ Chargement au login pour', userId);
+    // Séquentiel, PAS Promise.all : voir le commentaire dans
+    // scheduleReconciliationRetry — probeClockOffset() écrit sur le MÊME
+    // document que celui lu ici, et lancé en parallèle son écriture pollue le
+    // cache local que lit loadGameFromFirestore(), renvoyant alors seulement
+    // {clockProbeId, clockProbe} au lieu de la vraie sauvegarde.
+    const { data: remote, reachable } = await loadGameFromFirestore(userId);
+    const offsetMs = await probeClockOffset(userId);
+    console.log('[CloudSave] ⇠ Reçu de Firestore:', { reachable, remote });
     if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
-    // Doit être posé AVANT de comparer les timestamps ci-dessous : local.savedAt
-    // et current.savedAt ont été écrits par CET appareil avec son propre décalage
-    // (stable d'une session à l'autre), donc directement comparables une fois
-    // l'offset de cette session appliqué au calcul ci-dessous.
+    // Doit être posé AVANT de comparer les timestamps ci-dessous : current.savedAt
+    // a été écrit par CET appareil avec son propre décalage (stable d'une
+    // session à l'autre), donc directement comparable une fois l'offset de
+    // cette session appliqué au calcul ci-dessous.
     // `offsetMs === null` = sonde échouée (timeout/réseau), pas "horloge déjà
     // alignée" : on NE TOUCHE PAS à clockOffsetMs plutôt que de l'écraser par
     // un 0 qui serait faux si cet appareil a une horloge réellement décalée —
@@ -334,20 +333,15 @@ async function loadAndApply(userId: string, generation: number) {
 
     const current = useGameStore.getState();
 
-    // "Plus récent gagne" entre les 3 sources, maintenant que les timestamps
-    // sont comparables entre appareils (corrigés du décalage d'horloge de
-    // chacun via la sonde ci-dessus) : avant ce correctif, on faisait
-    // toujours gagner Firestore par défaut, précisément parce qu'une horloge
-    // locale en avance pouvait faire gagner à tort un save local plus vieux.
-    // Number.isFinite() plutôt que ?? -1 seul : une valeur corrompue (NaN,
-    // JSON local altéré) ne doit jamais pouvoir "gagner" la comparaison — elle
-    // est ramenée à -1 comme une source absente, au lieu de fausser le reduce
-    // ci-dessous (NaN n'est jamais > ni < rien, un candidat NaN en première
-    // position piégerait sinon le reduce en le gardant à tort).
+    // "Plus récent gagne" entre Firestore et l'état déjà en mémoire (pas
+    // localStorage : le disque n'est plus une source à la connexion — une
+    // déconnexion repasse toujours en invité vierge, voir useCloudSave ci-
+    // dessous). Number.isFinite() plutôt que ?? -1 seul : une valeur corrompue
+    // (NaN) ne doit jamais pouvoir "gagner" la comparaison — elle est ramenée
+    // à -1 comme une source absente, au lieu de fausser le reduce ci-dessous.
     const safeTs = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : -1);
     const candidates = [
       { label: 'firebase',      data: remote as Record<string, unknown> | null, ts: safeTs((remote as Record<string,unknown> | null)?.lastSaved) },
-      { label: 'localStorage',  data: local as Record<string, unknown> | null,  ts: safeTs((local as Record<string,unknown> | null)?.savedAt) },
       { label: 'local (store)', data: null as Record<string, unknown> | null,   ts: safeTs(current.savedAt) },
     ];
     const best = candidates.reduce((a, b) => (b.ts > a.ts ? b : a));
@@ -361,7 +355,6 @@ async function loadAndApply(userId: string, generation: number) {
     // jamais dépendre d'un timestamp : voir mergeAchievementState).
     const merged = mergeAchievementState(
       remote as Record<string, unknown> | null,
-      local as Record<string, unknown> | null,
       best.data as Record<string, unknown> | null
     );
     useAchievementStore.setState(merged);
@@ -414,6 +407,8 @@ async function saveToFirebase(userId: string): Promise<boolean> {
       totalDps,
       score: s.palier * 100 + s.wave,
     };
+
+    console.log('[CloudSave] ⇢ Envoyé à Firestore:', payload);
 
     // Timeout 5s — si Firebase est bloqué (quota), on n'attend pas indéfiniment
     await Promise.race([
@@ -532,11 +527,21 @@ export function useCloudSave(userId: string | null) {
     const myGeneration = sessionGeneration;
 
     if (!userId) {
+      // Ne réinitialise que sur une VRAIE déconnexion (userIdRef.current
+      // passait d'un compte à null) — pas au tout premier rendu d'un invité
+      // qui n'a jamais été connecté, sinon sa progression locale serait
+      // effacée dès l'ouverture du jeu.
+      const wasLoggedIn = userIdRef.current !== null;
       loadedRef.current = false; userIdRef.current = null; setLoaded(true);
       urgentSaveUserId = null; urgentSaveReady = false;
       // Pas de reconciliation à poursuivre pour un utilisateur déconnecté.
       clearReconciliationRetry();
       setCloudSyncConfirmed(true); pendingLocalSnapshotTs = null; reconciliationAttempts = 0;
+      // Repasse en mode invité (palier 1, run vierge) : la progression du
+      // compte reste sur Firestore et sera rechargée à la reconnexion via
+      // loadAndApply ci-dessous — elle ne doit pas rester affichée/éditable
+      // localement une fois déconnecté.
+      if (wasLoggedIn) useGameStore.getState().resetGame();
       return;
     }
     if (userId === userIdRef.current) return;
