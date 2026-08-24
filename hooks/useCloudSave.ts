@@ -366,10 +366,8 @@ async function attemptLoad(userId: string, generation: number): Promise<void> {
 
   const legacy = remote ? null : tryRecoverLegacyLocalSave();
   const source = (remote ?? legacy) as Record<string, unknown> | null;
-  console.log('[CloudSave][DEBUG] attemptLoad — remote.palier =', (remote as Record<string, unknown> | null)?.palier, '| legacy?', !!legacy, '| source.palier =', source?.palier);
   if (source) applyRemoteState(source);
   mergeAchievementState(source);
-  console.log('[CloudSave][DEBUG] après applyRemoteState — useGameStore palier =', useGameStore.getState().palier);
 
   clearReconciliationRetry();
   setCloudSyncConfirmed(true);
@@ -555,13 +553,11 @@ export function useCloudSave(userId: string | null) {
       if (!snap.exists()) return;
       const data = snap.data() as Record<string, unknown>;
       const correctionAt = (data.adminCorrectionAt as number) ?? 0;
-      console.log('[CloudSave][DEBUG] onSnapshot correction — fromCache:', snap.metadata.fromCache, '| data.palier:', data.palier, '| adminCorrectionAt:', correctionAt, '| lastCorrectionRef:', lastCorrectionRef.current, '| loadedRef:', loadedRef.current);
       if (!correctionAt || correctionAt <= lastCorrectionRef.current) return;
       lastCorrectionRef.current = correctionAt;
       // Ignore la toute première lecture au montage (c'est juste l'état déjà
       // chargé par attemptLoad, pas une nouvelle correction en direct).
       if (!loadedRef.current) return;
-      console.log('[CloudSave][DEBUG] onSnapshot APPLIQUE une correction — patch.palier =', data.palier);
       const patch: Record<string, unknown> = { savedAt: correctedNow() };
       if (typeof data.pixelCoins === 'number') patch.pixelCoins = data.pixelCoins;
       if (typeof data.nekoGems   === 'number') patch.nekoGems   = data.nekoGems;
