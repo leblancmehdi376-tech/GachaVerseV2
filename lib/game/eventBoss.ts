@@ -30,9 +30,9 @@ export interface DropResult {
 // TOUJOURS le lot principal ET des pièces en même temps (voir rollEventDrop).
 function buildEventDropTable(evoItems: [string, string, string]): DropEntry[] {
   return [
-    { weight: 50.0, coinQty: 1, result: { type: 'gems', qty: 10 } },
-    { weight: 24.3, coinQty: 2, result: { type: 'gems', qty: 20 } },
-    { weight: 13.4, coinQty: 2, result: { type: 'gems', qty: 30 } },
+    { weight: 50.0, coinQty: 1, result: { type: 'gems', qty: 12 } },
+    { weight: 24.3, coinQty: 2, result: { type: 'gems', qty: 25 } },
+    { weight: 13.4, coinQty: 2, result: { type: 'gems', qty: 40 } },
     { weight: 10.0, coinQty: 2, result: { type: 'bossCrowns', qty: 3 } },
     { weight: 1.0,  coinQty: 3, result: { type: 'item', id: evoItems[0], qty: 1 } },
     { weight: 0.8,  coinQty: 3, result: { type: 'item', id: evoItems[1], qty: 1 } },
