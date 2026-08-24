@@ -48,8 +48,13 @@ export async function loadGameFromFirestore(userId: string): Promise<{ data: Par
 // JAMAIS bloquer quoi que ce soit : toute erreur retombe silencieusement sur
 // un offset de 0 (= horloge locale brute, le comportement d'avant l'ajout de
 // cette sonde). Ne détermine PAS `reachable` — voir loadGameFromFirestore.
-export async function probeClockOffset(userId: string): Promise<number> {
-  if (!db) return 0;
+// Renvoie `null` (et non 0) quand la sonde échoue ou n'a rien pu mesurer :
+// 0 est une mesure valide (horloge locale déjà alignée), pas une valeur de
+// repli. Voir setClockOffset côté appelant — un échec ne doit JAMAIS écraser
+// un offset déjà appris lors d'un probe précédent de la même session par un
+// 0 qui serait faux si l'horloge de cet appareil est réellement décalée.
+export async function probeClockOffset(userId: string): Promise<number | null> {
+  if (!db) return null;
   try {
     const ref = doc(db, 'saves', userId);
     // Nonce propre à cet appel : si un AUTRE onglet écrit sa propre sonde
@@ -67,16 +72,16 @@ export async function probeClockOffset(userId: string): Promise<number> {
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
     const t1 = Date.now();
-    if (!snap.exists()) return 0;
+    if (!snap.exists()) return null;
 
     const data = snap.data() as { clockProbe?: Timestamp; clockProbeId?: string };
     const probeMs = data.clockProbeId === nonce ? data.clockProbe?.toMillis?.() : undefined;
-    if (!probeMs) return 0;
+    if (!probeMs) return null;
 
     const roundTrip = t1 - t0;
     return probeMs + roundTrip / 2 - t1;
   } catch (e) {
-    console.warn('[ClockOffset] Sonde indisponible, horloge locale non corrigée:', e);
-    return 0;
+    console.warn('[ClockOffset] Sonde indisponible, offset de session conservé:', e);
+    return null;
   }
 }

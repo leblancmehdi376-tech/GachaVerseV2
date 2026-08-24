@@ -1548,9 +1548,19 @@ function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & Q
     const isNewProgress = next > state.maxPalierReached;
     // Passage à un palier jamais atteint : événement majeur, sauvegarde immédiate
     // (pas d'attente du prochain cycle périodique) pour ne jamais perdre cette progression.
-    if (isNewProgress) requestUrgentSave();
+    // IMPORTANT : resolveEnemyDeath() est appelée DEPUIS l'intérieur d'un set()
+    // — à cet instant précis, le nouveau palier n'a PAS ENCORE été commité dans
+    // le store (on est en train de le calculer, pas encore de le retourner à
+    // set()). Un requestUrgentSave() synchrone ici lirait donc l'ANCIEN palier
+    // via getSerializableState() → useGameStore.getState(), et écraserait le
+    // classement avec une valeur périmée en cas de course avec updatePlayerScore
+    // ci-dessous (même document Firestore, deux écritures merge:true non
+    // synchronisées). queueMicrotask() reporte l'appel à juste après que set()
+    // ait commité — la sauvegarde lit alors le palier réellement à jour.
+    if (isNewProgress) queueMicrotask(() => requestUrgentSave());
     if (isNewProgress && auth?.currentUser?.uid) {
-      updatePlayerScore(auth.currentUser.uid, {
+      const uid = auth.currentUser.uid;
+      updatePlayerScore(uid, {
         username: state.username,
         palier: next,
         maxPalierReached: next,

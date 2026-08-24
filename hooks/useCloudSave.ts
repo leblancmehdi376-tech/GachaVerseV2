@@ -295,7 +295,7 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
       return;
     }
 
-    setClockOffset(offsetMs);
+    if (offsetMs !== null) setClockOffset(offsetMs);
     const remoteTs = (remote as Record<string, unknown> | null)?.lastSaved as number | undefined;
     if (typeof remoteTs === 'number' && Number.isFinite(remoteTs) && pendingLocalSnapshotTs !== null && remoteTs > pendingLocalSnapshotTs) {
       // Le cloud avait bel et bien une sauvegarde plus récente que celle
@@ -326,7 +326,11 @@ async function loadAndApply(userId: string, generation: number) {
     // et current.savedAt ont été écrits par CET appareil avec son propre décalage
     // (stable d'une session à l'autre), donc directement comparables une fois
     // l'offset de cette session appliqué au calcul ci-dessous.
-    setClockOffset(offsetMs);
+    // `offsetMs === null` = sonde échouée (timeout/réseau), pas "horloge déjà
+    // alignée" : on NE TOUCHE PAS à clockOffsetMs plutôt que de l'écraser par
+    // un 0 qui serait faux si cet appareil a une horloge réellement décalée —
+    // voir le commentaire sur probeClockOffset dans saveGame.ts.
+    if (offsetMs !== null) setClockOffset(offsetMs);
 
     const current = useGameStore.getState();
 
