@@ -1,5 +1,6 @@
 'use client';
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import {
   GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
   calcCharDps, levelUpCost, heroLevelUpCost,
@@ -87,6 +88,7 @@ export function getGoldChestMultiplier(level: number): number {
 }
 
 // ── Anti-exploit multi-onglets ─────────────────────────────────────────────
+const LOCAL_STORAGE_KEY = 'gachaverse_save_v2'; // bump v2.5 : doit rester identique à useCloudSave.ts (même entrée localStorage partagée)
 const BROADCAST_CHANNEL = typeof window !== 'undefined' ? new BroadcastChannel('gachaverse_state') : null;
 
 // Vérifie le bonus "bonusFor" d'un équipement pour un perso donné — accepte
@@ -101,15 +103,13 @@ function getEquipBonusMult(def: ReturnType<typeof getEquipmentDef>, templateId: 
   return matches ? def.bonusFor.multiplier : 1;
 }
 
-// Diffuse en direct aux autres onglets (anti double-dépense sur le même
-// compte ouvert dans 2 onglets à la fois) — un onglet fraîchement ouvert fait
-// de toute façon son propre chargement cloud au montage (useCloudSave), il ne
-// dépend jamais de ce message pour démarrer avec un état correct.
-function broadcastToTabs() {
+// Sauvegarde immédiate en localStorage + diffuse aux autres onglets
+function broadcastAndSaveLocal() {
   if (typeof window === 'undefined') return;
   try {
     const s = useGameStore.getState();
-    const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory };
+    const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory, savedAt: correctedNow() };
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) ?? '{}'), ...snapshot }));
     BROADCAST_CHANNEL?.postMessage({ type: 'PULL_SYNC', data: snapshot });
   } catch { /* ignore */ }
 }
@@ -333,7 +333,7 @@ interface GameStore extends GameState {
   // crédite ensuite CE gain précis (calculé une fois, affiché, puis réclamé).
   checkOfflineGain: () => OfflineGain | null;
   claimOfflineEarnings: (gain: OfflineGain) => void;
-  resetGame: () => Promise<void>;
+  resetGame: () => void;
 }
 
 const makeInitial = () => ({
@@ -383,6 +383,7 @@ const makeInitial = () => ({
 });
 
 export const useGameStore = create<GameStore>()(
+  persist(
     (set, get) => ({
       ...makeInitial(),
 
@@ -1034,7 +1035,7 @@ export const useGameStore = create<GameStore>()(
         const edition = get().addToCollection(id);
         get().bumpQuestProgress('w_gacha_10', 1);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + 1 }));
-        broadcastToTabs();
+        broadcastAndSaveLocal();
         requestUrgentSave();
         return { templateId: id, edition };
       },
@@ -1045,7 +1046,7 @@ export const useGameStore = create<GameStore>()(
         const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
         get().bumpQuestProgress('w_gacha_10', ids.length);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
-        broadcastToTabs();
+        broadcastAndSaveLocal();
         requestUrgentSave();
         return results;
       },
@@ -1056,7 +1057,7 @@ export const useGameStore = create<GameStore>()(
         const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
         get().bumpQuestProgress('w_gacha_10', ids.length);
         set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
-        broadcastToTabs();
+        broadcastAndSaveLocal();
         requestUrgentSave();
         return results;
       },
@@ -1318,7 +1319,7 @@ export const useGameStore = create<GameStore>()(
         // la collection qu'on vient de vider) et vide les drops de forge.
         useExpeditionStore.setState({ dropInventory: {}, active: [] });
 
-        broadcastToTabs();
+        broadcastAndSaveLocal();
       },
 
       clearBossVictory: () => set({ lastBossVictory: null }),
@@ -1366,13 +1367,13 @@ export const useGameStore = create<GameStore>()(
         const cost = get().getOfflineMultCost();
         if (cost === null || get().bossCrowns < cost) return;
         set(state => ({ bossCrowns: state.bossCrowns - cost, offlineMultLevel: (state.offlineMultLevel ?? 0) + 1 }));
-        broadcastToTabs();
+        broadcastAndSaveLocal();
       },
       upgradeOfflineCap: () => {
         const cost = get().getOfflineCapCost();
         if (cost === null || get().bossCrowns < cost) return;
         set(state => ({ bossCrowns: state.bossCrowns - cost, offlineCapLevel: (state.offlineCapLevel ?? 0) + 1 }));
-        broadcastToTabs();
+        broadcastAndSaveLocal();
       },
 
       // Calcule (SANS RIEN CRÉDITER) le gain depuis la dernière sauvegarde connue
@@ -1417,14 +1418,17 @@ export const useGameStore = create<GameStore>()(
             quests: cq.quests, weeklyQuests: cq.weeklyQuests,
           };
         });
-        broadcastToTabs();
+        broadcastAndSaveLocal();
       },
 
-      // Async : attend que l'état réinitialisé soit bien écrit en base avant
-      // de rendre la main — sans ça, un refresh juste après un reset revient
-      // sur l'ancienne sauvegarde cloud (aucun fallback local pour la couvrir
-      // entre-temps, contrairement à avant ce correctif).
-      resetGame: async () => {
+      resetGame: () => {
+        // localStorage.clear() vide bien le disque, mais les AUTRES stores
+        // Zustand (succès, prestige, expéditions, ultimes) gardent leurs
+        // données EN MÉMOIRE dans le navigateur tant que la page n'est pas
+        // rechargée — et les réécrivent aussitôt sur le disque au moindre
+        // changement d'état, annulant le clear(). Il faut les réinitialiser
+        // explicitement, pas juste vider le stockage.
+        try { localStorage.clear(); } catch {}
         set(makeInitial());
         try {
           useAchievementStore.getState().resetAchievements();
@@ -1435,12 +1439,43 @@ export const useGameStore = create<GameStore>()(
           const { useExpeditionStore } = require('@/store/expeditionStore');
           useExpeditionStore.getState().resetExpeditions();
         } catch {}
-        try {
-          // Import différé : useCloudSave importe déjà gameStore.
-          await require('@/hooks/useCloudSave').forceSaveNow();
-        } catch {}
       },
-    })
+    }),
+    {
+      name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
+      partialize: (s) => ({
+        pixelCoins:s.pixelCoins, nekoGems:s.nekoGems, totalClicks:s.totalClicks,
+        totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0, totalGemsSpent:s.totalGemsSpent ?? 0,
+        wave:s.wave, palier:s.palier, maxPalierReached:s.maxPalierReached, runPeakPalier:s.runPeakPalier ?? null,
+        currentEnemy:s.currentEnemy,
+        equippedTeam:s.equippedTeam, collection:s.collection, hero:s.hero, goldUpgradeLevel:s.goldUpgradeLevel ?? 0,
+        bossActive:s.bossActive, bossTimeLeft:s.bossTimeLeft,
+        quests:s.quests, questsDayKey:s.questsDayKey,
+        weeklyQuests:s.weeklyQuests, weeklyQuestsDayKey:s.weeklyQuestsDayKey,
+        eventQuests:s.eventQuests,
+        bossCrowns:s.bossCrowns, voidOrbs:s.voidOrbs,
+        totalBossCrownsEarned:s.totalBossCrownsEarned ?? 0, totalVoidOrbsEarned:s.totalVoidOrbsEarned ?? 0,
+        inventory:s.inventory,
+        equipmentInventory:s.equipmentInventory,
+        unlockedEquipRarities:s.unlockedEquipRarities,
+        unlockedEquipDropRarities:s.unlockedEquipDropRarities,
+        championInventory:s.championInventory ?? {},
+        bankedRanks:s.bankedRanks ?? {},
+        historicalMaxRank:s.historicalMaxRank ?? {},
+        dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
+        dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
+        username:s.username,
+        offlineMultLevel:s.offlineMultLevel, offlineCapLevel:s.offlineCapLevel, lastOfflineGain:s.lastOfflineGain,
+        // savedAt DOIT être persisté ici : c'est ce qui permet à loadAndApply
+        // (useCloudSave) de savoir que cet état local rechargé est déjà à jour.
+        // Sans lui, il retombe à 0 à chaque refresh et se fait écraser par la
+        // sauvegarde localStorage/Firebase précédente (jusqu'à 30s/10min plus
+        // vieille) — ce qui annule les coffres ouverts, quêtes/succès réclamés
+        // juste avant le refresh.
+        savedAt:s.savedAt,
+      }),
+    }
+  )
 );
 
 type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] };

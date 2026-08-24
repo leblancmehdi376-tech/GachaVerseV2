@@ -103,8 +103,8 @@ export function GameLayout() {
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
   const [victory, setVictory] = useState<{ palier: number; gems: number; coins: number } | null>(null);
   const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, ensureWeeklyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory, focusedExpeditionId } = useGameStore();
-  const { user, loading: authLoading, logout, kickedOut, dismissKickedOut } = useAuth();
-  const { forceSave, loaded: cloudLoaded, loadPhase, retryLoad, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
+  const { user, logout, kickedOut, dismissKickedOut } = useAuth();
+  const { forceSave, loaded: cloudLoaded, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
 
   // Navigation Forge → Expéditions : dès qu'un ingrédient à récolter est
   // "focusé", on bascule automatiquement sur la page Expéditions (qui se
@@ -122,22 +122,36 @@ export function GameLayout() {
   // Quêtes réclamables
   const claimable = (quests ?? []).filter((q: { current: number; target: number; done: boolean }) => q.current >= q.target && !q.done).length;
 
-  // Vérifie/réinitialise les quêtes quotidiennes et hebdomadaires une fois au montage
-  // (couvre toutes les pages). IMPORTANT : on attend cloudLoaded avant de comparer
-  // questsDayKey à la date du jour — sinon ce check se déclenche AVANT que la vraie
-  // progression cloud n'ait été appliquée, réinitialise les quêtes sur l'état par
-  // défaut, et ce reset est ensuite re-synchronisé vers le cloud en écrasant la
-  // progression réelle.
+  // ── Réhydratation locale (Zustand persist / localStorage) ─────────────────
+  const [hasHydrated, setHasHydrated] = useState(() => useGameStore.persist?.hasHydrated?.() ?? false);
   useEffect(() => {
-    if (!cloudLoaded) return;
+    if (hasHydrated) return;
+    if (!useGameStore.persist) { setHasHydrated(true); return; } // pas de persist (SSR/fallback) : ne bloque rien
+    const unsub = useGameStore.persist.onFinishHydration(() => setHasHydrated(true));
+    // Sécurité : si la réhydratation était déjà finie entre le calcul initial
+    // du useState et le montage de cet effet, on ne resterait pas bloqué.
+    if (useGameStore.persist.hasHydrated()) setHasHydrated(true);
+    return unsub;
+  }, [hasHydrated]);
+
+  // Vérifie/réinitialise les quêtes quotidiennes et hebdomadaires une fois au montage
+  // (couvre toutes les pages). IMPORTANT : on attend hasHydrated ET cloudLoaded avant
+  // de comparer questsDayKey à la date du jour — sinon, sur un appareil qui a déjà une
+  // sauvegarde locale périmée (questsDayKey d'hier), ce check se déclenche AVANT que la
+  // vraie progression cloud n'ait été appliquée, réinitialise les quêtes localement, et
+  // ce reset est ensuite re-synchronisé vers le cloud en écrasant la progression réelle.
+  useEffect(() => {
+    if (!hasHydrated || !cloudLoaded) return;
     ensureDailyQuests();
     ensureWeeklyQuests();
-  }, [cloudLoaded, ensureDailyQuests, ensureWeeklyQuests]);
+  }, [hasHydrated, cloudLoaded, ensureDailyQuests, ensureWeeklyQuests]);
 
   // ── Gains hors-ligne : calcul unique une fois le splash terminé ───────────
-  // IMPORTANT : on attend le chargement cloud (cloudLoaded) — sinon `savedAt`
-  // peut encore valoir une valeur par défaut au lieu du vrai dernier timestamp
-  // de sauvegarde, et le calcul se tromperait sur la durée réelle d'absence.
+  // IMPORTANT : on attend la fin de la réhydratation Zustand (localStorage) ET
+  // du chargement cloud (cloudLoaded) — sinon `savedAt` peut encore valoir une
+  // valeur périmée ou par défaut au lieu du vrai dernier timestamp de sauvegarde
+  // (le même, quel que soit l'appareil, que celui lu/écrit en base), et le calcul
+  // se tromperait sur la durée réelle d'absence.
   // Rien n'est crédité ici : checkOfflineGain ne fait QUE lire `savedAt` et
   // calculer — le gain n'est ajouté à la banque que si le joueur clique sur
   // RÉCUPÉRER (voir handleClaimOffline plus bas), pour ne jamais créditer une
@@ -145,11 +159,11 @@ export function GameLayout() {
   const [offlineGain, setOfflineGain] = useState<OfflineGain | null>(null);
   const offlineCheckedRef = useRef(false);
   useEffect(() => {
-    if (!cloudLoaded || offlineCheckedRef.current) return;
+    if (!hasHydrated || !cloudLoaded || offlineCheckedRef.current) return;
     offlineCheckedRef.current = true;
     const g = useGameStore.getState().checkOfflineGain();
     if (g) setOfflineGain(g);
-  }, [cloudLoaded]);
+  }, [hasHydrated, cloudLoaded]);
 
   const handleClaimOffline = () => {
     if (offlineGain) useGameStore.getState().claimOfflineEarnings(offlineGain);
@@ -278,58 +292,9 @@ export function GameLayout() {
     );
   }
 
-  // Résolution de l'état d'auth Firebase (juste après montage) — évite un
-  // flash de l'écran de connexion pour un utilisateur déjà connecté au
-  // rafraîchissement, le temps qu'onAuthStateChanged réponde.
-  if (authLoading) {
-    return <SplashScreen onComplete={() => {}} ready={false} />;
-  }
-
-  // Connexion obligatoire : plus de mode invité, plus de sauvegarde locale —
-  // sans compte il n'y a nulle part où jouer/sauvegarder. Pas de fond de jeu
-  // derrière, pas d'échappatoire (onClose no-op : le clic sur le fond ne fait
-  // rien, la seule sortie est de se connecter/inscrire).
-  if (!user) {
-    return <AuthModal onClose={() => {}} />;
-  }
-
-  // Le premier chargement cloud n'a pas pu joindre Firestore (panne réseau) —
-  // sans sauvegarde locale de secours, il n'y a rien de légitime sur quoi
-  // laisser le joueur jouer en attendant : on bloque plutôt que de risquer
-  // d'écraser silencieusement sa vraie progression cloud.
-  if (loadPhase === 'error') {
-    return (
-      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'radial-gradient(circle at center, rgba(168,85,247,0.18), rgba(2,6,23,1) 52%)', padding:'24px' }}>
-        <div style={{ width:'min(560px, 92vw)', background:'rgba(12,10,30,0.92)', border:'1px solid rgba(192,132,252,0.45)', borderRadius:'20px', boxShadow:'0 0 40px rgba(168,85,247,0.35)', padding:'28px 26px', textAlign:'center' }}>
-          <div style={{ fontSize:'51.5px', marginBottom:'14px' }}>☁️</div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:'28.8px', fontWeight:900, letterSpacing:'2px', color:'#f5d0fe', marginBottom:'12px' }}>CLOUD INJOIGNABLE</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:'16.5px', lineHeight:1.6, color:'var(--text-sub)', marginBottom:'22px' }}>
-            Impossible de charger ta sauvegarde. Vérifie ta connexion et réessaie.
-          </div>
-          <div style={{ display:'flex', gap:'12px', justifyContent:'center', flexWrap:'wrap' }}>
-            <button
-              onClick={retryLoad}
-              style={{ background:'linear-gradient(135deg,#7c3aed,#a855f7)', border:'none', borderRadius:'12px', padding:'14px 22px', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'14.4px', color:'white', cursor:'pointer', boxShadow:'0 12px 28px rgba(168,85,247,0.35)' }}
-            >
-              RÉESSAYER
-            </button>
-            <button
-              onClick={logout}
-              style={{ background:'transparent', border:'1px solid var(--border)', borderRadius:'12px', padding:'14px 22px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text-sub)', cursor:'pointer' }}
-            >
-              SE DÉCONNECTER
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Splash screen au premier chargement — reste affiché tant que le
-  // chargement cloud n'est pas terminé (`ready={cloudLoaded}`), même si son
-  // animation interne (~2.8s) est déjà finie.
-  if (!splashDone || !cloudLoaded) {
-    return <SplashScreen onComplete={() => setSplashDone(true)} ready={cloudLoaded} />;
+  // Splash screen au premier chargement
+  if (!splashDone) {
+    return <SplashScreen onComplete={() => setSplashDone(true)} />;
   }
 
   return (
@@ -371,12 +336,14 @@ export function GameLayout() {
           {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'4px', marginTop:'3px' }}>MULTIVERS RPG</div>}
         </div>
 
-        {/* Avatar — ouvre les infos du compte connecté (email, déconnexion) */}
+        {/* Avatar / Bouton connexion */}
         <button onClick={() => setShowAuth(true)}
           style={{ display:'flex', alignItems:'center', gap:'10px',
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            background: user ? 'var(--bg-card)' : 'linear-gradient(135deg,#3b0764,#6d28d9)',
+            border: user ? '1px solid var(--border)' : '1px solid #c084fc',
             borderRadius:'10px', padding:'5px 14px 5px 6px', cursor:'pointer',
-            transition:'all 0.15s', flexShrink:0 }}
+            transition:'all 0.15s', flexShrink:0,
+            boxShadow: user ? 'none' : '0 0 16px rgba(168,85,247,0.4)' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.15)'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
           <div style={{ position:'relative', width:36, height:36, flexShrink:0 }} title={formatSyncStatus(syncStatus, lastSyncedAt).label}>
@@ -390,8 +357,13 @@ export function GameLayout() {
               transition:'background 0.3s' }} />
           </div>
           {!isMobile && <div style={{ textAlign:'left' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user?.email?.split('@')[0]}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
+            {user ? (<>
+              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
+            </>) : (<>
+              <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'13.4px', color:'#e9d5ff', lineHeight:1.2, letterSpacing:'0.5px' }}>SE CONNECTER</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'rgba(233,213,255,0.6)', lineHeight:1 }}>ou créer un compte</div>
+            </>)}
           </div>}
         </button>
 

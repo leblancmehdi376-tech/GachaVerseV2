@@ -3,18 +3,12 @@ import { useEffect, useState, useRef } from 'react';
 
 interface Props {
   onComplete: () => void;
-  // Si false, l'écran termine son animation normalement mais reste affiché
-  // (bloqué à 100%/"Prêt") au lieu d'enchaîner sur le fade-out + onComplete —
-  // utile pour attendre une condition externe (ex: chargement cloud) qui peut
-  // dépasser la durée de l'animation, sans laisser un écran invisible monté
-  // (React réconcilie la même instance plutôt que de la démonter).
-  ready?: boolean;
 }
 
 const LOGO_CHARS = 'GACHAVERSE'.split('');
 const DURATION_MS = 2800;
 
-export function SplashScreen({ onComplete, ready = true }: Props) {
+export function SplashScreen({ onComplete }: Props) {
   const [progress, setProgress]       = useState(0);
   const [phase, setPhase]             = useState<'loading' | 'done'>('loading');
   const [charVisible, setCharVisible] = useState<boolean[]>(Array(LOGO_CHARS.length).fill(false));
@@ -56,14 +50,13 @@ export function SplashScreen({ onComplete, ready = true }: Props) {
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
-  // Fade out then call onComplete — attend `ready` si l'animation se termine
-  // avant que la condition externe ne soit remplie (reste affiché à 100%).
+  // Fade out then call onComplete
   useEffect(() => {
-    if (phase !== 'done' || !ready) return;
+    if (phase !== 'done') return;
     const t1 = setTimeout(() => setFadeOut(true),   120);
     const t2 = setTimeout(() => onComplete(),        620);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [phase, ready, onComplete]);
+  }, [phase, onComplete]);
 
   const LOADING_STEPS = [
     { label: 'Initialisation des univers',       threshold: 20 },
