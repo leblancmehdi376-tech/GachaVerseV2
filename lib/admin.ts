@@ -1,9 +1,20 @@
-// ── Liste des comptes administrateurs ───────────────────────────────────
-// Seule source de vérité, utilisée à la fois par la page /admin (accès à
-// l'outil de modération) ET par le jeu principal (pour ne JAMAIS bloquer un
-// admin derrière l'écran "compte en attente de validation").
-export const ADMIN_EMAILS = ['mehdixshinobie@gmail.com'];
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from './firebase/config';
 
-export function isAdminEmail(email: string | null | undefined): boolean {
-  return !!email && ADMIN_EMAILS.includes(email);
+// ── Statut administrateur ────────────────────────────────────────────────
+// Source de vérité : le champ `isAdmin` du document Firestore `users/{uid}`.
+// Ce champ ne peut être posé que manuellement depuis la console Firebase —
+// les règles de sécurité interdisent à un client de se l'attribuer lui-même.
+// Ce check côté client ne sert qu'à l'affichage (masquer/afficher l'UI admin) ;
+// la vraie protection contre les écritures non autorisées vit dans
+// firestore.rules (fonction isAdmin()), pas ici.
+export async function checkIsAdmin(uid: string | null | undefined): Promise<boolean> {
+  if (!uid || !db) return false;
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    return snap.exists() && snap.data().isAdmin === true;
+  } catch (e) {
+    console.error('[Admin] checkIsAdmin:', e);
+    return false;
+  }
 }

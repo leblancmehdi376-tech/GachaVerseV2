@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Admin déterminé par le champ `isAdmin` du doc users/{uid} — jamais par
+    // email en dur (évite de devoir garder deux sources de vérité en phase,
+    // et évite d'exposer l'email admin dans ce fichier). Ce champ ne peut être
+    // posé que manuellement depuis la console Firebase : voir la protection
+    // anti auto-élévation dans `match /users/{uid}` ci-dessous.
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    // Le champ isAdmin ne change pas dans cette écriture (empêche un joueur
+    // de se l'attribuer via son propre accès en écriture à son doc).
+    function isAdminFieldUnchanged() {
+      return request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false);
+    }
+
+    // Sauvegardes de partie : LECTURE ouverte à tout utilisateur connecté
+    // (indispensable pour le classement, qui doit pouvoir lire les scores de
+    // TOUS les joueurs — pas seulement les siens). ÉCRITURE toujours limitée
+    // au propriétaire ou à l'admin (outil "Rééquilibrer un compte").
+    match /saves/{uid} {
+      allow read: if request.auth != null;
+      allow write: if isOwner(uid) || isAdmin();
+    }
+    // Fiches de compte (pseudo, email, Discord, statut de validation, isAdmin) :
+    // chacun crée/lit la sienne ; seul l'admin peut lister tout le monde
+    // (page Requests) et modifier le champ "approved". Le champ "isAdmin" ne
+    // peut être posé/changé que depuis la console Firebase (aucune règle ne
+    // l'autorise en écriture via l'app, même pour l'admin lui-même).
+    match /users/{uid} {
+      allow create: if isOwner(uid) && request.resource.data.get('isAdmin', false) == false;
+      allow get: if isOwner(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow update: if (isOwner(uid) || isAdmin()) && isAdminFieldUnchanged();
+    }
+    // Sessions actives (verrou anti multi-navigateur) : chacun gère la sienne.
+    match /sessions/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+    // Hôtel de Marché : lecture/écriture pour tout utilisateur connecté (les
+    // transactions atomiques sont déjà gérées côté code).
+    match /marketplace/{listingId} {
+      allow read, write: if request.auth != null;
+    }
+    // Codes cadeaux : lecture/écriture pour tout utilisateur connecté.
+    match /giftCodes/{codeId} {
+      allow read, write: if request.auth != null;
+    }
+    // Logs d'audit : n'importe quel utilisateur connecté peut en créer,
+    // seul l'admin peut les consulter (page Logs).
+    match /auditLogs/{logId} {
+      allow create: if request.auth != null;
+      allow read, list: if isAdmin();
+    }
+    // Messages divers liés à un compte : chacun lit/écrit les siens.
+    match /apologies/{uid} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
+  }
+}

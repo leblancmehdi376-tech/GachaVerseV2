@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { getPendingRequests, getApprovedUsers, getAllUsers, approveUser, AccessRequest } from '@/lib/firebase/accessRequests';
 import { findPlayer, getPlayerSave, correctPlayerBalance, correctPlayerProgress, getPlayerCollection, removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, PlayerLookup, PlayerSaveSummary, OwnedCharacterSummary } from '@/lib/firebase/adminTools';
-import { isAdminEmail } from '@/lib/admin';
+import { checkIsAdmin } from '@/lib/admin';
 
 
 export default function AdminPage() {
@@ -125,7 +125,14 @@ export default function AdminPage() {
     setProgressBusy(false);
   };
 
-  const isAdmin = isAdminEmail(user?.email);
+  const [isAdmin, setIsAdmin]         = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); setAdminChecked(true); return; }
+    setAdminChecked(false);
+    checkIsAdmin(user.uid).then((ok) => { setIsAdmin(ok); setAdminChecked(true); });
+  }, [user]);
 
   const load = async () => {
     setRefreshing(true);
@@ -145,7 +152,7 @@ export default function AdminPage() {
     setBusy(null);
   };
 
-  if (loading) return null;
+  if (loading || !adminChecked) return null;
 
   if (!user || !isAdmin) {
     return (
