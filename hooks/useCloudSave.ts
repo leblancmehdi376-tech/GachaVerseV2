@@ -15,7 +15,10 @@ const LOCAL_INTERVAL_MS    =  30_000; // localStorage toutes les 30s (gratuit, i
 const LOCAL_STORAGE_KEY    = 'gachaverse_save_v2'; // bump v2.5 : force un reset local pour tous les joueurs — doit rester identique à LOCAL_STORAGE_KEY dans store/gameStore.ts (même entrée localStorage partagée)
 
 // ── Sérialisation ──────────────────────────────────────────────────────────
-function getSerializableState() {
+// Exportée uniquement pour le test d'exhaustivité (useCloudSave.exhaustiveness.test.ts)
+// qui vérifie qu'aucun champ persistant de gameStore n'est oublié ici — voir
+// ce fichier de test pour le contexte (bugs historiques de champs oubliés).
+export function getSerializableState() {
   const s  = useGameStore.getState();
   const es = useExpeditionStore.getState();
   const ps = usePrestigeStore.getState();
@@ -54,6 +57,11 @@ function getSerializableState() {
     championInventory:  s.championInventory ?? {},
     bankedRanks:         s.bankedRanks ?? {},
     historicalMaxRank:   s.historicalMaxRank ?? {},
+    // Nombre d'achats déjà effectués par boss d'événement (prix +10% par
+    // achat, voir getEventCharacterCost) — jamais synchronisé avant ce
+    // correctif : un refresh/reconnexion faisait revenir le prix à son
+    // tarif de départ (bug mineur, favorable au joueur).
+    eventCharacterPurchases: s.eventCharacterPurchases ?? {},
     // Fusion/drop d'équipement débloqués par rareté (via expéditions) — vraie
     // progression, jamais synchronisée avant ce correctif : revenait à ['C']
     // sur tout nouvel appareil, rebloquant équipement et expéditions déjà acquis.

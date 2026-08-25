@@ -135,6 +135,11 @@ export const useGameStore = create<GameStore>()(
         championInventory:s.championInventory ?? {},
         bankedRanks:s.bankedRanks ?? {},
         historicalMaxRank:s.historicalMaxRank ?? {},
+        // Nombre d'achats déjà effectués par boss d'événement (prix +10% par
+        // achat, voir getEventCharacterCost) — jamais synchronisé avant ce
+        // correctif : un refresh/reconnexion faisait revenir le prix à son
+        // tarif de départ (bug mineur, favorable au joueur).
+        eventCharacterPurchases:s.eventCharacterPurchases ?? {},
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         username:s.username,
