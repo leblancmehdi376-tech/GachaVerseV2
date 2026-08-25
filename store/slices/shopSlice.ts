@@ -113,7 +113,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
         [itemId]: (state.equipmentInventory[itemId] ?? 0) + 1,
       },
     }));
-    requestUrgentSave();
+    requestUrgentSave('shop');
     return itemId;
   },
 

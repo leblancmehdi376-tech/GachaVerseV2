@@ -8,6 +8,7 @@ import { useExpeditionStore } from '@/store/expeditionStore';
 import { usePrestigeStore } from '@/store/prestigeStore';
 import { saveGameToFirestore, loadGameFromFirestore, probeClockOffset } from '@/lib/firebase/saveGame';
 import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
+import { logFirestoreOp } from '@/lib/firebase/telemetry';
 import { logger } from '@/lib/logger';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
@@ -281,7 +282,7 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
     // renvoyant alors UNIQUEMENT ces deux champs de probe au lieu de la vraie
     // sauvegarde (vu en prod : premier login récupère {clockProbeId, clockProbe:
     // null} et rien d'autre, un second login juste après récupère tout).
-    const { data: remote, reachable } = await loadGameFromFirestore(userId);
+    const { data: remote, reachable } = await loadGameFromFirestore(userId, 'reconciliation');
     const offsetMs = await probeClockOffset(userId);
     logger.log('[CloudSave] ⇠ Reçu de Firestore (reconciliation):', { reachable, remote });
     if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
@@ -326,7 +327,7 @@ async function loadAndApply(userId: string, generation: number) {
     // document que celui lu ici, et lancé en parallèle son écriture pollue le
     // cache local que lit loadGameFromFirestore(), renvoyant alors seulement
     // {clockProbeId, clockProbe} au lieu de la vraie sauvegarde.
-    const { data: remote, reachable } = await loadGameFromFirestore(userId);
+    const { data: remote, reachable } = await loadGameFromFirestore(userId, 'login');
     const offsetMs = await probeClockOffset(userId);
     logger.log('[CloudSave] ⇠ Reçu de Firestore:', { reachable, remote });
     if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
@@ -394,7 +395,7 @@ async function loadAndApply(userId: string, generation: number) {
 // réseau d'entreprise qui bloque Firestore, etc.) : sinon le joueur pense
 // être sauvegardé dans le cloud alors que seul le localStorage local l'a,
 // et il perd sa progression en se reconnectant depuis un autre appareil.
-async function saveToFirebase(userId: string): Promise<boolean> {
+async function saveToFirebase(userId: string, reason = 'unknown'): Promise<boolean> {
   if (!cloudSyncConfirmed) {
     logger.warn('[CloudSave] Écriture cloud suspendue : synchro pas encore confirmée (le premier chargement cloud a échoué), reconciliation en cours.');
     return false;
@@ -421,7 +422,7 @@ async function saveToFirebase(userId: string): Promise<boolean> {
 
     // Timeout 5s — si Firebase est bloqué (quota), on n'attend pas indéfiniment
     await Promise.race([
-      saveGameToFirestore(userId, payload),
+      saveGameToFirestore(userId, payload, reason),
       new Promise<void>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
 
@@ -454,12 +455,12 @@ const URGENT_SAVE_MIN_GAP_MS = 15_000; // évite une rafale d'écritures Firesto
 // l'événement ne finissait par se synchroniser qu'au prochain cycle périodique
 // (jusqu'à 10min plus tard), ce qui pouvait ressembler à une désync entre
 // appareils. Chaque demande ignorée reprogramme maintenant un unique rattrapage.
-export function requestUrgentSave() {
+export function requestUrgentSave(reason = 'urgent') {
   if (!urgentSaveUserId) return; // pas connecté, rien à synchroniser
 
   if (!urgentSaveReady) {
     if (!pendingUrgentSaveTimer) {
-      pendingUrgentSaveTimer = setTimeout(() => { pendingUrgentSaveTimer = null; requestUrgentSave(); }, 2000);
+      pendingUrgentSaveTimer = setTimeout(() => { pendingUrgentSaveTimer = null; requestUrgentSave(reason); }, 2000);
     }
     return;
   }
@@ -468,14 +469,14 @@ export function requestUrgentSave() {
   const elapsed = now - lastUrgentSaveAt;
   if (elapsed < URGENT_SAVE_MIN_GAP_MS) {
     if (!pendingUrgentSaveTimer) {
-      pendingUrgentSaveTimer = setTimeout(() => { pendingUrgentSaveTimer = null; requestUrgentSave(); }, URGENT_SAVE_MIN_GAP_MS - elapsed);
+      pendingUrgentSaveTimer = setTimeout(() => { pendingUrgentSaveTimer = null; requestUrgentSave(reason); }, URGENT_SAVE_MIN_GAP_MS - elapsed);
     }
     return;
   }
 
   lastUrgentSaveAt = now;
   saveToLocal();
-  saveToFirebase(urgentSaveUserId);
+  saveToFirebase(urgentSaveUserId, reason);
 }
 
 // ── Attente de la réhydratation locale (zustand persist) ──────────────────
@@ -581,6 +582,10 @@ export function useCloudSave(userId: string | null) {
     if (!userId || !db) return;
     const ref = doc(db, 'saves', userId);
     const unsub = onSnapshot(ref, (snap) => {
+      // Chaque snapshot livré par un listener temps réel (initial + chaque
+      // changement du document) facture 1 lecture, qu'il déclenche ou non une
+      // vraie correction admin ci-dessous.
+      logFirestoreOp('read', 'admin_correction_watch');
       if (!snap.exists()) return;
       const data = snap.data() as Record<string, unknown>;
       const correctionAt = (data.adminCorrectionAt as number) ?? 0;
@@ -617,7 +622,7 @@ export function useCloudSave(userId: string | null) {
     if (!userId) return;
     const id = setInterval(() => {
       if (!loadedRef.current) return;
-      saveToFirebase(userId);
+      saveToFirebase(userId, 'periodic');
     }, FIREBASE_INTERVAL_MS);
     return () => clearInterval(id);
   }, [userId]);
@@ -627,8 +632,8 @@ export function useCloudSave(userId: string | null) {
     if (!userId) return;
     const onHide = () => {
       if (document.visibilityState === 'hidden' && loadedRef.current) {
-        saveToLocal();           // immédiat, pas de quota
-        saveToFirebase(userId);  // tentative Firebase (peut échouer si quota)
+        saveToLocal();                       // immédiat, pas de quota
+        saveToFirebase(userId, 'visibility'); // tentative Firebase (peut échouer si quota)
       }
     };
     document.addEventListener('visibilitychange', onHide);
@@ -640,7 +645,7 @@ export function useCloudSave(userId: string | null) {
   const forceSave = async (): Promise<boolean> => {
     if (!userId || !loadedRef.current) return false;
     saveToLocal();
-    return saveToFirebase(userId);
+    return saveToFirebase(userId, 'manual');
   };
 
   // Statut affiché au joueur (badge + Paramètres) — voir CloudSyncStatus :

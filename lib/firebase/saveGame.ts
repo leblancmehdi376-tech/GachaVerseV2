@@ -3,12 +3,14 @@ import { db } from './config';
 import { GameState } from '@/types/game';
 import { correctedNow } from './clockOffset';
 import { logger } from '../logger';
+import { logFirestoreOp } from './telemetry';
 
-export async function saveGameToFirestore(userId: string, state: Partial<GameState>) {
+export async function saveGameToFirestore(userId: string, state: Partial<GameState>, source = 'unknown') {
   if (!db) return;
   try {
     const ref = doc(db, 'saves', userId);
     await setDoc(ref, { ...state, lastSaved: correctedNow() }, { merge: true });
+    logFirestoreOp('write', source);
   } catch (e) {
     logger.error('Save error:', e);
   }
@@ -26,7 +28,7 @@ export async function saveGameToFirestore(userId: string, state: Partial<GameSta
 // lire" : les deux cas renvoient `data: null`, mais seul le premier doit
 // autoriser la synchro cloud (voir cloudSyncConfirmed dans useCloudSave.ts) —
 // un simple compte tout neuf ne doit jamais être traité comme une panne réseau.
-export async function loadGameFromFirestore(userId: string): Promise<{ data: Partial<GameState> | null; reachable: boolean }> {
+export async function loadGameFromFirestore(userId: string, source = 'login'): Promise<{ data: Partial<GameState> | null; reachable: boolean }> {
   if (!db) return { data: null, reachable: false };
   try {
     const ref = doc(db, 'saves', userId);
@@ -34,6 +36,9 @@ export async function loadGameFromFirestore(userId: string): Promise<{ data: Par
       getDoc(ref),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
+    // Un getDoc() facture 1 lecture même quand le document n'existe pas
+    // (nouveau compte) — on compte donc ce cas aussi, pas seulement snap.exists().
+    logFirestoreOp('read', source);
     return { data: snap.exists() ? (snap.data() as Partial<GameState>) : null, reachable: true };
   } catch (e) {
     logger.warn('[CloudSave] Lecture cloud indisponible (quota, timeout ou réseau), repli sur le local:', e);
@@ -73,6 +78,11 @@ export async function probeClockOffset(userId: string): Promise<number | null> {
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
     const t1 = Date.now();
+    // Le setDoc + getDocFromServer ci-dessus ont chacun déjà coûté 1 écriture
+    // et 1 lecture au moment où on arrive ici, qu'ils aient réussi à mesurer
+    // quoi que ce soit ou non — on les compte donc avant tout `return null`.
+    logFirestoreOp('write', 'clock_probe');
+    logFirestoreOp('read', 'clock_probe');
     if (!snap.exists()) return null;
 
     const data = snap.data() as { clockProbe?: Timestamp; clockProbeId?: string };

@@ -224,7 +224,7 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         // juste lancée n'atteint le cloud qu'au prochain cycle périodique
         // (jusqu'à 10min plus tard) — invisible depuis un autre appareil
         // pendant tout ce temps, alors que claimExpedition, lui, le fait déjà.
-        try { require('@/hooks/useCloudSave').requestUrgentSave(); } catch { /* ignore */ }
+        try { require('@/hooks/useCloudSave').requestUrgentSave('expedition_start'); } catch { /* ignore */ }
       },
 
       claimExpedition: (instanceId) => {
@@ -297,7 +297,7 @@ export const useExpeditionStore = create<ExpeditionStore>()(
         // cycle périodique) pour ne jamais perdre une récompense d'expédition.
         // Import différé : useCloudSave importe déjà expeditionStore, un import
         // statique créerait un cycle.
-        try { require('@/hooks/useCloudSave').requestUrgentSave(); } catch { /* ignore */ }
+        try { require('@/hooks/useCloudSave').requestUrgentSave('expedition_claim'); } catch { /* ignore */ }
       },
 
       cancelExpedition: (instanceId) => {

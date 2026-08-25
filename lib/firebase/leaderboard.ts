@@ -1,6 +1,7 @@
 import { collection, doc, getDocs, limit, query, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from './config';
 import { logger } from '../logger';
+import { logFirestoreOp } from './telemetry';
 
 export interface LeaderboardEntry {
   uid: string;
@@ -25,6 +26,10 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
     // que la page Classement reste ouverte — un fetch trop large ici épuise
     // le quota gratuit très vite.
     const snapshot = await getDocs(query(collection(db, 'saves'), limit(100)));
+    // Une lecture par document retourné, pas 1 par appel — count porte le vrai
+    // nombre de documents facturés (voir le commentaire au-dessus sur le coût
+    // de cette fonction, ré-appelée toutes les 30-90s tant que la page reste ouverte).
+    logFirestoreOp('read', 'leaderboard_view', snapshot.docs.length);
     const entries: LeaderboardEntry[] = snapshot.docs.map(docSnap => {
       const data = docSnap.data() as Record<string, unknown>;
       const palier      = typeof data.palier      === 'number' ? data.palier      : 0;
@@ -79,6 +84,7 @@ export async function updatePlayerScore(userId: string, data: Partial<{
     }
     entry.updatedAt = serverTimestamp();
     await setDoc(doc(db, 'saves', userId), entry, { merge: true });
+    logFirestoreOp('write', 'leaderboard_score');
   } catch (e) {
     logger.error('Leaderboard update error:', e);
   }

@@ -148,9 +148,9 @@ export function getEquipBonusMult(def: ReturnType<typeof getEquipmentDef>, templ
 // pourraient être perdus en cas de fermeture/crash avant cette échéance.
 // Import différé : useCloudSave importe déjà gameStore (qui importe ce
 // fichier), un import statique créerait un cycle.
-export function requestUrgentSave() {
+export function requestUrgentSave(reason = 'urgent') {
   if (typeof window === 'undefined') return;
-  try { require('@/hooks/useCloudSave').requestUrgentSave(); } catch { /* ignore */ }
+  try { require('@/hooks/useCloudSave').requestUrgentSave(reason); } catch { /* ignore */ }
 }
 
 // Incrémente les quêtes "vaincre X boss" (palier / semaine / événement) à chaque
@@ -233,7 +233,7 @@ export function resolveEnemyDeath(state: GameState & QuestState): Partial<GameSt
     // ci-dessous (même document Firestore, deux écritures merge:true non
     // synchronisées). queueMicrotask() reporte l'appel à juste après que set()
     // ait commité — la sauvegarde lit alors le palier réellement à jour.
-    if (isNewProgress) queueMicrotask(() => requestUrgentSave());
+    if (isNewProgress) queueMicrotask(() => requestUrgentSave('palier'));
     if (isNewProgress && auth?.currentUser?.uid) {
       const uid = auth.currentUser.uid;
       updatePlayerScore(uid, {

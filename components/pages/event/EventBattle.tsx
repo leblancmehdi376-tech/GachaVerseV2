@@ -93,7 +93,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
       setTimeout(() => setDrops(results), 800);
       // Événement majeur : sauvegarde immédiate pour ne jamais perdre la
       // récompense d'un boss d'event (pas d'attente du prochain cycle périodique).
-      requestUrgentSave();
+      requestUrgentSave('event_boss');
     }
   }, [hp, dead, addItem, boss]);
 

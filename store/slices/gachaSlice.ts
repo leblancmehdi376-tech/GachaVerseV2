@@ -27,7 +27,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     get().bumpQuestProgress('w_gacha_10', 1);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + 1 }));
     broadcastAndSaveLocal();
-    requestUrgentSave();
+    requestUrgentSave('gacha_single');
     return { templateId: id, edition };
   },
   pullMulti: () => {
@@ -38,7 +38,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     get().bumpQuestProgress('w_gacha_10', ids.length);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
     broadcastAndSaveLocal();
-    requestUrgentSave();
+    requestUrgentSave('gacha_multi10');
     return results;
   },
   pullMulti100: () => {
@@ -49,7 +49,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     get().bumpQuestProgress('w_gacha_10', ids.length);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
     broadcastAndSaveLocal();
-    requestUrgentSave();
+    requestUrgentSave('gacha_multi100');
     return results;
   },
   addToCollection: (templateId) => {

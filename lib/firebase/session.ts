@@ -1,6 +1,7 @@
 import { doc, getDoc, onSnapshot, runTransaction, updateDoc } from 'firebase/firestore';
 import { db } from './config';
 import { logger } from '../logger';
+import { logFirestoreOp } from './telemetry';
 
 const LOCAL_SESSION_KEY = 'nekoz_session_claim';
 const SESSION_TTL_MS = 420_000;        // 7min de marge (large, car le battement est désormais plus espacé + suspendu en arrière-plan)
@@ -83,6 +84,8 @@ export async function claimSession(uid: string): Promise<boolean> {
 
       tx.set(sessionRef, nextClaim, { merge: true });
     });
+    logFirestoreOp('read', 'session_claim');
+    logFirestoreOp('write', 'session_claim');
 
     localStorage.setItem(
       LOCAL_SESSION_KEY,
@@ -112,6 +115,7 @@ export async function heartbeatSession(uid: string): Promise<boolean> {
 
   try {
     const current = await getDoc(ref);
+    logFirestoreOp('read', 'session_heartbeat');
     const data = current.data() as Partial<SessionClaim> | undefined;
     if (!data?.active) return false;
     if (data.browserId && data.browserId !== browserId) return false;
@@ -125,6 +129,7 @@ export async function heartbeatSession(uid: string): Promise<boolean> {
       browserId,
       active: true,
     });
+    logFirestoreOp('write', 'session_heartbeat');
     return true;
   } catch (error) {
     logger.error('[Session] heartbeatSession failed:', error);
@@ -142,6 +147,7 @@ export function watchSession(uid: string, onConflict: () => void): () => void {
   const ref = doc(db, 'sessions', uid);
 
   const unsub = onSnapshot(ref, (snap) => {
+    logFirestoreOp('read', 'session_watch');
     const data = snap.data() as Partial<SessionClaim> | undefined;
     if (!data || !data.active) return;
 
@@ -205,12 +211,14 @@ export async function releaseSession(uid: string): Promise<void> {
 
   try {
     const current = await getDoc(ref);
+    logFirestoreOp('read', 'session_release');
     const data = current.data() as Partial<SessionClaim> | undefined;
     // Ne libère que si ce navigateur est bien le détenteur actuel du verrou —
     // sinon on risquerait de désactiver la session d'un autre appareil qui
     // aurait déjà repris la main entre-temps (ex: après un kick).
     if (!data || data.browserId !== browserId || data.sessionToken !== sessionToken) return;
     await updateDoc(ref, { active: false });
+    logFirestoreOp('write', 'session_release');
   } catch (error) {
     logger.error('[Session] releaseSession failed:', error);
   }
