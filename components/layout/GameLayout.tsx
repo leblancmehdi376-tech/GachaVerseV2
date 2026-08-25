@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useInstanceLock } from '@/hooks/useInstanceLock';
 import { DuplicateTabScreen } from '@/components/system/DuplicateTabScreen';
 import { SplashScreen } from '@/components/system/SplashScreen';
@@ -23,23 +23,27 @@ import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
 import { PrestigePage } from '@/components/pages/PrestigePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
-import { useGameStore, getPalierPassGems } from '@/store/gameStore';
+import { useGameStore } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useCloudSave, formatSyncStatus } from '@/hooks/useCloudSave';
 import { useDpsTick } from '@/hooks/useDpsTick';
+import { useGameHydration } from '@/hooks/useGameHydration';
+import { useOfflineGainCheck } from '@/hooks/useOfflineGainCheck';
+import { useBossVictoryWatcher } from '@/hooks/useBossVictoryWatcher';
+import { useGameToasts } from '@/hooks/useGameToasts';
+import { useAchievementTrackers } from '@/hooks/useAchievementTrackers';
 import { formatNumber } from '@/lib/game/format';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { WelcomeBackModal } from '@/components/game/WelcomeBackModal';
 
-import type { OfflineGain } from '@/store/gameStore';
 import { NAV_ICONS } from '@/components/ui/NavIcons';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { BossVictoryScreen } from '@/components/game/BossVictoryScreen';
-import { toast } from '@/hooks/useToast';
-import { trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection, trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige, trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax } from '@/store/achievementStore';
-import { makeInstanceKey } from '@/lib/game/editions';
+import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
+import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
+import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
 
 type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment';
 
@@ -101,10 +105,15 @@ export function GameLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
-  const [victory, setVictory] = useState<{ palier: number; gems: number; coins: number } | null>(null);
-  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, ensureDailyQuests, ensureWeeklyQuests, username, lastEquipmentDrop, setLastEquipmentDrop, lastBossVictory, clearBossVictory, focusedExpeditionId } = useGameStore();
+  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId } = useGameStore();
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
   const { forceSave, loaded: cloudLoaded, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
+
+  const hasHydrated = useGameHydration(cloudLoaded);
+  const { offlineGain, claimOfflineGain } = useOfflineGainCheck(hasHydrated, cloudLoaded);
+  const { victory, dismissVictory } = useBossVictoryWatcher();
+  const claimable = useGameToasts();
+  useAchievementTrackers();
 
   // Navigation Forge → Expéditions : dès qu'un ingrédient à récolter est
   // "focusé", on bascule automatiquement sur la page Expéditions (qui se
@@ -118,145 +127,6 @@ export function GameLayout() {
   const isCombat = COMBAT_PAGES.includes(page);
   const progressPct = Math.round((wave / 10) * 100);
   const currentNav = NAV.find(n => n.id === page)!;
-
-  // Quêtes réclamables
-  const claimable = (quests ?? []).filter((q: { current: number; target: number; done: boolean }) => q.current >= q.target && !q.done).length;
-
-  // ── Réhydratation locale (Zustand persist / localStorage) ─────────────────
-  const [hasHydrated, setHasHydrated] = useState(() => useGameStore.persist?.hasHydrated?.() ?? false);
-  useEffect(() => {
-    if (hasHydrated) return;
-    if (!useGameStore.persist) { setHasHydrated(true); return; } // pas de persist (SSR/fallback) : ne bloque rien
-    const unsub = useGameStore.persist.onFinishHydration(() => setHasHydrated(true));
-    // Sécurité : si la réhydratation était déjà finie entre le calcul initial
-    // du useState et le montage de cet effet, on ne resterait pas bloqué.
-    if (useGameStore.persist.hasHydrated()) setHasHydrated(true);
-    return unsub;
-  }, [hasHydrated]);
-
-  // Vérifie/réinitialise les quêtes quotidiennes et hebdomadaires une fois au montage
-  // (couvre toutes les pages). IMPORTANT : on attend hasHydrated ET cloudLoaded avant
-  // de comparer questsDayKey à la date du jour — sinon, sur un appareil qui a déjà une
-  // sauvegarde locale périmée (questsDayKey d'hier), ce check se déclenche AVANT que la
-  // vraie progression cloud n'ait été appliquée, réinitialise les quêtes localement, et
-  // ce reset est ensuite re-synchronisé vers le cloud en écrasant la progression réelle.
-  useEffect(() => {
-    if (!hasHydrated || !cloudLoaded) return;
-    ensureDailyQuests();
-    ensureWeeklyQuests();
-  }, [hasHydrated, cloudLoaded, ensureDailyQuests, ensureWeeklyQuests]);
-
-  // ── Gains hors-ligne : calcul unique une fois le splash terminé ───────────
-  // IMPORTANT : on attend la fin de la réhydratation Zustand (localStorage) ET
-  // du chargement cloud (cloudLoaded) — sinon `savedAt` peut encore valoir une
-  // valeur périmée ou par défaut au lieu du vrai dernier timestamp de sauvegarde
-  // (le même, quel que soit l'appareil, que celui lu/écrit en base), et le calcul
-  // se tromperait sur la durée réelle d'absence.
-  // Rien n'est crédité ici : checkOfflineGain ne fait QUE lire `savedAt` et
-  // calculer — le gain n'est ajouté à la banque que si le joueur clique sur
-  // RÉCUPÉRER (voir handleClaimOffline plus bas), pour ne jamais créditer une
-  // popup qu'il n'a pas encore validée.
-  const [offlineGain, setOfflineGain] = useState<OfflineGain | null>(null);
-  const offlineCheckedRef = useRef(false);
-  useEffect(() => {
-    if (!hasHydrated || !cloudLoaded || offlineCheckedRef.current) return;
-    offlineCheckedRef.current = true;
-    const g = useGameStore.getState().checkOfflineGain();
-    if (g) setOfflineGain(g);
-  }, [hasHydrated, cloudLoaded]);
-
-  const handleClaimOffline = () => {
-    if (offlineGain) useGameStore.getState().claimOfflineEarnings(offlineGain);
-    setOfflineGain(null);
-  };
-
-  // Écran de victoire : piloté par un VRAI événement de kill de boss émis par le
-  // store (et non par une surveillance du palier, qui se déclenchait à tort au
-  // rechargement de la sauvegarde).
-  useEffect(() => {
-    if (!lastBossVictory) return;
-    setVictory({ palier: lastBossVictory.palier, gems: lastBossVictory.gems, coins: lastBossVictory.coins });
-    clearBossVictory();
-  }, [lastBossVictory, clearBossVictory]);
-
-  // Watch equipment drops → toast
-  useEffect(() => {
-    if (!lastEquipmentDrop) return;
-    toast.loot('Équipement trouvé !', lastEquipmentDrop);
-    setLastEquipmentDrop(null);
-  }, [lastEquipmentDrop, setLastEquipmentDrop]);
-
-  // Watch quest completions → toast
-  const prevClaimableRef = useRef(claimable);
-  useEffect(() => {
-    if (claimable > prevClaimableRef.current) {
-      toast.quest('Quête accomplie !', 'Récupère ta récompense →');
-    }
-    prevClaimableRef.current = claimable;
-  }, [claimable]);
-
-  // ── Achievement trackers ─────────────────────────────────────────────────
-  const totalDps = useGameStore(s => s.getTotalDps());
-  const { collection: col, equippedTeam, totalKills, totalQuestsCompleted, totalUpgradesPerformed, totalGachaPulls, totalBossKills, totalBossCrownsEarned, totalVoidOrbsEarned } = useGameStore();
-  const { CHARACTER_POOL: charPool } = require('@/lib/game/characters');
-  const { computeActiveSynergies } = require('@/lib/game/synergies');
-  const { usePrestigeStore } = require('@/store/prestigeStore');
-  const { useAchievementStore: useAchStoreForTitles } = require('@/store/achievementStore');
-  const prestigeLevel = usePrestigeStore((s: { level: number }) => s.level);
-  const unlockedTitlesCount = useAchStoreForTitles((s: { unlockedTitles: string[] }) => s.unlockedTitles.length);
-  useEffect(() => { trackBossKills(totalBossKills); }, [totalBossKills]);
-  useEffect(() => { trackBossCrowns(totalBossCrownsEarned); }, [totalBossCrownsEarned]);
-  useEffect(() => { trackPalier(maxPalierReached); }, [maxPalierReached]);
-  useEffect(() => { trackCoins(pixelCoins); }, [pixelCoins]);
-  useEffect(() => { trackGems(nekoGems); }, [nekoGems]);
-  useEffect(() => { trackPrestige(prestigeLevel); }, [prestigeLevel]);
-  useEffect(() => { trackVoidOrbs(totalVoidOrbsEarned); }, [totalVoidOrbsEarned]);
-  useEffect(() => { trackUnlockedTitles(unlockedTitlesCount); }, [unlockedTitlesCount]);
-  useEffect(() => { trackGachaPulls(totalGachaPulls); }, [totalGachaPulls]);
-  useEffect(() => {
-    const active = computeActiveSynergies(equippedTeam);
-    const hasMax = active.some((a: { def: { thresholds: unknown[] }; threshold: unknown }) =>
-      a.threshold === a.def.thresholds[a.def.thresholds.length - 1]
-    );
-    trackSynergyMax(hasMax);
-  }, [equippedTeam]);
-  useEffect(() => { trackDps(totalDps); }, [totalDps]);
-  useEffect(() => { trackKills(totalKills); }, [totalKills]);
-  useEffect(() => { trackQuestsCompleted(totalQuestsCompleted); }, [totalQuestsCompleted]);
-  useEffect(() => { trackUpgrades(totalUpgradesPerformed); }, [totalUpgradesPerformed]);
-  useEffect(() => {
-    // Possédé si N'IMPORTE QUELLE édition l'est (Base/Or/Diamant) — sinon un
-    // perso obtenu uniquement en shiny ne compterait pas pour ces succès.
-    const owned = charPool.filter((c: {id: string}) =>
-      (['base', 'gold', 'diamond'] as const).some(ed => !!col[makeInstanceKey(c.id, ed)])
-    );
-    const hasL  = owned.some((c: {rarity: string}) => ['L','M','S','CO','P','T'].includes(c.rarity));
-    const hasT  = owned.some((c: {rarity: string}) => c.rarity === 'T');
-    const transcendantCount = owned.filter((c: {rarity: string}) => c.rarity === 'T').length;
-    trackCollection(owned.length, hasL, hasT, charPool.length, transcendantCount);
-    trackEquippedTeam(equippedTeam.filter(Boolean).length);
-
-    // Éditions shiny : scan direct des instances de collection (les clés
-    // composites "id::gold"/"id::diamond" encodent déjà l'édition).
-    const instances = Object.values(col) as { templateId: string; edition?: string; rank: number }[];
-    const goldOrDiamond = instances.filter(o => o.edition === 'gold' || o.edition === 'diamond');
-    const hasGold    = instances.some(o => o.edition === 'gold');
-    const hasDiamond = instances.some(o => o.edition === 'diamond');
-    const diamondTemplates = new Set(instances.filter(o => o.edition === 'diamond').map(o => o.templateId));
-    // Trio parfait : un templateId présent avec ses 3 éditions à la fois.
-    const byTemplate: Record<string, Set<string>> = {};
-    for (const o of instances) (byTemplate[o.templateId] ??= new Set()).add(o.edition ?? 'base');
-    const trioTemplates = Object.values(byTemplate).filter(s => s.has('base') && s.has('gold') && s.has('diamond'));
-    const hasTrio = trioTemplates.length > 0;
-    trackShinyEditions(goldOrDiamond.length, hasGold, hasDiamond, diamondTemplates.size, hasTrio, trioTemplates.length);
-
-    // Rangs 7★ : combien de personnages DIFFÉRENTS au rang max (dédupliqué par
-    // templateId, une même carte en plusieurs éditions ne doit compter qu'une
-    // fois), et l'équipe entière l'est-elle ?
-    const count7Star = new Set(instances.filter(o => o.rank >= 7).map(o => o.templateId)).size;
-    const fullTeamRank7 = equippedTeam.length === 4 && equippedTeam.every(id => id && col[id]?.rank >= 7);
-    trackRank7(count7Star, fullTeamRank7);
-  }, [col, equippedTeam, charPool]);
 
   // Bloquer les multi-instances
   if (instanceStatus === 'duplicate' || instanceStatus === 'takeover') {
@@ -309,7 +179,7 @@ export function GameLayout() {
           palier={victory.palier}
           gemsEarned={victory.gems}
           coinsEarned={victory.coins}
-          onClose={() => setVictory(null)}
+          onClose={dismissVictory}
         />
       )}
 
@@ -532,88 +402,8 @@ export function GameLayout() {
       </div>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-      {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={handleClaimOffline} />}
+      {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={claimOfflineGain} />}
       <UltAnimation />
     </div>
   );
 }
-
-/* ── Sous-composants sidebar droite combat ─────────────────────────── */
-function ProgressCard({ palier, wave, progressPct, cfg }: { palier: number; wave: number; progressPct: number; cfg: ReturnType<typeof getPalierConfig> }) {
-  return (
-    <div className="panel" style={{ padding:'14px', flexShrink:0 }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'10px' }}>PROGRESSION</div>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
-        <div>
-          <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-dim)', fontWeight:700 }}>PALIER {palier}</div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginTop:'2px', lineHeight:1.2 }}>{cfg.name}</div>
-        </div>
-        <div style={{ width:40, height:40, background:`${cfg.accentColor}18`, border:`1px solid ${cfg.accentColor}44`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20.6px' }}>📦</div>
-      </div>
-      <div className="prog-track" style={{ marginBottom:'6px' }}>
-        <div className="prog-fill" style={{ width:`${progressPct}%` }} />
-      </div>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', fontWeight:600 }}>Vague {wave}/10</span>
-        <span style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', color:'var(--purple-glow)', fontWeight:700 }}>{progressPct}%</span>
-      </div>
-      <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid var(--border)', borderRadius:'6px', padding:'6px 10px', display:'flex', alignItems:'center', gap:'8px' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>Récompense :</span>
-        <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13.4px', color:'var(--cyan-hi)' }}>💎 ×{getPalierPassGems(palier)}</span>
-      </div>
-    </div>
-  );
-}
-
-function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:string; label:string; current:number; target:number; reward:number; rewardType:string; done:boolean }[]; claimQuest: (id: string) => void }) {
-  return (
-    <div className="panel" style={{ padding:'14px', flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'10px', flexShrink:0 }}>QUÊTES QUOTIDIENNES</div>
-      <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:'8px' }}>
-        {(quests ?? []).map(q => {
-          const pct = Math.min((q.current/q.target)*100, 100);
-          const canClaim = q.current >= q.target && !q.done;
-          return (
-            <div key={q.id} style={{ background:'var(--bg-card)', border:`1px solid ${canClaim?'rgba(168,85,247,0.4)':q.done?'rgba(74,222,128,0.2)':'var(--border)'}`, borderRadius:'8px', padding:'10px' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'7px', gap:'8px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'6px', flex:1, minWidth:0 }}>
-                  <span style={{ fontSize:'14.4px', flexShrink:0 }}>{q.icon}</span>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'12.4px', color:'var(--text-sub)', lineHeight:1.3 }}>{q.label}</span>
-                </div>
-                {q.done ? <span style={{ fontSize:'16.5px', flexShrink:0 }}>✅</span>
-                  : canClaim ? (
-                    <button onClick={() => claimQuest(q.id)}
-                      style={{ background:'linear-gradient(135deg,#3b0764,#5b21b6)', border:'1px solid var(--purple)', borderRadius:'6px', padding:'8px 10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'white', flexShrink:0, boxShadow:'0 0 8px rgba(124,58,237,0.35)', whiteSpace:'nowrap' }}>
-                      RÉCUP
-                    </button>
-                  ) : (
-                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--gold)', background:'rgba(245,166,35,0.1)', border:'1px solid rgba(245,166,35,0.2)', padding:'2px 7px', borderRadius:'5px', flexShrink:0, whiteSpace:'nowrap' }}>
-                      {q.rewardType==='gems'?'💎':'🪙'} {q.reward}
-                    </span>
-                  )
-                }
-              </div>
-              <div style={{ height:'5px', background:'rgba(255,255,255,0.05)', borderRadius:'3px', overflow:'hidden', marginBottom:'4px' }}>
-                <div style={{ height:'100%', width:`${pct}%`, background:q.done?'linear-gradient(90deg,#166534,#4ade80)':'linear-gradient(90deg,#4c1d95,#a855f7)', borderRadius:'3px', transition:'width 0.3s', boxShadow:canClaim?'0 0 6px #a855f766':undefined }} />
-              </div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', textAlign:'right', fontWeight:600 }}>{q.current}/{q.target}</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function StatsCard({ maxPalierReached }: { maxPalierReached: number }) {
-  return (
-    <div className="panel" style={{ padding:'12px', flexShrink:0 }}>
-      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>STATISTIQUES</div>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 0', borderTop:'1px solid var(--border)' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>Palier max atteint</span>
-        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'16.5px', color:'var(--purple-glow)' }}>{maxPalierReached}</span>
-      </div>
-    </div>
-  );
-}
-
