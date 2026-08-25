@@ -100,7 +100,7 @@ export async function ensureUserDoc(
 }
 
 /** Construit le résumé de sauvegarde (même forme que celui utilisé par
- *  l'éditeur admin — voir adminTools.getPlayerSaveAndCollection) à partir des
+ *  l'éditeur admin — voir adminTools.getPlayerDetail) à partir des
  *  données brutes d'un doc `saves/{uid}` déjà en mémoire. */
 function summarizePlayerSave(d: Record<string, unknown>): PlayerSaveSummary {
   return {
