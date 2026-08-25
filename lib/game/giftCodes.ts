@@ -48,6 +48,12 @@ export const GIFT_CODES: GiftCodeDef[] = [
     characters:   ['arthur_leywin', 'arthur_leywin'],
     gems:1200,
   },*/
+  //code pour évo jinwoo et vegeta
+  {
+    code:         'LULUUUUUUX',
+    items:        ['elixir_vie', 'elixir_vie', 'manteau_ombre', 'manteau_ombre', 'beru'],
+    drops:        { pierre_evolution: 40 },
+  },
   /*{
     code:         'CODE-SORRY-INES',
     pixelCoins:   1_000_000,
