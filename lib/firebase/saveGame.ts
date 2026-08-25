@@ -2,6 +2,7 @@ import { doc, setDoc, getDoc, getDocFromServer, serverTimestamp, Timestamp } fro
 import { db } from './config';
 import { GameState } from '@/types/game';
 import { correctedNow } from './clockOffset';
+import { logger } from '../logger';
 
 export async function saveGameToFirestore(userId: string, state: Partial<GameState>) {
   if (!db) return;
@@ -9,7 +10,7 @@ export async function saveGameToFirestore(userId: string, state: Partial<GameSta
     const ref = doc(db, 'saves', userId);
     await setDoc(ref, { ...state, lastSaved: correctedNow() }, { merge: true });
   } catch (e) {
-    console.error('Save error:', e);
+    logger.error('Save error:', e);
   }
 }
 
@@ -35,7 +36,7 @@ export async function loadGameFromFirestore(userId: string): Promise<{ data: Par
     ]);
     return { data: snap.exists() ? (snap.data() as Partial<GameState>) : null, reachable: true };
   } catch (e) {
-    console.warn('[CloudSave] Lecture cloud indisponible (quota, timeout ou réseau), repli sur le local:', e);
+    logger.warn('[CloudSave] Lecture cloud indisponible (quota, timeout ou réseau), repli sur le local:', e);
     return { data: null, reachable: false };
   }
 }
@@ -81,7 +82,7 @@ export async function probeClockOffset(userId: string): Promise<number | null> {
     const roundTrip = t1 - t0;
     return probeMs + roundTrip / 2 - t1;
   } catch (e) {
-    console.warn('[ClockOffset] Sonde indisponible, offset de session conservé:', e);
+    logger.warn('[ClockOffset] Sonde indisponible, offset de session conservé:', e);
     return null;
   }
 }

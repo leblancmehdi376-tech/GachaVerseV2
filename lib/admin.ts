@@ -1,5 +1,6 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase/config';
+import { logger } from './logger';
 
 // ── Statut administrateur ────────────────────────────────────────────────
 // Source de vérité : le champ `isAdmin` du document Firestore `users/{uid}`.
@@ -14,7 +15,7 @@ export async function checkIsAdmin(uid: string | null | undefined): Promise<bool
     const snap = await getDoc(doc(db, 'users', uid));
     return snap.exists() && snap.data().isAdmin === true;
   } catch (e) {
-    console.error('[Admin] checkIsAdmin:', e);
+    logger.error('[Admin] checkIsAdmin:', e);
     return false;
   }
 }

@@ -1,5 +1,6 @@
 import { doc, getDoc, onSnapshot, runTransaction, updateDoc } from 'firebase/firestore';
 import { db } from './config';
+import { logger } from '../logger';
 
 const LOCAL_SESSION_KEY = 'nekoz_session_claim';
 const SESSION_TTL_MS = 420_000;        // 7min de marge (large, car le battement est désormais plus espacé + suspendu en arrière-plan)
@@ -50,7 +51,7 @@ function getSessionToken(): string {
 
 export async function claimSession(uid: string): Promise<boolean> {
   if (!db) {
-    console.warn('[Session] Firestore non disponible — contournement en développement activé.');
+    logger.warn('[Session] Firestore non disponible — contournement en développement activé.');
     return true;
   }
   if (!uid) return false;
@@ -67,7 +68,7 @@ export async function claimSession(uid: string): Promise<boolean> {
       const isFresh = !!data?.active && typeof data.expiresAt === 'number' && data.expiresAt > now;
 
       if (isFresh && data?.browserId && data.browserId !== browserId) {
-        console.warn('[Session] takeover: another active session exists — replacing it now.');
+        logger.warn('[Session] takeover: another active session exists — replacing it now.');
       }
 
       const nextClaim: SessionClaim = {
@@ -90,17 +91,17 @@ export async function claimSession(uid: string): Promise<boolean> {
     return true;
   } catch (error) {
     if (String(error).includes('SESSION_CONFLICT')) {
-      console.warn('[Session] account already active on another browser/device');
+      logger.warn('[Session] account already active on another browser/device');
       return false;
     }
-    console.error('[Session] claimSession failed:', error);
+    logger.error('[Session] claimSession failed:', error);
     return false;
   }
 }
 
 export async function heartbeatSession(uid: string): Promise<boolean> {
   if (!db) {
-    console.warn('[Session] Firestore non disponible — heartbeat contourné en développement.');
+    logger.warn('[Session] Firestore non disponible — heartbeat contourné en développement.');
     return true;
   }
   if (!uid || typeof window === 'undefined') return false;
@@ -126,7 +127,7 @@ export async function heartbeatSession(uid: string): Promise<boolean> {
     });
     return true;
   } catch (error) {
-    console.error('[Session] heartbeatSession failed:', error);
+    logger.error('[Session] heartbeatSession failed:', error);
     return false;
   }
 }
@@ -211,6 +212,6 @@ export async function releaseSession(uid: string): Promise<void> {
     if (!data || data.browserId !== browserId || data.sessionToken !== sessionToken) return;
     await updateDoc(ref, { active: false });
   } catch (error) {
-    console.error('[Session] releaseSession failed:', error);
+    logger.error('[Session] releaseSession failed:', error);
   }
 }

@@ -1,5 +1,6 @@
 import { doc, setDoc, getDoc, getDocs, collection, updateDoc } from 'firebase/firestore';
 import { db } from './config';
+import { logger } from '../logger';
 
 export interface AccessRequest {
   uid:             string;
@@ -81,7 +82,7 @@ export async function ensureUserDoc(
       createdAt: Date.now(),
     });
   } catch (e) {
-    console.error('[Access] ensureUserDoc:', e);
+    logger.error('[Access] ensureUserDoc:', e);
   }
 }
 
@@ -121,7 +122,7 @@ export async function getAllUsers(): Promise<AccessRequest[]> {
     }
 
     return Array.from(byUid.values()).sort((a, b) => b.createdAt - a.createdAt);
-  } catch (e) { console.error('[Access] getAllUsers:', e); return []; }
+  } catch (e) { logger.error('[Access] getAllUsers:', e); return []; }
 }
 
 /** Valide un compte en attente. */
@@ -130,5 +131,5 @@ export async function approveUser(uid: string): Promise<boolean> {
   try {
     await updateDoc(doc(db, 'users', uid), { approved: true, approvedAt: Date.now() });
     return true;
-  } catch (e) { console.error('[Access] approveUser:', e); return false; }
+  } catch (e) { logger.error('[Access] approveUser:', e); return false; }
 }

@@ -1,5 +1,6 @@
 import { collection, doc, getDocs, limit, query, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from './config';
+import { logger } from '../logger';
 
 export interface LeaderboardEntry {
   uid: string;
@@ -59,7 +60,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       .sort((a, b) => b.maxPalierReached - a.maxPalierReached || b.pixelCoins - a.pixelCoins)
       .slice(0, maxEntries);
   } catch (e) {
-    console.error('Leaderboard error:', e);
+    logger.error('Leaderboard error:', e);
     return [];
   }
 }
@@ -79,6 +80,6 @@ export async function updatePlayerScore(userId: string, data: Partial<{
     entry.updatedAt = serverTimestamp();
     await setDoc(doc(db, 'saves', userId), entry, { merge: true });
   } catch (e) {
-    console.error('Leaderboard update error:', e);
+    logger.error('Leaderboard update error:', e);
   }
 }

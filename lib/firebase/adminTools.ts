@@ -2,6 +2,7 @@ import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit, delet
 import { db } from './config';
 import { getCharacterById } from '@/lib/game/characters';
 import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
+import { logger } from '../logger';
 
 export interface PlayerLookup {
   uid: string;
@@ -63,7 +64,7 @@ export async function findPlayer(search: string): Promise<PlayerLookup | null> {
     }
     return null;
   } catch (e) {
-    console.error('[AdminTools] findPlayer:', e);
+    logger.error('[AdminTools] findPlayer:', e);
     return null;
   }
 }
@@ -104,7 +105,7 @@ export async function getPlayerSaveAndCollection(uid: string): Promise<{ save: P
     };
     return { save, chars: summarizeCollection(d.collection ?? {}) };
   } catch (e) {
-    console.error('[AdminTools] getPlayerSaveAndCollection:', e);
+    logger.error('[AdminTools] getPlayerSaveAndCollection:', e);
     return { save: null, chars: [] };
   }
 }
@@ -135,7 +136,7 @@ export async function correctPlayerBalance(
     });
     return true;
   } catch (e) {
-    console.error('[AdminTools] correctPlayerBalance:', e);
+    logger.error('[AdminTools] correctPlayerBalance:', e);
     return false;
   }
 }
@@ -159,7 +160,7 @@ export async function correctPlayerProgress(
     });
     return true;
   } catch (e) {
-    console.error('[AdminTools] correctPlayerProgress:', e);
+    logger.error('[AdminTools] correctPlayerProgress:', e);
     return false;
   }
 }
@@ -186,7 +187,7 @@ export async function removePlayerCharacter(uid: string, instanceKey: string): P
     );
     return true;
   } catch (e) {
-    console.error('[AdminTools] removePlayerCharacter:', e);
+    logger.error('[AdminTools] removePlayerCharacter:', e);
     return false;
   }
 }
@@ -230,7 +231,7 @@ export async function addPlayerCharacter(
     );
     return { ok: true, char: { instanceKey, templateId, name: tpl.name, edition, level: clampedLevel, rank: clampedRank } };
   } catch (e) {
-    console.error('[AdminTools] addPlayerCharacter:', e);
+    logger.error('[AdminTools] addPlayerCharacter:', e);
     return { ok: false, error: 'Erreur lors de l\'écriture' };
   }
 }
@@ -246,7 +247,7 @@ export async function setPlayerCharacterLevel(uid: string, instanceKey: string, 
     );
     return true;
   } catch (e) {
-    console.error('[AdminTools] setPlayerCharacterLevel:', e);
+    logger.error('[AdminTools] setPlayerCharacterLevel:', e);
     return false;
   }
 }

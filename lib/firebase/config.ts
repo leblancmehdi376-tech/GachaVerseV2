@@ -1,6 +1,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { logger } from '../logger';
 
 const firebaseConfig = {
   apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,7 +22,7 @@ let db: Firestore | null = null;
 
 if (typeof window !== 'undefined') {
   if (!hasFirebaseConfig) {
-    console.warn('[Firebase] Variables d’environnement absentes : Firebase désactivé en local.');
+    logger.warn('[Firebase] Variables d’environnement absentes : Firebase désactivé en local.');
   } else {
     app  = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);

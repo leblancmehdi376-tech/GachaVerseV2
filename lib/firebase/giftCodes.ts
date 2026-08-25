@@ -1,6 +1,7 @@
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './config';
 import { findGiftCode, normalizeGiftCode } from '@/lib/game/giftCodes';
+import { logger } from '../logger';
 
 export type RedeemResult =
   | { success: true;  gems: number; pixelCoins: number; characters: string[]; maxCharacters: string[]; items: string[]; equipment: string[]; drops: Record<string, number> }
@@ -108,7 +109,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
       };
 
     } catch (e) {
-      console.warn('[GiftCode] Firebase indisponible, fallback localStorage:', e);
+      logger.warn('[GiftCode] Firebase indisponible, fallback localStorage:', e);
       // Fallback si Firebase est down (ex: quota dépassé)
       markCodeUsedLocally(codeKey);
       return {

@@ -12,6 +12,7 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { claimSession, watchSession, clearLocalSession, releaseSession } from '@/lib/firebase/session';
 import { createAccessRequest, ensureUserDoc } from '@/lib/firebase/accessRequests';
+import { logger } from '@/lib/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -45,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // rapidement de PC à téléphone). En attendant la fin du claim ici,
         // watchSession ne démarre qu'une fois le doc à jour.
         const ok = await claimSession(u.uid);
-        if (!ok) console.warn('[Auth] claimSession a échoué (verrou de session non posé), connexion autorisée quand même.');
+        if (!ok) logger.warn('[Auth] claimSession a échoué (verrou de session non posé), connexion autorisée quand même.');
         // Rattrape aussi les sessions déjà ouvertes (Firebase reconnecte
         // automatiquement l'utilisateur sans repasser par signIn/signInGoogle) :
         // sans ça, les comptes qui n'ont pas de fiche "users" restent bloqués

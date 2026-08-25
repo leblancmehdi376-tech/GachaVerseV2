@@ -8,6 +8,7 @@ import { useExpeditionStore } from '@/store/expeditionStore';
 import { usePrestigeStore } from '@/store/prestigeStore';
 import { saveGameToFirestore, loadGameFromFirestore, probeClockOffset } from '@/lib/firebase/saveGame';
 import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
+import { logger } from '@/lib/logger';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
 const LOCAL_INTERVAL_MS    =  30_000; // localStorage toutes les 30s (gratuit, illimité)
@@ -128,7 +129,7 @@ function saveToLocal() {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
     useGameStore.setState({ savedAt: data.savedAt });
   } catch (e) {
-    console.warn('[CloudSave] localStorage write failed:', e);
+    logger.warn('[CloudSave] localStorage write failed:', e);
   }
 }
 
@@ -274,13 +275,13 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
     // null} et rien d'autre, un second login juste après récupère tout).
     const { data: remote, reachable } = await loadGameFromFirestore(userId);
     const offsetMs = await probeClockOffset(userId);
-    console.log('[CloudSave] ⇠ Reçu de Firestore (reconciliation):', { reachable, remote });
+    logger.log('[CloudSave] ⇠ Reçu de Firestore (reconciliation):', { reachable, remote });
     if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
 
     if (!reachable) {
       reconciliationAttempts++;
       if (reconciliationAttempts > MAX_BLOCKING_RECONCILIATION_ATTEMPTS) {
-        console.warn('[CloudSave] Cloud injoignable après plusieurs tentatives — écritures réautorisées par défaut, reconciliation continue en arrière-plan.');
+        logger.warn('[CloudSave] Cloud injoignable après plusieurs tentatives — écritures réautorisées par défaut, reconciliation continue en arrière-plan.');
         setCloudSyncConfirmed(true); // fail-open : ne bloque pas indéfiniment le jeu
         // pendingLocalSnapshotTs n'est PAS effacé : une reconciliation réussie
         // plus tard doit encore pouvoir détecter et appliquer un cloud plus récent.
@@ -297,21 +298,21 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
       // chargée pendant la panne réseau : on l'applique maintenant — quitte à
       // remplacer la progression faite localement pendant la fenêtre d'incertitude
       // — plutôt que de risquer de l'écraser silencieusement au prochain autosave.
-      console.warn('[CloudSave] Sauvegarde cloud plus récente détectée après reconnexion — réapplication.');
+      logger.warn('[CloudSave] Sauvegarde cloud plus récente détectée après reconnexion — réapplication.');
       applyRemoteState(remote as Record<string, unknown>);
     }
     setCloudSyncConfirmed(true);
     pendingLocalSnapshotTs = null;
     clearReconciliationRetry();
     reconciliationAttempts = 0;
-    console.log('[CloudSave] Synchro cloud reconfirmée, écritures réautorisées.');
+    logger.log('[CloudSave] Synchro cloud reconfirmée, écritures réautorisées.');
   }, retryDelayMs);
 }
 
 // ── Chargement au login — compare Firebase et l'état déjà en mémoire ───────
 async function loadAndApply(userId: string, generation: number) {
   try {
-    console.log('[CloudSave] ⇢ Chargement au login pour', userId);
+    logger.log('[CloudSave] ⇢ Chargement au login pour', userId);
     // Séquentiel, PAS Promise.all : voir le commentaire dans
     // scheduleReconciliationRetry — probeClockOffset() écrit sur le MÊME
     // document que celui lu ici, et lancé en parallèle son écriture pollue le
@@ -319,7 +320,7 @@ async function loadAndApply(userId: string, generation: number) {
     // {clockProbeId, clockProbe} au lieu de la vraie sauvegarde.
     const { data: remote, reachable } = await loadGameFromFirestore(userId);
     const offsetMs = await probeClockOffset(userId);
-    console.log('[CloudSave] ⇠ Reçu de Firestore:', { reachable, remote });
+    logger.log('[CloudSave] ⇠ Reçu de Firestore:', { reachable, remote });
     if (generation !== sessionGeneration) return; // supplanté par un autre login/logout entre-temps
     // Doit être posé AVANT de comparer les timestamps ci-dessous : current.savedAt
     // a été écrit par CET appareil avec son propre décalage (stable d'une
@@ -346,7 +347,7 @@ async function loadAndApply(userId: string, generation: number) {
     ];
     const best = candidates.reduce((a, b) => (b.ts > a.ts ? b : a));
 
-    console.log('[CloudSave] Source appliquée:', best.label, best.ts >= 0 ? `— ${new Date(best.ts).toLocaleTimeString()}` : '(aucune sauvegarde)');
+    logger.log('[CloudSave] Source appliquée:', best.label, best.ts >= 0 ? `— ${new Date(best.ts).toLocaleTimeString()}` : '(aucune sauvegarde)');
 
     if (best.data) applyRemoteState(best.data as Record<string, unknown>);
 
@@ -374,7 +375,7 @@ async function loadAndApply(userId: string, generation: number) {
       scheduleReconciliationRetry(userId, generation);
     }
   } catch (e) {
-    console.error('[CloudSave] Erreur loadAndApply:', e);
+    logger.error('[CloudSave] Erreur loadAndApply:', e);
   }
 }
 
@@ -387,7 +388,7 @@ async function loadAndApply(userId: string, generation: number) {
 // et il perd sa progression en se reconnectant depuis un autre appareil.
 async function saveToFirebase(userId: string): Promise<boolean> {
   if (!cloudSyncConfirmed) {
-    console.warn('[CloudSave] Écriture cloud suspendue : synchro pas encore confirmée (le premier chargement cloud a échoué), reconciliation en cours.');
+    logger.warn('[CloudSave] Écriture cloud suspendue : synchro pas encore confirmée (le premier chargement cloud a échoué), reconciliation en cours.');
     return false;
   }
   try {
@@ -408,7 +409,7 @@ async function saveToFirebase(userId: string): Promise<boolean> {
       score: s.palier * 100 + s.wave,
     };
 
-    console.log('[CloudSave] ⇢ Envoyé à Firestore:', payload);
+    logger.log('[CloudSave] ⇢ Envoyé à Firestore:', payload);
 
     // Timeout 5s — si Firebase est bloqué (quota), on n'attend pas indéfiniment
     await Promise.race([
@@ -419,10 +420,10 @@ async function saveToFirebase(userId: string): Promise<boolean> {
     useGameStore.setState({ savedAt: data.savedAt });
     markSynced(Date.now());
 
-    console.log('[CloudSave] Firebase OK —', new Date().toLocaleTimeString());
+    logger.log('[CloudSave] Firebase OK —', new Date().toLocaleTimeString());
     return true;
   } catch (e) {
-    console.warn('[CloudSave] Firebase indisponible (quota ou timeout), données conservées en localStorage:', e);
+    logger.warn('[CloudSave] Firebase indisponible (quota ou timeout), données conservées en localStorage:', e);
     return false;
   }
 }
@@ -491,7 +492,7 @@ function waitForAllHydrated(): Promise<void> {
   return Promise.race([
     Promise.all(stores.map(waitForHydration)).then(() => {}),
     new Promise<void>((resolve) => setTimeout(() => {
-      console.warn('[CloudSave] Réhydratation locale incomplète après 3s — chargement cloud lancé quand même.');
+      logger.warn('[CloudSave] Réhydratation locale incomplète après 3s — chargement cloud lancé quand même.');
       resolve();
     }, 3000)), // filet de sécurité seulement ; la réhydratation locale est normalement quasi instantanée
   ]);

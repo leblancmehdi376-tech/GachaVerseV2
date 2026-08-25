@@ -3,6 +3,7 @@ import {
   runTransaction, limit,
 } from 'firebase/firestore';
 import { db } from './config';
+import { logger } from '../logger';
 
 export type ListingCurrency = 'gems' | 'coins' | 'crowns';
 export type ListingType     = 'item' | 'equipment' | 'character';
@@ -34,7 +35,7 @@ export async function createListing(
       ...data, status: 'active', createdAt: Date.now(),
     });
     return ref.id;
-  } catch (e) { console.error('[Marketplace] createListing:', e); return null; }
+  } catch (e) { logger.error('[Marketplace] createListing:', e); return null; }
 }
 
 // Tri côté client pour éviter les index composites Firestore
@@ -45,7 +46,7 @@ export async function getActiveListings(max = 100): Promise<MarketplaceListing[]
     return snap.docs
       .map(d => ({ id: d.id, ...d.data() } as MarketplaceListing))
       .sort((a, b) => b.createdAt - a.createdAt);
-  } catch (e) { console.error('[Marketplace] getActiveListings:', e); return []; }
+  } catch (e) { logger.error('[Marketplace] getActiveListings:', e); return []; }
 }
 
 export async function getMyListings(sellerId: string): Promise<MarketplaceListing[]> {
@@ -55,7 +56,7 @@ export async function getMyListings(sellerId: string): Promise<MarketplaceListin
     return snap.docs
       .map(d => ({ id: d.id, ...d.data() } as MarketplaceListing))
       .sort((a, b) => b.createdAt - a.createdAt);
-  } catch (e) { console.error('[Marketplace] getMyListings:', e); return []; }
+  } catch (e) { logger.error('[Marketplace] getMyListings:', e); return []; }
 }
 
 export async function buyListing(listingId: string, buyerId: string, buyerName: string): Promise<MarketplaceListing | null> {
@@ -73,7 +74,7 @@ export async function buyListing(listingId: string, buyerId: string, buyerName: 
       tx.update(listingRef, { status: 'sold', soldTo: buyerId, soldToName: buyerName, soldAt: Date.now() });
     });
     return listing;
-  } catch (e) { console.error('[Marketplace] buyListing:', e); return null; }
+  } catch (e) { logger.error('[Marketplace] buyListing:', e); return null; }
 }
 
 export async function cancelListing(listingId: string, sellerId: string): Promise<boolean> {
@@ -89,7 +90,7 @@ export async function cancelListing(listingId: string, sellerId: string): Promis
       tx.update(ref, { status: 'cancelled' });
     });
     return true;
-  } catch (e) { console.error('[Marketplace] cancelListing:', e); return false; }
+  } catch (e) { logger.error('[Marketplace] cancelListing:', e); return false; }
 }
 
 export async function claimSaleReward(listingId: string, sellerId: string): Promise<boolean> {
@@ -106,5 +107,5 @@ export async function claimSaleReward(listingId: string, sellerId: string): Prom
       tx.update(ref, { claimed: true, claimedAt: Date.now() });
     });
     return true;
-  } catch (e) { console.error('[Marketplace] claimSaleReward:', e); return false; }
+  } catch (e) { logger.error('[Marketplace] claimSaleReward:', e); return false; }
 }
