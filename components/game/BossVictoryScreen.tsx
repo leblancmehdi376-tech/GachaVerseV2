@@ -1,5 +1,5 @@
 'use client';
-import { getPalierConfig } from '@/types/game';
+import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
 
 interface Props {

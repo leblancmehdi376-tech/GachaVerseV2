@@ -2,11 +2,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
-  GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems, getPalierConfig,
-  calcCharDps, levelUpCost, heroLevelUpCost,
-  evoCost, canEvolve, canEvolveHero, Rarity, getNextRarity,
-  evoStoneCost, EVOLUTION_STONE_ITEM_ID,
+  GameState, OwnedCharacter, HeroState, EquipmentSlot, EquippedItems, defaultEquippedItems,
+  Rarity, getNextRarity, EVOLUTION_STONE_ITEM_ID,
 } from '@/types/game';
+import { getPalierConfig } from '@/lib/game/paliers';
+import {
+  calcCharDps, levelUpCost, heroLevelUpCost,
+  evoCost, canEvolve, canEvolveHero, evoStoneCost,
+} from '@/lib/game/formulas';
 import { generateEnemy } from '@/lib/game/enemies';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, RARITY_GATES } from '@/lib/game/gacha';
 import { getCharacterById, HERO_TEMPLATE, BANNER_POOL } from '@/lib/game/characters';

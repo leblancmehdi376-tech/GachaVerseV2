@@ -1,6 +1,7 @@
 import { getCharacterById } from './characters';
 import { getEquipmentDef } from './items';
-import { calcCharDps, type OwnedCharacter } from '@/types/game';
+import { calcCharDps } from '@/lib/game/formulas';
+import type { OwnedCharacter } from '@/types/game';
 import { calcDpsWithSynergies, computeActiveSynergies } from './synergies';
 
 /**

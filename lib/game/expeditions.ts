@@ -1,6 +1,8 @@
 // lib/game/expeditions.ts
 
-import { Rarity, RARITY_CONFIG, getPalierConfig, calcCharDps, OwnedCharacter } from '@/types/game';
+import { Rarity, RARITY_CONFIG, OwnedCharacter } from '@/types/game';
+import { getPalierConfig } from '@/lib/game/paliers';
+import { calcCharDps } from '@/lib/game/formulas';
 import { EQUIP_RARITY_MIN_PALIER } from '@/lib/game/items';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { getPalierBossHp } from '@/lib/game/enemies';

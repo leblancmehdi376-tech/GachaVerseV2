@@ -4,7 +4,9 @@ import { useGameStore, OFFLINE_MULT_TIERS, OFFLINE_CAP_TIERS_H } from '@/store/g
 import { useAchievementStore } from '@/store/achievementStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
-import { RARITY_CONFIG, calcCharDps, getPalierConfig, Rarity } from '@/types/game';
+import { RARITY_CONFIG, Rarity } from '@/types/game';
+import { calcCharDps } from '@/lib/game/formulas';
+import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';

@@ -28,7 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCloudSave, formatSyncStatus } from '@/hooks/useCloudSave';
 import { useDpsTick } from '@/hooks/useDpsTick';
 import { formatNumber } from '@/lib/game/format';
-import { getPalierConfig } from '@/types/game';
+import { getPalierConfig } from '@/lib/game/paliers';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { WelcomeBackModal } from '@/components/game/WelcomeBackModal';
 
