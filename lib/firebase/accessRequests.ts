@@ -1,6 +1,7 @@
 import { doc, setDoc, getDoc, getDocs, collection, updateDoc } from 'firebase/firestore';
 import { db } from './config';
 import { logger } from '../logger';
+import type { PlayerSaveSummary } from './adminTools';
 
 export interface AccessRequest {
   uid:             string;
@@ -9,6 +10,18 @@ export interface AccessRequest {
   discordUsername: string;
   approved:        boolean;
   createdAt:       number;
+}
+
+/**
+ * Fiche complète d'un joueur pour le panel admin : identité (comme
+ * AccessRequest) + résumé de sa sauvegarde cloud (`save`), fusionnés par
+ * `getAllUsers` SANS lecture Firestore supplémentaire — le doc `saves/{uid}`
+ * est de toute façon déjà entièrement téléchargé pour construire la liste
+ * (voir le commentaire dans getAllUsers). `save` est absent si le joueur n'a
+ * jamais eu de sauvegarde cloud (compte validé mais jamais encore joué).
+ */
+export interface PlayerRow extends AccessRequest {
+  save?: PlayerSaveSummary;
 }
 
 /** Crée la fiche utilisateur juste après la création du compte Firebase Auth.
@@ -86,6 +99,23 @@ export async function ensureUserDoc(
   }
 }
 
+/** Construit le résumé de sauvegarde (même forme que celui utilisé par
+ *  l'éditeur admin — voir adminTools.getPlayerSaveAndCollection) à partir des
+ *  données brutes d'un doc `saves/{uid}` déjà en mémoire. */
+function summarizePlayerSave(d: Record<string, unknown>): PlayerSaveSummary {
+  return {
+    pixelCoins:       (d.pixelCoins as number) ?? 0,
+    nekoGems:         (d.nekoGems as number) ?? 0,
+    totalGemsSpent:   (d.totalGemsSpent as number) ?? 0,
+    totalGachaPulls:  (d.totalGachaPulls as number) ?? 0,
+    bossCrowns:       (d.bossCrowns as number) ?? 0,
+    palier:           (d.palier as number) ?? 1,
+    wave:             (d.wave as number) ?? 1,
+    maxPalierReached: (d.maxPalierReached as number) ?? 1,
+    lastSaved:        (d.lastSaved as number) ?? null,
+  };
+}
+
 /**
  * Liste TOUS les comptes existants, quel que soit leur statut de validation
  * ET même s'ils n'ont jamais de fiche dans "users" (comptes créés avant ce
@@ -93,8 +123,18 @@ export async function ensureUserDoc(
  * On fusionne donc "users" (email + pseudo + discord) avec "saves" (source
  * de vérité pour l'existence d'un compte, via son uid = id du document).
  * Le uid sert directement d'"id de save" affichable dans le panel admin.
+ *
+ * Le doc "saves" de CHAQUE joueur est déjà entièrement téléchargé ici (les
+ * deux lectures de collection ci-dessous sont incompressibles pour obtenir
+ * une liste complète) — on en profite donc pour garder aussi le résumé de
+ * solde/progression (`save`) au lieu de ne garder que pseudo/lastSaved comme
+ * avant. Ça donne un aperçu complet de l'état de chaque joueur dans le panel
+ * admin SANS la moindre requête Firestore supplémentaire, et ça évite au
+ * panel de devoir relire ce même doc quand l'admin veut juste consulter le
+ * solde d'un joueur déjà dans la liste (voir PlayerEditor, qui ne relit plus
+ * que la collection de personnages à l'ouverture d'une ligne).
  */
-export async function getAllUsers(): Promise<AccessRequest[]> {
+export async function getAllUsers(): Promise<PlayerRow[]> {
   if (!db) return [];
   try {
     const [usersSnap, savesSnap] = await Promise.all([
@@ -102,22 +142,28 @@ export async function getAllUsers(): Promise<AccessRequest[]> {
       getDocs(collection(db, 'saves')),
     ]);
 
-    const byUid = new Map<string, AccessRequest>();
+    const saveDocsByUid = new Map<string, Record<string, unknown>>();
+    for (const d of savesSnap.docs) saveDocsByUid.set(d.id, d.data());
+
+    const byUid = new Map<string, PlayerRow>();
     for (const d of usersSnap.docs) {
-      byUid.set(d.id, d.data() as AccessRequest);
+      const u = d.data() as AccessRequest;
+      const saveDoc = saveDocsByUid.get(d.id);
+      byUid.set(d.id, { ...u, save: saveDoc ? summarizePlayerSave(saveDoc) : undefined });
     }
     // Complète avec les comptes qui n'ont une trace que dans "saves"
     // (jamais de fiche "users" créée) — email inconnu dans ce cas.
-    for (const d of savesSnap.docs) {
-      if (byUid.has(d.id)) continue;
-      const save = d.data() as { username?: string; lastSaved?: number };
-      byUid.set(d.id, {
-        uid: d.id,
+    for (const [uid, saveDoc] of saveDocsByUid) {
+      if (byUid.has(uid)) continue;
+      const username = saveDoc.username as string | undefined;
+      byUid.set(uid, {
+        uid,
         email: '(compte antérieur au système de fiches — email inconnu)',
-        username: save.username || '(pseudo inconnu)',
+        username: username || '(pseudo inconnu)',
         discordUsername: '',
         approved: true,
-        createdAt: save.lastSaved ?? 0,
+        createdAt: (saveDoc.lastSaved as number) ?? 0,
+        save: summarizePlayerSave(saveDoc),
       });
     }
 

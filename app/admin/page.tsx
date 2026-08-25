@@ -2,15 +2,17 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/layout/AuthModal';
-import { getAllUsers, approveUser, AccessRequest } from '@/lib/firebase/accessRequests';
-import { findPlayer, getPlayerSaveAndCollection, correctPlayerBalance, correctPlayerProgress, removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, PlayerLookup, PlayerSaveSummary, OwnedCharacterSummary } from '@/lib/firebase/adminTools';
+import { getAllUsers, approveUser, PlayerRow } from '@/lib/firebase/accessRequests';
+import { PlayerSaveSummary } from '@/lib/firebase/adminTools';
 import { checkIsAdmin } from '@/lib/admin';
+import { RequestsTab } from '@/components/pages/admin/RequestsTab';
+import { PlayersTab } from '@/components/pages/admin/PlayersTab';
 
 // Cache module-level (hors composant) : survit à un démontage/remontage de
 // la page dans la même session (ex: navigation vers un autre onglet puis
 // retour) sans jamais relire Firestore — seul le bouton "Actualiser" force
 // une vraie relecture. `accountsCacheAt` sert à afficher "chargé il y a Xmin".
-let accountsCache: AccessRequest[] | null = null;
+let accountsCache: PlayerRow[] | null = null;
 let accountsCacheAt: number | null = null;
 
 function formatRelative(ms: number): string {
@@ -23,7 +25,7 @@ function formatRelative(ms: number): string {
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth]   = useState(false);
-  const [allUsers, setAllUsers]   = useState<AccessRequest[]>(accountsCache ?? []);
+  const [allUsers, setAllUsers]   = useState<PlayerRow[]>(accountsCache ?? []);
   const [loadedAt, setLoadedAt]   = useState<number | null>(accountsCacheAt);
   // `now` vit en state (rafraîchi périodiquement) plutôt que d'appeler
   // Date.now() directement dans le JSX au rendu — un rendu doit rester pur.
@@ -32,131 +34,14 @@ export default function AdminPage() {
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
-  const [accountSearch, setAccountSearch] = useState('');
   const [busy, setBusy]           = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [showTab, setShowTab] = useState<'requests'|'accounts'|'balance'>('requests');
+  const [showTab, setShowTab] = useState<'requests'|'players'>('players');
 
   // Dérivés localement depuis `allUsers` (déjà chargé en un seul aller-retour
   // par getAllUsers) au lieu de deux requêtes Firestore séparées.
   const pending = allUsers.filter(u => !u.approved).sort((a, b) => a.createdAt - b.createdAt);
   const approvedList = allUsers.filter(u => u.approved); // déjà triés par getAllUsers (plus récent d'abord)
-
-  // ── Correction de solde (onglet "Rééquilibrer un compte") ─────────────
-  const [searchQuery, setSearchQuery] = useState('');
-  const [foundPlayer, setFoundPlayer] = useState<PlayerLookup | null>(null);
-  const [playerSave, setPlayerSave]   = useState<PlayerSaveSummary | null>(null);
-  const [searchStatus, setSearchStatus] = useState<'idle'|'searching'|'notfound'>('idle');
-  const [editCoins, setEditCoins] = useState('');
-  const [editGems, setEditGems]   = useState('');
-  const [editCrowns, setEditCrowns] = useState('');
-  const [editPalier, setEditPalier] = useState('');
-  const [editWave, setEditWave]     = useState('');
-  const [capMaxPalier, setCapMaxPalier] = useState(true);
-  const [progressBusy, setProgressBusy] = useState(false);
-  const [progressMsg, setProgressMsg]   = useState<string | null>(null);
-  const [correctBusy, setCorrectBusy] = useState(false);
-  const [correctMsg, setCorrectMsg]   = useState<string | null>(null);
-
-  // ── Gestion de la collection de personnages ────────────────────────────
-  const [playerChars, setPlayerChars] = useState<OwnedCharacterSummary[]>([]);
-  const [charBusy, setCharBusy]       = useState<string | null>(null); // instanceKey en cours d'action
-  const [levelEdits, setLevelEdits]   = useState<Record<string, string>>({});
-  const [newCharId, setNewCharId]     = useState('');
-  const [newCharEdition, setNewCharEdition] = useState<'base'|'gold'|'diamond'>('base');
-  const [newCharLevel, setNewCharLevel]     = useState('1');
-  const [newCharRank, setNewCharRank]       = useState('1');
-  const [addCharMsg, setAddCharMsg]   = useState<string | null>(null);
-  const [addCharBusy, setAddCharBusy] = useState(false);
-
-  // Retire/modifie l'entrée localement plutôt que de recharger toute la
-  // collection depuis Firestore après chaque action (voir adminTools.ts :
-  // removePlayerCharacter/setPlayerCharacterLevel n'ont plus besoin de lire
-  // le doc avant d'écrire, donc plus rien à relire ensuite non plus).
-  const handleRemoveChar = async (instanceKey: string) => {
-    if (!foundPlayer) return;
-    setCharBusy(instanceKey);
-    const ok = await removePlayerCharacter(foundPlayer.uid, instanceKey);
-    if (ok) setPlayerChars(chars => chars.filter(c => c.instanceKey !== instanceKey));
-    setCharBusy(null);
-  };
-
-  const handleSetLevel = async (instanceKey: string) => {
-    if (!foundPlayer) return;
-    const val = Number(levelEdits[instanceKey]);
-    if (!val || val < 1) return;
-    setCharBusy(instanceKey);
-    const ok = await setPlayerCharacterLevel(foundPlayer.uid, instanceKey, val);
-    if (ok) setPlayerChars(chars => chars.map(c => c.instanceKey === instanceKey ? { ...c, level: val } : c));
-    setCharBusy(null);
-  };
-
-  const handleAddChar = async () => {
-    if (!foundPlayer || !newCharId.trim()) return;
-    setAddCharBusy(true); setAddCharMsg(null);
-    const res = await addPlayerCharacter(foundPlayer.uid, newCharId.trim(), newCharEdition, Number(newCharLevel) || 1, Number(newCharRank) || 1);
-    setAddCharMsg(res.ok ? '✅ Personnage ajouté.' : `❌ ${res.error}`);
-    if (res.ok && res.char) {
-      const added = res.char;
-      setPlayerChars(chars => {
-        const rest = chars.filter(c => c.instanceKey !== added.instanceKey);
-        return [...rest, added].sort((a, b) => a.name.localeCompare(b.name));
-      });
-      setNewCharId('');
-    }
-    setAddCharBusy(false);
-  };
-
-  const handleSearchPlayer = async () => {
-    setSearchStatus('searching');
-    setFoundPlayer(null); setPlayerSave(null); setCorrectMsg(null); setProgressMsg(null); setPlayerChars([]); setAddCharMsg(null);
-    const p = await findPlayer(searchQuery);
-    if (!p) { setSearchStatus('notfound'); return; }
-    setFoundPlayer(p);
-    // Une seule lecture du doc saves/{uid} pour le solde ET la collection
-    // (avant : deux lectures séparées du même document).
-    const { save, chars } = await getPlayerSaveAndCollection(p.uid);
-    setPlayerSave(save);
-    setPlayerChars(chars);
-    setEditCoins(save ? String(save.pixelCoins) : '');
-    setEditGems(save ? String(save.nekoGems) : '');
-    setEditCrowns(save ? String(save.bossCrowns) : '');
-    setEditPalier(save ? String(save.palier) : '');
-    setEditWave(save ? String(save.wave) : '');
-    setSearchStatus('idle');
-  };
-
-  const handleCorrect = async () => {
-    if (!foundPlayer) return;
-    setCorrectBusy(true); setCorrectMsg(null);
-    const newCoins  = Math.max(0, Number(editCoins) || 0);
-    const newGems   = Math.max(0, Number(editGems) || 0);
-    const newCrowns = Math.max(0, Number(editCrowns) || 0);
-    const ok = await correctPlayerBalance(foundPlayer.uid, { pixelCoins: newCoins, nekoGems: newGems, bossCrowns: newCrowns });
-    setCorrectMsg(ok ? '✅ Corrigé — appliqué immédiatement s\'il est en ligne.' : '❌ Échec de la correction.');
-    // On connaît déjà les valeurs qu'on vient d'écrire — pas besoin de
-    // relire le doc pour rafraîchir l'affichage.
-    if (ok) setPlayerSave(s => s ? { ...s, pixelCoins: newCoins, nekoGems: newGems, bossCrowns: newCrowns } : s);
-    setCorrectBusy(false);
-  };
-
-  // Remet un joueur à un palier précis (ex: après un bug/exploit qui lui a
-  // fait sauter des paliers). Si "capMaxPalier" est coché, le palier max
-  // atteint est aussi ramené au même niveau — utile pour annuler les
-  // récompenses/titres débloqués à tort via le bug.
-  const handleCorrectProgress = async () => {
-    if (!foundPlayer || !playerSave) return;
-    setProgressBusy(true); setProgressMsg(null);
-    const newPalier = Math.max(1, Number(editPalier) || 1);
-    const newWave   = Math.max(1, Math.min(10, Number(editWave) || 1));
-    const newMaxPalierReached = capMaxPalier
-      ? Math.min(playerSave.maxPalierReached, newPalier)
-      : Math.max(playerSave.maxPalierReached, newPalier);
-    const ok = await correctPlayerProgress(foundPlayer.uid, { palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached });
-    setProgressMsg(ok ? '✅ Palier corrigé — appliqué immédiatement s\'il est en ligne.' : '❌ Échec de la correction.');
-    if (ok) setPlayerSave(s => s ? { ...s, palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached } : s);
-    setProgressBusy(false);
-  };
 
   const [isAdmin, setIsAdmin]         = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
@@ -179,7 +64,7 @@ export default function AdminPage() {
 
   // Ne charge qu'une fois par session (cache module-level) — un aller-retour
   // sur cette page (changement d'onglet du site, etc.) ne redéclenche plus
-  // ~3×N lectures Firestore à chaque fois. Le bouton "Actualiser" force une
+  // les lectures Firestore à chaque fois. Le bouton "Actualiser" force une
   // vraie relecture quand besoin.
   useEffect(() => { if (isAdmin && accountsCache === null) load(); }, [isAdmin]);
 
@@ -196,6 +81,18 @@ export default function AdminPage() {
       });
     }
     setBusy(null);
+  };
+
+  // Répercute une correction de solde/progression faite dans PlayerEditor sur
+  // la ligne correspondante de la liste (et le cache), pour que le tableau
+  // affiche la nouvelle valeur sans "Actualiser" — la valeur est déjà connue
+  // localement (c'est ce qu'on vient d'écrire), pas besoin de relire Firestore.
+  const handleSaveUpdate = (uid: string, patch: Partial<PlayerSaveSummary>) => {
+    setAllUsers(list => {
+      const updated = list.map(u => u.uid === uid && u.save ? { ...u, save: { ...u.save, ...patch } } : u);
+      accountsCache = updated;
+      return updated;
+    });
   };
 
   if (loading || !adminChecked) return null;
@@ -222,7 +119,7 @@ export default function AdminPage() {
         <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.45)', fontSize: 12.4, textDecoration: 'none', marginBottom: 16 }}>
           ← Retour
         </a>
-        <h1 style={{ color: '#a78bfa', fontSize: 22.7, fontWeight: 900, marginBottom: 6 }}>🛡️ Validation des comptes</h1>
+        <h1 style={{ color: '#a78bfa', fontSize: 22.7, fontWeight: 900, marginBottom: 6 }}>🛡️ Panel admin</h1>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.4, marginBottom: 8 }}>
           {pending.length} demande(s) en attente · {approvedList.length} compte(s) déjà validé(s)
         </p>
@@ -231,15 +128,11 @@ export default function AdminPage() {
         </p>
 
         <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
+          <button onClick={() => setShowTab('players')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='players' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+            👥 Joueurs ({allUsers.length})
+          </button>
           <button onClick={() => setShowTab('requests')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            Requests
-          </button>
-          <button onClick={() => setShowTab('accounts')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='accounts' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            👥 Comptes ({allUsers.length})
-          </button>
-
-          <button onClick={() => setShowTab('balance')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='balance' ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(251,191,36,0.14)', color: '#fbbf24', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            ⚖️ Rééquilibrer un compte
+            Demandes {pending.length > 0 ? `(${pending.length})` : ''}
           </button>
 
           {/* Seul déclencheur d'une vraie relecture Firestore de la liste des
@@ -250,238 +143,12 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {showTab === 'requests' && (
-          <>
-            <h2 style={{ color: '#fbbf24', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>En attente</h2>
-        {pending.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4, marginBottom: 24 }}>Aucune demande en attente.</div>}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
-          {pending.map(r => (
-            <div key={r.uid} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)' }}>
-              <div>
-                <div style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{r.username}</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, marginTop: 2 }}>{r.email}</div>
-                <div style={{ color: '#7289da', fontSize: 12.4, marginTop: 2 }}>Discord : {r.discordUsername}</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 4 }}>
-                  Demandé le {new Date(r.createdAt).toLocaleString('fr-FR')}
-                </div>
-              </div>
-              <button onClick={() => handleApprove(r.uid)} disabled={busy === r.uid} style={{ padding: '9px 18px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 12.4, whiteSpace: 'nowrap' }}>
-                {busy === r.uid ? '...' : '✓ Valider'}
-              </button>
-            </div>
-          ))}
-        </div>
-
-          </>
-        )}
-
-        {showTab === 'accounts' && (
-          <>
-            <h2 style={{ color: '#60a5fa', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>Tous les comptes ({allUsers.length})</h2>
-            <input
-              value={accountSearch}
-              onChange={e => setAccountSearch(e.target.value)}
-              placeholder="Filtrer par pseudo, email ou id de save…"
-              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, marginBottom: 16, boxSizing: 'border-box' }}
-            />
-            {refreshing && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4, marginBottom: 16 }}>Chargement…</div>}
-            {!refreshing && allUsers.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4 }}>Aucun compte trouvé.</div>}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {allUsers
-                .filter(u => {
-                  const q = accountSearch.trim().toLowerCase();
-                  if (!q) return true;
-                  return u.username?.toLowerCase().includes(q)
-                    || u.email?.toLowerCase().includes(q)
-                    || u.uid?.toLowerCase().includes(q);
-                })
-                .map(u => (
-                  <div key={u.uid} style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(96,165,250,0.18)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                      <span style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{u.username || '(sans pseudo)'}</span>
-                      <span style={{ color: u.approved ? '#4ade80' : '#fbbf24', fontSize: 12, fontWeight: 700 }}>
-                        {u.approved ? '✓ Validé' : '⏳ En attente'}
-                      </span>
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12.4 }}>{u.email}</div>
-                    <div style={{ color: '#7289da', fontSize: 12.4 }}>Discord : {u.discordUsername || '—'}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, fontFamily: 'monospace', marginTop: 2 }}>
-                      ID de save : {u.uid}
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>
-                      Créé le {u.createdAt ? new Date(u.createdAt).toLocaleString('fr-FR') : '—'}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </>
+        {showTab === 'players' && (
+          <PlayersTab players={allUsers} onSaveUpdate={handleSaveUpdate} />
         )}
 
         {showTab === 'requests' && (
-          <>
-            <h2 style={{ color: '#4ade80', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>Déjà validés ({approvedList.length})</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {approvedList.map(r => (
-                <div key={r.uid} style={{ display: 'flex', gap: 12, padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12.4 }}>
-                  <span style={{ color: '#fff', fontWeight: 700, minWidth: 140 }}>{r.username}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>{r.email}</span>
-                  <span style={{ color: '#7289da' }}>{r.discordUsername}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-        {showTab === 'balance' && (
-          <>
-            <h2 style={{ color: '#fbbf24', fontSize: 15.5, fontWeight: 800, marginBottom: 8 }}>Rééquilibrer un compte</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.4, marginBottom: 16, lineHeight: 1.5 }}>
-              Cherche un joueur par pseudo ou email exact, puis corrige son solde. Le changement s&apos;applique automatiquement à sa prochaine connexion (rien à faire de son côté).
-            </p>
-
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSearchPlayer()}
-                placeholder="Pseudo ou email exact"
-                style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }}
-              />
-              <button onClick={handleSearchPlayer} disabled={searchStatus === 'searching'} style={{ padding: '10px 18px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12.4, whiteSpace: 'nowrap' }}>
-                {searchStatus === 'searching' ? '...' : '🔍 Chercher'}
-              </button>
-            </div>
-
-            {searchStatus === 'notfound' && (
-              <div style={{ color: '#f87171', fontSize: 13.4, marginBottom: 16 }}>Aucun joueur trouvé avec ce pseudo/email exact.</div>
-            )}
-
-            {foundPlayer && playerSave && (
-              <div style={{ padding: '18px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)' }}>
-                <div style={{ color: '#fff', fontWeight: 800, fontSize: 15.5, marginBottom: 2 }}>{foundPlayer.username}</div>
-                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12.4, marginBottom: 4 }}>{foundPlayer.email}</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 4 }}>
-                  Dernière sauvegarde : {playerSave.lastSaved ? new Date(playerSave.lastSaved).toLocaleString('fr-FR') : 'jamais'}
-                </div>
-                <div style={{ color: '#c084fc', fontSize: 12.4, fontWeight: 700, marginBottom: 4 }}>
-                  💎 Total de gemmes dépensées : {playerSave.totalGemsSpent.toLocaleString('fr-FR')}
-                </div>
-                <div style={{ color: '#22d3ee', fontSize: 12.4, fontWeight: 700, marginBottom: 16 }}>
-                  ✦ Total d&apos;invocations (gacha) : {playerSave.totalGachaPulls.toLocaleString('fr-FR')}
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🪙 Pixel-Coins</label>
-                    <input value={editCoins} onChange={e => setEditCoins(e.target.value)} type="number"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>💎 Neko-Gemmes</label>
-                    <input value={editGems} onChange={e => setEditGems(e.target.value)} type="number"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>👑 Couronnes</label>
-                    <input value={editCrowns} onChange={e => setEditCrowns(e.target.value)} type="number"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4 }} />
-                  </div>
-                </div>
-
-                <button onClick={handleCorrect} disabled={correctBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
-                  {correctBusy ? 'Correction en cours…' : '✅ Appliquer la correction'}
-                </button>
-                {correctMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: correctMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{correctMsg}</div>}
-
-                {/* ── Palier / progression (ex: annuler une avance obtenue via un bug) ── */}
-                <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 4 }}>Palier / progression</div>
-                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 14 }}>
-                    Palier actuel : {playerSave.palier} · Vague : {playerSave.wave}/10 · Palier max atteint : {playerSave.maxPalierReached}
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>⛰️ Palier</label>
-                      <input value={editPalier} onChange={e => setEditPalier(e.target.value)} type="number" min={1}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🌊 Vague (1-10)</label>
-                      <input value={editWave} onChange={e => setEditWave(e.target.value)} type="number" min={1} max={10}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-                    </div>
-                  </div>
-
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, cursor: 'pointer' }}>
-                    <input type="checkbox" checked={capMaxPalier} onChange={e => setCapMaxPalier(e.target.checked)} />
-                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12.4 }}>
-                      Limiter aussi le &quot;palier max atteint&quot; à cette valeur (à cocher pour annuler une avance obtenue via un bug)
-                    </span>
-                  </label>
-
-                  <button onClick={handleCorrectProgress} disabled={progressBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.5)', color: '#60a5fa', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
-                    {progressBusy ? 'Correction en cours…' : '✅ Appliquer le palier'}
-                  </button>
-                  {progressMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: progressMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{progressMsg}</div>}
-                </div>
-
-                {/* ── Gestion de la collection de personnages ────────────── */}
-                <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 12 }}>
-                    Personnages possédés ({playerChars.length})
-                  </div>
-
-                  <div style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
-                    {playerChars.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Aucun personnage.</div>}
-                    {playerChars.map(c => (
-                      <div key={c.instanceKey} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12.4 }}>
-                        <span style={{ color: '#fff', fontWeight: 700, minWidth: 130 }}>{c.name}</span>
-                        <span style={{ color: c.edition === 'diamond' ? '#67e8f9' : c.edition === 'gold' ? '#fbbf24' : 'rgba(255,255,255,0.4)', minWidth: 60 }}>
-                          {c.edition === 'base' ? '' : c.edition === 'gold' ? '✨ Or' : '💎 Diamant'}
-                        </span>
-                        <span style={{ color: 'rgba(255,255,255,0.4)', minWidth: 40 }}>{c.rank}★</span>
-                        <input
-                          type="number"
-                          defaultValue={c.level}
-                          onChange={e => setLevelEdits(s => ({ ...s, [c.instanceKey]: e.target.value }))}
-                          style={{ width: 70, padding: '5px 8px', borderRadius: 6, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }}
-                        />
-                        <button onClick={() => handleSetLevel(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                          Niveau
-                        </button>
-                        <button onClick={() => handleRemoveChar(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                          style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', cursor: 'pointer', fontSize: 12, fontWeight: 700, marginLeft: 'auto' }}>
-                          {charBusy === c.instanceKey ? '...' : 'Retirer'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, fontWeight: 700, marginBottom: 8 }}>Ajouter un personnage</div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <input value={newCharId} onChange={e => setNewCharId(e.target.value)} placeholder="id exact (ex: goku)"
-                      style={{ flex: '1 1 140px', padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }} />
-                    <select value={newCharEdition} onChange={e => setNewCharEdition(e.target.value as 'base'|'gold'|'diamond')}
-                      style={{ padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }}>
-                      <option value="base">Base</option>
-                      <option value="gold">✨ Or</option>
-                      <option value="diamond">💎 Diamant</option>
-                    </select>
-                    <input value={newCharLevel} onChange={e => setNewCharLevel(e.target.value)} type="number" placeholder="Niveau"
-                      style={{ width: 80, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }} />
-                    <input value={newCharRank} onChange={e => setNewCharRank(e.target.value)} type="number" min={1} max={7} placeholder="Rang"
-                      style={{ width: 70, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }} />
-                    <button onClick={handleAddChar} disabled={addCharBusy || !newCharId.trim()}
-                      style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12.4 }}>
-                      {addCharBusy ? '...' : '+ Ajouter'}
-                    </button>
-                  </div>
-                  {addCharMsg && <div style={{ marginTop: 8, fontSize: 12.4, color: addCharMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{addCharMsg}</div>}
-                </div>
-              </div>
-            )}
-          </>
+          <RequestsTab pending={pending} approvedList={approvedList} busy={busy} onApprove={handleApprove} />
         )}
       </div>
     </div>
