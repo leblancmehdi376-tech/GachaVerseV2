@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { getTopLeaderboard, updatePlayerScore, LeaderboardEntry } from '@/lib/firebase/leaderboard';
+import { PageScroll } from '@/components/ui/Page';
 
 // Chaque appel à getTopLeaderboard coûte ~100 lectures Firestore — sans
 // cooldown, spammer le bouton "Actualiser" spammerait autant d'appels à
@@ -97,8 +98,7 @@ export function LeaderboardPage() {
   const myRank  = myEntry ? entries.indexOf(myEntry) + 1 : null;
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
-      <div style={{ maxWidth:'900px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'20px' }}>
+    <PageScroll>
 
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
@@ -216,7 +216,6 @@ export function LeaderboardPage() {
           )}
         </div>
 
-      </div>
-    </div>
+    </PageScroll>
   );
 }
