@@ -10,6 +10,7 @@ import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
+import { PageScroll } from '@/components/ui/Page';
 
 const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
@@ -71,9 +72,7 @@ export function ProfilePage() {
   ];
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
-      <div style={{ maxWidth:'900px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'20px' }}>
-
+    <PageScroll>
         {/* Hero card */}
         <div className="panel panel--glow" style={{ padding:'24px', display:'flex', alignItems:'center', gap:'24px', position:'relative', overflow:'hidden' }}>
           {/* BG décoration */}
@@ -255,7 +254,6 @@ export function ProfilePage() {
           );
         })()}
 
-      </div>
-    </div>
+    </PageScroll>
   );
 }

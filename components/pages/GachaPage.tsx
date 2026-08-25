@@ -8,6 +8,7 @@ import { GACHA_COSTS, getDynamicRates, RARITY_GATES } from '@/lib/game/gacha';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { formatNumber } from '@/lib/game/format';
+import { PageScroll } from '@/components/ui/Page';
 import { GachaRevealOverlay } from './gacha/GachaRevealOverlay';
 import type { Res } from './gacha/gachaTypes';
 
@@ -63,10 +64,8 @@ export function GachaPage() {
   const handleClose = () => { setShowOverlay(false); setResults([]); };
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
+    <PageScroll>
       {showOverlay && <GachaRevealOverlay results={results} onClose={handleClose} />}
-
-      <div style={{ maxWidth:'820px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'24px' }}>
 
         {/* Bannière */}
         <div style={{
@@ -201,7 +200,6 @@ export function GachaPage() {
           )}
         </div>
 
-      </div>
-    </div>
+    </PageScroll>
   );
 }
