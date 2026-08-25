@@ -1,14 +1,10 @@
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, limit, deleteField, FieldPath } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteField, increment, FieldPath } from 'firebase/firestore';
 import { db } from './config';
-import { getCharacterById } from '@/lib/game/characters';
+import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
+import { getItemDef, getEquipmentDef } from '@/lib/game/items';
+import { Rarity, RARITY_ORDER_ASC } from '@/types/game';
 import { logger } from '../logger';
-
-export interface PlayerLookup {
-  uid: string;
-  email: string;
-  username: string;
-}
 
 export interface PlayerSaveSummary {
   pixelCoins: number;
@@ -27,70 +23,104 @@ export interface OwnedCharacterSummary {
   instanceKey: string;
   templateId: string;
   name: string;      // nom lisible, résolu via CHARACTER_POOL
+  rarity: Rarity;
   edition: string;
   level: number;
   rank: number;
+  currentForm: number;
+  formsCount: number; // formes connues pour ce perso (0/1 = pas d'évolution)
+  formName: string;   // nom affiché pour la forme actuelle (= name si pas d'évolution)
 }
+
+// Résumé léger d'un objet (évolution) ou équipement possédé en quantité, pour
+// l'affichage dans l'outil admin — `qty` est soit le stock total affiché,
+// soit la quantité ajoutée lors d'un patch local optimiste (voir PlayerEditor).
+export interface OwnedItemSummary {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  qty: number;
+}
+export interface OwnedEquipmentSummary extends OwnedItemSummary {
+  rarity: Rarity;
+}
+
+// Rareté la plus élevée d'abord (T > CO > ... > C), comme dans CollectionPage —
+// puis alphabétique à rareté égale.
+const RARITY_ORDER_DESC = RARITY_ORDER_ASC.slice().reverse();
+export function sortOwnedCharacters(chars: OwnedCharacterSummary[]): OwnedCharacterSummary[] {
+  return [...chars].sort((a, b) => {
+    const diff = RARITY_ORDER_DESC.indexOf(a.rarity) - RARITY_ORDER_DESC.indexOf(b.rarity);
+    return diff !== 0 ? diff : a.name.localeCompare(b.name);
+  });
+}
+export function sortOwnedEquipment(items: OwnedEquipmentSummary[]): OwnedEquipmentSummary[] {
+  return [...items].sort((a, b) => {
+    const diff = RARITY_ORDER_DESC.indexOf(a.rarity) - RARITY_ORDER_DESC.indexOf(b.rarity);
+    return diff !== 0 ? diff : a.name.localeCompare(b.name);
+  });
+}
+
+function summarizeCollection(raw: Record<string, { templateId: string; edition?: string; level: number; rank: number; currentForm?: number }>): OwnedCharacterSummary[] {
+  const chars = Object.entries(raw).map(([instanceKey, c]) => {
+    const tpl = getCharacterById(c.templateId);
+    const currentForm = c.currentForm ?? 0;
+    return {
+      instanceKey,
+      templateId: c.templateId,
+      name: tpl?.name ?? c.templateId,
+      rarity: tpl?.rarity ?? 'C',
+      edition: c.edition ?? 'base',
+      level: c.level ?? 1,
+      rank: c.rank ?? 1,
+      currentForm,
+      formsCount: tpl?.forms?.length ?? 0,
+      formName: tpl ? getCharFormName(tpl, currentForm) : c.templateId,
+    };
+  });
+  return sortOwnedCharacters(chars);
+}
+
+function summarizeItems(raw: Record<string, number> = {}): OwnedItemSummary[] {
+  return Object.entries(raw)
+    .filter(([, qty]) => qty > 0)
+    .map(([id, qty]) => {
+      const def = getItemDef(id);
+      return { id, name: def?.name ?? id, icon: def?.icon ?? '❔', color: def?.color ?? '#9ca3af', qty };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function summarizeEquipment(raw: Record<string, number> = {}): OwnedEquipmentSummary[] {
+  const equipment = Object.entries(raw)
+    .filter(([, qty]) => qty > 0)
+    .map(([id, qty]) => {
+      const def = getEquipmentDef(id);
+      return { id, name: def?.name ?? id, icon: def?.icon ?? '❔', color: def?.color ?? '#9ca3af', rarity: (def?.rarity as Rarity) ?? 'C', qty };
+    });
+  return sortOwnedEquipment(equipment);
+}
+
+export interface PlayerDetail {
+  save: PlayerSaveSummary | null;
+  chars: OwnedCharacterSummary[];
+  items: OwnedItemSummary[];
+  equipment: OwnedEquipmentSummary[];
+}
+const EMPTY_PLAYER_DETAIL: PlayerDetail = { save: null, chars: [], items: [], equipment: [] };
 
 /**
- * Cherche un joueur par pseudo OU email exact (collection "users"). Si rien
- * n'est trouvé, tente de traiter la saisie comme un UID Firebase directement
- * (utile pour les comptes créés AVANT le système de validation d'inscription,
- * qui n'ont jamais eu de fiche dans "users" — seule leur sauvegarde existe).
+ * Lit en UNE SEULE lecture tout ce qu'affiche le panel admin pour un joueur —
+ * solde, collection de personnages, objets d'évolution et équipement ("drops")
+ * — puisque tout vit dans le même doc `saves/{uid}`. Avant ce correctif,
+ * getPlayerSave + getPlayerCollection relisaient séparément ce même document.
  */
-export async function findPlayer(search: string): Promise<PlayerLookup | null> {
-  if (!db) return null;
-  const trimmed = search.trim();
-  if (!trimmed) return null;
-  try {
-    // Essai par email exact
-    const byEmail = await getDocs(query(collection(db, 'users'), where('email', '==', trimmed), limit(1)));
-    if (!byEmail.empty) {
-      const d = byEmail.docs[0].data();
-      return { uid: d.uid, email: d.email, username: d.username };
-    }
-    // Essai par pseudo exact (sensible à la casse telle que saisie à l'inscription)
-    const byUsername = await getDocs(query(collection(db, 'users'), where('username', '==', trimmed), limit(1)));
-    if (!byUsername.empty) {
-      const d = byUsername.docs[0].data();
-      return { uid: d.uid, email: d.email, username: d.username };
-    }
-    // Repli : la saisie est peut-être directement un UID (compte antérieur
-    // au système de validation, donc absent de "users") — on vérifie si une
-    // sauvegarde existe sous cet UID.
-    const saveSnap = await getDoc(doc(db, 'saves', trimmed));
-    if (saveSnap.exists()) {
-      return { uid: trimmed, email: '(compte antérieur au système de validation — email inconnu)', username: '(inconnu)' };
-    }
-    return null;
-  } catch (e) {
-    logger.error('[AdminTools] findPlayer:', e);
-    return null;
-  }
-}
-
-function summarizeCollection(raw: Record<string, { templateId: string; edition?: string; level: number; rank: number }>): OwnedCharacterSummary[] {
-  return Object.entries(raw).map(([instanceKey, c]) => ({
-    instanceKey,
-    templateId: c.templateId,
-    name: getCharacterById(c.templateId)?.name ?? c.templateId,
-    edition: c.edition ?? 'base',
-    level: c.level ?? 1,
-    rank: c.rank ?? 1,
-  })).sort((a, b) => a.name.localeCompare(b.name));
-}
-
-/**
- * Lit en UNE SEULE lecture le résumé de solde ET la collection d'un joueur —
- * les deux vivent dans le même doc `saves/{uid}`. Avant ce correctif,
- * getPlayerSave + getPlayerCollection relisaient séparément ce même
- * document à chaque recherche dans le panel admin.
- */
-export async function getPlayerSaveAndCollection(uid: string): Promise<{ save: PlayerSaveSummary | null; chars: OwnedCharacterSummary[] }> {
-  if (!db) return { save: null, chars: [] };
+export async function getPlayerDetail(uid: string): Promise<PlayerDetail> {
+  if (!db) return EMPTY_PLAYER_DETAIL;
   try {
     const snap = await getDoc(doc(db, 'saves', uid));
-    if (!snap.exists()) return { save: null, chars: [] };
+    if (!snap.exists()) return EMPTY_PLAYER_DETAIL;
     const d = snap.data();
     const save: PlayerSaveSummary = {
       pixelCoins:       d.pixelCoins ?? 0,
@@ -103,10 +133,15 @@ export async function getPlayerSaveAndCollection(uid: string): Promise<{ save: P
       maxPalierReached: d.maxPalierReached ?? 1,
       lastSaved:        d.lastSaved ?? null,
     };
-    return { save, chars: summarizeCollection(d.collection ?? {}) };
+    return {
+      save,
+      chars: summarizeCollection(d.collection ?? {}),
+      items: summarizeItems(d.inventory),
+      equipment: summarizeEquipment(d.equipmentInventory),
+    };
   } catch (e) {
-    logger.error('[AdminTools] getPlayerSaveAndCollection:', e);
-    return { save: null, chars: [] };
+    logger.error('[AdminTools] getPlayerDetail:', e);
+    return EMPTY_PLAYER_DETAIL;
   }
 }
 
@@ -194,33 +229,37 @@ export async function removePlayerCharacter(uid: string, instanceKey: string): P
 
 /**
  * Ajoute (ou remplace si déjà possédé) un personnage à la collection d'un
- * joueur, avec le niveau/rang donnés. Le templateId est vérifié contre la
- * vraie liste des personnages du jeu pour éviter de créer une entrée invalide.
+ * joueur, avec le niveau/rang/forme donnés. Le templateId est vérifié contre
+ * la vraie liste des personnages du jeu pour éviter de créer une entrée
+ * invalide, et `currentForm` est borné aux formes que le personnage possède
+ * réellement (0 pour les persos sans évolution).
  */
 export async function addPlayerCharacter(
-  uid: string, templateId: string, edition: CardEdition, level: number, rank: number
+  uid: string, templateId: string, edition: CardEdition, level: number, rank: number, currentForm: number = 0
 ): Promise<{ ok: boolean; error?: string; char?: OwnedCharacterSummary }> {
   if (!db) return { ok: false, error: 'Firebase non configuré' };
   const tpl = getCharacterById(templateId);
   if (!tpl) return { ok: false, error: `Personnage "${templateId}" introuvable — vérifie l'id exact` };
   try {
     // Lecture nécessaire ici (contrairement à remove/setLevel ci-dessous) :
-    // pour un perso déjà possédé, il faut préserver copies/currentForm/xp/
-    // equippedItems — des champs invisibles côté résumé admin, donc pas
-    // déductibles de l'état déjà affiché dans le panel.
+    // pour un perso déjà possédé, il faut préserver copies/xp/equippedItems —
+    // des champs invisibles côté résumé admin, donc pas déductibles de l'état
+    // déjà affiché dans le panel.
     const snap = await getDoc(doc(db, 'saves', uid));
     if (!snap.exists()) return { ok: false, error: 'Sauvegarde introuvable pour ce joueur' };
     const instanceKey = makeInstanceKey(templateId, edition);
     const existing = (snap.data().collection ?? {})[instanceKey];
     const clampedLevel = Math.max(1, Math.min(999, Math.floor(level)));
     const clampedRank  = Math.max(1, Math.min(7, Math.floor(rank)));
+    const maxFormIndex = tpl.forms && tpl.forms.length > 0 ? tpl.forms.length - 1 : 0;
+    const clampedForm  = Math.max(0, Math.min(maxFormIndex, Math.floor(currentForm)));
     const entry = {
       templateId,
       edition,
       level: clampedLevel,
       rank: clampedRank,
       copies: existing?.copies ?? 1,
-      currentForm: existing?.currentForm ?? 0,
+      currentForm: clampedForm,
       xp: existing?.xp ?? 0,
       ...(existing?.equippedItems ? { equippedItems: existing.equippedItems } : {}),
     };
@@ -229,7 +268,14 @@ export async function addPlayerCharacter(
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
     );
-    return { ok: true, char: { instanceKey, templateId, name: tpl.name, edition, level: clampedLevel, rank: clampedRank } };
+    return {
+      ok: true,
+      char: {
+        instanceKey, templateId, edition, name: tpl.name, rarity: tpl.rarity,
+        level: clampedLevel, rank: clampedRank, currentForm: clampedForm,
+        formsCount: tpl.forms?.length ?? 0, formName: getCharFormName(tpl, clampedForm),
+      },
+    };
   } catch (e) {
     logger.error('[AdminTools] addPlayerCharacter:', e);
     return { ok: false, error: 'Erreur lors de l\'écriture' };
@@ -249,5 +295,49 @@ export async function setPlayerCharacterLevel(uid: string, instanceKey: string, 
   } catch (e) {
     logger.error('[AdminTools] setPlayerCharacterLevel:', e);
     return false;
+  }
+}
+
+// ── Objets d'évolution et équipement ("drops") ──────────────────────────────
+// increment() permet d'ajouter une quantité de façon atomique SANS lire le
+// doc au préalable (contrairement à addPlayerCharacter, qui doit préserver
+// des champs invisibles pour un perso déjà possédé) — la valeur ajoutée est
+// simplement additionnée au stock déjà présent, quel qu'il soit.
+
+/** Ajoute une quantité d'un objet d'évolution (ITEM_DEFS) à l'inventaire d'un joueur. */
+export async function addPlayerItem(uid: string, itemId: string, qty: number): Promise<{ ok: boolean; error?: string; item?: OwnedItemSummary }> {
+  if (!db) return { ok: false, error: 'Firebase non configuré' };
+  const def = getItemDef(itemId);
+  if (!def) return { ok: false, error: `Objet "${itemId}" introuvable — vérifie l'id exact` };
+  const addedQty = Math.max(1, Math.min(999999, Math.floor(qty)));
+  try {
+    await updateDoc(doc(db, 'saves', uid),
+      new FieldPath('inventory', itemId), increment(addedQty),
+      'lastSaved', Date.now(),
+      'adminCorrectionAt', Date.now(),
+    );
+    return { ok: true, item: { id: itemId, name: def.name, icon: def.icon, color: def.color, qty: addedQty } };
+  } catch (e) {
+    logger.error('[AdminTools] addPlayerItem:', e);
+    return { ok: false, error: 'Erreur lors de l\'écriture' };
+  }
+}
+
+/** Ajoute une quantité d'un équipement ("drop", EQUIPMENT_DEFS) au stock non-équipé d'un joueur. */
+export async function addPlayerEquipment(uid: string, equipmentId: string, qty: number): Promise<{ ok: boolean; error?: string; equipment?: OwnedEquipmentSummary }> {
+  if (!db) return { ok: false, error: 'Firebase non configuré' };
+  const def = getEquipmentDef(equipmentId);
+  if (!def) return { ok: false, error: `Équipement "${equipmentId}" introuvable — vérifie l'id exact` };
+  const addedQty = Math.max(1, Math.min(999999, Math.floor(qty)));
+  try {
+    await updateDoc(doc(db, 'saves', uid),
+      new FieldPath('equipmentInventory', equipmentId), increment(addedQty),
+      'lastSaved', Date.now(),
+      'adminCorrectionAt', Date.now(),
+    );
+    return { ok: true, equipment: { id: equipmentId, name: def.name, icon: def.icon, color: def.color, rarity: def.rarity as Rarity, qty: addedQty } };
+  } catch (e) {
+    logger.error('[AdminTools] addPlayerEquipment:', e);
+    return { ok: false, error: 'Erreur lors de l\'écriture' };
   }
 }
