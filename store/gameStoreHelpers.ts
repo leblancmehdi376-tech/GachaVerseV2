@@ -7,9 +7,7 @@ import { generateEnemy, COIN_BASE, COIN_GROWTH } from '@/lib/game/enemies';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { getEquipmentDef, getEquipmentDrop } from '@/lib/game/items';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
-import { auth } from '@/lib/firebase/config';
 import { correctedNow } from '@/lib/firebase/clockOffset';
-import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { useUltimateStore, getActiveCoinMultiplier } from '@/store/ultimateStore';
 import { getPrestigeBonuses } from '@/store/prestigeStore';
 import { useAchievementStore } from '@/store/achievementStore';
@@ -228,23 +226,13 @@ export function resolveEnemyDeath(state: GameState & QuestState): Partial<GameSt
     // — à cet instant précis, le nouveau palier n'a PAS ENCORE été commité dans
     // le store (on est en train de le calculer, pas encore de le retourner à
     // set()). Un requestUrgentSave() synchrone ici lirait donc l'ANCIEN palier
-    // via getSerializableState() → useGameStore.getState(), et écraserait le
-    // classement avec une valeur périmée en cas de course avec updatePlayerScore
-    // ci-dessous (même document Firestore, deux écritures merge:true non
-    // synchronisées). queueMicrotask() reporte l'appel à juste après que set()
-    // ait commité — la sauvegarde lit alors le palier réellement à jour.
+    // via getSerializableState() → useGameStore.getState(). queueMicrotask()
+    // reporte l'appel à juste après que set() ait commité — la sauvegarde lit
+    // alors le palier réellement à jour. saveToFirebase (voir useCloudSave.ts)
+    // inclut déjà username/palier/maxPalierReached/wave/pixelCoins/totalDps/score
+    // dans ce même setDoc : pas besoin d'un updatePlayerScore() séparé ici, ça
+    // doublerait l'écriture sur le même document 'saves/{uid}' pour rien.
     if (isNewProgress) queueMicrotask(() => requestUrgentSave('palier'));
-    if (isNewProgress && auth?.currentUser?.uid) {
-      const uid = auth.currentUser.uid;
-      updatePlayerScore(uid, {
-        username: state.username,
-        palier: next,
-        maxPalierReached: next,
-        wave: 1,
-        totalClicks: state.totalClicks,
-        pixelCoins: coins,
-      }).catch(() => {});
-    }
     // Gemmes (palier×10) et +1 couronne de boss : réservées à une vraie
     // progression (sinon re-farmer un boss trivial = robinet infini).
     const passGems     = isNewProgress ? getPalierPassGems(state.palier) : 0;
