@@ -95,8 +95,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const cost = evoCost(tpl.rarity, owned.currentForm);
     if (!get().spendPixelCoins(cost)) return;
     // Consomme les Pierres d'Évolution (drop d'expédition) requises —
-    // sauf pour les persos de boss d'événement (noEvoStones), dont
-    // l'objet d'évolution dédié suffit.
+    // sauf pour les persos marqués noEvoStones (aucun actuellement).
     if (!tpl.noEvoStones) {
       const stonesCost = evoStoneCost(tpl.rarity, owned.currentForm);
       if (stonesCost > 0) get().consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);

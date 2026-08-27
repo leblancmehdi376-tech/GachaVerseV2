@@ -186,6 +186,17 @@ export function IconShield({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconCalendar({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      <rect x="3" y="4" width="14" height="13" rx="1.5" />
+      <path d="M3 8h14" />
+      <path d="M7 2.5v3M13 2.5v3" />
+      <path d="M6.5 11h2M11.5 11h2M6.5 14h2M11.5 14h2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function IconGear({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
@@ -215,4 +226,5 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   champions:    IconMedal,
   profile:      IconProfile,
   settings:     IconGear,
+  dailyReward:  IconCalendar,
 };

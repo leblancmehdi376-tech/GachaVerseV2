@@ -13,7 +13,7 @@ import { useGameStore } from '@/store/gameStore';
 // quêtes localement, et ce reset est ensuite re-synchronisé vers le cloud en
 // écrasant la progression réelle.
 export function useGameHydration(cloudLoaded: boolean): boolean {
-  const { ensureDailyQuests, ensureWeeklyQuests } = useGameStore();
+  const { ensureDailyQuests, ensureWeeklyQuests, ensureDailyReward } = useGameStore();
   const [hasHydrated, setHasHydrated] = useState(() => useGameStore.persist?.hasHydrated?.() ?? false);
 
   useEffect(() => {
@@ -30,7 +30,8 @@ export function useGameHydration(cloudLoaded: boolean): boolean {
     if (!hasHydrated || !cloudLoaded) return;
     ensureDailyQuests();
     ensureWeeklyQuests();
-  }, [hasHydrated, cloudLoaded, ensureDailyQuests, ensureWeeklyQuests]);
+    ensureDailyReward();
+  }, [hasHydrated, cloudLoaded, ensureDailyQuests, ensureWeeklyQuests, ensureDailyReward]);
 
   return hasHydrated;
 }

@@ -241,6 +241,19 @@ export interface AchievementActions {
 }
 export type AchievementSlice = AchievementState & AchievementActions;
 
+// ─── Récompenses de connexion journalière (calendrier 28 jours) ────────────
+export interface DailyRewardState {
+  dailyRewardDayKey: string;       // dernière date (getTodayDayKey) prise en compte
+  dailyRewardCurrentDay: number;   // jour courant du cycle (1-28)
+  dailyRewardClaimedToday: boolean;
+  dailyRewardClaimedDays: number[]; // jours déjà réclamés dans le cycle en cours (affichage)
+}
+export interface DailyRewardActions {
+  ensureDailyReward: () => void;
+  claimDailyReward: () => void;
+}
+export type DailyRewardSlice = DailyRewardState & DailyRewardActions;
+
 // ─── Prestige (New Game+) ───────────────────────────────────────────────────
 export interface PrestigeState {
   prestigeLevel: number;
@@ -326,6 +339,7 @@ export type GameStore = GameState
   & GachaSlice
   & ShopSlice
   & QuestSlice
+  & DailyRewardSlice
   & MetaProgressionSlice
   & AchievementSlice
   & PrestigeSlice

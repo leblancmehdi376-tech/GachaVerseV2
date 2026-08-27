@@ -115,7 +115,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
       f('arthur_leywin_evo2', 'Arthur Leywin — Épée de l’Aube', 'arthur_leywin', cumulative(items, 2)),
       f('arthur_leywin_evo3', 'Arthur Leywin — Roi du Soleil',  'arthur_leywin', cumulative(items, 3)),
     ];
-  })(), true),
+  })()),
   ce('nagito_komaeda', 'Nagito Komaeda', 'L', 48, 'Danganronpa', [
     f('nagito_komaeda_base', 'Nagito Komaeda',         'nagito_komaeda'),
     f('nagito_komaeda_evo1', 'Nagito — Espoir Ultime', 'nagito_komaeda'),
@@ -178,7 +178,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
       f('jinwoo_evo2', 'Sung Jin Woo — Seigneur des Ombres','jinwoo', cumulative(items, 2)),
       f('jinwoo_evo3', 'Sung Jin Woo — Monarque des Ombres','jinwoo', cumulative(items, 3)),
     ];
-  })(), true),
+  })()),
 
   ce('cid_kagenou', 'Cid Kagenou', 'CO', 83, 'The Eminence in Shadow', (() => {
     const items = ['masque_cid', 'epee_slime', 'slime_eminence'];
@@ -188,7 +188,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
       f('cid_kagenou_evo2', 'John Smith',  'cid_kagenou', cumulative(items, 2)),
       f('cid_kagenou_evo3', 'Cid Kagenou — L’Éminence des Ombres', 'cid_kagenou', cumulative(items, 3)),
     ];
-  })(), true),
+  })()),
 
   // ── PRIMORDIAUX ──────────────────────────────────────────────────────────
   ce('goku', 'Goku', 'P', 87, 'Dragon Ball Z', [

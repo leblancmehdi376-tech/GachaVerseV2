@@ -36,6 +36,7 @@ import { formatNumber } from '@/lib/game/format';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { WelcomeBackModal } from '@/components/game/WelcomeBackModal';
+import { DailyRewardsModal } from '@/components/game/DailyRewardsModal';
 
 import { NAV_ICONS } from '@/components/ui/NavIcons';
 import { ToastContainer } from '@/components/ui/ToastContainer';
@@ -100,12 +101,13 @@ export function GameLayout() {
   const { status: instanceStatus, requestTakeover } = useInstanceLock();
   const [page,          setPage]          = useState<Page>('home');
   const [showAuth,      setShowAuth]      = useState(false);
+  const [showDailyRewards, setShowDailyRewards] = useState(false);
   const [splashDone,    setSplashDone]    = useState(false);
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
-  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId } = useGameStore();
+  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId, dailyRewardClaimedToday } = useGameStore();
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
   const { forceSave, loaded: cloudLoaded, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
 
@@ -253,6 +255,17 @@ export function GameLayout() {
           ))}
         </div>
 
+        {/* Calendrier (mobile) — icône seule, la barre d'icônes complète est desktop-only */}
+        {isMobile && (
+          <button onClick={() => setShowDailyRewards(true)} aria-label="Récompenses journalières"
+            style={{ position:'relative', flexShrink:0, width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', cursor:'pointer', color:'var(--text-dim)' }}>
+            <NAV_ICONS.dailyReward size={16} color="currentColor" />
+            {!dailyRewardClaimedToday && (
+              <div style={{ position:'absolute', top:-2, right:-2, width:9, height:9, background:'#ef4444', borderRadius:'50%', border:'1px solid var(--bg-dark)' }} />
+            )}
+          </button>
+        )}
+
         {/* Breadcrumb page */}
         {!isMobile && <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 14px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'8px' }}>
           {(() => { const Icon = NAV_ICONS[currentNav.id]; return Icon ? <Icon size={14} color={currentNav.accent ?? 'var(--text-sub)'} /> : null; })()}
@@ -261,6 +274,16 @@ export function GameLayout() {
 
         {/* Icônes droite */}
         {!isMobile && <div style={{ marginLeft:'auto', display:'flex', gap:'6px', alignItems:'center' }}>
+          <button onClick={() => setShowDailyRewards(true)}
+            style={{ background:'none', border:'1px solid transparent', borderRadius:'8px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', padding:'5px 10px', color:'var(--text-dim)', transition:'all 0.15s', position:'relative' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
+            <NAV_ICONS.dailyReward size={18} color="currentColor" />
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>CALENDRIER</span>
+            {!dailyRewardClaimedToday && (
+              <div style={{ position:'absolute', top:'2px', right:'2px', width:10, height:10, background:'#ef4444', borderRadius:'50%', border:'1px solid var(--bg-dark)' }} />
+            )}
+          </button>
           {([
             { id:'leaderboard', label:'CLASSEMENT' },
             { id:'quests',      label:'QUÊTES'     },
@@ -402,6 +425,7 @@ export function GameLayout() {
       </div>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showDailyRewards && <DailyRewardsModal onClose={() => setShowDailyRewards(false)} />}
       {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={claimOfflineGain} />}
       <UltAnimation />
     </div>

@@ -22,6 +22,7 @@ import { createEquipmentSlice } from './slices/equipmentSlice';
 import { createGachaSlice } from './slices/gachaSlice';
 import { createShopSlice } from './slices/shopSlice';
 import { createQuestSlice } from './slices/questSlice';
+import { createDailyRewardSlice } from './slices/dailyRewardSlice';
 import { createMetaProgressionSlice } from './slices/metaProgressionSlice';
 import { createAchievementSlice } from './slices/achievementSlice';
 import { createPrestigeSlice } from './slices/prestigeSlice';
@@ -80,6 +81,10 @@ const makeInitial = () => ({
   collectionAffinity: 'all',
   collectionSort: 'rarity',
   starterPackClaimed: false,
+  dailyRewardDayKey: '',
+  dailyRewardCurrentDay: 1,
+  dailyRewardClaimedToday: false,
+  dailyRewardClaimedDays: [] as number[],
   offlineMultLevel: 0,
   offlineCapLevel: 0,
   lastOfflineGain: null,
@@ -170,6 +175,7 @@ export const useGameStore = create<GameStore>()(
       ...createGachaSlice(set, get, api),
       ...createShopSlice(set, get, api),
       ...createQuestSlice(set, get, api),
+      ...createDailyRewardSlice(set, get, api),
       ...createMetaProgressionSlice(set, get, api),
       ...createAchievementSlice(set, get, api),
       ...createPrestigeSlice(set, get, api),
@@ -251,6 +257,8 @@ export const useGameStore = create<GameStore>()(
         eventCharacterPurchases:s.eventCharacterPurchases ?? {},
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
+        dailyRewardDayKey:s.dailyRewardDayKey, dailyRewardCurrentDay:s.dailyRewardCurrentDay,
+        dailyRewardClaimedToday:s.dailyRewardClaimedToday, dailyRewardClaimedDays:s.dailyRewardClaimedDays ?? [],
         username:s.username,
         offlineMultLevel:s.offlineMultLevel, offlineCapLevel:s.offlineCapLevel, lastOfflineGain:s.lastOfflineGain,
         // savedAt DOIT être persisté ici : c'est ce qui permet à loadAndApply
