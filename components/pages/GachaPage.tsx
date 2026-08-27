@@ -165,7 +165,6 @@ export function GachaPage() {
                       </div>
                       <div style={{ display:'flex', gap:10, flexShrink:0, alignItems:'center' }}>
                         <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:cfg2.color, minWidth:64, textAlign:'right' }}>{rateTxt}</span>
-                        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', minWidth:50 }}>→ {gate.rateAtMax}% max</span>
                       </div>
                     </div>
                   );
