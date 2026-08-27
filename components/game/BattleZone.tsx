@@ -6,7 +6,7 @@ import { PixelSprite } from '@/components/ui/PixelSprite';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
 import { formatNumber } from '@/lib/game/format';
-import { getPalierConfig } from '@/lib/game/paliers';
+import { getPalierConfig, PALIERS } from '@/lib/game/paliers';
 import { RARITY_CONFIG } from '@/types/game';
 import { PALIER_DROPS } from '@/lib/game/expeditions';
 import { getAffinityForId } from '@/lib/game/affinities';
@@ -27,7 +27,10 @@ const ONE = bnFromNumber(1);
 interface Dmg { id: number; x: number; y: number; val: BigNum; }
 
 function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {
-  const { src, failed, onError } = useFallbackImage(buildImageCandidates(`/backgrounds/bg_palier_${palier}`));
+  // Les visuels de fond n'existent que pour les paliers 1..40 — au-delà, on
+  // réutilise le visuel du palier cyclé (même thème/mobs que getPalierConfig).
+  const cycledPalier = ((palier - 1) % PALIERS.length) + 1;
+  const { src, failed, onError } = useFallbackImage(buildImageCandidates(`/backgrounds/bg_palier_${cycledPalier}`));
   if (!failed && src) return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
