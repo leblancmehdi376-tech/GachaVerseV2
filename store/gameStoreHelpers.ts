@@ -7,7 +7,6 @@ import { generateEnemy, COIN_BASE, COIN_GROWTH } from '@/lib/game/enemies';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { getEquipmentDef, getEquipmentDrop } from '@/lib/game/items';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
-import { correctedNow } from '@/lib/firebase/clockOffset';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import {
   PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
@@ -15,19 +14,26 @@ import {
 import type { Quest, ActiveUlt } from './gameStore.types';
 
 // ── Anti-exploit multi-onglets ─────────────────────────────────────────────
-const LOCAL_STORAGE_KEY = 'gachaverse_save_v2'; // bump v2.5 : doit rester identique à useCloudSave.ts (même entrée localStorage partagée)
+// Diffuse un instantané aux autres onglets ouverts du même navigateur via
+// BroadcastChannel, pour qu'un pull gacha (ou autre dépense) dans un onglet
+// se répercute immédiatement dans les autres — sans ça, un joueur pourrait
+// dépenser les mêmes gemmes deux fois en jonglant entre onglets avant que la
+// synchro périodique (30s/10min, voir useCloudSave.ts) ne les recale.
+// N'écrit PAS en localStorage : ça a existé (clé 'gachaverse_save_v2',
+// partagée avec useCloudSave.ts) mais rien ne relisait jamais cette clé —
+// seul le message BroadcastChannel ci-dessous est réellement consommé (par
+// le listener juste en dessous, dans les autres onglets).
 const BROADCAST_CHANNEL = typeof window !== 'undefined' ? new BroadcastChannel('gachaverse_state') : null;
 
-// Sauvegarde immédiate en localStorage + diffuse aux autres onglets. Import
-// différé de useGameStore : gameStore.ts importe déjà ce fichier, un import
-// statique créerait un cycle (même pattern que requestUrgentSave ci-dessous).
-export function broadcastAndSaveLocal() {
+// Import différé de useGameStore : gameStore.ts importe déjà ce fichier, un
+// import statique créerait un cycle (même pattern que requestUrgentSave
+// ci-dessous).
+export function broadcastLocalState() {
   if (typeof window === 'undefined') return;
   try {
     const { useGameStore } = require('@/store/gameStore');
     const s = useGameStore.getState();
-    const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory, savedAt: correctedNow() };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) ?? '{}'), ...snapshot }));
+    const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory };
     BROADCAST_CHANNEL?.postMessage({ type: 'PULL_SYNC', data: snapshot });
   } catch { /* ignore */ }
 }

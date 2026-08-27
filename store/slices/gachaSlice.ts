@@ -6,7 +6,7 @@ import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/
 import { getCharacterById } from '@/lib/game/characters';
 import { rollCardEdition, makeInstanceKey } from '@/lib/game/editions';
 import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
-import { broadcastAndSaveLocal, requestUrgentSave, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
+import { broadcastLocalState, requestUrgentSave, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, GachaActions } from '../gameStore.types';
 
 export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (set, get) => ({
@@ -25,7 +25,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     const edition = get().addToCollection(id);
     get().bumpQuestProgress('w_gacha_10', 1);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + 1 }));
-    broadcastAndSaveLocal();
+    broadcastLocalState();
     requestUrgentSave('gacha_single');
     return { templateId: id, edition };
   },
@@ -36,7 +36,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().bumpQuestProgress('w_gacha_10', ids.length);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
-    broadcastAndSaveLocal();
+    broadcastLocalState();
     requestUrgentSave('gacha_multi10');
     return results;
   },
@@ -47,7 +47,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().bumpQuestProgress('w_gacha_10', ids.length);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
-    broadcastAndSaveLocal();
+    broadcastLocalState();
     requestUrgentSave('gacha_multi100');
     return results;
   },

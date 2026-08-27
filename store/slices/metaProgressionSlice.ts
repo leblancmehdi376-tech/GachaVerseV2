@@ -10,7 +10,7 @@ import { toast } from '@/hooks/useToast';
 import {
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
   OFFLINE_MULT_COSTS, OFFLINE_CAP_COSTS, OFFLINE_MIN_SECONDS, MOB_GEM_DROP_CHANCE,
-  broadcastAndSaveLocal, bumpCoinQuests, runPeakPalierOf, getPrestigeBonuses,
+  broadcastLocalState, bumpCoinQuests, runPeakPalierOf, getPrestigeBonuses,
 } from '../gameStoreHelpers';
 import type { GameStore, MetaProgressionActions, OfflineGain } from '../gameStore.types';
 
@@ -58,13 +58,13 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     const cost = get().getOfflineMultCost();
     if (cost === null || get().bossCrowns < cost) return;
     set(state => ({ bossCrowns: state.bossCrowns - cost, offlineMultLevel: (state.offlineMultLevel ?? 0) + 1 }));
-    broadcastAndSaveLocal();
+    broadcastLocalState();
   },
   upgradeOfflineCap: () => {
     const cost = get().getOfflineCapCost();
     if (cost === null || get().bossCrowns < cost) return;
     set(state => ({ bossCrowns: state.bossCrowns - cost, offlineCapLevel: (state.offlineCapLevel ?? 0) + 1 }));
-    broadcastAndSaveLocal();
+    broadcastLocalState();
   },
 
   // Calcule (SANS RIEN CRÉDITER) le gain depuis la dernière sauvegarde connue
@@ -109,7 +109,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
         quests: cq.quests, weeklyQuests: cq.weeklyQuests,
       };
     });
-    broadcastAndSaveLocal();
+    broadcastLocalState();
   },
 
   // ─── Prestige (New Game+) ─────────────────────────────────────────
@@ -190,6 +190,6 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       // ── Conservé : maxPalierReached, nekoGems, bossCrowns, voidOrbs ──
     });
 
-    broadcastAndSaveLocal();
+    broadcastLocalState();
   },
 });

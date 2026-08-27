@@ -9,8 +9,7 @@ import { logFirestoreOp } from '@/lib/firebase/telemetry';
 import { logger } from '@/lib/logger';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
-const LOCAL_INTERVAL_MS    =  30_000; // localStorage toutes les 30s (gratuit, illimité)
-const LOCAL_STORAGE_KEY    = 'gachaverse_save_v2'; // bump v2.5 : force un reset local pour tous les joueurs — doit rester identique à LOCAL_STORAGE_KEY dans store/gameStore.ts (même entrée localStorage partagée)
+const LOCAL_INTERVAL_MS    =  30_000; // rafraîchissement de savedAt toutes les 30s (gratuit, illimité)
 
 // ── Sérialisation ──────────────────────────────────────────────────────────
 // Exportée uniquement pour le test d'exhaustivité (useCloudSave.exhaustiveness.test.ts)
@@ -123,14 +122,24 @@ function mergeAchievementState(
   return { achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle };
 }
 
-// ── localStorage (backup local, aucun quota) ───────────────────────────────
-function saveToLocal() {
+// ── Rafraîchissement local de savedAt ──────────────────────────────────────
+// La vraie persistance locale est déjà assurée par le middleware `persist` de
+// Zustand (voir store/gameStore.ts, clé 'nekoz-world-v8'), qui réécrit le
+// disque à CHAQUE set() pertinent — pas besoin de dupliquer l'état ici.
+// Cette fonction ne fait donc que rafraîchir `savedAt` sur le store en
+// mémoire (le prochain set() le fera persister via ce même middleware), pour
+// que loadAndApply puisse détecter une session locale "récemment active"
+// même sans gain de monnaie entre-temps (ex: joueur inactif mais connecté).
+// Named `saveToLocal` jusqu'à ce correctif : écrivait aussi un duplicata
+// complet de l'état sous 'gachaverse_save_v2', un chemin de restauration
+// abandonné depuis que loadAndApply ne compare plus que Firestore et l'état
+// déjà en mémoire (voir son commentaire) — cette clé n'était plus jamais
+// relue, seulement réécrite en boucle.
+function refreshLocalSavedAt() {
   try {
-    const data = getSerializableState();
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-    useGameStore.setState({ savedAt: data.savedAt });
+    useGameStore.setState({ savedAt: correctedNow() });
   } catch (e) {
-    logger.warn('[CloudSave] localStorage write failed:', e);
+    logger.warn('[CloudSave] Rafraîchissement local de savedAt échoué:', e);
   }
 }
 
@@ -445,7 +454,7 @@ export function requestUrgentSave(reason = 'urgent') {
   }
 
   lastUrgentSaveAt = now;
-  saveToLocal();
+  refreshLocalSavedAt();
   saveToFirebase(urgentSaveUserId, reason);
 }
 
@@ -582,7 +591,7 @@ export function useCloudSave(userId: string | null) {
     if (!userId) return;
     const id = setInterval(() => {
       if (!loadedRef.current) return;
-      saveToLocal();
+      refreshLocalSavedAt();
     }, LOCAL_INTERVAL_MS);
     return () => clearInterval(id);
   }, [userId]);
@@ -602,7 +611,7 @@ export function useCloudSave(userId: string | null) {
     if (!userId) return;
     const onHide = () => {
       if (document.visibilityState === 'hidden' && loadedRef.current) {
-        saveToLocal();                       // immédiat, pas de quota
+        refreshLocalSavedAt();                       // immédiat, pas de quota
         saveToFirebase(userId, 'visibility'); // tentative Firebase (peut échouer si quota)
       }
     };
@@ -614,7 +623,7 @@ export function useCloudSave(userId: string | null) {
   // abouti, pour que le bouton n'affiche jamais "Sauvegardé !" à tort.
   const forceSave = async (): Promise<boolean> => {
     if (!userId || !loadedRef.current) return false;
-    saveToLocal();
+    refreshLocalSavedAt();
     return saveToFirebase(userId, 'manual');
   };
 
