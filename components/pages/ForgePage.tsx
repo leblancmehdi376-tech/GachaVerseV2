@@ -1,14 +1,12 @@
 'use client';
 import { useState } from 'react';
-import { useExpeditionStore } from '@/store/expeditionStore';
 import { useGameStore } from '@/store/gameStore';
 import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe, EXPEDITION_DEFS } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG } from '@/types/game';
 
 function IngredientRow({ type, id, quantity, label }: { type: string; id: string; quantity: number; label: string }) {
-  const { dropInventory } = useExpeditionStore();
-  const { collection, championInventory, focusExpedition } = useGameStore();
+  const { expeditionDropInventory: dropInventory, collection, championInventory, focusExpedition } = useGameStore();
 
   let have = 0;
   let ok = false;
@@ -69,8 +67,7 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
 }
 
 function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
-  const { canCraft, craftRecipe } = useExpeditionStore();
-  const { getRunPeakPalier, collection } = useGameStore();
+  const { canCraft, craftRecipe, getRunPeakPalier, collection } = useGameStore();
   const [expanded, setExpanded] = useState(false);
 
   const locked = getRunPeakPalier() < recipe.palierRequired;
@@ -194,7 +191,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
 }
 
 export function ForgePage() {
-  const { dropInventory } = useExpeditionStore();
+  const { expeditionDropInventory: dropInventory } = useGameStore();
   const [tab, setTab] = useState<'recipes' | 'inventory'>('recipes');
 
   const ownedDrops = PALIER_DROPS.filter(d => (dropInventory[d.id] ?? 0) > 0);

@@ -25,6 +25,13 @@ const INTENTIONALLY_TRANSIENT_FIELDS = new Set([
   'collectionUniverse',
   'collectionAffinity',
   'collectionSort',
+  // Fusionnés depuis les anciens achievementStore/ultimateStore (voir Phase 2
+  // du refacto stores) — n'étaient déjà pas cloud-synchronisés avant fusion.
+  'achievementProgress', // jamais cloud-sync, seulement local (voir gameStore.ts partialize)
+  'achievementUnlocked', // idem
+  'ultCooldowns',        // idem (persisté local uniquement, jamais envoyé à Firestore)
+  'ultActiveUlts',       // jamais persisté du tout (ni local ni cloud) — expire au reload
+  'ultAnimating',        // idem
 ]);
 
 describe('getSerializableState — exhaustivité', () => {

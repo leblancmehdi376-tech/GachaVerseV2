@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { useExpeditionStore, ActiveExpedition } from '@/store/expeditionStore';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, ActiveExpedition } from '@/store/gameStore';
 import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
@@ -46,7 +45,7 @@ function CharSelector({ def, onConfirm, onClose }: {
   onClose: () => void;
 }) {
   const { collection, equippedTeam } = useGameStore();
-  const { isCharOnExpedition, getExpeditionAffinity } = useExpeditionStore();
+  const { isCharOnExpedition, getExpeditionAffinity } = useGameStore();
   const [selected, setSelected] = useState<string[]>([]);
 
   // Possédé si N'IMPORTE QUELLE édition l'est (Base/Or/Diamant) — sinon un
@@ -214,7 +213,7 @@ function CharSelector({ def, onConfirm, onClose }: {
 
 /* ── Carte expédition active ────────────────────────────────────────────── */
 function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
-  const { claimExpedition, cancelExpedition } = useExpeditionStore();
+  const { claimExpedition, cancelExpedition } = useGameStore();
   const [, tick] = useState(0);
   useEffect(() => { const id = setInterval(() => tick(n => n + 1), 1000); return () => clearInterval(id); }, []);
 
@@ -281,7 +280,7 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
 /* ── Carte expédition disponible ────────────────────────────────────────── */
 function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionDef; onSelect: () => void; busy: boolean; highlighted?: boolean }) {
   const { getRunPeakPalier, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
-  const { getExpeditionAffinity } = useExpeditionStore();
+  const { getExpeditionAffinity } = useGameStore();
   const palierLocked = getRunPeakPalier() < def.palierRequired;
   const requiresRealUniverse = hasRealUniverse(def);
   const requiredAffinity = requiresRealUniverse ? null : getExpeditionAffinity(def.id);
@@ -406,7 +405,7 @@ function tabOf(d: ExpeditionDef): ExpTab {
 }
 
 export function ExpeditionsPage() {
-  const { active, getFinished, getMaxActiveExpeditions } = useExpeditionStore();
+  const { expeditionActive: active, getFinished, getMaxActiveExpeditions } = useGameStore();
   const { focusedExpeditionId, focusExpedition } = useGameStore();
   const [selectedDef, setSelectedDef] = useState<ExpeditionDef | null>(null);
   const [filter, setFilter] = useState<ExpTab>('forge');
@@ -442,7 +441,7 @@ export function ExpeditionsPage() {
         <CharSelector
           def={selectedDef}
           onConfirm={(ids) => {
-            useExpeditionStore.getState().startExpedition(selectedDef.id, ids);
+            useGameStore.getState().startExpedition(selectedDef.id, ids);
             setSelectedDef(null);
           }}
           onClose={() => setSelectedDef(null)}

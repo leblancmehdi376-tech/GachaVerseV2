@@ -4,7 +4,6 @@ import { useGameStore } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { formatNumber } from '@/lib/game/format';
 import { redeemGiftCode } from '@/lib/firebase/giftCodes';
-import { useExpeditionStore } from '@/store/expeditionStore';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { formatSyncStatus, type CloudSyncStatus } from '@/hooks/useCloudSave';
@@ -77,12 +76,12 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
       // Drops spéciaux d'expédition (ex: Pierres d'Évolution) — dropInventory,
       // distinct de l'inventaire d'items classique (voir dropId dans expeditions.ts).
       if (result.drops && Object.keys(result.drops).length > 0) {
-        useExpeditionStore.setState(s => {
-          const dropInventory = { ...s.dropInventory };
+        useGameStore.setState(s => {
+          const expeditionDropInventory = { ...s.expeditionDropInventory };
           for (const [dropId, qty] of Object.entries(result.drops)) {
-            dropInventory[dropId] = (dropInventory[dropId] ?? 0) + qty;
+            expeditionDropInventory[dropId] = (expeditionDropInventory[dropId] ?? 0) + qty;
           }
-          return { dropInventory };
+          return { expeditionDropInventory };
         });
       }
       const parts: string[] = [];

@@ -5,13 +5,12 @@ import { Rarity } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { correctedNow } from '@/lib/firebase/clockOffset';
-import { usePrestigeStore, getPrestigeBonuses } from '@/store/prestigeStore';
-import { useAchievementStore } from '@/store/achievementStore';
-import { useExpeditionStore } from '@/store/expeditionStore';
+import { calcTokensAwarded } from '@/lib/game/prestige';
+import { toast } from '@/hooks/useToast';
 import {
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
   OFFLINE_MULT_COSTS, OFFLINE_CAP_COSTS, OFFLINE_MIN_SECONDS, MOB_GEM_DROP_CHANCE,
-  broadcastAndSaveLocal, bumpCoinQuests, runPeakPalierOf,
+  broadcastAndSaveLocal, bumpCoinQuests, runPeakPalierOf, getPrestigeBonuses,
 } from '../gameStoreHelpers';
 import type { GameStore, MetaProgressionActions, OfflineGain } from '../gameStore.types';
 
@@ -37,7 +36,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     const enemy = s.currentEnemy;
     if (!enemy) return 0;
     const goldMult = s.getGoldMultiplier();
-    const coinMult = getPrestigeBonuses().coinsMult;
+    const coinMult = getPrestigeBonuses(s.prestigeBonusLevels, s.prestigeRankRecoveryLevel).coinsMult;
     const coinsPerKill = enemy.pixelCoinsReward * goldMult * coinMult;
     return s.getOfflineKillsPerHour() * coinsPerKill;
   },
@@ -132,7 +131,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   doPrestige: () => {
     const state = get();
     const runPeak = runPeakPalierOf(state);
-    if (!usePrestigeStore.getState().canPrestige(runPeak)) return;
+    if (!state.canPrestige(runPeak)) return;
 
     // Rang MAX jamais atteint, TOUTES les cartes (voir bonus "Mémoire des
     // Rangs") — Math.max pour ne jamais écraser un pic antérieur par un
@@ -145,14 +144,21 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       newHistoricalMaxRank[key] = Math.max(newHistoricalMaxRank[key] ?? 0, owned.rank);
     }
 
-    // Incrémente le niveau de prestige et crédite les jetons + toast
-    // (le nombre de jetons dépend du palier atteint CETTE run, pas du
-    // lifetime — sinon represtiger juste après en donnerait déjà plein).
-    usePrestigeStore.getState().doPrestige(runPeak);
+    // Incrémente le niveau de prestige et crédite les jetons + toast (le
+    // nombre de jetons dépend du palier atteint CETTE run, pas du lifetime —
+    // sinon represtiger juste après en donnerait déjà plein). Inliné ici
+    // (au lieu d'un PrestigeActions.doPrestige séparé) pour éviter une
+    // collision de nom avec cette action elle-même, exposée à l'UI.
+    const newPrestigeLevel = state.prestigeLevel + 1;
+    const tokensAwarded = calcTokensAwarded(runPeak, state.prestigeBonusLevels.tokenGain);
+    toast.palier(
+      `⭐ PRESTIGE ${newPrestigeLevel} ATTEINT !`,
+      `+${tokensAwarded} jeton${tokensAwarded > 1 ? 's' : ''} de Prestige`
+    );
 
     // Succès "de run" (kills, dps, coins, pulls, amélios, collection,
     // quêtes, rang 7★) remis à zéro — voir lib/game/achievements.ts.
-    useAchievementStore.getState().resetPrestigeAchievements();
+    get().resetPrestigeAchievements();
 
     set({
       // ── Reset ──
@@ -175,11 +181,14 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       bossTimeLeft: 0,
       bossAvoided: false,
       ultUsedThisFight: [],
+      prestigeLevel: newPrestigeLevel,
+      prestigeTokens: state.prestigeTokens + tokensAwarded,
+      // Annule les expéditions en cours (leurs persos n'existent plus dans
+      // la collection qu'on vient de vider) et vide les drops de forge.
+      expeditionDropInventory: {},
+      expeditionActive: [],
       // ── Conservé : maxPalierReached, nekoGems, bossCrowns, voidOrbs ──
     });
-    // Annule les expéditions en cours (leurs persos n'existent plus dans
-    // la collection qu'on vient de vider) et vide les drops de forge.
-    useExpeditionStore.setState({ dropInventory: {}, active: [] });
 
     broadcastAndSaveLocal();
   },

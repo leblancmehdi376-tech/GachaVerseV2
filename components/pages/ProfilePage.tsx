@@ -1,7 +1,6 @@
 'use client';
 import { useMemo } from 'react';
 import { useGameStore, OFFLINE_MULT_TIERS, OFFLINE_CAP_TIERS_H } from '@/store/gameStore';
-import { useAchievementStore } from '@/store/achievementStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
@@ -16,10 +15,10 @@ const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
 export function ProfilePage() {
   const store = useGameStore();
-  const { activeTitle, unlockedCount, unlockedTitles } = useAchievementStore();
   const {
     username, pixelCoins, nekoGems, totalClicks, palier, maxPalierReached,
     bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps,
+    activeTitle, unlockedCount, unlockedTitles,
   } = store;
 
   const cfg = getPalierConfig(palier);

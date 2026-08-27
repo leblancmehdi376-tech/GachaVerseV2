@@ -3,9 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useGameStore } from '@/store/gameStore';
-import { useAchievementStore } from '@/store/achievementStore';
-import { useExpeditionStore } from '@/store/expeditionStore';
-import { usePrestigeStore } from '@/store/prestigeStore';
 import { saveGameToFirestore, loadGameFromFirestore, probeClockOffset } from '@/lib/firebase/saveGame';
 import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
 import { logFirestoreOp } from '@/lib/firebase/telemetry';
@@ -21,8 +18,6 @@ const LOCAL_STORAGE_KEY    = 'gachaverse_save_v2'; // bump v2.5 : force un reset
 // ce fichier de test pour le contexte (bugs historiques de champs oubliés).
 export function getSerializableState() {
   const s  = useGameStore.getState();
-  const es = useExpeditionStore.getState();
-  const ps = usePrestigeStore.getState();
   return {
     pixelCoins:         s.pixelCoins,
     nekoGems:           s.nekoGems,
@@ -76,31 +71,28 @@ export function getSerializableState() {
     offlineMultLevel:   s.offlineMultLevel,
     offlineCapLevel:    s.offlineCapLevel,
     lastOfflineGain:    s.lastOfflineGain,
-    // Succès déjà réclamés — stockés dans un store séparé (achievementStore),
-    // qui a son propre localStorage jamais synchronisé avec Firestore. Sans
-    // ça, un succès déjà débloqué redevient "réclamable" sur tout nouvel
-    // appareil (ses conditions sont recalculées depuis les stats, elles,
-    // bien synchronisées) et redonne ses gemmes une deuxième fois.
-    achievementsClaimed: useAchievementStore.getState().claimed,
+    // Succès déjà réclamés — sans ça, un succès déjà débloqué redevient
+    // "réclamable" sur tout nouvel appareil (ses conditions sont recalculées
+    // depuis les stats, elles, bien synchronisées) et redonne ses gemmes une
+    // deuxième fois.
+    achievementsClaimed: s.achievementsClaimed,
     // Titres débloqués (succès + drops de boss d'event, voir unlockTitle) et
-    // titre actif — jamais synchronisés avant ce correctif : un titre gagné
-    // par drop d'event (non dérivable des stats, contrairement aux succès)
-    // disparaissait sur tout nouvel appareil, avec son bonus d'or actif.
-    unlockedTitles: useAchievementStore.getState().unlockedTitles,
-    activeTitle:    useAchievementStore.getState().activeTitle,
-    // Expéditions et forge — store séparé (expeditionStore), jamais synchronisé
-    // avant ce correctif : les drops et expéditions en cours disparaissaient
-    // sur tout nouvel appareil.
-    expeditionActive:         es.active,
-    expeditionDropInventory:  es.dropInventory,
-    expeditionCraftedRecipes: es.craftedRecipes,
-    expeditionSlotLevel:      es.expeditionSlotLevel ?? 0,
-    expeditionDefAffinities:  es.defAffinities ?? {},
-    // Prestige — store séparé (prestigeStore), même problème.
-    prestigeLevel:       ps.level,
-    prestigeTokens:      ps.tokens,
-    prestigeBonusLevels: ps.bonusLevels,
-    prestigeRankRecoveryLevel: ps.rankRecoveryLevel,
+    // titre actif — un titre gagné par drop d'event (non dérivable des stats,
+    // contrairement aux succès) disparaîtrait sinon sur tout nouvel appareil,
+    // avec son bonus d'or actif.
+    unlockedTitles: s.unlockedTitles,
+    activeTitle:    s.activeTitle,
+    // Expéditions et forge.
+    expeditionActive:         s.expeditionActive,
+    expeditionDropInventory:  s.expeditionDropInventory,
+    expeditionCraftedRecipes: s.expeditionCraftedRecipes,
+    expeditionSlotLevel:      s.expeditionSlotLevel ?? 0,
+    expeditionDefAffinities:  s.expeditionDefAffinities ?? {},
+    // Prestige.
+    prestigeLevel:       s.prestigeLevel,
+    prestigeTokens:      s.prestigeTokens,
+    prestigeBonusLevels: s.prestigeBonusLevels,
+    prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel,
     savedAt:            correctedNow(),
   };
 }
@@ -118,17 +110,17 @@ export function getSerializableState() {
 function mergeAchievementState(
   remote: Record<string, unknown> | null,
   freshest: Record<string, unknown> | null
-): { claimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string } {
-  const current = useAchievementStore.getState();
-  const claimed: Record<string, boolean> = { ...current.claimed };
+): { achievementsClaimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string } {
+  const current = useGameStore.getState();
+  const achievementsClaimed: Record<string, boolean> = { ...current.achievementsClaimed };
   const unlockedTitles = new Set<string>(current.unlockedTitles);
   const c = remote?.achievementsClaimed as Record<string, boolean> | undefined;
-  if (c) for (const id of Object.keys(c)) if (c[id]) claimed[id] = true;
+  if (c) for (const id of Object.keys(c)) if (c[id]) achievementsClaimed[id] = true;
   const t = remote?.unlockedTitles as string[] | undefined;
   if (Array.isArray(t)) for (const title of t) unlockedTitles.add(title);
   const freshTitle = freshest?.activeTitle as string | undefined;
   const activeTitle = typeof freshTitle === 'string' && unlockedTitles.has(freshTitle) ? freshTitle : current.activeTitle;
-  return { claimed, unlockedTitles: Array.from(unlockedTitles), activeTitle };
+  return { achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle };
 }
 
 // ── localStorage (backup local, aucun quota) ───────────────────────────────
@@ -142,45 +134,23 @@ function saveToLocal() {
   }
 }
 
-// Applique un blob de sauvegarde (cloud ou local) au store principal +
-// stores séparés (expéditions/prestige) — factorisé pour être réutilisable
-// par la reconciliation en arrière-plan (scheduleReconciliationRetry) sans
-// dupliquer toute cette redistribution de champs.
+// Applique un blob de sauvegarde (cloud ou local) au store — factorisé pour
+// être réutilisable par la reconciliation en arrière-plan
+// (scheduleReconciliationRetry) sans dupliquer cette logique.
 function applyRemoteState(rawData: Record<string, unknown>) {
   // Suppress toasts/notifications while applying remote state to avoid
   // duplicate achievement/quest toasts when the player logs in on another device.
   try { useGameStore.setState({ suppressToasts: true }); } catch {}
 
-  // Les champs expedition*/prestige* n'appartiennent pas à gameStore —
-  // on les extrait avant de fusionner le reste, et on les applique à
-  // leurs stores respectifs (sinon ils n'y arriveraient jamais).
   const data = { ...rawData };
-  const expeditionPatch: Record<string, unknown> = {};
-  if ('expeditionActive' in data)         { expeditionPatch.active         = data.expeditionActive;         delete data.expeditionActive; }
-  if ('expeditionDropInventory' in data)  { expeditionPatch.dropInventory  = data.expeditionDropInventory;  delete data.expeditionDropInventory; }
-  if ('expeditionCraftedRecipes' in data) { expeditionPatch.craftedRecipes = data.expeditionCraftedRecipes; delete data.expeditionCraftedRecipes; }
-  if ('expeditionSlotLevel' in data)      { expeditionPatch.expeditionSlotLevel = data.expeditionSlotLevel; delete data.expeditionSlotLevel; }
-  if ('expeditionDefAffinities' in data)  { expeditionPatch.defAffinities  = data.expeditionDefAffinities;  delete data.expeditionDefAffinities; }
-  if (Object.keys(expeditionPatch).length) {
-    useExpeditionStore.setState(expeditionPatch as unknown as Parameters<typeof useExpeditionStore.setState>[0]);
-  }
-
-  const prestigePatch: Record<string, unknown> = {};
-  if ('prestigeLevel' in data)       { prestigePatch.level       = data.prestigeLevel;       delete data.prestigeLevel; }
-  if ('prestigeTokens' in data)      { prestigePatch.tokens      = data.prestigeTokens;      delete data.prestigeTokens; }
-  if ('prestigeBonusLevels' in data) { prestigePatch.bonusLevels = data.prestigeBonusLevels; delete data.prestigeBonusLevels; }
-  if ('prestigeRankRecoveryLevel' in data) { prestigePatch.rankRecoveryLevel = data.prestigeRankRecoveryLevel; delete data.prestigeRankRecoveryLevel; }
-  // Compat anciennes sauvegardes cloud (avant ce rework) : on ignore juste
-  // ces champs obsolètes plutôt que de les laisser polluer le merge plus bas.
+  // Compat anciennes sauvegardes cloud (avant le rework Prestige) : on ignore
+  // juste ces champs obsolètes plutôt que de les laisser polluer le patch.
   delete data.prestigePoints;
   delete data.prestigePurchased;
-  if (Object.keys(prestigePatch).length) {
-    usePrestigeStore.setState(prestigePatch as unknown as Parameters<typeof usePrestigeStore.setState>[0]);
-  }
 
-  // unlockedTitles/activeTitle n'appartiennent pas à gameStore non plus —
-  // ils sont gérés séparément par mergeAchievementState (règles de fusion
-  // différentes du reste : voir son commentaire).
+  // unlockedTitles/activeTitle sont gérés séparément par mergeAchievementState
+  // (règles de fusion différentes du reste — "ne fait que grandir", voir son
+  // commentaire) : on ne les laisse pas ici écraser ce merge en "dernier gagne".
   delete data.unlockedTitles;
   delete data.activeTitle;
 
@@ -367,7 +337,7 @@ async function loadAndApply(userId: string, generation: number) {
       remote as Record<string, unknown> | null,
       best.data as Record<string, unknown> | null
     );
-    useAchievementStore.setState(merged);
+    useGameStore.setState(merged);
 
     // Voir le bloc de commentaire au-dessus de cloudSyncConfirmed : sans
     // confirmation que le cloud a bien été JOINT (pas juste absent), on
@@ -497,7 +467,7 @@ function waitForHydration(store: PersistCapable): Promise<void> {
   });
 }
 function waitForAllHydrated(): Promise<void> {
-  const stores: PersistCapable[] = [useGameStore, useExpeditionStore, usePrestigeStore, useAchievementStore];
+  const stores: PersistCapable[] = [useGameStore];
   return Promise.race([
     Promise.all(stores.map(waitForHydration)).then(() => {}),
     new Promise<void>((resolve) => setTimeout(() => {

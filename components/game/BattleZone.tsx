@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useGameStore, getGoldChestMultiplier } from '@/store/gameStore';
-import { useUltimateStore } from '@/store/ultimateStore';
 import { ActiveUltsBar } from '@/components/game/UltAnimation';
 import { PixelSprite } from '@/components/ui/PixelSprite';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
@@ -41,7 +40,7 @@ function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {
 // ── Carte alliée style gacha ──────────────────────────────────────────────
 function AllyCard({ templateId, onManage }: { templateId: string; onManage: () => void }) {
   const { collection, activateCharacterUltimate, getCharDpsBreakdown } = useGameStore();
-  const { cooldowns, activeUlts } = useUltimateStore();
+  const { ultCooldowns: cooldowns, ultActiveUlts: activeUlts } = useGameStore();
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom/ulti partagés entre éditions)
   const tpl   = getCharacterById(pureId);
   const owned = collection[templateId];
@@ -259,8 +258,8 @@ export function BattleZone() {
   const runPeakPalier = runPeakPalierRaw ?? maxPalierReached;
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
   const [showTravel, setShowTravel] = useState(false);
-  const ultStore    = useUltimateStore();
-  const dpsUltMult  = ultStore.activeUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
+  const ultActiveUlts = useGameStore(s => s.ultActiveUlts);
+  const dpsUltMult  = ultActiveUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
   const dps = Math.floor(getTotalDps()); // inclut déjà dpsMultiplier/selfDpsMultiplier (calculé dans gameStore)
   const enemyAffinity = getAffinityForId(currentEnemy.name);
   const cfg = getPalierConfig(palier);

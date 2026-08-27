@@ -6,8 +6,7 @@ import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/
 import { getCharacterById } from '@/lib/game/characters';
 import { rollCardEdition, makeInstanceKey } from '@/lib/game/editions';
 import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
-import { getPrestigeBonuses } from '@/store/prestigeStore';
-import { broadcastAndSaveLocal, requestUrgentSave, runPeakPalierOf } from '../gameStoreHelpers';
+import { broadcastAndSaveLocal, requestUrgentSave, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, GachaActions } from '../gameStore.types';
 
 export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (set, get) => ({
@@ -57,7 +56,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     // seulement la première fois. Chaque édition d'un perso est une
     // entrée de collection séparée (progression indépendante), reliée au
     // même templateId pour l'art/nom/ultime.
-    const prestigeBonuses = getPrestigeBonuses();
+    const prestigeBonuses = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel);
     const edition = rollCardEdition(prestigeBonuses.shinyGoldBonusPct, prestigeBonuses.shinyDiamondBonusPct);
     const instanceKey = makeInstanceKey(templateId, edition);
 

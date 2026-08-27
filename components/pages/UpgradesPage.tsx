@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useGameStore, getGoldChestCost, getGoldChestMultiplier } from '@/store/gameStore';
-import { useExpeditionStore } from '@/store/expeditionStore';
 import { formatNumber } from '@/lib/game/format';
 import { levelUpCost, evoCost, canEvolve, calcCharDps, evoStoneCost } from '@/lib/game/formulas';
 import { RARITY_CONFIG, EVOLUTION_STONE_ITEM_ID } from '@/types/game';
@@ -93,8 +92,7 @@ function GoldUpgradeCard() {
 
 // ── Carte personnage avec PP ──────────────────────────────────────────────
 function CharCard({ templateId }: { templateId: string }) {
-  const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory, focusExpedition } = useGameStore();
-  const { dropInventory } = useExpeditionStore();
+  const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory, focusExpedition, expeditionDropInventory: dropInventory } = useGameStore();
   const owned = collection[templateId];
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom partagés entre éditions)
   const tpl   = getCharacterById(pureId);

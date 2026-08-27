@@ -1,8 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useGameStore, bumpBossQuests } from '@/store/gameStore';
-import { useUltimateStore } from '@/store/ultimateStore';
-import { useAchievementStore } from '@/store/achievementStore';
 import { EVENT_BOSSES, rollEventDrop, getEventBossMaxHp, DropResult } from '@/lib/game/eventBoss';
 import { getItemDef } from '@/lib/game/items';
 import { Affinity, AFFINITY_CONFIG } from '@/lib/game/affinities';
@@ -15,9 +13,7 @@ import { EventBg, BossSprite } from './EventSprites';
 import { DropPopup } from './DropPopup';
 
 export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
-  const { addItem, nekoGems, bossCrowns, collection, equippedTeam } = useGameStore();
-  const { getActiveEnemyDamageTakenMultiplier } = useUltimateStore();
-  const { unlockedTitles } = useAchievementStore();
+  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, getActiveEnemyDamageTakenMultiplier, unlockedTitles } = useGameStore();
 
   const boss = useMemo(() => EVENT_BOSSES.find(b => b.id === bossId) ?? EVENT_BOSSES[0], [bossId]);
   const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection), [equippedTeam, collection]);
@@ -71,7 +67,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   useEffect(() => {
     if (hp <= 0 && !dead) {
       setDead(true);
-      const results = rollEventDrop(boss.id, useAchievementStore.getState().unlockedTitles);
+      const results = rollEventDrop(boss.id, useGameStore.getState().unlockedTitles);
       const gemsGained  = results.filter(r => r.type === 'gems').reduce((s, r) => s + (r.qty ?? 0), 0);
       const crownsGained = results.filter(r => r.type === 'bossCrowns').reduce((s, r) => s + (r.qty ?? 0), 0);
       useGameStore.setState(s => {
@@ -88,7 +84,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
       });
       for (const r of results) {
         if (r.type === 'item' && r.id) addItem(r.id, r.qty ?? 1);
-        if (r.type === 'title' && r.id) useAchievementStore.getState().unlockTitle(r.id);
+        if (r.type === 'title' && r.id) useGameStore.getState().unlockTitle(r.id);
       }
       setTimeout(() => setDrops(results), 800);
       // Événement majeur : sauvegarde immédiate pour ne jamais perdre la

@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { usePrestigeStore } from '@/store/prestigeStore';
 import { useGameStore } from '@/store/gameStore';
 import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, RANK_RECOVERY_MAX_LEVEL, getRankRecoveryCost, rankRecoveryCap } from '@/lib/game/prestige';
 import { formatNumber } from '@/lib/game/format';
@@ -107,8 +106,10 @@ function RollResultPopup({ type, onClose }: { type: PrestigeBonusType; onClose: 
 }
 
 export function PrestigePage() {
-  const { level, tokens, bonusLevels, canPrestige, spendToken, rankRecoveryLevel, buyRankRecovery } = usePrestigeStore();
-  const { getRunPeakPalier, doPrestige } = useGameStore();
+  const {
+    prestigeLevel: level, prestigeTokens: tokens, prestigeBonusLevels: bonusLevels, canPrestige, spendToken,
+    prestigeRankRecoveryLevel: rankRecoveryLevel, buyRankRecovery, getRunPeakPalier, doPrestige,
+  } = useGameStore();
   const [showConfirm, setShowConfirm] = useState(false);
   const [rollResult, setRollResult] = useState<PrestigeBonusType | null>(null);
 

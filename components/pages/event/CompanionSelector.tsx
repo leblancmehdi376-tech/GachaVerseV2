@@ -1,6 +1,5 @@
 'use client';
 import { useGameStore } from '@/store/gameStore';
-import { useExpeditionStore } from '@/store/expeditionStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
 import { Affinity, AFFINITY_CONFIG, affinityMatchupKind, getAffinityForId } from '@/lib/game/affinities';
@@ -12,8 +11,7 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
   onToggle: (id: string) => void;
   onClose: () => void;
 }) {
-  const { collection, equippedTeam } = useGameStore();
-  const { isCharOnExpedition } = useExpeditionStore();
+  const { collection, equippedTeam, isCharOnExpedition } = useGameStore();
 
   const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
   const owned = CHARACTER_POOL.filter(c => !c.isHero &&

@@ -11,9 +11,8 @@ import { persist } from 'zustand/middleware';
 import { OwnedCharacter, HeroState, Rarity } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
-import { useAchievementStore } from '@/store/achievementStore';
-import { usePrestigeStore } from '@/store/prestigeStore';
-import { useUltimateStore } from '@/store/ultimateStore';
+import { ACHIEVEMENTS } from '@/lib/game/achievements';
+import { initialBonusLevels } from '@/lib/game/prestige';
 import type { GameStore } from './gameStore.types';
 import { DAILY_QUESTS, WEEKLY_QUESTS, EVENT_QUESTS } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
@@ -23,10 +22,14 @@ import { createGachaSlice } from './slices/gachaSlice';
 import { createShopSlice } from './slices/shopSlice';
 import { createQuestSlice } from './slices/questSlice';
 import { createMetaProgressionSlice } from './slices/metaProgressionSlice';
+import { createAchievementSlice } from './slices/achievementSlice';
+import { createPrestigeSlice } from './slices/prestigeSlice';
+import { createUltimateSlice } from './slices/ultimateSlice';
+import { createExpeditionSlice, initialDefAffinities } from './slices/expeditionSlice';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
 // pour tous les fichiers qui importent ces symboles.
-export type { Quest, OfflineGain } from './gameStore.types';
+export type { Quest, OfflineGain, ActiveUlt, ActiveExpedition } from './gameStore.types';
 export {
   getGoldChestCost, getGoldChestMultiplier, getPalierPassGems, bumpBossQuests,
   GOLD_CHEST_COST_BASE, GOLD_CHEST_COST_GROWTH, GOLD_CHEST_MULT_GROWTH,
@@ -80,7 +83,81 @@ const makeInitial = () => ({
   offlineCapLevel: 0,
   lastOfflineGain: null,
   savedAt: 0,
+  // ── Succès et titres ──
+  achievementProgress: {} as Record<string, number>,
+  achievementUnlocked: {} as Record<string, boolean>,
+  achievementsClaimed: {} as Record<string, boolean>,
+  activeTitle: 'Novice',
+  unlockedTitles: ['Novice'] as string[],
+  // ── Prestige ──
+  prestigeLevel: 0,
+  prestigeTokens: 0,
+  prestigeBonusLevels: initialBonusLevels(),
+  prestigeRankRecoveryLevel: 0,
+  // ── Ultimes (activeUlts/animating jamais persistés — expirent au reload) ──
+  ultCooldowns: {} as Record<string, number>,
+  ultActiveUlts: [] as GameStore['ultActiveUlts'],
+  ultAnimating: null as string | null,
+  // ── Expéditions et craft/forge ──
+  expeditionActive: [] as GameStore['expeditionActive'],
+  expeditionDropInventory: {} as Record<string, number>,
+  expeditionCraftedRecipes: [] as string[],
+  expeditionSlotLevel: 0,
+  expeditionDefAffinities: initialDefAffinities(),
 });
+
+// ─── Migration depuis les 4 anciens stores Zustand séparés ─────────────────
+// Avant la fusion en slices (voir ce fichier + store/slices/achievement|
+// prestige|ultimate|expeditionSlice.ts), achievements/prestige/ultimes/
+// expéditions vivaient dans 4 stores persistés sous 4 clés localStorage
+// distinctes. Ce marqueur garantit qu'on ne relit ces anciennes clés
+// qu'UNE SEULE fois par navigateur (indépendamment de 'nekoz-world-v8', qui
+// existe déjà pour tout joueur ayant une partie en cours et ne peut donc pas
+// servir lui-même d'indicateur "déjà migré"). Les anciennes clés ne sont PAS
+// supprimées après lecture (coût disque négligeable, évite un point de
+// défaillance supplémentaire sur un chemin critique pour la rétention).
+const LEGACY_MERGE_MARKER = 'nekoz-stores-merge-v1';
+let didMigrateLegacyStoresThisLoad = false;
+
+function readLegacyPersisted<T>(key: string): T | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return (parsed?.state ?? null) as T | null;
+  } catch { return null; }
+}
+
+function migrateLegacyStoresOnce(): Partial<GameStore> | null {
+  if (typeof window === 'undefined') return null;
+  if (localStorage.getItem(LEGACY_MERGE_MARKER)) return null;
+  localStorage.setItem(LEGACY_MERGE_MARKER, '1');
+
+  const achievement = readLegacyPersisted<{ progress: Record<string, number>; unlocked: Record<string, boolean>; claimed: Record<string, boolean>; activeTitle: string; unlockedTitles: string[] }>('gachaverse_achievements_v2');
+  const prestige     = readLegacyPersisted<{ level: number; tokens: number; bonusLevels: GameStore['prestigeBonusLevels']; rankRecoveryLevel: number }>('gachaverse_prestige_v2');
+  const ultimate     = readLegacyPersisted<{ cooldowns: Record<string, number> }>('nekoz-ult-v2');
+  const expedition   = readLegacyPersisted<{ active: GameStore['expeditionActive']; dropInventory: Record<string, number>; craftedRecipes: string[]; expeditionSlotLevel: number; defAffinities: Record<string, string> }>('gachaverse_expeditions_v2');
+  if (!achievement && !prestige && !ultimate && !expedition) return null;
+
+  didMigrateLegacyStoresThisLoad = true;
+  return {
+    ...(achievement && {
+      achievementProgress: achievement.progress, achievementUnlocked: achievement.unlocked,
+      achievementsClaimed: achievement.claimed, activeTitle: achievement.activeTitle, unlockedTitles: achievement.unlockedTitles,
+    }),
+    ...(prestige && {
+      prestigeLevel: prestige.level, prestigeTokens: prestige.tokens,
+      prestigeBonusLevels: prestige.bonusLevels, prestigeRankRecoveryLevel: prestige.rankRecoveryLevel,
+    }),
+    ...(ultimate && { ultCooldowns: ultimate.cooldowns }),
+    ...(expedition && {
+      expeditionActive: expedition.active, expeditionDropInventory: expedition.dropInventory,
+      expeditionCraftedRecipes: expedition.craftedRecipes, expeditionSlotLevel: expedition.expeditionSlotLevel,
+      expeditionDefAffinities: expedition.defAffinities as GameStore['expeditionDefAffinities'],
+    }),
+  };
+}
 
 export const useGameStore = create<GameStore>()(
   persist(
@@ -93,29 +170,37 @@ export const useGameStore = create<GameStore>()(
       ...createShopSlice(set, get, api),
       ...createQuestSlice(set, get, api),
       ...createMetaProgressionSlice(set, get, api),
+      ...createAchievementSlice(set, get, api),
+      ...createPrestigeSlice(set, get, api),
+      ...createUltimateSlice(set, get, api),
+      ...createExpeditionSlice(set, get, api),
 
       resetGame: () => {
-        // localStorage.clear() vide bien le disque, mais les AUTRES stores
-        // Zustand (succès, prestige, expéditions, ultimes) gardent leurs
-        // données EN MÉMOIRE dans le navigateur tant que la page n'est pas
-        // rechargée — et les réécrivent aussitôt sur le disque au moindre
-        // changement d'état, annulant le clear(). Il faut les réinitialiser
-        // explicitement, pas juste vider le stockage.
         try { localStorage.clear(); } catch {}
         set(makeInitial());
-        try {
-          useAchievementStore.getState().resetAchievements();
-          usePrestigeStore.getState().resetPrestige();
-          useUltimateStore.getState().resetUltimates();
-          // Import différé : expeditionStore importe déjà gameStore, un import
-          // statique créerait un cycle.
-          const { useExpeditionStore } = require('@/store/expeditionStore');
-          useExpeditionStore.getState().resetExpeditions();
-        } catch {}
       },
     }),
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
+      merge: (persisted, current) => {
+        const merged = { ...current, ...(persisted as object), ...migrateLegacyStoresOnce() } as GameStore;
+        // Backfill titres (ex-onRehydrateStorage d'achievementStore) — tourne à
+        // CHAQUE rehydration, pas juste lors d'une migration legacy : garantit
+        // 'Novice' (titre de départ gratuit) même pour les parties commencées
+        // avant l'ajout de ce correctif, et reconstruit les titres de succès
+        // déjà débloqués avant l'ajout de la récompense de titre correspondante.
+        if (!merged.unlockedTitles.includes('Novice')) {
+          merged.unlockedTitles = [...merged.unlockedTitles, 'Novice'];
+        }
+        const missingTitles = ACHIEVEMENTS.filter(a =>
+          a.reward?.type === 'title' && typeof a.reward.value === 'string' &&
+          !merged.unlockedTitles.includes(a.reward.value) && !!merged.achievementUnlocked[a.id]
+        ).map(a => a.reward!.value as string);
+        if (missingTitles.length > 0) {
+          merged.unlockedTitles = [...new Set([...merged.unlockedTitles, ...missingTitles])];
+        }
+        return merged;
+      },
       partialize: (s) => ({
         pixelCoins:s.pixelCoins, nekoGems:s.nekoGems, totalClicks:s.totalClicks,
         totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0, totalGemsSpent:s.totalGemsSpent ?? 0,
@@ -151,7 +236,39 @@ export const useGameStore = create<GameStore>()(
         // vieille) — ce qui annule les coffres ouverts, quêtes/succès réclamés
         // juste avant le refresh.
         savedAt:s.savedAt,
+        // Champs migrés depuis les 4 anciens stores (voir migrateLegacyStoresOnce
+        // ci-dessus) — persistés localement dans leurs stores d'origine, donc
+        // persistés ici aussi. ultActiveUlts/ultAnimating restent volontairement
+        // HORS partialize (n'étaient déjà pas persistés avant cette fusion —
+        // expirent au reload). achievementProgress/achievementUnlocked SONT
+        // persistés localement ici (comme avant), mais restent hors cloud-sync
+        // (voir INTENTIONALLY_TRANSIENT_FIELDS dans hooks/useCloudSave.test.ts).
+        achievementProgress:s.achievementProgress, achievementUnlocked:s.achievementUnlocked,
+        achievementsClaimed:s.achievementsClaimed, activeTitle:s.activeTitle, unlockedTitles:s.unlockedTitles,
+        prestigeLevel:s.prestigeLevel, prestigeTokens:s.prestigeTokens,
+        prestigeBonusLevels:s.prestigeBonusLevels, prestigeRankRecoveryLevel:s.prestigeRankRecoveryLevel,
+        ultCooldowns:s.ultCooldowns,
+        expeditionActive:s.expeditionActive, expeditionDropInventory:s.expeditionDropInventory,
+        expeditionCraftedRecipes:s.expeditionCraftedRecipes, expeditionSlotLevel:s.expeditionSlotLevel,
+        expeditionDefAffinities:s.expeditionDefAffinities,
       }),
     }
   )
 );
+
+// Si une migration legacy vient d'avoir lieu (voir migrateLegacyStoresOnce),
+// force un flush immédiat sur disque une fois l'hydratation terminée : sans
+// ça, les champs migrés ne seraient écrits dans 'nekoz-world-v8' qu'au
+// prochain set() réel (le middleware persist n'écrit pas spontanément après
+// merge()) — une fermeture/crash du navigateur entre les deux, avant ce
+// premier set(), perdrait la migration (LEGACY_MERGE_MARKER empêche toute
+// nouvelle tentative). onFinishHydration (plutôt qu'un simple check juste
+// après create()) est nécessaire : le storage du middleware persist est lu
+// via une chaîne de Promises, donc merge() n'a pas encore tourné au moment
+// où create() retourne — s'abonner ici, synchrone, avant le premier
+// microtask, ne peut pas rater l'événement.
+if (typeof window !== 'undefined') {
+  useGameStore.persist.onFinishHydration(() => {
+    if (didMigrateLegacyStoresThisLoad) useGameStore.setState({});
+  });
+}

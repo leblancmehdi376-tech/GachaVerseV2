@@ -8,11 +8,11 @@ import { getPalierConfig } from '@/lib/game/paliers';
 import { getEquipmentDef, getEquipmentDrop } from '@/lib/game/items';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { correctedNow } from '@/lib/firebase/clockOffset';
-import { useUltimateStore, getActiveCoinMultiplier } from '@/store/ultimateStore';
-import { getPrestigeBonuses } from '@/store/prestigeStore';
-import { useAchievementStore } from '@/store/achievementStore';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
-import type { Quest } from './gameStore.types';
+import {
+  PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
+} from '@/lib/game/prestige';
+import type { Quest, ActiveUlt } from './gameStore.types';
 
 // ── Anti-exploit multi-onglets ─────────────────────────────────────────────
 const LOCAL_STORAGE_KEY = 'gachaverse_save_v2'; // bump v2.5 : doit rester identique à useCloudSave.ts (même entrée localStorage partagée)
@@ -139,6 +139,24 @@ export function getEquipBonusMult(def: ReturnType<typeof getEquipmentDef>, templ
   return matches ? def.bonusFor.multiplier : 1;
 }
 
+// Mémo : recalculer calcPrestigeBonuses() à chaque appel serait gaspillé — cette
+// fonction est appelée plusieurs fois par rendu de combat (DPS total + DPS de
+// chaque allié) et chaque seconde. On ne recalcule que si bonusLevels a changé.
+let _pbLevels: PrestigeBonusLevels | null = null;
+let _pbValue: ActivePrestigeBonuses | null = null;
+
+export function getPrestigeBonuses(bonusLevels: PrestigeBonusLevels, rankRecoveryLevel: number): ActivePrestigeBonuses & { rankRecoveryCap: number } {
+  if (!_pbValue || _pbLevels !== bonusLevels) {
+    _pbValue = calcPrestigeBonuses(bonusLevels);
+    _pbLevels = bonusLevels;
+  }
+  return { ..._pbValue, rankRecoveryCap: rankRecoveryCap(rankRecoveryLevel) };
+}
+
+export function getActiveCoinMultiplier(ultActiveUlts: ActiveUlt[]): number {
+  return ultActiveUlts.reduce((m, a) => m * (a.effect.coinMultiplier ?? 1), 1);
+}
+
 // Force une sauvegarde immédiate en base (localStorage + Firestore) après un
 // événement majeur (palier franchi, pull gacha, achat de coffre d'équipement,
 // boss vaincu, expédition récupérée) — sans ça, ces gains ne seraient garantis
@@ -179,8 +197,10 @@ export function bumpCoinQuests(quests: Quest[], weeklyQuests: Quest[], amount: n
 }
 
 type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] };
+type PrestigeReadState = { prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number };
+type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[] };
 
-export function resolveEnemyDeath(state: GameState & QuestState): Partial<GameState & QuestState> {
+export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameState & QuestState> {
   // Garde-fou : ne résout la mort que si currentEnemy.currentHp <= 0 a bien été
   // appliqué par l'appelant (voir tickDps/activateCharacterUltimate,
   // qui fusionnent { currentHp: newHp } avant d'appeler cette fonction).
@@ -188,12 +208,12 @@ export function resolveEnemyDeath(state: GameState & QuestState): Partial<GameSt
 
   // Multiplicateurs de coins (or + ult + boost BossCrown)
   const chestMult    = getGoldChestMultiplier((state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0);
-  const titleMult    = getTitleGoldMultiplier(useAchievementStore.getState().activeTitle);
+  const titleMult    = getTitleGoldMultiplier(state.activeTitle);
   const goldMult     = chestMult * titleMult;
-  const ultCoinMult  = getActiveCoinMultiplier(useUltimateStore.getState());
+  const ultCoinMult  = getActiveCoinMultiplier(state.ultActiveUlts);
   const goldBoostEndsAt = (state as {goldBoostEndsAt?:number}).goldBoostEndsAt ?? 0;
   const boostGoldMult   = Date.now() < goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
-  const prestigeCoinMult = getPrestigeBonuses().coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
+  const prestigeCoinMult = getPrestigeBonuses(state.prestigeBonusLevels, state.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
   const baseCoins   = Math.floor(state.currentEnemy.pixelCoinsReward * goldMult * ultCoinMult * boostGoldMult * prestigeCoinMult);
   const coins = state.pixelCoins + baseCoins;
 
@@ -264,7 +284,7 @@ export function resolveEnemyDeath(state: GameState & QuestState): Partial<GameSt
   }
   const equipDrop = getEquipmentDrop(
     state.unlockedEquipDropRarities ?? ['C'],
-    (state.palier < runPeak ? FARM_EQUIP_DROP_RATE : 1) * getPrestigeBonuses().equipDropRateMult,
+    (state.palier < runPeak ? FARM_EQUIP_DROP_RATE : 1) * getPrestigeBonuses(state.prestigeBonusLevels, state.prestigeRankRecoveryLevel).equipDropRateMult,
   );
   const newEquipmentInventory = equipDrop
     ? { ...state.equipmentInventory, [equipDrop]: (state.equipmentInventory[equipDrop] ?? 0) + 1 }

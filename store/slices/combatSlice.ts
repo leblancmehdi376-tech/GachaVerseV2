@@ -7,7 +7,6 @@ import { calcCharDps } from '@/lib/game/formulas';
 import { getCharacterById } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
-import { useUltimateStore } from '@/store/ultimateStore';
 import { resolveEnemyDeath, runPeakPalierOf } from '../gameStoreHelpers';
 import type { GameStore, CombatActions } from '../gameStore.types';
 
@@ -66,11 +65,10 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
   },
 
   tickDps: () => {
-    const ult         = useUltimateStore.getState();
     const baseTeamDps   = get().getTotalDps(); // inclut déjà dpsMultiplier/selfDpsMultiplier par perso
-    const bonusFlat      = ult.getActiveBonusDpsFlat(baseTeamDps);
-    const enemyMult       = ult.getActiveEnemyDamageTakenMultiplier();
-    const damageToCoinPct  = ult.getActiveDamageToCoinPct();
+    const bonusFlat      = get().getActiveBonusDpsFlat(baseTeamDps);
+    const enemyMult       = get().getActiveEnemyDamageTakenMultiplier();
+    const damageToCoinPct  = get().getActiveDamageToCoinPct();
 
     // Filet de sécurité "sans aucun compagnon" : uniquement si l'équipe
     // est VRAIMENT vide (0 perso équipé). Avant ce correctif, ce filet
@@ -110,8 +108,7 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (ulti partagé entre éditions)
     const def = getUltimateDef(pureId);
     if (!def) return;
-    const ultState = useUltimateStore.getState();
-    if ((ultState.cooldowns[templateId] ?? 0) > 0) return; // pas prêt, sécurité
+    if ((get().ultCooldowns[templateId] ?? 0) > 0) return; // pas prêt, sécurité
 
     // Marque ce perso comme ayant utilisé son ult pendant ce combat
     set(s => ({
@@ -150,7 +147,7 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     }
 
     // ── Activer le buff (cooldown, durée, gestion cooldowns alliés) ────
-    useUltimateStore.getState().activateUlt(templateId, formIndex, get().equippedTeam);
+    get().activateUlt(templateId, formIndex, get().equippedTeam);
   },
 
   spendPixelCoins: (n) => {

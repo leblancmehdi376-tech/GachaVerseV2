@@ -1,13 +1,12 @@
 'use client';
 import { useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { useUltimateStore } from '@/store/ultimateStore';
 
 export function useDpsTick() {
   const tickDps       = useGameStore(s => s.tickDps);
   const tickBossTimer = useGameStore(s => s.tickBossTimer);
   const bossActive    = useGameStore(s => s.bossActive);
-  const tickUlt       = useUltimateStore(s => s.tick);
+  const tickUlt       = useGameStore(s => s.tickUlt);
 
   useEffect(() => {
     const interval = setInterval(() => {

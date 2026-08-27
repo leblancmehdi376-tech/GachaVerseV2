@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useUltimateStore } from '@/store/ultimateStore';
+import { useGameStore } from '@/store/gameStore';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
 
@@ -12,7 +12,7 @@ export function UltAnimation() {
 
 // ── Barre effets actifs dans la zone de combat ────────────────────────────
 export function ActiveUltsBar() {
-  const activeUlts = useUltimateStore(s => s.activeUlts);
+  const activeUlts = useGameStore(s => s.ultActiveUlts);
   const [, setTick] = useState(0);
 
   // Refresh chaque seconde pour le timer

@@ -3,14 +3,12 @@ import { useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { computeActiveSynergies } from '@/lib/game/synergies';
-import { usePrestigeStore } from '@/store/prestigeStore';
 import { makeInstanceKey } from '@/lib/game/editions';
 import {
-  useAchievementStore,
   trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection,
   trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige,
   trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax,
-} from '@/store/achievementStore';
+} from '@/store/achievementTrackers';
 
 // Synchronise en continu les compteurs de jeu vers le store de succès —
 // purement des effets de bord, aucun rendu. Extrait de GameLayout.tsx.
@@ -21,8 +19,8 @@ export function useAchievementTrackers() {
     totalGachaPulls, totalBossKills, totalBossCrownsEarned, totalVoidOrbsEarned,
     pixelCoins, nekoGems, maxPalierReached,
   } = useGameStore();
-  const prestigeLevel = usePrestigeStore(s => s.level);
-  const unlockedTitlesCount = useAchievementStore(s => s.unlockedTitles.length);
+  const prestigeLevel = useGameStore(s => s.prestigeLevel);
+  const unlockedTitlesCount = useGameStore(s => s.unlockedTitles.length);
 
   useEffect(() => { trackBossKills(totalBossKills); }, [totalBossKills]);
   useEffect(() => { trackBossCrowns(totalBossCrownsEarned); }, [totalBossCrownsEarned]);

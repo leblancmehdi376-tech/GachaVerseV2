@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useGameStore, getGoldChestMultiplier } from '@/store/gameStore';
-import { useExpeditionStore } from '@/store/expeditionStore';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { getCharacterById } from '@/lib/game/characters';
@@ -41,7 +40,7 @@ export function ShopPage() {
     starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyEventCharacter,
     eventCharacterPurchases,
   } = useGameStore();
-  const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useExpeditionStore();
+  const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useGameStore();
 
   const [, setTick] = useState(0);
   const [chestResult, setChestResult] = useState<{ itemId: string; tier: string } | null>(null);

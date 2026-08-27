@@ -14,6 +14,10 @@ import {
   GameState, EquipmentSlot, Rarity,
 } from '@/types/game';
 import { CardEdition } from '@/lib/game/editions';
+import { Achievement } from '@/lib/game/achievements';
+import { PrestigeBonusLevels, PrestigeBonusType } from '@/lib/game/prestige';
+import { UltimateEffect } from '@/lib/game/ultimates';
+import { Affinity } from '@/lib/game/affinities';
 
 export interface Quest {
   id: string; label: string; icon: string;
@@ -210,6 +214,102 @@ export interface MetaProgressionActions {
 }
 export type MetaProgressionSlice = MetaProgressionState & MetaProgressionActions;
 
+// ─── Succès (achievements) et titres ───────────────────────────────────────
+export interface AchievementState {
+  achievementProgress: Record<string, number>;
+  achievementUnlocked: Record<string, boolean>;
+  achievementsClaimed: Record<string, boolean>;
+  activeTitle: string;
+  unlockedTitles: string[];
+}
+export interface AchievementActions {
+  setProgress: (id: string, value: number) => void;
+  bumpProgress: (id: string, by?: number) => void;
+  setActiveTitle: (title: string) => void;
+  unlockTitle: (title: string) => void;
+  getAchievement: (id: string) => Achievement | undefined;
+  getProgress: (id: string) => number;
+  isUnlocked: (id: string) => boolean;
+  isClaimed: (id: string) => boolean;
+  claimAchievement: (id: string) => void;
+  unlockedCount: () => number;
+  resetPrestigeAchievements: () => void;
+}
+export type AchievementSlice = AchievementState & AchievementActions;
+
+// ─── Prestige (New Game+) ───────────────────────────────────────────────────
+export interface PrestigeState {
+  prestigeLevel: number;
+  prestigeTokens: number;
+  prestigeBonusLevels: PrestigeBonusLevels;
+  prestigeRankRecoveryLevel: number;
+}
+export interface PrestigeActions {
+  canPrestige: (maxPalierReached: number) => boolean;
+  spendToken: () => PrestigeBonusType | null;
+  buyRankRecovery: () => boolean;
+}
+export type PrestigeSlice = PrestigeState & PrestigeActions;
+
+// ─── Ultimes de personnage ──────────────────────────────────────────────────
+export interface ActiveUlt {
+  templateId: string;
+  formIndex:  number;
+  endsAt:     number;   // timestamp ms
+  effect:     UltimateEffect;
+}
+export interface UltimateState {
+  ultCooldowns: Record<string, number>;
+  ultActiveUlts: ActiveUlt[];
+  ultAnimating: string | null;
+}
+export interface UltimateActions {
+  startCooldown: (templateId: string, duration: number) => void;
+  activateUlt: (templateId: string, formIndex: number, equippedTeam?: (string | null)[]) => void;
+  tickUlt: () => void;
+  getDpsMultiplierFor: (templateId: string) => number;
+  getActiveCritChance: () => number | null;
+  getActiveEnemyDamageTakenMultiplier: () => number;
+  getActiveBonusDpsFlat: (teamDps: number) => number;
+  getActiveDamageToCoinPct: () => number;
+}
+export type UltimateSlice = UltimateState & UltimateActions;
+
+// ─── Expéditions et craft/forge ─────────────────────────────────────────────
+export interface ActiveExpedition {
+  id:           string;  // unique instance id
+  defId:        string;
+  characterIds: string[];
+  startTime:    number;
+  endTime:      number;
+  claimed:      boolean;
+}
+export interface ExpeditionState {
+  expeditionActive: ActiveExpedition[];
+  expeditionDropInventory: Record<string, number>;
+  expeditionCraftedRecipes: string[];
+  expeditionSlotLevel: number;
+  expeditionDefAffinities: Record<string, Affinity>;
+}
+export interface ExpeditionActions {
+  getMaxActiveExpeditions: () => number;
+  getExpeditionSlotCost: () => number | null;
+  upgradeExpeditionSlot: () => void;
+  getExpeditionAffinity: (defId: string) => Affinity;
+  canStart: (defId: string, characterIds: string[]) => { ok: boolean; reason?: string };
+  startExpedition: (defId: string, characterIds: string[]) => void;
+  claimExpedition: (instanceId: string) => void;
+  cancelExpedition: (instanceId: string) => void;
+  getDropCount: (dropId: string) => number;
+  consumeDrop: (dropId: string, quantity: number) => boolean;
+  canCraft: (recipeId: string) => { ok: boolean; missing: string[] };
+  craftRecipe: (recipeId: string) => boolean;
+  getActiveForChar: (charId: string) => ActiveExpedition | undefined;
+  isCharOnExpedition: (charId: string) => boolean;
+  getFinished: () => ActiveExpedition[];
+}
+export type ExpeditionSlice = ExpeditionState & ExpeditionActions;
+
 // ─── Store combiné ─────────────────────────────────────────────────────────
 // GameState (types/game.ts) porte les champs de base partagés par plusieurs
 // domaines (pixelCoins, collection, equippedTeam, hero, currentEnemy...).
@@ -223,6 +323,10 @@ export type GameStore = GameState
   & ShopSlice
   & QuestSlice
   & MetaProgressionSlice
+  & AchievementSlice
+  & PrestigeSlice
+  & UltimateSlice
+  & ExpeditionSlice
   & {
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;

@@ -11,11 +11,7 @@ import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
-import { useUltimateStore } from '@/store/ultimateStore';
-import { getPrestigeBonuses } from '@/store/prestigeStore';
-import { useExpeditionStore } from '@/store/expeditionStore';
-import { useAchievementStore } from '@/store/achievementStore';
-import { getGoldChestMultiplier, getGoldChestCost, runPeakPalierOf, getEquipBonusMult } from '../gameStoreHelpers';
+import { getGoldChestMultiplier, getGoldChestCost, runPeakPalierOf, getEquipBonusMult, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice } from '../gameStore.types';
 
 export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlice> = (set, get) => ({
@@ -38,7 +34,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
   getGoldMultiplier: () => {
     const level = get().goldUpgradeLevel ?? 0;
     const chestMult = getGoldChestMultiplier(level);
-    const titleMult = getTitleGoldMultiplier(useAchievementStore.getState().activeTitle);
+    const titleMult = getTitleGoldMultiplier(get().activeTitle);
     return chestMult * titleMult;
   },
 
@@ -94,8 +90,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const owned = get().collection[templateId];
     if (!owned) return;
     const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
-    const expState = useExpeditionStore.getState();
-    if (!tpl || !canEvolve(tpl, owned, get().inventory, expState.dropInventory)) return;
+    if (!tpl || !canEvolve(tpl, owned, get().inventory, get().expeditionDropInventory)) return;
     const cost = evoCost(tpl.rarity, owned.currentForm);
     if (!get().spendPixelCoins(cost)) return;
     // Consomme les Pierres d'Évolution (drop d'expédition) requises —
@@ -103,7 +98,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     // l'objet d'évolution dédié suffit.
     if (!tpl.noEvoStones) {
       const stonesCost = evoStoneCost(tpl.rarity, owned.currentForm);
-      if (stonesCost > 0) expState.consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);
+      if (stonesCost > 0) get().consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);
     }
     // Consomme les items requis pour cette évolution si applicable (1 de
     // chacun — cumulatif d'une forme à l'autre, voir EvoForm.requiredItemIds)
@@ -136,9 +131,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     if (!owned || !tpl) return { base: 0, typeMult: 1, final: 0 };
 
     const activeSynergies = computeActiveSynergies(equippedTeam);
-    const ult          = useUltimateStore.getState();
     const boostMult    = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
-    const prestigeMult = getPrestigeBonuses().dpsMult;
+    const prestigeMult = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel).dpsMult;
 
     const helmetDef = getEquipmentDef(owned.equippedItems?.helmet ?? '');
     const chestDef  = getEquipmentDef(owned.equippedItems?.chest ?? '');
@@ -154,7 +148,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
 
     const dpsWithEquip = Math.floor(calcCharDps(tpl, owned) * equippedMult);
     const withSyn = calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies);
-    const ultMult = ult.getDpsMultiplierFor(templateId);
+    const ultMult = get().getDpsMultiplierFor(templateId);
 
     const base     = withSyn * ultMult * boostMult * prestigeMult;
     const typeMult = getAffinityMultiplier(getAffinityForId(pureId), getAffinityForId(get().currentEnemy?.name ?? ''));
@@ -164,9 +158,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
   getTotalDps: () => {
     const { equippedTeam, collection } = get();
     const activeSynergies = computeActiveSynergies(equippedTeam);
-    const ult = useUltimateStore.getState();
     const boostMult = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
-    const prestigeMult = getPrestigeBonuses().dpsMult; // passif +15%/niveau × shop "Transcendance"
+    const prestigeMult = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel).dpsMult; // passif +15%/niveau × shop "Transcendance"
     const enemyAffinity = getAffinityForId(get().currentEnemy?.name ?? ''); // type de l'ennemi courant
     const teamDps = equippedTeam.reduce((total, id) => {
       if (!id) return total;
@@ -188,7 +181,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       const equippedMult = helmetMult * chestMult * pantsMult * bootsMult * weaponMult;
       const dpsWithEquip = Math.floor(baseDps * equippedMult);
       const withSyn  = calcDpsWithSynergies(id, dpsWithEquip, activeSynergies);
-      const ultMult  = ult.getDpsMultiplierFor(id);
+      const ultMult  = get().getDpsMultiplierFor(id);
       const typeMult = getAffinityMultiplier(getAffinityForId(pureId), enemyAffinity); // avantage de type
       return total + withSyn * ultMult * boostMult * typeMult;
     }, 0);
@@ -201,9 +194,9 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     if (!tpl) return;
     if (runPeakPalierOf(get()) < RARITY_GATES[tpl.rarity].unlockPalier) return;
     // Exclusivité expédition ↔ équipe active : un perso en expédition ne
-    // peut pas être équipé (voir aussi canStart dans expeditionStore.ts,
+    // peut pas être équipé (voir aussi canStart dans expeditionSlice.ts,
     // qui bloque le sens inverse).
-    if (useExpeditionStore.getState().isCharOnExpedition(parseInstanceKey(id).templateId)) return;
+    if (get().isCharOnExpedition(parseInstanceKey(id).templateId)) return;
     set(state => {
       const team = [...state.equippedTeam] as (string | null)[];
       const currentSlot = team.findIndex(entry => entry === id);
