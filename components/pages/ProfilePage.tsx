@@ -17,7 +17,7 @@ const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 export function ProfilePage() {
   const store = useGameStore();
   const {
-    username, pixelCoins, nekoGems, totalClicks, palier, maxPalierReached,
+    username, pixelCoins, nekoGems, palier, maxPalierReached,
     bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps,
     activeTitle, unlockedCount, unlockedTitles,
   } = store;
@@ -59,7 +59,6 @@ export function ProfilePage() {
   const STAT_ROWS = [
     { label:'PALIER ACTUEL',      val: `${palier} — ${cfg.name}`,      color:'var(--purple-glow)', num:false },
     { label:'PALIER MAX ATTEINT', val: String(maxPalierReached),        color:'#c084fc',            num:true  },
-    { label:'TOTAL CLICS',        val: formatNumber(totalClicks),       color:'#fb923c',            num:true  },
     { label:'BOSS VAINCUS',       val: String(bossCrowns),              color:'#fbbf24',            num:true  },
     { label:'DPS TOTAL',          val: formatNumber(totalDps) + '/s',   color:'var(--green)',       num:true  },
     { label:'PIXEL-COINS',        val: formatNumber(pixelCoins),        color:'var(--gold)',        num:true  },
@@ -109,7 +108,6 @@ export function ProfilePage() {
             <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
               {[
                 { icon:'🌍', label:`Palier ${palier}`, color:'var(--purple-glow)' },
-                { icon:'⚔',  label:`${formatNumber(totalClicks)} clics`, color:'#fb923c' },
                 { icon:'🏆', label:`${unlockedCount()} succès`, color:'#fbbf24' },
                 { icon:'👑', label:`${unlockedTitles.length} titre${unlockedTitles.length > 1 ? 's' : ''}`, color:'#c084fc' },
               ].map((b, i) => (
