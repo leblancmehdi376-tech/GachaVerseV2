@@ -6,15 +6,16 @@ import { formatNumber } from '@/lib/game/format';
 
 const PRESTIGE_PALIER_REQUIRED = 41;
 
-function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain }: {
+function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, saving }: {
   onConfirm: () => void;
   onCancel:  () => void;
   prestigeLevel: number;
   tokensToGain: number;
+  saving: boolean;
 }) {
   const [typed, setTyped] = useState('');
   const CONFIRM_WORD = 'PRESTIGE';
-  const ready = typed === CONFIRM_WORD;
+  const ready = typed === CONFIRM_WORD && !saving;
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(4,3,14,0.95)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
@@ -69,14 +70,20 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain }: {
         </div>
 
         <div style={{ display:'flex', gap:10 }}>
-          <button onClick={onCancel} className="btn-secondary" style={{ flex:1, padding:'12px', fontSize:13.4, cursor:'pointer' }}>
+          <button onClick={onCancel} disabled={saving} className="btn-secondary"
+            style={{ flex:1, padding:'12px', fontSize:13.4, opacity: saving ? 0.35 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
             ANNULER
           </button>
           <button onClick={onConfirm} disabled={!ready} className="btn-primary"
             style={{ flex:1, padding:'12px', fontSize:13.4, opacity: ready ? 1 : 0.35, cursor: ready ? 'pointer' : 'not-allowed' }}>
-            ⭐ CONFIRMER
+            {saving ? '⏳ SAUVEGARDE…' : '⭐ CONFIRMER'}
           </button>
         </div>
+        {saving && (
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'var(--text-dim)' }}>
+            Ne ferme pas le jeu ni ne change d'appareil pendant la sauvegarde…
+          </div>
+        )}
       </div>
     </div>
   );
@@ -111,6 +118,7 @@ export function PrestigePage() {
     prestigeRankRecoveryLevel: rankRecoveryLevel, buyRankRecovery, getRunPeakPalier, doPrestige,
   } = useGameStore();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [savingPrestige, setSavingPrestige] = useState(false);
   const [rollResult, setRollResult] = useState<PrestigeBonusType | null>(null);
 
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (pas le lifetime) : c'est
@@ -120,8 +128,14 @@ export function PrestigePage() {
   const eligible = canPrestige(runPeakPalier);
   const tokensToGain = calcTokensAwarded(runPeakPalier, bonusLevels.tokenGain);
 
-  const handlePrestige = () => {
-    doPrestige();
+  // On garde le dialogue ouvert (boutons désactivés) jusqu'à ce que doPrestige()
+  // ait confirmé que le reset a bien atteint Firestore — sinon rien n'empêche
+  // le joueur de changer d'appareil dans la seconde qui suit, avant que la
+  // sauvegarde urgente n'ait eu le temps de partir (voir metaProgressionSlice).
+  const handlePrestige = async () => {
+    setSavingPrestige(true);
+    await doPrestige();
+    setSavingPrestige(false);
     setShowConfirm(false);
   };
 
@@ -138,6 +152,7 @@ export function PrestigePage() {
           tokensToGain={tokensToGain}
           onConfirm={handlePrestige}
           onCancel={() => setShowConfirm(false)}
+          saving={savingPrestige}
         />
       )}
       {rollResult && <RollResultPopup type={rollResult} onClose={() => setRollResult(null)} />}

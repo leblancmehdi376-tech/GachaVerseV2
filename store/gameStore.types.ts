@@ -210,7 +210,10 @@ export interface MetaProgressionActions {
   // crédite ensuite CE gain précis (calculé une fois, affiché, puis réclamé).
   checkOfflineGain: () => OfflineGain | null;
   claimOfflineEarnings: (gain: OfflineGain) => void;
-  doPrestige: () => void;
+  // Async : attend la confirmation Firestore avant de résoudre (voir
+  // requestUrgentSaveAndWait) — l'UI doit attendre cette promesse avant de
+  // rendre la main au joueur (fermer le dialogue de confirmation).
+  doPrestige: () => Promise<void>;
 }
 export type MetaProgressionSlice = MetaProgressionState & MetaProgressionActions;
 

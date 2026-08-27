@@ -458,6 +458,19 @@ export function requestUrgentSave(reason = 'urgent') {
   saveToFirebase(urgentSaveUserId, reason);
 }
 
+// Variante ATTENDUE (contourne le throttle 15s ci-dessus) — pour un événement
+// si critique que l'UI doit rester bloquée jusqu'à confirmation réelle que
+// Firestore a reçu l'écriture, avant de rendre la main au joueur (ex: prestige,
+// où un changement d'appareil dans les secondes qui suivent doit voir le reset
+// déjà en base, pas l'ancienne collection). Renvoie false sans rien tenter si
+// pas connecté ou chargement initial pas terminé (mêmes gardes que forceSave).
+export async function saveUrgentNow(reason: string): Promise<boolean> {
+  if (!urgentSaveUserId || !urgentSaveReady) return false;
+  lastUrgentSaveAt = Date.now();
+  refreshLocalSavedAt();
+  return saveToFirebase(urgentSaveUserId, reason);
+}
+
 // ── Attente de la réhydratation locale (zustand persist) ──────────────────
 // loadAndApply ne doit JAMAIS démarrer avant que les 4 stores persistés aient
 // fini de relire leur localStorage : sinon une réhydratation qui termine

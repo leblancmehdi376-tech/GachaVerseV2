@@ -163,6 +163,15 @@ export function requestUrgentSave(reason = 'urgent') {
   try { require('@/hooks/useCloudSave').requestUrgentSave(reason); } catch { /* ignore */ }
 }
 
+// Variante ATTENDUE de ci-dessus, réservée au prestige : l'appelant (UI) reste
+// bloqué jusqu'à confirmation que le reset a bien atteint Firestore, pour ne
+// jamais laisser une fenêtre où changer d'appareil ferait réapparaître la
+// collection d'avant-prestige (voir doPrestige, seul appelant).
+export async function requestUrgentSaveAndWait(reason: string): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  try { return await require('@/hooks/useCloudSave').saveUrgentNow(reason); } catch { return false; }
+}
+
 // Incrémente les quêtes "vaincre X boss" (palier / semaine / événement) à chaque
 // mort de boss, progression ou re-farm. Les boss d'événement doivent passer par
 // ce helper pour être comptés comme des boss dans les quêtes et succés.

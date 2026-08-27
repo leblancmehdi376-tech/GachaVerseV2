@@ -11,6 +11,7 @@ import {
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
   OFFLINE_MULT_COSTS, OFFLINE_CAP_COSTS, OFFLINE_MIN_SECONDS, MOB_GEM_DROP_CHANCE,
   broadcastLocalState, bumpCoinQuests, runPeakPalierOf, getPrestigeBonuses,
+  requestUrgentSaveAndWait,
 } from '../gameStoreHelpers';
 import type { GameStore, MetaProgressionActions, OfflineGain } from '../gameStore.types';
 
@@ -128,7 +129,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   //            l'unification) ont leur rang max banqué (historicalMaxRank),
   //            récupérable à la re-obtention seulement via le bonus de
   //            Prestige "Mémoire des Rangs" (voir addToCollection).
-  doPrestige: () => {
+  doPrestige: async () => {
     const state = get();
     const runPeak = runPeakPalierOf(state);
     if (!state.canPrestige(runPeak)) return;
@@ -191,5 +192,12 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     });
 
     broadcastLocalState();
+
+    // Pousse le reset en base IMMÉDIATEMENT et attend la confirmation
+    // Firestore, plutôt que de compter sur le prochain cycle périodique
+    // (jusqu'à 10min) — sans ça, changer d'appareil juste après un prestige
+    // peut recharger l'ancienne collection alors que prestigeLevel, lui, a
+    // déjà été incrémenté (voir requestUrgentSaveAndWait).
+    await requestUrgentSaveAndWait('prestige');
   },
 });
