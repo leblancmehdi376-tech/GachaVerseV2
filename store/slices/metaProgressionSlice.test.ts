@@ -1,0 +1,154 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useGameStore } from '@/store/gameStore';
+import { bnFromNumber, bnToNumber } from '@/lib/game/bignum';
+import type { OwnedCharacter } from '@/types/game';
+import type { ActiveExpedition } from '@/store/gameStore.types';
+
+// Construit un état de run "avancée", au-delà du palier de déblocage du
+// Prestige (41), avec des données dans TOUS les champs que doPrestige() doit
+// remettre à zéro (voir le commentaire au-dessus de doPrestige dans
+// metaProgressionSlice.ts pour la liste attendue) — pour vérifier le reset de
+// bout en bout plutôt qu'en isolation.
+function setPrestigeableRunState() {
+  const dummyCharacter: OwnedCharacter = {
+    templateId: 'jinwoo', rank: 3, copies: 2, level: 10, currentForm: 0, xp: 100,
+  };
+  const dummyExpedition: ActiveExpedition = {
+    id: 'exp1', defId: 'def1', characterIds: ['jinwoo'], startTime: 0, endTime: 1000, claimed: false,
+  };
+  useGameStore.setState({
+    maxPalierReached: 45,
+    runPeakPalier: 45,
+    palier: 45,
+    wave: 7,
+    hero: { level: 20, currentForm: 2, xp: 500 },
+    pixelCoins: bnFromNumber(1_000_000),
+    collection: { jinwoo: dummyCharacter },
+    championInventory: { jinwoo: 3 },
+    historicalMaxRank: {},
+    equipmentInventory: { epee_ether: 2 },
+    unlockedEquipRarities: ['C', 'R', 'E'],
+    unlockedEquipDropRarities: ['C', 'R'],
+    equippedTeam: ['jinwoo', null, null, null],
+    inventory: { coin_jinwoo: 250, coin_arthur_leywin: 10 },
+    // Pièces d'événement déjà achetées plusieurs fois cette run — leur coût
+    // ×1.1^achats doit retomber au prix de base après le prestige, sinon le
+    // joueur se retrouve avec un coût gonflé alors que ses pièces (inventory
+    // ci-dessus) sont retombées à 0.
+    eventCharacterPurchases: { shadow_monarch: 4, arthur_leywin: 1 },
+    goldUpgradeLevel: 6,
+    bossActive: true,
+    bossTimeLeft: 12,
+    bossAvoided: true,
+    ultUsedThisFight: ['jinwoo'],
+    expeditionActive: [dummyExpedition],
+    expeditionDropInventory: { forge_item: 5 },
+    nekoGems: 999,
+    bossCrowns: 50,
+    voidOrbs: 20,
+    achievementProgress: { kills_500: 500, first_boss: 1 },
+    achievementUnlocked: { kills_500: true, first_boss: true },
+    achievementsClaimed: { kills_500: true, first_boss: true },
+  });
+}
+
+describe('doPrestige — resets', () => {
+  beforeEach(() => {
+    useGameStore.getState().resetGame();
+  });
+
+  it("ne fait rien si le palier requis (41) n'est pas atteint cette run", async () => {
+    setPrestigeableRunState();
+    useGameStore.setState({ maxPalierReached: 10, runPeakPalier: 10 });
+
+    await useGameStore.getState().doPrestige();
+
+    const state = useGameStore.getState();
+    expect(state.prestigeLevel).toBe(0);
+    expect(state.eventCharacterPurchases).toEqual({ shadow_monarch: 4, arthur_leywin: 1 });
+    expect(state.collection).toEqual({ jinwoo: expect.any(Object) });
+  });
+
+  it("réinitialise le coût des personnages d'événement en même temps que les pièces", async () => {
+    setPrestigeableRunState();
+
+    await useGameStore.getState().doPrestige();
+
+    const state = useGameStore.getState();
+    expect(state.eventCharacterPurchases).toEqual({});
+    expect(state.inventory).toEqual({});
+  });
+
+  it('réinitialise équipement, collection, héros et progression de la run', async () => {
+    setPrestigeableRunState();
+
+    await useGameStore.getState().doPrestige();
+
+    const state = useGameStore.getState();
+    expect(state.equipmentInventory).toEqual({});
+    expect(state.unlockedEquipRarities).toEqual(['C']);
+    expect(state.unlockedEquipDropRarities).toEqual(['C']);
+    expect(bnToNumber(state.pixelCoins)).toBe(0);
+    expect(state.collection).toEqual({});
+    expect(state.championInventory).toEqual({});
+    expect(state.equippedTeam).toEqual([null, null, null, null]);
+    expect(state.goldUpgradeLevel).toBe(0);
+    expect(state.hero).toEqual({ level: 1, currentForm: 0, xp: 0 });
+    expect(state.wave).toBe(1);
+    expect(state.palier).toBe(1);
+    expect(state.runPeakPalier).toBe(1);
+    expect(state.currentEnemy?.id).toBe('p1_w1');
+    expect(state.bossActive).toBe(false);
+    expect(state.bossTimeLeft).toBe(0);
+    expect(state.bossAvoided).toBe(false);
+    expect(state.ultUsedThisFight).toEqual([]);
+    expect(state.expeditionActive).toEqual([]);
+    expect(state.expeditionDropInventory).toEqual({});
+  });
+
+  it('conserve maxPalierReached et les monnaies premium (gemmes, couronnes, orbes)', async () => {
+    setPrestigeableRunState();
+
+    await useGameStore.getState().doPrestige();
+
+    const state = useGameStore.getState();
+    expect(state.maxPalierReached).toBe(45);
+    expect(state.nekoGems).toBe(999);
+    expect(state.bossCrowns).toBe(50);
+    expect(state.voidOrbs).toBe(20);
+  });
+
+  it('banque le rang max de chaque carte possédée avant de vider la collection', async () => {
+    setPrestigeableRunState();
+
+    await useGameStore.getState().doPrestige();
+
+    expect(useGameStore.getState().historicalMaxRank.jinwoo).toBe(3);
+  });
+
+  it('incrémente prestigeLevel et crédite des jetons de Prestige', async () => {
+    setPrestigeableRunState();
+    const before = useGameStore.getState().prestigeLevel;
+
+    await useGameStore.getState().doPrestige();
+
+    const state = useGameStore.getState();
+    expect(state.prestigeLevel).toBe(before + 1);
+    expect(state.prestigeTokens).toBeGreaterThan(0);
+  });
+
+  it('ne remet à zéro que les succès marqués resetsOnPrestige, conserve les permanents', async () => {
+    setPrestigeableRunState();
+
+    await useGameStore.getState().doPrestige();
+
+    const state = useGameStore.getState();
+    // kills_500 : resetsOnPrestige:true (lib/game/achievements.ts)
+    expect(state.achievementProgress.kills_500).toBeUndefined();
+    expect(state.achievementUnlocked.kills_500).toBeUndefined();
+    // first_boss : pas de resetsOnPrestige, doit survivre au reset
+    expect(state.achievementProgress.first_boss).toBe(1);
+    expect(state.achievementUnlocked.first_boss).toBe(true);
+    expect(state.achievementsClaimed.first_boss).toBe(true);
+  });
+});

@@ -125,7 +125,8 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   // Reset : équipements, coins, collection (rang/forme/niveau des cartes),
   //         pièces perso d'event, items de forge, héros, combat en cours,
   //         expéditions en cours (annulées : leurs persos n'existeront
-  //         plus dans la collection vidée).
+  //         plus dans la collection vidée), compteur d'achats perso d'event
+  //         (sinon le coût resterait gonflé alors que les pièces sont à 0).
   // Conserve : gemmes, maxPalierReached (classement), succès/titres
   //            (store dédié), quêtes, monnaies premium (BossCrowns,
   //            Orbes du Néant). TOUTES les cartes (shiny/forge/event
@@ -176,6 +177,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       historicalMaxRank: newHistoricalMaxRank,
       equippedTeam: [null, null, null, null],
       inventory: {},
+      eventCharacterPurchases: {},
       goldUpgradeLevel: 0,
       hero: { level: 1, currentForm: 0, xp: 0 },
       wave: 1,
