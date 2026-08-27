@@ -5,9 +5,10 @@ import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
 import { getItemDef, getEquipmentDef } from '@/lib/game/items';
 import { Rarity, RARITY_ORDER_ASC } from '@/types/game';
 import { logger } from '../logger';
+import { coerceBigNum, type BigNum } from '@/lib/game/bignum';
 
 export interface PlayerSaveSummary {
-  pixelCoins: number;
+  pixelCoins: BigNum;
   nekoGems: number;
   totalGemsSpent: number;
   totalGachaPulls: number;
@@ -123,7 +124,7 @@ export async function getPlayerDetail(uid: string): Promise<PlayerDetail> {
     if (!snap.exists()) return EMPTY_PLAYER_DETAIL;
     const d = snap.data();
     const save: PlayerSaveSummary = {
-      pixelCoins:       d.pixelCoins ?? 0,
+      pixelCoins:       coerceBigNum(d.pixelCoins),
       nekoGems:         d.nekoGems ?? 0,
       totalGemsSpent:   d.totalGemsSpent ?? 0,
       totalGachaPulls:  d.totalGachaPulls ?? 0,

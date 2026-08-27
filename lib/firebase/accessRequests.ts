@@ -2,6 +2,7 @@ import { doc, setDoc, getDoc, getDocs, collection, updateDoc } from 'firebase/fi
 import { db } from './config';
 import { logger } from '../logger';
 import type { PlayerSaveSummary } from './adminTools';
+import { coerceBigNum } from '@/lib/game/bignum';
 
 export interface AccessRequest {
   uid:             string;
@@ -104,7 +105,7 @@ export async function ensureUserDoc(
  *  données brutes d'un doc `saves/{uid}` déjà en mémoire. */
 function summarizePlayerSave(d: Record<string, unknown>): PlayerSaveSummary {
   return {
-    pixelCoins:       (d.pixelCoins as number) ?? 0,
+    pixelCoins:       coerceBigNum(d.pixelCoins),
     nekoGems:         (d.nekoGems as number) ?? 0,
     totalGemsSpent:   (d.totalGemsSpent as number) ?? 0,
     totalGachaPulls:  (d.totalGachaPulls as number) ?? 0,

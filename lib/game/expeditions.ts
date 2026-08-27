@@ -8,6 +8,7 @@ import { RARITY_GATES } from '@/lib/game/gacha';
 import { getPalierBossHp } from '@/lib/game/enemies';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { makeInstanceKey } from '@/lib/game/editions';
+import { type BigNum, BN_ZERO, bnAdd, bnLog10, bnMax, bnToNumber } from '@/lib/game/bignum';
 
 // ── Seuil de DPS d'équipe requis par expédition ───────────────────────────
 // Le seuil n'est plus un poids de rareté arbitraire (RARITY_SCORE) mais un
@@ -16,9 +17,12 @@ import { makeInstanceKey } from '@/lib/game/editions';
 // débloquée) : "seuil = DPS nécessaire pour tuer le boss du palier où cette
 // rareté se débloque, dans son temps imparti" — un repère 100% dérivé des
 // courbes de combat existantes, jamais un nombre inventé.
+// Bornée par le palier de déblocage (max 19, cf. RARITY_GATES) — jamais assez
+// grand pour approcher les limites de précision d'un double, donc un simple
+// `number` suffit ici même si getPalierBossHp retourne un BigNum.
 function referenceTeamDps(rarity: Rarity): number {
   const palier = RARITY_GATES[rarity].unlockPalier;
-  return getPalierBossHp(palier) / getPalierConfig(palier).bossTimerSeconds;
+  return bnToNumber(getPalierBossHp(palier)) / getPalierConfig(palier).bossTimerSeconds;
 }
 
 // Rareté "typique" débloquée à un palier donné (fallback pour les
@@ -36,19 +40,19 @@ function rarityForPalier(palier: number): Rarity {
 // DPS d'un personnage (par id de template pur, toutes éditions confondues)
 // pour le calcul de score d'expédition : prend la meilleure édition possédée,
 // puisque les expéditions ne distinguent pas Base/Or/Diamant.
-export function getCharacterExpeditionDps(collection: Record<string, OwnedCharacter>, templateId: string): number {
+export function getCharacterExpeditionDps(collection: Record<string, OwnedCharacter>, templateId: string): BigNum {
   const tpl = CHARACTER_POOL.find(c => c.id === templateId);
-  if (!tpl) return 0;
-  let best = 0;
+  if (!tpl) return BN_ZERO;
+  let best = BN_ZERO;
   for (const ed of ['base', 'gold', 'diamond'] as const) {
     const owned = collection[makeInstanceKey(templateId, ed)];
-    if (owned) best = Math.max(best, calcCharDps(tpl, owned));
+    if (owned) best = bnMax(best, calcCharDps(tpl, owned));
   }
   return best;
 }
 
-export function getExpeditionTeamDps(collection: Record<string, OwnedCharacter>, characterIds: string[]): number {
-  return characterIds.reduce((sum, cid) => sum + getCharacterExpeditionDps(collection, cid), 0);
+export function getExpeditionTeamDps(collection: Record<string, OwnedCharacter>, characterIds: string[]): BigNum {
+  return characterIds.reduce((sum, cid) => bnAdd(sum, getCharacterExpeditionDps(collection, cid)), BN_ZERO);
 }
 
 // ── Exigence d'univers ─────────────────────────────────────────────────────
@@ -422,20 +426,19 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
 // Bonus de TENTATIVES de drop à rendements décroissants (pas de palier fixe à
 // x3) : ratio = teamDps / minTeamDps -> bonusMult = 1 + log10(ratio), donc
 // ratio=1 -> x1, ratio=10 -> x2, ratio=100 -> x3, ratio=1000 -> x4...
-function dropBonusMult(ratio: number): number {
-  return 1 + Math.log10(Math.max(1, ratio));
-}
-
 // Nombre de "dés" à lancer pour le drop spécial, pour un DPS d'équipe donné.
 // Dépasser le seuil minTeamDps n'augmente PAS la quantité obtenue directement
 // (le seuil, déjà garanti par canStart, ne fait que débloquer le premier dé) :
 // ça augmente le nombre de tirages à dropChance, chacun indépendant. Le
 // résultat final est donc aléatoire entre 0 et ce nombre de tentatives
 // (loi binomiale), pas une quantité garantie.
-export function computeDropAttempts(def: ExpeditionDef, teamDps: number): number {
+export function computeDropAttempts(def: ExpeditionDef, teamDps: BigNum): number {
   const base = def.rewards.dropQuantity ?? 1;
-  const ratio = def.minTeamDps > 0 ? teamDps / def.minTeamDps : 1;
-  let attempts = Math.max(base, Math.floor(base * dropBonusMult(ratio)));
+  // ratio = teamDps / minTeamDps, calculé en espace log pour ne jamais
+  // déborder même à très haut DPS (voir bnLog10) : dropBonusMult n'a besoin
+  // que de log10(ratio), pas du ratio brut.
+  const log10Ratio = def.minTeamDps > 0 ? bnLog10(teamDps) - Math.log10(def.minTeamDps) : 0;
+  let attempts = Math.max(base, Math.floor(base * (1 + Math.max(0, log10Ratio))));
   if (def.rewards.dropQuantityCap) attempts = Math.min(attempts, def.rewards.dropQuantityCap);
   return attempts;
 }
@@ -450,7 +453,7 @@ export interface ExpeditionRewardRoll {
 // entre min/max, + drop spécial : un dé à dropChance par tentative accordée
 // par computeDropAttempts, chaque succès valant 1 item). Utilisé par
 // claimExpedition (expeditionStore.ts).
-export function rollExpeditionRewards(def: ExpeditionDef, teamDps: number): ExpeditionRewardRoll {
+export function rollExpeditionRewards(def: ExpeditionDef, teamDps: BigNum): ExpeditionRewardRoll {
   const coins = Math.floor(
     def.rewards.coinsMin + Math.random() * (def.rewards.coinsMax - def.rewards.coinsMin)
   );

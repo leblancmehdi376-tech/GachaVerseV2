@@ -18,6 +18,7 @@ import { Achievement } from '@/lib/game/achievements';
 import { PrestigeBonusLevels, PrestigeBonusType } from '@/lib/game/prestige';
 import { UltimateEffect } from '@/lib/game/ultimates';
 import { Affinity } from '@/lib/game/affinities';
+import { BigNum } from '@/lib/game/bignum';
 
 export interface Quest {
   id: string; label: string; icon: string;
@@ -26,18 +27,18 @@ export interface Quest {
 }
 
 export interface OfflineGain {
-  coins: number;      // coins crédités
-  gems: number;       // gemmes crédités (drops de mobs normaux uniquement)
-  kills: number;      // nombre de mobs normaux simulés
-  seconds: number;    // durée créditée (après plafond)
-  rawSeconds: number; // durée réelle d'absence
-  capped: boolean;    // true si l'absence a dépassé le plafond
-  at: number;         // timestamp du calcul
+  coins: BigNum;       // coins crédités (dérivé de pixelCoinsReward, non-plafonné)
+  gems: number;        // gemmes crédités (drops de mobs normaux uniquement)
+  kills: number;       // nombre de mobs normaux simulés
+  seconds: number;     // durée créditée (après plafond)
+  rawSeconds: number;  // durée réelle d'absence
+  capped: boolean;     // true si l'absence a dépassé le plafond
+  at: number;          // timestamp du calcul
 }
 
 // ─── Combat : boucle ennemi/boss, ultimes, ressources ─────────────────────
 export interface CombatState {
-  lastBossVictory: { palier: number; gems: number; coins: number; crowns: number; at: number } | null;
+  lastBossVictory: { palier: number; gems: number; coins: BigNum; crowns: number; at: number } | null;
 }
 export interface CombatActions {
   clearBossVictory: () => void;
@@ -48,7 +49,7 @@ export interface CombatActions {
   tickDps: () => void;
   tickBossTimer: () => void;
   activateCharacterUltimate: (templateId: string, formIndex: number) => void;
-  spendPixelCoins: (n: number) => boolean;
+  spendPixelCoins: (n: BigNum) => boolean;
 }
 export type CombatSlice = CombatState & CombatActions;
 
@@ -60,12 +61,12 @@ export interface CharacterSlice {
   levelUpHero: () => void;
   evolveHero: () => void;
   upgradeGold: () => void;
-  getGoldMultiplier: () => number;
-  getGoldUpgradeCost: () => number;
+  getGoldMultiplier: () => BigNum;
+  getGoldUpgradeCost: () => BigNum;
   levelUpCharacter: (templateId: string) => void;
   evolveCharacter: (templateId: string) => void;
-  getTotalDps: () => number;
-  getCharDpsBreakdown: (templateId: string) => { base: number; typeMult: number; final: number };
+  getTotalDps: () => BigNum;
+  getCharDpsBreakdown: (templateId: string) => { base: BigNum; typeMult: number; final: BigNum };
   equipCharacter: (id: string, slot: number) => void;
   unequipCharacter: (slot: number) => void;
 }
@@ -145,8 +146,8 @@ export interface ShopState {
 export interface ShopActions {
   getEventDpsMult: () => number;
   setEventDpsMult: (mult: number, durationMs: number) => void;
-  dealInstantDamage: (dmg: number) => void;
-  grantEventRewards: (coins?: number, gems?: number, crowns?: number) => void;
+  dealInstantDamage: (dmg: BigNum) => void;
+  grantEventRewards: (coins?: BigNum, gems?: number, crowns?: number) => void;
   isDpsBoostActive: () => boolean;
   isGoldBoostActive: () => boolean;
   buyDpsBoost: () => void;
@@ -197,7 +198,7 @@ export interface MetaProgressionActions {
   getOfflineMult: () => number;
   getOfflineCapHours: () => number;
   getOfflineRewardScale: () => number;
-  getOfflineCoinsPerHour: () => number;
+  getOfflineCoinsPerHour: () => BigNum;
   getOfflineKillsPerHour: () => number;
   getOfflineGemsPerHour: () => number;
   getOfflineMultCost: () => number | null;
@@ -273,7 +274,7 @@ export interface UltimateActions {
   getDpsMultiplierFor: (templateId: string) => number;
   getActiveCritChance: () => number | null;
   getActiveEnemyDamageTakenMultiplier: () => number;
-  getActiveBonusDpsFlat: (teamDps: number) => number;
+  getActiveBonusDpsFlat: (teamDps: BigNum) => BigNum;
   getActiveDamageToCoinPct: () => number;
 }
 export type UltimateSlice = UltimateState & UltimateActions;

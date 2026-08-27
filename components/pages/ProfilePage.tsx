@@ -10,6 +10,7 @@ import { formatNumber } from '@/lib/game/format';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { PageScroll } from '@/components/ui/Page';
+import { bnGt, type BigNum } from '@/lib/game/bignum';
 
 const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
@@ -43,12 +44,12 @@ export function ProfilePage() {
   }, [ownedChars]);
 
   const highestDpsChar = useMemo(() => {
-    let best: { name: string; dps: number } | null = null;
+    let best: { name: string; dps: BigNum } | null = null;
     for (const [key, owned] of Object.entries(collection)) {
       const tpl = CHARACTER_POOL.find(c => c.id === parseInstanceKey(key).templateId);
       if (!tpl) continue;
       const dps = calcCharDps(tpl, owned);
-      if (!best || dps > best.dps) best = { name: tpl.name, dps };
+      if (!best || bnGt(dps, best.dps)) best = { name: tpl.name, dps };
     }
     return best;
   }, [collection]);
@@ -230,7 +231,7 @@ export function ProfilePage() {
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'14px' }}>
                 <div style={{ padding:'12px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'10px' }}>
                   <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color:'var(--text-dim)', letterSpacing:'1.5px', marginBottom:'6px' }}>REVENU PASSIF</div>
-                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'17.5px', color:'var(--gold-hi)' }}>{formatNumber(Math.floor(perHour))}<span style={{ fontSize:'12px', color:'var(--text-sub)' }}> /h</span></div>
+                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'17.5px', color:'var(--gold-hi)' }}>{formatNumber(perHour)}<span style={{ fontSize:'12px', color:'var(--text-sub)' }}> /h</span></div>
                   <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginTop:'2px' }}>×{offMult.toFixed(2)} · plafond {offCapH}h</div>
                 </div>
                 <div style={{ padding:'12px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'10px' }}>

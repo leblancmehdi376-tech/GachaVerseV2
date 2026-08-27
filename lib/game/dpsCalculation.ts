@@ -3,6 +3,7 @@ import { computeEquippedMultiplier } from './items';
 import { calcCharDps } from '@/lib/game/formulas';
 import type { OwnedCharacter } from '@/types/game';
 import { calcDpsWithSynergies, computeActiveSynergies } from './synergies';
+import { BN_ZERO, bnAdd, bnMulScalar, type BigNum } from './bignum';
 
 /**
  * Calcule le multiplicateur d'équipement pour un personnage.
@@ -24,12 +25,12 @@ export function calculateCharacterEquippedDps(
   characterId: string,
   ownedChar: OwnedCharacter,
   activeSynergies: ReturnType<typeof computeActiveSynergies>
-): number {
+): BigNum {
   const tpl = getCharacterById(ownedChar.templateId);
-  if (!tpl) return 0;
+  if (!tpl) return BN_ZERO;
   const base = calcCharDps(tpl, ownedChar);
   const equippedMult = getEquipmentMultiplier(ownedChar, tpl);
-  return calcDpsWithSynergies(characterId, Math.floor(base * equippedMult), activeSynergies);
+  return calcDpsWithSynergies(characterId, bnMulScalar(base, equippedMult), activeSynergies);
 }
 
 /**
@@ -42,7 +43,7 @@ export function calculateCharacterEquippedDps(
 export function calculateEquippedTeamDps(
   equippedTeam: (string | null)[],
   collection: Record<string, OwnedCharacter>
-): number {
+): BigNum {
   const activeSynergies = computeActiveSynergies(equippedTeam);
 
   return equippedTeam.reduce((sum, id) => {
@@ -53,6 +54,6 @@ export function calculateEquippedTeamDps(
     if (!tpl) return sum;
     const base = calcCharDps(tpl, owned);
     const equippedMult = getEquipmentMultiplier(owned, tpl);
-    return sum + calcDpsWithSynergies(id, Math.floor(base * equippedMult), activeSynergies);
-  }, 0);
+    return bnAdd(sum, calcDpsWithSynergies(id, bnMulScalar(base, equippedMult), activeSynergies));
+  }, BN_ZERO);
 }

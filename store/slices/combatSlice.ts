@@ -9,6 +9,7 @@ import { getUltimateDef } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { resolveEnemyDeath, runPeakPalierOf } from '../gameStoreHelpers';
 import type { GameStore, CombatActions } from '../gameStore.types';
+import { BN_ZERO, bnAdd, bnFromNumber, bnGte, bnIsZero, bnMax, bnMulScalar, bnSub } from '@/lib/game/bignum';
 
 // Idle : plancher de DPS pour qu'un joueur SANS compagnon progresse quand même
 // (lentement) en début de partie. Exprimé en fraction des PV de l'ennemi courant
@@ -79,17 +80,17 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     // quel ennemi mourait en ~167s peu importe l'équipe (voire sans
     // équipe du tout), ce qui cassait complètement la difficulté.
     const hasNoTeam = get().equippedTeam.every(id => !id);
-    const idleFloor = hasNoTeam ? Math.max(1, Math.floor(get().currentEnemy.maxHp * BASE_IDLE_DPS_HP_FRACTION)) : 0;
+    const idleFloor = hasNoTeam ? bnMax(bnFromNumber(1), bnMulScalar(get().currentEnemy.maxHp, BASE_IDLE_DPS_HP_FRACTION)) : BN_ZERO;
 
-    const finalDps = Math.floor((baseTeamDps + bonusFlat) * enemyMult * get().getEventDpsMult()) + idleFloor;
-    if (finalDps <= 0) return;
+    const finalDps = bnAdd(bnMulScalar(bnAdd(baseTeamDps, bonusFlat), enemyMult * get().getEventDpsMult()), idleFloor);
+    if (bnIsZero(finalDps)) return;
 
-    const bonusCoins = Math.floor(finalDps * damageToCoinPct / 100);
+    const bonusCoins = bnMulScalar(finalDps, damageToCoinPct / 100);
 
     set(state => {
-      const newHp = Math.max(0, state.currentEnemy.currentHp - finalDps);
-      const withCoins = bonusCoins > 0 ? { pixelCoins: state.pixelCoins + bonusCoins } : {};
-      if (newHp <= 0) return { ...withCoins, ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], eventQuests: state.eventQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
+      const newHp = bnSub(state.currentEnemy.currentHp, finalDps);
+      const withCoins = !bnIsZero(bonusCoins) ? { pixelCoins: bnAdd(state.pixelCoins, bonusCoins) } : {};
+      if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], eventQuests: state.eventQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
       return { ...withCoins, currentEnemy: { ...state.currentEnemy, currentHp: newHp } };
     });
   },
@@ -122,26 +123,25 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     const teamDps   = state.getTotalDps();
     const ownedSelf = state.collection[templateId];
     const tplSelf   = getCharacterById(pureId);
-    const selfDps   = (ownedSelf && tplSelf) ? calcCharDps(tplSelf, ownedSelf) : 0;
+    const selfDps   = (ownedSelf && tplSelf) ? calcCharDps(tplSelf, ownedSelf) : BN_ZERO;
 
     // ── Dégâts instantanés (one-shot, calculés à l'activation) ────────
-    let instantDmg = 0;
-    if (eff.instantDamagePctSelfDps) instantDmg += selfDps * (eff.instantDamagePctSelfDps / 100);
-    if (eff.instantDamagePctTeamDps) instantDmg += teamDps * (eff.instantDamagePctTeamDps / 100);
-    if (eff.instantDamagePctMaxHp)   instantDmg += state.currentEnemy.maxHp * (eff.instantDamagePctMaxHp / 100);
-    instantDmg = Math.floor(instantDmg);
+    let instantDmg = BN_ZERO;
+    if (eff.instantDamagePctSelfDps) instantDmg = bnAdd(instantDmg, bnMulScalar(selfDps, eff.instantDamagePctSelfDps / 100));
+    if (eff.instantDamagePctTeamDps) instantDmg = bnAdd(instantDmg, bnMulScalar(teamDps, eff.instantDamagePctTeamDps / 100));
+    if (eff.instantDamagePctMaxHp)   instantDmg = bnAdd(instantDmg, bnMulScalar(state.currentEnemy.maxHp, eff.instantDamagePctMaxHp / 100));
 
     // ── Monnaie instantanée (one-shot) ────────────────────────────────
-    let instantCoins = 0;
+    let instantCoins = BN_ZERO;
     if (eff.instantCoinMultiplierBurst) {
-      instantCoins += Math.floor(state.currentEnemy.pixelCoinsReward * (eff.instantCoinMultiplierBurst - 1));
+      instantCoins = bnMulScalar(state.currentEnemy.pixelCoinsReward, eff.instantCoinMultiplierBurst - 1);
     }
 
-    if (instantDmg > 0 || instantCoins > 0) {
+    if (!bnIsZero(instantDmg) || !bnIsZero(instantCoins)) {
       set(s => {
-        const withCoins = instantCoins > 0 ? { pixelCoins: s.pixelCoins + instantCoins } : {};
-        const newHp = Math.max(0, s.currentEnemy.currentHp - instantDmg);
-        if (newHp <= 0) return { ...withCoins, ...resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], eventQuests: s.eventQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp }, ...withCoins }) };
+        const withCoins = !bnIsZero(instantCoins) ? { pixelCoins: bnAdd(s.pixelCoins, instantCoins) } : {};
+        const newHp = bnSub(s.currentEnemy.currentHp, instantDmg);
+        if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], eventQuests: s.eventQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp }, ...withCoins }) };
         return { ...withCoins, currentEnemy: { ...s.currentEnemy, currentHp: newHp } };
       });
     }
@@ -150,9 +150,9 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     get().activateUlt(templateId, formIndex, get().equippedTeam);
   },
 
-  spendPixelCoins: (n) => {
-    if (get().pixelCoins < n) return false;
-    set(s => ({ pixelCoins: s.pixelCoins - n }));
+  spendPixelCoins: (cost) => {
+    if (!bnGte(get().pixelCoins, cost)) return false;
+    set(s => ({ pixelCoins: bnSub(s.pixelCoins, cost) }));
     return true;
   },
 });

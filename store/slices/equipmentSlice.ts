@@ -4,6 +4,7 @@ import type { StateCreator } from 'zustand';
 import { defaultEquippedItems, getNextRarity, EquippedItems } from '@/types/game';
 import { ITEM_DEFS, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput } from '@/lib/game/items';
 import type { GameStore, EquipmentActions } from '../gameStore.types';
+import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 
 export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActions> = (set, get) => ({
   addItem: (itemId, qty = 1) => set(s => ({
@@ -34,7 +35,7 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
       const removed = Math.min(current, qty);
       return {
         equipmentInventory: { ...s.equipmentInventory, [equipmentId]: current - removed },
-        pixelCoins: s.pixelCoins + def.recycleValue * removed,
+        pixelCoins: bnAdd(s.pixelCoins, bnFromNumber(def.recycleValue * removed)),
       };
     });
   },

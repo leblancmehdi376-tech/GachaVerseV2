@@ -1,11 +1,12 @@
 'use client';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
+import { bnIsZero, type BigNum } from '@/lib/game/bignum';
 
 interface Props {
   palier: number;         // le NOUVEAU palier débloqué
   gemsEarned: number;
-  coinsEarned: number;
+  coinsEarned: BigNum;
   onClose: () => void;
 }
 
@@ -16,7 +17,7 @@ export function BossVictoryScreen({ palier, gemsEarned, coinsEarned, onClose }: 
   // On n'affiche que les récompenses réellement gagnées (pas de "+0").
   const rewards = [
     { icon: '💎', label: 'Neko-Gemmes', value: `+${gemsEarned}`, color: 'var(--cyan-hi)', show: gemsEarned > 0 },
-    { icon: '🪙', label: 'Pixel-Coins', value: `+${formatNumber(coinsEarned)}`, color: 'var(--gold)', show: coinsEarned > 0 },
+    { icon: '🪙', label: 'Pixel-Coins', value: `+${formatNumber(coinsEarned)}`, color: 'var(--gold)', show: !bnIsZero(coinsEarned) },
     { icon: '👑', label: 'Couronne',    value: '+1', color: '#fbbf24', show: true },
   ].filter(r => r.show);
 

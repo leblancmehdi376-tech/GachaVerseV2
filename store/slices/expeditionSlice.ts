@@ -11,6 +11,7 @@ import { formatNumber } from '@/lib/game/format';
 import { correctedNow } from '@/lib/firebase/clockOffset';
 import { requestUrgentSave } from '../gameStoreHelpers';
 import type { GameStore, ExpeditionActions, ActiveExpedition } from '../gameStore.types';
+import { bnAdd, bnFromNumber, bnLt } from '@/lib/game/bignum';
 
 function rollAffinity(): Affinity {
   return AFFINITY_ORDER[Math.floor(Math.random() * AFFINITY_ORDER.length)];
@@ -140,7 +141,7 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
 
     // Vérifier le DPS minimum de l'équipe d'expédition
     const teamDps = getExpeditionTeamDps(gs.collection, characterIds);
-    if (teamDps < def.minTeamDps)
+    if (bnLt(teamDps, bnFromNumber(def.minTeamDps)))
       return { ok:false, reason:`DPS d'équipe insuffisant (${formatNumber(teamDps)}/${formatNumber(def.minTeamDps)})` };
 
     return { ok: true };
@@ -186,7 +187,7 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
 
     // Appliquer les récompenses monétaires
     set(s => ({
-      pixelCoins: s.pixelCoins + coins,
+      pixelCoins: bnAdd(s.pixelCoins, bnFromNumber(coins)),
       nekoGems:   s.nekoGems   + gems,
     }));
     // Quêtes "terminer N expédition(s)"
@@ -229,7 +230,7 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
     }
 
     // Toast de résultat
-    const parts = [`🪙 +${(coins / 1_000_000).toFixed(1)}M`];
+    const parts = [`🪙 +${formatNumber(coins)}`];
     if (gems > 0)       parts.push(`💎 +${gems}`);
     if (dropGained > 0) parts.push(`${dropGained > 0 ? '✦ ' : ''}+${dropGained} drop`);
     if (def.unlocksEquipRarity)     parts.push(`🔓 Fusion ${RARITY_CONFIG[def.unlocksEquipRarity].label} débloquée`);

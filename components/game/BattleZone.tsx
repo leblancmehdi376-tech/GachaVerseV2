@@ -19,9 +19,12 @@ import { getUltimateDef } from '@/lib/game/ultimates';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { BattleParticles } from '@/components/game/BattleParticles';
 import { SkillTooltip } from '@/components/ui/SkillTooltip';
+import { bnDivRatio, bnFromNumber, bnGt, bnIsZero, bnMul, type BigNum } from '@/lib/game/bignum';
+
+const ONE = bnFromNumber(1);
 
 
-interface Dmg { id: number; x: number; y: number; val: number; }
+interface Dmg { id: number; x: number; y: number; val: BigNum; }
 
 function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(`/backgrounds/bg_palier_${palier}`));
@@ -260,16 +263,16 @@ export function BattleZone() {
   const [showTravel, setShowTravel] = useState(false);
   const ultActiveUlts = useGameStore(s => s.ultActiveUlts);
   const dpsUltMult  = ultActiveUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
-  const dps = Math.floor(getTotalDps()); // inclut déjà dpsMultiplier/selfDpsMultiplier (calculé dans gameStore)
+  const dps = getTotalDps(); // inclut déjà dpsMultiplier/selfDpsMultiplier (calculé dans gameStore)
   const enemyAffinity = getAffinityForId(currentEnemy.name);
   const cfg = getPalierConfig(palier);
   const isFarming = palier < runPeakPalier; // voyage sur un palier déjà validé CETTE run
-  const hp  = (currentEnemy.currentHp / currentEnemy.maxHp) * 100;
+  const hp  = bnDivRatio(currentEnemy.currentHp, currentEnemy.maxHp) * 100;
   const bossWarn = bossActive && bossTimeLeft <= 10;
 
   // ── Idle : dégâts automatiques (feedback visuel du DPS, sans clic) ────────
   useEffect(() => {
-    if (dps <= 0 || currentEnemy.currentHp <= 0) return;
+    if (bnIsZero(dps) || bnIsZero(currentEnemy.currentHp)) return;
     const id = setInterval(() => {
       const d: Dmg = {
         id: Date.now() + Math.random(),
@@ -281,7 +284,8 @@ export function BattleZone() {
       setTimeout(() => setDmgs(p => p.filter(x => x.id !== d.id)), 800);
     }, 750);
     return () => clearInterval(id);
-  }, [dps, currentEnemy.currentHp]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dps/currentHp sont des BigNum (objets) : on dépend de leurs composantes primitives pour éviter de relancer l'intervalle à chaque render sans changement de valeur.
+  }, [dps.mantissa, dps.exponent, currentEnemy.currentHp.mantissa, currentEnemy.currentHp.exponent]);
 
   return (
     <div style={{ position:'relative', width:'100%', height:'100%', borderRadius:12, overflow:'hidden', border:'1px solid var(--border)', display:'flex', flexDirection:'column' }}>
@@ -516,8 +520,8 @@ export function BattleZone() {
               +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
               {(() => {
                 const chestMult = getGoldChestMultiplier(goldUpgradeLevel ?? 0);
-                if (chestMult <= 1) return null;
-                const withChest = Math.floor(currentEnemy.pixelCoinsReward * chestMult);
+                if (!bnGt(chestMult, ONE)) return null;
+                const withChest = bnMul(currentEnemy.pixelCoinsReward, chestMult);
                 return <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(withChest)})</span>;
               })()}
             </div>

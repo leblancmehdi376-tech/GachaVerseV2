@@ -14,6 +14,7 @@ import {
   requestUrgentSaveAndWait,
 } from '../gameStoreHelpers';
 import type { GameStore, MetaProgressionActions, OfflineGain } from '../gameStore.types';
+import { BN_ZERO, bnAdd, bnDivRatio, bnIsZero, bnMul, bnMulScalar, bnToNumber } from '@/lib/game/bignum';
 
 export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaProgressionActions> = (set, get) => ({
   // ─── Gains hors-ligne (idle) ──────────────────────────────────────
@@ -25,21 +26,21 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   getOfflineKillsPerHour: () => {
     const s = get();
     const enemy = s.currentEnemy;
-    if (!enemy || enemy.maxHp <= 0) return 0;
+    if (!enemy || bnIsZero(enemy.maxHp)) return 0;
     const dps = s.getTotalDps();
-    if (dps <= 0) return 0;
-    return (dps / enemy.maxHp) * 3600 * s.getOfflineMult();
+    if (bnIsZero(dps)) return 0;
+    return bnDivRatio(dps, enemy.maxHp) * 3600 * s.getOfflineMult();
   },
 
   // Revenu passif estimé (coins/heure) = mobs/h × butin d'un mob × multiplicateurs.
   getOfflineCoinsPerHour: () => {
     const s = get();
     const enemy = s.currentEnemy;
-    if (!enemy) return 0;
+    if (!enemy) return BN_ZERO;
     const goldMult = s.getGoldMultiplier();
     const coinMult = getPrestigeBonuses(s.prestigeBonusLevels, s.prestigeRankRecoveryLevel).coinsMult;
-    const coinsPerKill = enemy.pixelCoinsReward * goldMult * coinMult;
-    return s.getOfflineKillsPerHour() * coinsPerKill;
+    const coinsPerKill = bnMulScalar(bnMul(enemy.pixelCoinsReward, goldMult), coinMult);
+    return bnMulScalar(coinsPerKill, s.getOfflineKillsPerHour());
   },
 
   // Gemmes/heure = mobs/h × taux de drop de gemme sur un mob normal.
@@ -90,20 +91,23 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     // aucun passage de palier, et les gemmes viennent du drop des mobs.
     const rewardScale = s.getOfflineRewardScale();
     const kills = Math.floor(s.getOfflineKillsPerHour() * hours);
-    const coins = Math.floor(s.getOfflineCoinsPerHour()  * hours * rewardScale);
+    const coins = bnMulScalar(s.getOfflineCoinsPerHour(), hours * rewardScale);
     const gems  = Math.floor(s.getOfflineGemsPerHour()   * hours * rewardScale);
 
     const gain: OfflineGain = { coins, gems, kills, seconds, rawSeconds, capped: rawSeconds > capSeconds, at: now };
-    return (coins > 0 || gems > 0) ? gain : null;
+    return (!bnIsZero(coins) || gems > 0) ? gain : null;
   },
 
   // Crédite un gain précédemment calculé par checkOfflineGain — appelé
   // uniquement quand le joueur clique sur "RÉCUPÉRER" dans la popup.
   claimOfflineEarnings: (gain) => {
     set(state => {
-      const cq = bumpCoinQuests(state.quests, state.weeklyQuests ?? [], gain.coins);
+      // bnToNumber peut saturer à Infinity à très haut palier, mais
+      // bumpCoinQuests ne s'en sert que pour comparer à un plafond de quête
+      // fixe (Math.min) — reste correct même saturé.
+      const cq = bumpCoinQuests(state.quests, state.weeklyQuests ?? [], bnToNumber(gain.coins));
       return {
-        pixelCoins: state.pixelCoins + gain.coins,
+        pixelCoins: bnAdd(state.pixelCoins, gain.coins),
         nekoGems:   state.nekoGems + gain.gems,
         savedAt: gain.at,
         lastOfflineGain: gain,
@@ -166,7 +170,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       equipmentInventory: {},
       unlockedEquipRarities: ['C'] as Rarity[],
       unlockedEquipDropRarities: ['C'] as Rarity[],
-      pixelCoins: 0,
+      pixelCoins: BN_ZERO,
       collection: {},
       championInventory: {},
       historicalMaxRank: newHistoricalMaxRank,

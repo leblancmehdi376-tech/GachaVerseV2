@@ -14,6 +14,7 @@ import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels } from '@/lib/game/prestige';
 import type { GameStore } from './gameStore.types';
+import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
 import { DAILY_QUESTS, WEEKLY_QUESTS, EVENT_QUESTS } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
 import { createCharacterSlice } from './slices/characterSlice';
@@ -39,7 +40,7 @@ export {
 } from './gameStoreHelpers';
 
 const makeInitial = () => ({
-  pixelCoins: 0, nekoGems: 10, totalClicks: 0,
+  pixelCoins: BN_ZERO, nekoGems: 10, totalClicks: 0,
   totalKills: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0, totalGachaPulls: 0, totalBossKills: 0, totalGemsSpent: 0,
   totalBossCrownsEarned: 0, totalVoidOrbsEarned: 0,
   wave: 1, palier: 1, maxPalierReached: 1, runPeakPalier: null as number | null,
@@ -51,7 +52,7 @@ const makeInitial = () => ({
   bossActive: false, bossTimeLeft: 0, bossAvoided: false,
   ultUsedThisFight: [] as string[],
   lastSaved: Date.now(),
-  lastBossVictory: null as { palier: number; gems: number; coins: number; crowns: number; at: number } | null,
+  lastBossVictory: null as GameStore['lastBossVictory'],
   username: 'NEKOZ',
   quests: DAILY_QUESTS.map(q => ({ ...q, current: 0, done: false })),
   questsDayKey: getTodayDayKey(),
@@ -183,7 +184,30 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
       merge: (persisted, current) => {
-        const merged = { ...current, ...(persisted as object), ...migrateLegacyStoresOnce() } as GameStore;
+        const raw: Record<string, unknown> = { ...current, ...(persisted as object), ...migrateLegacyStoresOnce() };
+        // Migration BigNum : les anciennes sauvegardes (ou une save déjà
+        // corrompue par le bug de débordement vers Infinity que ce type
+        // corrige — JSON.stringify(Infinity) === null) stockent encore ces
+        // champs en `number` brut (ou `null`) — coerceBigNum les remet en forme.
+        raw.pixelCoins = coerceBigNum(raw.pixelCoins);
+        if (raw.currentEnemy && typeof raw.currentEnemy === 'object') {
+          const enemy = raw.currentEnemy as Record<string, unknown>;
+          raw.currentEnemy = {
+            ...enemy,
+            maxHp: coerceBigNum(enemy.maxHp),
+            currentHp: coerceBigNum(enemy.currentHp),
+            pixelCoinsReward: coerceBigNum(enemy.pixelCoinsReward),
+          };
+        }
+        if (raw.lastOfflineGain && typeof raw.lastOfflineGain === 'object') {
+          const gain = raw.lastOfflineGain as Record<string, unknown>;
+          raw.lastOfflineGain = { ...gain, coins: coerceBigNum(gain.coins) };
+        }
+        if (raw.lastBossVictory && typeof raw.lastBossVictory === 'object') {
+          const victory = raw.lastBossVictory as Record<string, unknown>;
+          raw.lastBossVictory = { ...victory, coins: coerceBigNum(victory.coins) };
+        }
+        const merged = raw as unknown as GameStore;
         // Backfill titres (ex-onRehydrateStorage d'achievementStore) — tourne à
         // CHAQUE rehydration, pas juste lors d'une migration legacy : garantit
         // 'Novice' (titre de départ gratuit) même pour les parties commencées

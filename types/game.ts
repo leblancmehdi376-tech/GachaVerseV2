@@ -1,4 +1,5 @@
 import type { CardEdition } from '@/lib/game/editions';
+import type { BigNum } from '@/lib/game/bignum';
 export type { CardEdition };
 
 // ── Rareté — ordre de puissance : C < U < R < E < L < M < S < CO < P < T
@@ -109,12 +110,12 @@ export const EVOLUTION_STONE_ITEM_ID = 'pierre_evolution';
 
 export interface Enemy {
   id: string; name: string; wave: number; palier: number;
-  maxHp: number; currentHp: number; spritePath: string;
-  pixelCoinsReward: number; gemsReward: number; isBoss: boolean;
+  maxHp: BigNum; currentHp: BigNum; spritePath: string;
+  pixelCoinsReward: BigNum; gemsReward: number; isBoss: boolean;
 }
 
 export interface GameState {
-  pixelCoins: number; nekoGems: number; totalClicks: number;
+  pixelCoins: BigNum; nekoGems: number; totalClicks: number;
   totalKills: number; totalQuestsCompleted: number; totalUpgradesPerformed: number; totalGachaPulls: number; totalBossKills: number; totalGemsSpent: number;
   // Cumuls à vie (jamais décrémentés, contrairement au solde dépensable) —
   // utilisés par les succès "au total"/"accumule X" (crowns_50, orbs_30).

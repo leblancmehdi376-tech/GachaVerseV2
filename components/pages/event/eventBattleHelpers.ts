@@ -4,13 +4,14 @@ import { Affinity, AFFINITY_ORDER, affinityMatchupKind, getAffinityForId } from 
 import { getItemDef } from '@/lib/game/items';
 import { DropResult } from '@/lib/game/eventBoss';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
+import type { BigNum } from '@/lib/game/bignum';
 
 // ── Compagnons d'event : jusqu'à 3 alliés hors équipe/expédition qui
 // influencent la durée du combat selon leur type vs celui (aléatoire) du boss.
 export const MAX_EVENT_COMPANIONS = 3;
 export const COMPANION_DURATION_STEP = 0.10; // ±10% par compagnon fort/faible
 
-export interface Dmg { id: number; x: number; y: number; val: number; crit: boolean; }
+export interface Dmg { id: number; x: number; y: number; val: BigNum; crit: boolean; }
 
 export function rollBossAffinity(): Affinity {
   return AFFINITY_ORDER[Math.floor(Math.random() * AFFINITY_ORDER.length)];

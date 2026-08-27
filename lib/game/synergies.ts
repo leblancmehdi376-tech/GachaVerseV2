@@ -1,5 +1,6 @@
 import { getCharacterById } from './characters';
 import { parseInstanceKey } from './editions';
+import { type BigNum, bnMulScalar } from './bignum';
 
 export interface SynergyThreshold {
   count: number;
@@ -622,9 +623,9 @@ export function computeActiveSynergies(
 
 export function calcDpsWithSynergies(
   templateId: string,
-  baseDps: number,
+  baseDps: BigNum,
   activeSynergies: ActiveSynergy[]
-): number {
+): BigNum {
   const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
   if (!tpl) return baseDps;
 
@@ -643,7 +644,7 @@ export function calcDpsWithSynergies(
     }
   }
 
-  return Math.floor(baseDps * mult);
+  return bnMulScalar(baseDps, mult);
 }
 
 export { UNIQUE_SYNERGIES as SYNERGIES_LIST };

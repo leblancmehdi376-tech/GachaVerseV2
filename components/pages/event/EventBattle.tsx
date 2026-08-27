@@ -11,6 +11,7 @@ import { MAX_EVENT_COMPANIONS, Dmg, rollBossAffinity, computeDurationMult } from
 import { CompanionSelector } from './CompanionSelector';
 import { EventBg, BossSprite } from './EventSprites';
 import { DropPopup } from './DropPopup';
+import { bnDivRatio, bnIsZero, bnMulScalar, bnSub, type BigNum } from '@/lib/game/bignum';
 
 export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
   const { addItem, nekoGems, bossCrowns, collection, equippedTeam, getActiveEnemyDamageTakenMultiplier, unlockedTitles } = useGameStore();
@@ -30,8 +31,8 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
       : prev
   );
 
-  const [maxHp, setMaxHp] = useState(() => getEventBossMaxHp(boss, totalEquippedDps, durationMult));
-  const [hp, setHp] = useState(maxHp);
+  const [maxHp, setMaxHp] = useState<BigNum>(() => getEventBossMaxHp(boss, totalEquippedDps, durationMult));
+  const [hp, setHp] = useState<BigNum>(maxHp);
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
   const [drops, setDrops] = useState<DropResult[] | null>(null);
   const [dead, setDead] = useState(false);
@@ -47,15 +48,15 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   // un pop-up de dégâts flottant pour le retour visuel (plus de clic).
   useEffect(() => {
     if (dead) return;
-    const dps = totalEquippedDps * getActiveEnemyDamageTakenMultiplier();
-    if (dps <= 0) return;
+    const dps = bnMulScalar(totalEquippedDps, getActiveEnemyDamageTakenMultiplier());
+    if (bnIsZero(dps)) return;
     const id = setInterval(() => {
-      setHp(h => Math.max(0, h - dps));
+      setHp(h => bnSub(h, dps));
       const d: Dmg = {
         id: Date.now() + Math.random(),
         x: 60 + Math.random() * 120,
         y: 40 + Math.random() * 120,
-        val: Math.floor(dps),
+        val: dps,
         crit: false,
       };
       setDmgs(p => [...p, d]);
@@ -65,7 +66,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   }, [dead, totalEquippedDps, getActiveEnemyDamageTakenMultiplier]);
 
   useEffect(() => {
-    if (hp <= 0 && !dead) {
+    if (bnIsZero(hp) && !dead) {
       setDead(true);
       const results = rollEventDrop(boss.id, useGameStore.getState().unlockedTitles);
       const gemsGained  = results.filter(r => r.type === 'gems').reduce((s, r) => s + (r.qty ?? 0), 0);
@@ -103,7 +104,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
     setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null); setKills(k => k + 1);
   };
 
-  const hpPct   = Math.max(0, hp / maxHp * 100);
+  const hpPct   = Math.max(0, bnDivRatio(hp, maxHp) * 100);
   const hpColor = hpPct > 50 ? '#c084fc' : hpPct > 20 ? '#f87171' : '#ff4040';
 
   return (
@@ -398,7 +399,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
                 whiteSpace:'nowrap'
               }}
             >
-              {formatNumber(Math.max(0, hp))} / {formatNumber(maxHp)}
+              {formatNumber(hp)} / {formatNumber(maxHp)}
             </span>
           </div>
 

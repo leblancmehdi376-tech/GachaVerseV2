@@ -7,6 +7,7 @@ import { saveGameToFirestore, loadGameFromFirestore, probeClockOffset } from '@/
 import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
 import { logFirestoreOp } from '@/lib/firebase/telemetry';
 import { logger } from '@/lib/logger';
+import { BN_ZERO, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
 const LOCAL_INTERVAL_MS    =  30_000; // rafraîchissement de savedAt toutes les 30s (gratuit, illimité)
@@ -162,6 +163,31 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   // commentaire) : on ne les laisse pas ici écraser ce merge en "dernier gagne".
   delete data.unlockedTitles;
   delete data.activeTitle;
+
+  // Migration BigNum : une sauvegarde cloud écrite par une version antérieure
+  // (ou par un client qui n'a pas encore rechargé ce code) stocke encore ces
+  // champs en `number` brut — coerceBigNum les remet en forme. Contrairement à
+  // localStorage, Firestore ne corrompt pas ces valeurs (pas de JSON.stringify
+  // qui transformerait Infinity en null), mais le TYPE attendu par le store a
+  // changé et doit être normalisé avant setState.
+  if ('pixelCoins' in data) data.pixelCoins = coerceBigNum(data.pixelCoins);
+  if (data.currentEnemy && typeof data.currentEnemy === 'object') {
+    const enemy = data.currentEnemy as Record<string, unknown>;
+    data.currentEnemy = {
+      ...enemy,
+      maxHp: coerceBigNum(enemy.maxHp),
+      currentHp: coerceBigNum(enemy.currentHp),
+      pixelCoinsReward: coerceBigNum(enemy.pixelCoinsReward),
+    };
+  }
+  if (data.lastOfflineGain && typeof data.lastOfflineGain === 'object') {
+    const gain = data.lastOfflineGain as Record<string, unknown>;
+    data.lastOfflineGain = { ...gain, coins: coerceBigNum(gain.coins) };
+  }
+  if (data.lastBossVictory && typeof data.lastBossVictory === 'object') {
+    const victory = data.lastBossVictory as Record<string, unknown>;
+    data.lastBossVictory = { ...victory, coins: coerceBigNum(victory.coins) };
+  }
 
   useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);
   // Allow effects to settle, then re-enable toasts.
@@ -383,8 +409,8 @@ async function saveToFirebase(userId: string, reason = 'unknown'): Promise<boole
     const s    = useGameStore.getState();
     const data = getSerializableState();
 
-    let totalDps = 0;
-    try { totalDps = s.getTotalDps?.() ?? 0; } catch { /* ignore */ }
+    let totalDps: BigNum = BN_ZERO;
+    try { totalDps = s.getTotalDps?.() ?? BN_ZERO; } catch { /* ignore */ }
 
     // Un seul setDoc (fusionné avec les champs du classement) au lieu de deux
     // écritures séparées sur le MÊME document 'saves/{uid}' — saveGameToFirestore
@@ -587,7 +613,7 @@ export function useCloudSave(userId: string | null) {
       // chargé par loadAndApply, pas une nouvelle correction en direct).
       if (!loadedRef.current) return;
       const patch: Record<string, unknown> = { savedAt: correctedNow() };
-      if (typeof data.pixelCoins === 'number') patch.pixelCoins = data.pixelCoins;
+      if (typeof data.pixelCoins === 'number' || (data.pixelCoins && typeof data.pixelCoins === 'object')) patch.pixelCoins = coerceBigNum(data.pixelCoins);
       if (typeof data.nekoGems   === 'number') patch.nekoGems   = data.nekoGems;
       if (typeof data.bossCrowns === 'number') patch.bossCrowns = data.bossCrowns;
       if (typeof data.palier     === 'number') patch.palier     = data.palier;

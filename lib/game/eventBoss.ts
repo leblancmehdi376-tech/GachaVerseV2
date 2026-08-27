@@ -1,5 +1,6 @@
 // ── Monarque des Ombres — Boss d'événement ─────────────────────────────
 import { EVENT_TITLES } from './titles';
+import { bnMax, bnFromNumber, bnMulScalar, type BigNum } from './bignum';
 
 export interface EventBossDef {
   id: string;
@@ -148,8 +149,8 @@ const MIN_POWER_FLOOR      = 5;        // évite un calcul à 0 pour un joueur s
 // Le temps de combat reste "fixe" pour une config donnée : PV = DPS × temps,
 // donc le combat dure toujours exactement targetSeconds × durationMult,
 // quelle que soit la puissance du joueur.
-export function getEventBossMaxHp(boss: EventBossDef, currentPower: number, durationMult: number = 1): number {
-  const power = Math.max(currentPower, MIN_POWER_FLOOR);
+export function getEventBossMaxHp(boss: EventBossDef, currentPower: BigNum, durationMult: number = 1): BigNum {
+  const power = bnMax(currentPower, bnFromNumber(MIN_POWER_FLOOR));
   const targetSeconds = (boss.targetSeconds ?? FIGHT_TARGET_SECONDS) * durationMult;
-  return Math.floor(power * targetSeconds);
+  return bnMulScalar(power, targetSeconds);
 }

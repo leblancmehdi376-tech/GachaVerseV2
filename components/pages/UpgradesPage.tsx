@@ -12,6 +12,7 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId } from '@/lib/game/affinities';
 import { CollectionFilters, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
+import { BN_ZERO, bnCompare, bnGte, bnLt, bnToNumber } from '@/lib/game/bignum';
 
 const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
@@ -55,8 +56,8 @@ function GoldUpgradeCard() {
   const mult       = getGoldMultiplier();
   const locked     = level >= maxLevel;
   const nextCost   = getGoldChestCost(level);
-  const nextPct    = Math.round((getGoldChestMultiplier(level + 1) - 1) * 100);
-  const canAfford  = !locked && pixelCoins >= nextCost;
+  const nextPct    = Math.round((bnToNumber(getGoldChestMultiplier(level + 1)) - 1) * 100);
+  const canAfford  = !locked && bnGte(pixelCoins, nextCost);
 
   return (
     <div className="panel" style={{ borderColor:canAfford?'#4ade80':'var(--border)', padding:16, transition:'all 0.2s', boxShadow:canAfford?'0 0 24px rgba(74,222,128,0.14)':'none' }}>
@@ -66,7 +67,7 @@ function GoldUpgradeCard() {
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu. Chaque palier atteint débloque un niveau supplémentaire.</div>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>Bonus actuel :</span>
-            <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.5, color:'#4ade80' }}>×{mult.toFixed(2)}</span>
+            <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.5, color:'#4ade80' }}>×{formatNumber(mult)}</span>
           </div>
         </div>
         <div style={{ background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:8, padding:'8px 14px', textAlign:'center', flexShrink:0 }}>
@@ -100,6 +101,8 @@ function CharCard({ templateId }: { templateId: string }) {
   const canEvo_  = canEvolve(tpl, owned, inventory, dropInventory);
   const lvCost   = levelUpCost(owned.level);
   const evoCostV = evoCost(tpl.rarity, owned.currentForm);
+  const canAffordLv  = bnGte(pixelCoins, lvCost);
+  const canAffordEvo = bnGte(pixelCoins, evoCostV);
   const dps      = calcCharDps(tpl, owned);
   const cfg      = RARITY_CONFIG[tpl.rarity];
   const nextForm = tpl.forms?.[owned.currentForm + 1];
@@ -151,14 +154,14 @@ function CharCard({ templateId }: { templateId: string }) {
       </div>
       {/* Boutons */}
       <div style={{ display:'flex', gap:8, marginTop:12, paddingLeft:8 }}>
-        <button onClick={() => levelUpCharacter(templateId)} disabled={pixelCoins < lvCost}
-          style={{ flex:1, padding:'8px 10px', background:pixelCoins>=lvCost?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=lvCost?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=lvCost?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
+        <button onClick={() => levelUpCharacter(templateId)} disabled={!canAffordLv}
+          style={{ flex:1, padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
         </button>
-        <button onClick={handleLevelUpX10} disabled={pixelCoins < lvCost} title="Améliore jusqu'à 10 niveaux d'affilée"
-          style={{ flexShrink:0, padding:'8px 10px', background:pixelCoins>=lvCost?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=lvCost?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=lvCost?'pointer':'not-allowed', transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:pixelCoins>=lvCost?cfg.color:'var(--text-muted)' }}>×10</span>
+        <button onClick={handleLevelUpX10} disabled={!canAffordLv} title="Améliore jusqu'à 10 niveaux d'affilée"
+          style={{ flexShrink:0, padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}>×10</span>
         </button>
         {!canEvo_ && !hasItem && (
           <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
@@ -185,9 +188,9 @@ function CharCard({ templateId }: { templateId: string }) {
           </div>
         )}
         {canEvo_ && (
-          <button onClick={() => evolveCharacter(templateId)} disabled={pixelCoins < evoCostV}
-            style={{ flex:1, padding:'8px 10px', background:pixelCoins>=evoCostV?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${pixelCoins>=evoCostV?'#d97706':'var(--border)'}`, borderRadius:8, cursor:pixelCoins>=evoCostV?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:pixelCoins>=evoCostV?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:pixelCoins>=evoCostV?'#fbbf24':'var(--text-muted)' }}>
+          <button onClick={() => evolveCharacter(templateId)} disabled={!canAffordEvo}
+            style={{ flex:1, padding:'8px 10px', background:canAffordEvo?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${canAffordEvo?'#d97706':'var(--border)'}`, borderRadius:8, cursor:canAffordEvo?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:canAffordEvo?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:canAffordEvo?'#fbbf24':'var(--text-muted)' }}>
               {reqItems.length > 0 ? `${reqItems.map(d => d.icon).join('')} ÉVOLUER` : '✦ ÉVOLUER'}
             </span>
             <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
@@ -241,8 +244,8 @@ export function UpgradesPage() {
     if (sort === 'rarity') {
       return (RARITY_PRIORITY[aTpl.rarity] ?? 9) - (RARITY_PRIORITY[bTpl.rarity] ?? 9);
     }
-    if (sort === 'dps_desc') return (bOwned ? calcCharDps(bTpl, bOwned) : 0) - (aOwned ? calcCharDps(aTpl, aOwned) : 0);
-    if (sort === 'dps_asc') return (aOwned ? calcCharDps(aTpl, aOwned) : 0) - (bOwned ? calcCharDps(bTpl, bOwned) : 0);
+    if (sort === 'dps_desc') return bnCompare(bOwned ? calcCharDps(bTpl, bOwned) : BN_ZERO, aOwned ? calcCharDps(aTpl, aOwned) : BN_ZERO);
+    if (sort === 'dps_asc') return bnCompare(aOwned ? calcCharDps(aTpl, aOwned) : BN_ZERO, bOwned ? calcCharDps(bTpl, bOwned) : BN_ZERO);
     return aTpl.name.localeCompare(bTpl.name);
   });
   useEffect(() => { setMounted(true); }, []);

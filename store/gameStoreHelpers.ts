@@ -12,6 +12,7 @@ import {
   PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
 } from '@/lib/game/prestige';
 import type { Quest, ActiveUlt } from './gameStore.types';
+import { type BigNum, bnAdd, bnIsZero, bnMul, bnMulScalar, bnPow, bnToNumber } from '@/lib/game/bignum';
 
 // ── Anti-exploit multi-onglets ─────────────────────────────────────────────
 // Diffuse un instantané aux autres onglets ouverts du même navigateur via
@@ -93,11 +94,14 @@ export const GOLD_CHEST_COST_GROWTH = COIN_GROWTH + 0.02; // coût du coffre d'o
 export const GOLD_CHEST_MULT_GROWTH = 1.2;  // boost golds ×1.2^niveau_du_coffre
 
 // base*pow^level_du_palier
-export function getGoldChestCost(level: number): number {
-  return Math.round(GOLD_CHEST_COST_BASE * Math.pow(GOLD_CHEST_COST_GROWTH, (level*10-1)) * Math.pow(GOLD_CHEST_MULT_GROWTH, level));
+// `level` suit maxPalierReached (niveau max achetable), donc non-plafonné —
+// coût ET multiplicateur doivent rester en BigNum pour ne jamais déborder
+// (Math.pow(1.2, level) déborde déjà vers Infinity dès level ≈ 3900).
+export function getGoldChestCost(level: number): BigNum {
+  return bnMul(bnMulScalar(bnPow(GOLD_CHEST_COST_GROWTH, level*10-1), GOLD_CHEST_COST_BASE), bnPow(GOLD_CHEST_MULT_GROWTH, level));
 }
-export function getGoldChestMultiplier(level: number): number {
-  return Math.pow(GOLD_CHEST_MULT_GROWTH, level);
+export function getGoldChestMultiplier(level: number): BigNum {
+  return bnPow(GOLD_CHEST_MULT_GROWTH, level);
 }
 
 // Récompenses de progression
@@ -207,18 +211,18 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
   // Garde-fou : ne résout la mort que si currentEnemy.currentHp <= 0 a bien été
   // appliqué par l'appelant (voir tickDps/activateCharacterUltimate,
   // qui fusionnent { currentHp: newHp } avant d'appeler cette fonction).
-  if (state.currentEnemy.currentHp > 0) return {};
+  if (!bnIsZero(state.currentEnemy.currentHp)) return {};
 
   // Multiplicateurs de coins (or + ult + boost BossCrown)
-  const chestMult    = getGoldChestMultiplier((state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0);
+  const chestMult    = getGoldChestMultiplier((state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0); // BigNum (non-plafonné, suit maxPalierReached)
   const titleMult    = getTitleGoldMultiplier(state.activeTitle);
-  const goldMult     = chestMult * titleMult;
   const ultCoinMult  = getActiveCoinMultiplier(state.ultActiveUlts);
   const goldBoostEndsAt = (state as {goldBoostEndsAt?:number}).goldBoostEndsAt ?? 0;
   const boostGoldMult   = Date.now() < goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
   const prestigeCoinMult = getPrestigeBonuses(state.prestigeBonusLevels, state.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
-  const baseCoins   = Math.floor(state.currentEnemy.pixelCoinsReward * goldMult * ultCoinMult * boostGoldMult * prestigeCoinMult);
-  const coins = state.pixelCoins + baseCoins;
+  const goldMult = bnMulScalar(chestMult, titleMult * ultCoinMult * boostGoldMult * prestigeCoinMult);
+  const baseCoins   = bnMul(state.currentEnemy.pixelCoinsReward, goldMult);
+  const coins = bnAdd(state.pixelCoins, baseCoins);
 
   // 0.5% de chance de looter 1 gemme bonus sur n'importe quel ennemi (boss inclus)
   const mobGemDrop = Math.random() < MOB_GEM_DROP_CHANCE ? 1 : 0;
@@ -232,7 +236,10 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     q.id === 'w_kills_5000' && !q.done
       ? { ...q, current: Math.min(q.current+1, q.target) } : q
   );
-  const coinQuestUpdate = bumpCoinQuests(quests, weeklyQuests, baseCoins);
+  // bnToNumber peut saturer à Infinity à très haut palier, mais bumpCoinQuests
+  // ne s'en sert que pour comparer à un plafond de quête fixe (Math.min) — le
+  // résultat reste correct même saturé (voir bnToNumber dans lib/game/bignum.ts).
+  const coinQuestUpdate = bumpCoinQuests(quests, weeklyQuests, bnToNumber(baseCoins));
   const eventQuests = (state.eventQuests ?? []).map(q =>
     q.id === 'e_boss_20' && state.currentEnemy.isBoss && !q.done
       ? { ...q, current: Math.min(q.current+1, q.target) } : q

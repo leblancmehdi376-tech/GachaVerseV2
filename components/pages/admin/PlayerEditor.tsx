@@ -9,6 +9,7 @@ import {
 import { CHARACTER_POOL, getCharacterById } from '@/lib/game/characters';
 import { ITEM_DEFS, EQUIPMENT_DEFS } from '@/lib/game/items';
 import { RARITY_CONFIG } from '@/types/game';
+import { bnFromNumber, bnToNumber } from '@/lib/game/bignum';
 
 // Listes proposables à l'ajout (les héros ne vivent pas dans `collection`,
 // donc exclus) — calculées une fois, réutilisées pour les suggestions d'id
@@ -29,7 +30,7 @@ const detailCache = new Map<string, PlayerDetail>();
 
 function fieldsFromSave(save: PlayerSaveSummary | null) {
   return {
-    coins:  save ? String(save.pixelCoins) : '',
+    coins:  save ? String(Math.floor(bnToNumber(save.pixelCoins))) : '',
     gems:   save ? String(save.nekoGems) : '',
     crowns: save ? String(save.bossCrowns) : '',
     palier: save ? String(save.palier) : '',
@@ -203,7 +204,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
     const ok = await correctPlayerBalance(uid, { pixelCoins: newCoins, nekoGems: newGems, bossCrowns: newCrowns });
     setCorrectMsg(ok ? '✅ Corrigé — appliqué immédiatement s\'il est en ligne.' : '❌ Échec de la correction.');
     if (ok) {
-      const patch = { pixelCoins: newCoins, nekoGems: newGems, bossCrowns: newCrowns };
+      const patch = { pixelCoins: bnFromNumber(newCoins), nekoGems: newGems, bossCrowns: newCrowns };
       setPlayerSave(s => s ? { ...s, ...patch } : s);
       patchCache({ save: playerSave ? { ...playerSave, ...patch } : null });
       onSaveUpdate(patch);

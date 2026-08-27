@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { useRandomEventStore, JACKPOT_BUTTON_MS } from '@/store/randomEventStore';
 import { formatNumber } from '@/lib/game/format';
+import { BN_ZERO, bnFromNumber, bnMax, bnMul, bnMulScalar, type BigNum } from '@/lib/game/bignum';
 
 // Symboles de la machine. `weight` = fréquence sur un rouleau.
 // L'OR est exprimé en MULTIPLE du butin d'un mob du palier courant (`coinMult`),
@@ -47,11 +48,11 @@ export function JackpotEvent() {
   const setEventDpsMult   = useGameStore(s => s.setEventDpsMult);
 
   // Or de référence = butin d'un mob du palier courant × bonus Coffre d'Or.
-  const goldPerUnit = () => {
+  const goldPerUnit = (): BigNum => {
     const g = useGameStore.getState();
-    return Math.max(1000, Math.floor(g.currentEnemy.pixelCoinsReward * g.getGoldMultiplier()));
+    return bnMax(bnFromNumber(1000), bnMul(g.currentEnemy.pixelCoinsReward, g.getGoldMultiplier()));
   };
-  const coinsFor = (s: Symbol) => (s.coinMult ? goldPerUnit() * s.coinMult : 0);
+  const coinsFor = (s: Symbol): BigNum => (s.coinMult ? bnMulScalar(goldPerUnit(), s.coinMult) : BN_ZERO);
 
   const [phase, setPhase] = useState<'button' | 'slots'>('button');
   const [timeLeft, setTimeLeft] = useState(JACKPOT_BUTTON_MS);
@@ -63,7 +64,7 @@ export function JackpotEvent() {
   // rendu) : sinon, laisser la fenêtre ouverte pendant que la partie
   // progresse faisait grimper le chiffre affiché avec le palier/vague
   // atteint depuis, même si ce n'est pas ce qui a été réellement accordé.
-  const [lockedCoins, setLockedCoins] = useState(0);
+  const [lockedCoins, setLockedCoins] = useState<BigNum>(BN_ZERO);
 
   // Fenêtre du bouton clignotant : si non cliqué, l'event se termine.
   useEffect(() => {
@@ -108,7 +109,7 @@ export function JackpotEvent() {
         if (target.malusDivide) {
           setEventDpsMult(1 / target.malusDivide, MALUS_DURATION_MS);
         } else if (target.bankrupt) {
-          useGameStore.setState({ pixelCoins: 0 });
+          useGameStore.setState({ pixelCoins: BN_ZERO });
         } else {
           // Montant calculé UNE SEULE FOIS ici, verrouillé, puis accordé
           // immédiatement — impossible d'attendre pour le faire grimper.

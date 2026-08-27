@@ -11,6 +11,7 @@ import {
 } from '@/lib/game/shop';
 import { bumpCoinQuests, getGoldChestMultiplier, requestUrgentSave, resolveEnemyDeath } from '../gameStoreHelpers';
 import type { GameStore, ShopActions } from '../gameStore.types';
+import { BN_ZERO, bnAdd, bnIsZero, bnSub, bnToNumber, type BigNum } from '@/lib/game/bignum';
 
 export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (set, get) => ({
   // ─── Boutique : BossCrown (boosts + gemmes) ─────────────────────────
@@ -39,24 +40,22 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     set({ eventDpsMult: mult, eventDpsMultEndsAt: Date.now() + durationMs }),
 
   // Inflige des dégâts instantanés à l'ennemi courant (orbes de Tempête, etc.).
-  dealInstantDamage: (dmg: number) => {
-    const amount = Math.floor(dmg);
-    if (amount <= 0) return;
+  dealInstantDamage: (dmg: BigNum) => {
+    if (bnIsZero(dmg)) return;
     set(s => {
-      const newHp = Math.max(0, s.currentEnemy.currentHp - amount);
-      if (newHp <= 0) return resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], eventQuests: s.eventQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp } });
+      const newHp = bnSub(s.currentEnemy.currentHp, dmg);
+      if (bnIsZero(newHp)) return resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], eventQuests: s.eventQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp } });
       return { currentEnemy: { ...s.currentEnemy, currentHp: newHp } };
     });
   },
 
   // Crédite des récompenses (slots casino, jackpots...).
-  grantEventRewards: (coins = 0, gems = 0, crowns = 0) =>
+  grantEventRewards: (coins = BN_ZERO, gems = 0, crowns = 0) =>
     set(s => {
-      const amount = Math.max(0, Math.floor(coins));
-      const cq = bumpCoinQuests(s.quests, s.weeklyQuests ?? [], amount);
+      const cq = bumpCoinQuests(s.quests, s.weeklyQuests ?? [], bnToNumber(coins));
       const crownsGained = Math.max(0, Math.floor(crowns));
       return {
-        pixelCoins: s.pixelCoins + amount,
+        pixelCoins: bnAdd(s.pixelCoins, coins),
         nekoGems:   s.nekoGems + Math.max(0, Math.floor(gems)),
         bossCrowns: s.bossCrowns + crownsGained,
         totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + crownsGained,
@@ -72,7 +71,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     const pack = GEM_GOLD_PACKS.find(p => p.id === packId);
     if (!pack || get().nekoGems < pack.gems) return;
     const scaledCoins = getGoldPackCoins(pack, get().palier, getGoldChestMultiplier(get().goldUpgradeLevel ?? 0));
-    set(state => ({ nekoGems: state.nekoGems - pack.gems, pixelCoins: state.pixelCoins + scaledCoins, totalGemsSpent: (state.totalGemsSpent ?? 0) + pack.gems }));
+    set(state => ({ nekoGems: state.nekoGems - pack.gems, pixelCoins: bnAdd(state.pixelCoins, scaledCoins), totalGemsSpent: (state.totalGemsSpent ?? 0) + pack.gems }));
   },
 
   // ─── Boutique : Orbe du Néant (persos + gemmes) ─────────────────────

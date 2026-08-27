@@ -1,13 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
+import type { BigNum } from '@/lib/game/bignum';
 
 // Écran de victoire : piloté par un VRAI événement de kill de boss émis par
 // le store (et non par une surveillance du palier, qui se déclenchait à tort
 // au rechargement de la sauvegarde). Extrait de GameLayout.tsx.
 export function useBossVictoryWatcher() {
   const { lastBossVictory, clearBossVictory } = useGameStore();
-  const [victory, setVictory] = useState<{ palier: number; gems: number; coins: number } | null>(null);
+  const [victory, setVictory] = useState<{ palier: number; gems: number; coins: BigNum } | null>(null);
 
   useEffect(() => {
     if (!lastBossVictory) return;

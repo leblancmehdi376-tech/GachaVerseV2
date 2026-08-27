@@ -1,7 +1,17 @@
 import { Enemy } from '@/types/game';
+import { type BigNum, bnMulScalar, bnPow } from './bignum';
 
 export const COIN_BASE = 60;
 export const COIN_GROWTH = 1.13;
+const HP_BASE = 120;
+const HP_GROWTH = 1.12;
+
+// PV bruts d'un ennemi (avant hpMult) pour un `global` donné — seule source
+// de vérité de la courbe HP, réutilisée par generateEnemy() ET
+// getPalierBossHp() pour ne jamais diverger l'une de l'autre.
+function baseHpForGlobal(global: number): BigNum {
+  return bnMulScalar(bnPow(HP_GROWTH, global - 1), HP_BASE);
+}
 
 interface EnemyDef {
   name:    string;
@@ -555,10 +565,9 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
 // PV du boss d'un palier (vague 10, hpMult:10) — exposé pour calibrer d'autres
 // systèmes (ex: seuils de DPS d'expédition dans expeditions.ts) sur la même
 // courbe de puissance que le combat, sans dupliquer les constantes.
-export function getPalierBossHp(palier: number): number {
+export function getPalierBossHp(palier: number): BigNum {
   const global = (palier - 1) * 10 + 10;
-  const baseHp = Math.floor(120 * Math.pow(1.12, global - 1));
-  return Math.floor(baseHp * 10);
+  return bnMulScalar(baseHpForGlobal(global), 10);
 }
 
 export function generateEnemy(wave: number, palier: number, maxPalierReached: number = palier): Enemy {
@@ -573,18 +582,14 @@ export function generateEnemy(wave: number, palier: number, maxPalierReached: nu
   const global = (palier - 1) * 10 + wave;
 
   // HP : 120 × 1.12^(global-1)
-  const baseHp = Math.floor(120 * Math.pow(1.12, global - 1));
-  const maxHp  = Math.floor(baseHp * hpMult);
+  const maxHp = bnMulScalar(baseHpForGlobal(global), hpMult);
 
   // Coins : base × growth^(global-1), boss × bossMult
   // On applique en plus un scale global pour calibrer la vitesse d'obtention des coins.
   //on retrouve base et growth en export tout en haut de ce fichier, pour calibrer d'autres systèmes sur la même courbe.
   const COIN_BOSS_MULT = 12;
 
-  const rawCoins = isBoss
-    ? Math.floor(COIN_BASE * Math.pow(COIN_GROWTH, global - 1) * COIN_BOSS_MULT)
-    : Math.floor(COIN_BASE * Math.pow(COIN_GROWTH, global - 1));
-  const pixelCoins = Math.max(0, Math.floor(rawCoins));
+  const pixelCoins = bnMulScalar(bnPow(COIN_GROWTH, global - 1), COIN_BASE * (isBoss ? COIN_BOSS_MULT : 1));
 
   // Gemme garantie du "mini-boss" (vague 5) : uniquement lors d'une vraie
   // progression, jamais en re-farmant un palier déjà validé — sinon c'est un

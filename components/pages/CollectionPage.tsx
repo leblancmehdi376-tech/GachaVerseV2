@@ -13,6 +13,7 @@ import { PageScroll, SectionHeader } from '@/components/ui/Page';
 import { CollectionFilters, COLLECTION_RARITY_ORDER, CollectionFilterMode, CollectionAffinityMode, CollectionSortMode } from '@/components/ui/CollectionFilters';
 import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
+import { BN_ZERO, bnCompare } from '@/lib/game/bignum';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 
@@ -239,9 +240,9 @@ export function CollectionPage() {
     }
     if (sort === 'dps_desc' || sort === 'dps_asc') {
       return [...filtered].sort((a, b) => {
-        const dpsA = a.owned ? calcCharDps(a.tpl, a.owned) : 0;
-        const dpsB = b.owned ? calcCharDps(b.tpl, b.owned) : 0;
-        return sort === 'dps_desc' ? dpsB - dpsA : dpsA - dpsB;
+        const dpsA = a.owned ? calcCharDps(a.tpl, a.owned) : BN_ZERO;
+        const dpsB = b.owned ? calcCharDps(b.tpl, b.owned) : BN_ZERO;
+        return sort === 'dps_desc' ? bnCompare(dpsB, dpsA) : bnCompare(dpsA, dpsB);
       });
     }
     return [...filtered].sort((a, b) => a.tpl.name.localeCompare(b.tpl.name));

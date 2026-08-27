@@ -2,6 +2,7 @@ import { Rarity, RARITY_CONFIG, RARITY_ORDER_ASC } from '@/types/game';
 import { rollCharacter } from './gacha';
 import { COIN_BASE, COIN_GROWTH } from './enemies';
 import { ChestTier, CHEST_RARITY_RATES } from './items';
+import { type BigNum, bnFromNumber, bnMul, bnMulScalar, bnPow } from './bignum';
 
 // ── BossCrown : packs de gemmes ───────────────────────────────────────────
 export interface CrownGemPack { id: string; crowns: number; gems: number; bonusLabel?: string; }
@@ -45,10 +46,10 @@ export const GEM_GOLD_PACKS: GemGoldPack[] = [
 // killsEquivalent kills même quand ce coffre est bien amélioré (avant ce
 // correctif, goldChestMult était ignoré et les packs devenaient sous-évalués
 // à mesure que le Coffre d'Or progressait).
-export function getGoldPackCoins(pack: GemGoldPack, palier: number, goldChestMult: number = 1): number {
+export function getGoldPackCoins(pack: GemGoldPack, palier: number, goldChestMult: BigNum = bnFromNumber(1)): BigNum {
   const global = (palier - 1) * 10 + 5;
-  const perKill = COIN_BASE * Math.pow(COIN_GROWTH, global - 1) * goldChestMult;
-  return Math.floor(perKill * pack.killsEquivalent);
+  const perKill = bnMul(bnMulScalar(bnPow(COIN_GROWTH, global - 1), COIN_BASE), goldChestMult);
+  return bnMulScalar(perKill, pack.killsEquivalent);
 }
 
 // ── Orbe du Néant : recyclage des doublons au rang max (7★) ──────────────

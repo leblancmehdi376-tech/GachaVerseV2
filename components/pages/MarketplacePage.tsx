@@ -11,6 +11,7 @@ import {
   getActiveListings, getMyListings,
   createListing, buyListing, cancelListing, claimSaleReward,
 } from '@/lib/firebase/marketplace';
+import { bnAdd, bnFromNumber, bnGte } from '@/lib/game/bignum';
 
 const CURRENCY_ICON: Record<ListingCurrency, string> = {
   gems:   '💎',
@@ -148,10 +149,10 @@ export function MarketplacePage() {
   const handleBuy = async (listing: MarketplaceListing) => {
     if (!user) return;
     // Vérifie la balance
-    const balance = listing.currency === 'gems' ? store.nekoGems
-      : listing.currency === 'crowns' ? store.bossCrowns
-      : store.pixelCoins;
-    if (balance < listing.price) { showMsg(false, `Pas assez de ${CURRENCY_ICON[listing.currency]}`); return; }
+    const canAfford = listing.currency === 'gems' ? store.nekoGems >= listing.price
+      : listing.currency === 'crowns' ? store.bossCrowns >= listing.price
+      : bnGte(store.pixelCoins, bnFromNumber(listing.price));
+    if (!canAfford) { showMsg(false, `Pas assez de ${CURRENCY_ICON[listing.currency]}`); return; }
 
     const result = await buyListing(listing.id, user.uid, store.username || 'Joueur');
     if (!result) { showMsg(false, 'Achat impossible (déjà vendu ?)'); loadMarket(); return; }
@@ -159,7 +160,7 @@ export function MarketplacePage() {
     // Déduit la monnaie
     if (listing.currency === 'gems')        useGameStore.setState(s => ({ nekoGems:   s.nekoGems   - listing.price }));
     else if (listing.currency === 'crowns') useGameStore.setState(s => ({ bossCrowns: s.bossCrowns - listing.price }));
-    else store.spendPixelCoins(listing.price);
+    else store.spendPixelCoins(bnFromNumber(listing.price));
 
     // Donne l'item
     if (listing.type === 'item')      store.addItem(listing.itemId, listing.quantity);
@@ -191,7 +192,7 @@ export function MarketplacePage() {
     // Donne la monnaie au vendeur
     if (listing.currency === 'gems')        useGameStore.setState(s => ({ nekoGems:   s.nekoGems   + listing.price }));
     else if (listing.currency === 'crowns') useGameStore.setState(s => ({ bossCrowns: s.bossCrowns + listing.price, totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + listing.price }));
-    else useGameStore.setState(s => ({ pixelCoins: s.pixelCoins + listing.price }));
+    else useGameStore.setState(s => ({ pixelCoins: bnAdd(s.pixelCoins, bnFromNumber(listing.price)) }));
     showMsg(true, `+${formatNumber(listing.price)} ${CURRENCY_ICON[listing.currency]} encaissés !`);
     loadMine();
   };
@@ -260,8 +261,10 @@ export function MarketplacePage() {
             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
               {filtered.map(l => {
                 const isOwn   = l.sellerId === user?.uid;
-                const balance = l.currency === 'gems' ? store.nekoGems : l.currency === 'crowns' ? store.bossCrowns : store.pixelCoins;
-                const canBuy  = !isOwn && balance >= l.price;
+                const canAfford = l.currency === 'gems' ? store.nekoGems >= l.price
+                  : l.currency === 'crowns' ? store.bossCrowns >= l.price
+                  : bnGte(store.pixelCoins, bnFromNumber(l.price));
+                const canBuy  = !isOwn && canAfford;
                 return (
                   <div key={l.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'12px 16px', display:'grid', gridTemplateColumns:'36px 1fr auto auto', gap:'12px', alignItems:'center' }}>
                     <span style={{ fontSize:'22.7px', textAlign:'center' }}>{getListingIcon(l)}</span>

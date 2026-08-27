@@ -4,6 +4,7 @@ import type { StateCreator } from 'zustand';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
 import type { GameStore, UltimateActions } from '../gameStore.types';
+import { BN_ZERO, bnAdd, bnMulScalar } from '@/lib/game/bignum';
 
 export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateActions> = (set, get) => ({
   startCooldown: (id, dur) =>
@@ -81,11 +82,11 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
     get().ultActiveUlts.reduce((m, a) => a.effect.enemyDamageTakenBonusPct ? m * (1 + a.effect.enemyDamageTakenBonusPct / 100) : m, 1),
 
   getActiveBonusDpsFlat: (teamDps) => {
-    let bonus = 0;
+    let bonus = BN_ZERO;
     for (const a of get().ultActiveUlts) {
       if (a.effect.autoStrikes) {
         const { perSecond, value } = a.effect.autoStrikes;
-        bonus += perSecond * teamDps * (value / 100);
+        bonus = bnAdd(bonus, bnMulScalar(teamDps, perSecond * (value / 100)));
       }
     }
     return bonus;

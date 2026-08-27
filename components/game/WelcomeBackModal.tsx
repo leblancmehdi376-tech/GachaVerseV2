@@ -1,6 +1,7 @@
 'use client';
 import type { OfflineGain } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
+import { BN_ZERO, bnMulScalar } from '@/lib/game/bignum';
 
 function fmtDuration(sec: number): string {
   const h = Math.floor(sec / 3600);
@@ -61,7 +62,7 @@ export function WelcomeBackModal({ gain, onClose }: { gain: OfflineGain; onClose
 
         {row('Monstres vaincus', formatNumber(gain.kills))}
         {row('Durée créditée', fmtDuration(gain.seconds))}
-        {row('Revenu / heure', formatNumber(gain.seconds > 0 ? Math.floor(gain.coins / (gain.seconds / 3600)) : 0), 'var(--green)')}
+        {row('Revenu / heure', formatNumber(gain.seconds > 0 ? bnMulScalar(gain.coins, 3600 / gain.seconds) : BN_ZERO), 'var(--green)')}
         {gain.capped && row('Plafond', 'atteint — améliore-le 👑', 'var(--gold-hi)')}
 
         <button onClick={onClose} className="btn-primary" style={{ width: '100%', padding: 11, fontSize: 14.4, marginTop: 18 }}>

@@ -5,6 +5,7 @@ import {
   useRandomEventStore, TEMPETE_ORBES, TEMPETE_INTERVAL_MS, TEMPETE_ORB_LIFE_MS,
   TEMPETE_MULT_MIN, TEMPETE_MULT_MAX,
 } from '@/store/randomEventStore';
+import { bnMulScalar } from '@/lib/game/bignum';
 
 interface Orb { id: number; x: number; y: number; mult: number; born: number; }
 
@@ -39,7 +40,7 @@ export function TempeteEvent() {
 
   const pop = (o: Orb) => {
     setOrb(cur => (cur && cur.id === o.id ? null : cur));
-    dealInstant(getTotalDps() * o.mult);
+    dealInstant(bnMulScalar(getTotalDps(), o.mult));
   };
 
   return (

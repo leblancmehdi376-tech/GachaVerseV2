@@ -13,6 +13,7 @@ import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import { getGoldChestMultiplier, getGoldChestCost, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice } from '../gameStore.types';
+import { BN_ZERO, bnAdd, bnMulScalar, type BigNum } from '@/lib/game/bignum';
 
 export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlice> = (set, get) => ({
   setUsername: (name) => set({ username: name.trim().slice(0, 20) }),
@@ -35,13 +36,13 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const level = get().goldUpgradeLevel ?? 0;
     const chestMult = getGoldChestMultiplier(level);
     const titleMult = getTitleGoldMultiplier(get().activeTitle);
-    return chestMult * titleMult;
+    return bnMulScalar(chestMult, titleMult);
   },
 
   getGoldUpgradeCost: () => {
     const level = get().goldUpgradeLevel ?? 0;
     const maxLevel = runPeakPalierOf(get());
-    return level >= maxLevel ? 0 : getGoldChestCost(level);
+    return level >= maxLevel ? BN_ZERO : getGoldChestCost(level);
   },
 
   levelUpHero: () => {
@@ -128,7 +129,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const owned = collection[templateId];
     const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/ulti/type/synergie partagés entre éditions)
     const tpl   = getCharacterById(pureId);
-    if (!owned || !tpl) return { base: 0, typeMult: 1, final: 0 };
+    if (!owned || !tpl) return { base: BN_ZERO, typeMult: 1, final: BN_ZERO };
 
     const activeSynergies = computeActiveSynergies(equippedTeam);
     const boostMult    = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
@@ -136,13 +137,13 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
 
     const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
 
-    const dpsWithEquip = Math.floor(calcCharDps(tpl, owned) * equippedMult);
+    const dpsWithEquip = bnMulScalar(calcCharDps(tpl, owned), equippedMult);
     const withSyn = calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies);
     const ultMult = get().getDpsMultiplierFor(templateId);
 
-    const base     = withSyn * ultMult * boostMult * prestigeMult;
+    const base     = bnMulScalar(withSyn, ultMult * boostMult * prestigeMult);
     const typeMult = getAffinityMultiplier(getAffinityForId(pureId), getAffinityForId(get().currentEnemy?.name ?? ''));
-    return { base: Math.floor(base), typeMult, final: Math.floor(base * typeMult) };
+    return { base, typeMult, final: bnMulScalar(base, typeMult) };
   },
 
   getTotalDps: () => {
@@ -151,7 +152,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const boostMult = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
     const prestigeMult = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel).dpsMult; // passif +15%/niveau × shop "Transcendance"
     const enemyAffinity = getAffinityForId(get().currentEnemy?.name ?? ''); // type de l'ennemi courant
-    const teamDps = equippedTeam.reduce((total, id) => {
+    const teamDps = equippedTeam.reduce((total: BigNum, id) => {
       if (!id) return total;
       const owned = collection[id];
       const pureId = parseInstanceKey(id).templateId; // clé composite -> id pur
@@ -159,13 +160,13 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       if (!owned || !tpl) return total;
       const baseDps  = calcCharDps(tpl, owned);
       const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
-      const dpsWithEquip = Math.floor(baseDps * equippedMult);
+      const dpsWithEquip = bnMulScalar(baseDps, equippedMult);
       const withSyn  = calcDpsWithSynergies(id, dpsWithEquip, activeSynergies);
       const ultMult  = get().getDpsMultiplierFor(id);
       const typeMult = getAffinityMultiplier(getAffinityForId(pureId), enemyAffinity); // avantage de type
-      return total + withSyn * ultMult * boostMult * typeMult;
-    }, 0);
-    return teamDps * prestigeMult;
+      return bnAdd(total, bnMulScalar(withSyn, ultMult * boostMult * typeMult));
+    }, BN_ZERO);
+    return bnMulScalar(teamDps, prestigeMult);
   },
   equipCharacter: (id, slot) => {
     const character = get().collection[id];

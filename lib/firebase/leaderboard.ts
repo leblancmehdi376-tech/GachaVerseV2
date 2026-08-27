@@ -2,6 +2,7 @@ import { collection, doc, getDocs, limit, query, serverTimestamp, setDoc } from 
 import { db } from './config';
 import { logger } from '../logger';
 import { logFirestoreOp } from './telemetry';
+import { bnCompare, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 
 export interface LeaderboardEntry {
   uid: string;
@@ -10,9 +11,9 @@ export interface LeaderboardEntry {
   maxPalierReached: number;
   wave: number;
   totalClicks: number;
-  pixelCoins: number;
+  pixelCoins: BigNum;
   score: number;
-  totalDps: number;
+  totalDps: BigNum;
   prestigeLevel: number;
 }
 
@@ -37,9 +38,9 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       const maxPalierReached = typeof data.maxPalierReached === 'number' ? data.maxPalierReached : palier;
       const wave        = typeof data.wave        === 'number' ? data.wave        : 0;
       const totalClicks = typeof data.totalClicks === 'number' ? data.totalClicks : 0;
-      const pixelCoins  = typeof data.pixelCoins  === 'number' ? data.pixelCoins  : 0;
+      const pixelCoins  = coerceBigNum(data.pixelCoins); // number (anciennes saves) ou BigNum — coerceBigNum accepte les deux
       const score       = typeof data.score       === 'number' ? data.score       : palier * 100 + wave;
-      const totalDps    = typeof data.totalDps    === 'number' ? data.totalDps    : 0;
+      const totalDps    = coerceBigNum(data.totalDps);
       const prestigeLevel = typeof data.prestigeLevel === 'number' ? data.prestigeLevel : 0;
       return {
         uid: docSnap.id,
@@ -53,7 +54,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
     for (const entry of entries) {
       const key = entry.username.toLowerCase();
       const existing = seen.get(key);
-      if (!existing || entry.maxPalierReached > existing.maxPalierReached || (entry.maxPalierReached === existing.maxPalierReached && entry.pixelCoins > existing.pixelCoins)) {
+      if (!existing || entry.maxPalierReached > existing.maxPalierReached || (entry.maxPalierReached === existing.maxPalierReached && bnCompare(entry.pixelCoins, existing.pixelCoins) > 0)) {
         seen.set(key, entry);
       }
     }
@@ -62,7 +63,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
     // Tri par palier maximum atteint DESC puis Pixel-Coins DESC — le palier max
     // ne redescend jamais après un prestige, contrairement au palier courant.
     return deduped
-      .sort((a, b) => b.maxPalierReached - a.maxPalierReached || b.pixelCoins - a.pixelCoins)
+      .sort((a, b) => b.maxPalierReached - a.maxPalierReached || bnCompare(b.pixelCoins, a.pixelCoins))
       .slice(0, maxEntries);
   } catch (e) {
     logger.error('Leaderboard error:', e);
@@ -71,7 +72,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
 }
 
 export async function updatePlayerScore(userId: string, data: Partial<{
-  username: string; palier: number; maxPalierReached: number; wave: number; pixelCoins: number; totalClicks: number; totalDps: number;
+  username: string; palier: number; maxPalierReached: number; wave: number; pixelCoins: BigNum; totalClicks: number; totalDps: BigNum;
 }>) {
   if (!db) return;
   try {

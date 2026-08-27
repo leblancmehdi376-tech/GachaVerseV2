@@ -8,6 +8,7 @@ import { formatNumber } from '@/lib/game/format';
 import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
 import { AFFINITY_CONFIG, getAffinityForId } from '@/lib/game/affinities';
 import { correctedNow } from '@/lib/firebase/clockOffset';
+import { bnCompare, bnFromNumber, bnGte, bnToNumber } from '@/lib/game/bignum';
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
 function fmtDuration(secs: number): string {
@@ -53,10 +54,10 @@ function CharSelector({ def, onConfirm, onClose }: {
   // Trié par DPS décroissant (meilleur d'abord).
   const owned = CHARACTER_POOL.filter(c => !c.isHero &&
     (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(c.id, ed)]))
-    .sort((a, b) => getCharacterExpeditionDps(collection, b.id) - getCharacterExpeditionDps(collection, a.id));
+    .sort((a, b) => bnCompare(getCharacterExpeditionDps(collection, b.id), getCharacterExpeditionDps(collection, a.id)));
   const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
   const score = getExpeditionTeamDps(collection, selected);
-  const reqMet = score >= def.minTeamDps;
+  const reqMet = bnGte(score, bnFromNumber(def.minTeamDps));
 
   // Tentatives de drop (voir computeDropAttempts dans expeditions.ts) : au-delà
   // du seuil minTeamDps, chaque palier supplémentaire (×10 DPS) accorde 1
@@ -79,7 +80,7 @@ function CharSelector({ def, onConfirm, onClose }: {
     segLower = dpsForDropQty(def, attempts);
     segUpper = segLower; // plafonné : plus de progression à afficher
   }
-  const segProgress = atCap ? 100 : Math.min(Math.max(((score - segLower) / (segUpper - segLower)) * 100, 0), 100);
+  const segProgress = atCap ? 100 : Math.min(Math.max(((bnToNumber(score) - segLower) / (segUpper - segLower)) * 100, 0), 100);
 
   // Flash "+1 drop" quand on vient de franchir un palier de tentative.
   const [justGainedRoll, setJustGainedRoll] = useState(false);

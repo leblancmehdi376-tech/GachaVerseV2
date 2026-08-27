@@ -4,6 +4,7 @@ import type { StateCreator } from 'zustand';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { DAILY_QUESTS, WEEKLY_QUESTS } from '../gameStoreHelpers';
 import type { GameStore, QuestActions } from '../gameStore.types';
+import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 
 export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (set) => ({
   // Helper générique et réutilisable pour toute future quête : cherche l'id
@@ -33,7 +34,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     return {
       quests: s.quests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
       nekoGems:   q.rewardType==='gems'  ? s.nekoGems  + q.reward : s.nekoGems,
-      pixelCoins: q.rewardType==='coins' ? s.pixelCoins + q.reward : s.pixelCoins,
+      pixelCoins: q.rewardType==='coins' ? bnAdd(s.pixelCoins, bnFromNumber(q.reward)) : s.pixelCoins,
       totalQuestsCompleted: (s.totalQuestsCompleted ?? 0) + 1,
     };
   }),
@@ -77,7 +78,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     return {
       weeklyQuests: s.weeklyQuests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
       nekoGems:   q.rewardType==='gems'  ? s.nekoGems   + q.reward : s.nekoGems,
-      pixelCoins: q.rewardType==='coins' ? s.pixelCoins + q.reward : s.pixelCoins,
+      pixelCoins: q.rewardType==='coins' ? bnAdd(s.pixelCoins, bnFromNumber(q.reward)) : s.pixelCoins,
       totalQuestsCompleted: (s.totalQuestsCompleted ?? 0) + 1,
     };
   }),
@@ -88,7 +89,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     return {
       eventQuests: s.eventQuests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
       nekoGems:   q.rewardType==='gems'  ? s.nekoGems   + q.reward : s.nekoGems,
-      pixelCoins: q.rewardType==='coins' ? s.pixelCoins + q.reward : s.pixelCoins,
+      pixelCoins: q.rewardType==='coins' ? bnAdd(s.pixelCoins, bnFromNumber(q.reward)) : s.pixelCoins,
       totalQuestsCompleted: (s.totalQuestsCompleted ?? 0) + 1,
     };
   }),

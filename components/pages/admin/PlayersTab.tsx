@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { PlayerRow } from '@/lib/firebase/accessRequests';
 import { PlayerSaveSummary } from '@/lib/firebase/adminTools';
 import { formatNumber } from '@/lib/game/format';
+import { bnToNumber } from '@/lib/game/bignum';
 import { PlayerEditor } from './PlayerEditor';
 
 type SortKey = 'createdAt' | 'nekoGems' | 'pixelCoins' | 'palier' | 'totalGemsSpent';
@@ -17,6 +18,7 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 function sortValue(row: PlayerRow, key: SortKey): number {
   if (key === 'createdAt') return row.createdAt;
+  if (key === 'pixelCoins') return row.save ? bnToNumber(row.save.pixelCoins) : -1;
   return row.save?.[key] ?? -1;
 }
 

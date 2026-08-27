@@ -6,6 +6,7 @@ import {
   CharacterTemplate, OwnedCharacter, EvoForm, HeroState,
   EVOLUTION_STONE_ITEM_ID,
 } from '@/types/game';
+import { type BigNum, bnAdd, bnFromNumber, bnGte, bnMulScalar, bnPow } from '@/lib/game/bignum';
 
 // Coût en Pierres d'Évolution (drop d'expédition, voir lib/game/expeditions.ts
 // — dropId 'pierre_evolution') : plus la rareté est haute et plus la forme
@@ -44,7 +45,7 @@ export function canEvolveHero(forms: EvoForm[], hero: HeroState): boolean {
 //   E5  = niveau du perso      B42 = numéro de forme
 //   F4  = DPS calculé au niveau précédent (garantit au moins +1 DPS/niveau,
 //         même quand la courbe exponentielle est encore trop plate en début de jeu)
-export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): number {
+export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): BigNum {
   // Le niveau n'est plus plafonné : le numéro de forme sert de multiplicateur
   // (base = ×1, evo1 = ×2, evo2 = ×3, etc.).
   const formMult    = owned.currentForm + 1;
@@ -53,21 +54,22 @@ export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): numb
   const pow         = RARITY_CONFIG[tpl.rarity].dpsMultiplier; // 1.024 + 0.001 par palier de rareté
   const otherMults  = formMult * rankMult * editionMult;
 
-  const rawDpsAtLevel = (lvl: number) => {
+  const rawDpsAtLevel = (lvl: number): BigNum => {
     const tierMult = Math.round(lvl / 100) + 1; // palier tous les 100 niveaux
-    return tpl.baseDps * Math.pow(pow, lvl - 1) * tierMult * otherMults;
+    return bnMulScalar(bnPow(pow, lvl - 1), tpl.baseDps * tierMult * otherMults);
   };
 
-  let prevDps = Math.round(rawDpsAtLevel(1));
+  const ONE = bnFromNumber(1);
+  let prevDps = rawDpsAtLevel(1);
   for (let lvl = 2; lvl <= owned.level; lvl++) {
     const raw = rawDpsAtLevel(lvl);
-    if (raw >= prevDps + 1) {
+    if (bnGte(raw, bnAdd(prevDps, ONE))) {
       // La courbe exponentielle dépasse désormais le palier "+1/niveau" et le
       // dépassera pour tous les niveaux suivants (croissance strictement
       // croissante) : plus besoin de repasser par le MAX, calcul direct.
-      return Math.round(rawDpsAtLevel(owned.level));
+      return rawDpsAtLevel(owned.level);
     }
-    prevDps = prevDps + 1; // MAX(raw, prevDps+1) avec raw < prevDps+1
+    prevDps = bnAdd(prevDps, ONE); // MAX(raw, prevDps+1) avec raw < prevDps+1
   }
   return prevDps;
 }
@@ -75,18 +77,18 @@ export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): numb
 // ── Coûts de niveau ───────────────────────────────────────────────────────
 // Excel : =ARRONDI(H$1*H$2^(E5-1))  —  H$1 = base (60), H$2 = pow (1.05), E5 = niveau.
 // Coût identique pour toutes les raretés (ne dépend que du niveau).
-export function levelUpCost(level: number): number {
-  return Math.round(60 * Math.pow(1.05, level - 1));
+export function levelUpCost(level: number): BigNum {
+  return bnMulScalar(bnPow(1.05, level - 1), 60);
 }
 
-export function heroLevelUpCost(level: number): number {
+export function heroLevelUpCost(level: number): BigNum {
   // Augmenter légèrement le coût de montée du héros pour ralentir la progression
   // 200 × 1.20^(level-1)
-  return Math.floor(200 * Math.pow(1.20, level - 1));
+  return bnMulScalar(bnPow(1.20, level - 1), 200);
 }
 
 // ── Coût d'évolution ─────────────────────────────────────────────────────
-export function evoCost(rarity: Rarity, currentForm: number): number {
+export function evoCost(rarity: Rarity, currentForm: number): BigNum {
   const base: Record<Rarity, number> = {
     C:50_000_000,  U:50_000_000,  R:50_000_000,  E:100_000_000,       // Commun à Épique
     L:500_000_000, M:750_000_000, S:1_000_000_000,                     // Légendaire à Stellaire
@@ -94,5 +96,5 @@ export function evoCost(rarity: Rarity, currentForm: number): number {
     P:4_000_000_000,                                                 // Primordial (entre Cosmique et Transcendant)
     T:10_000_000_000,                                                // Transcendant
   };
-  return (base[rarity] ?? 0) * Math.pow(3, currentForm);
+  return bnMulScalar(bnPow(3, currentForm), base[rarity] ?? 0);
 }

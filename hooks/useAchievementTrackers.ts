@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
+import { bnToNumber } from '@/lib/game/bignum';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { makeInstanceKey } from '@/lib/game/editions';
@@ -13,7 +14,16 @@ import {
 // Synchronise en continu les compteurs de jeu vers le store de succès —
 // purement des effets de bord, aucun rendu. Extrait de GameLayout.tsx.
 export function useAchievementTrackers() {
-  const totalDps = useGameStore(s => s.getTotalDps());
+  // Sélectionne la RÉFÉRENCE de la fonction (stable), pas son résultat : depuis
+  // le passage de getTotalDps() en BigNum (objet), l'appeler dans le sélecteur
+  // renvoyait un nouvel objet à chaque rendu, cassant la comparaison
+  // getServerSnapshot de useSyncExternalStore (boucle infinie détectée par React).
+  // On reconvertit ensuite en number : contrairement à pixelCoins (état stocké,
+  // référence stable tant que la valeur ne change pas réellement), getTotalDps()
+  // est recalculé à CHAQUE rendu — un number reste comparable par valeur dans
+  // le tableau de dépendances de l'effet ci-dessous, un objet BigNum frais non.
+  const getTotalDps = useGameStore(s => s.getTotalDps);
+  const totalDps = bnToNumber(getTotalDps());
   const {
     collection: col, equippedTeam, totalKills, totalQuestsCompleted, totalUpgradesPerformed,
     totalGachaPulls, totalBossKills, totalBossCrownsEarned, totalVoidOrbsEarned,
@@ -25,7 +35,7 @@ export function useAchievementTrackers() {
   useEffect(() => { trackBossKills(totalBossKills); }, [totalBossKills]);
   useEffect(() => { trackBossCrowns(totalBossCrownsEarned); }, [totalBossCrownsEarned]);
   useEffect(() => { trackPalier(maxPalierReached); }, [maxPalierReached]);
-  useEffect(() => { trackCoins(pixelCoins); }, [pixelCoins]);
+  useEffect(() => { trackCoins(bnToNumber(pixelCoins)); }, [pixelCoins]);
   useEffect(() => { trackGems(nekoGems); }, [nekoGems]);
   useEffect(() => { trackPrestige(prestigeLevel); }, [prestigeLevel]);
   useEffect(() => { trackVoidOrbs(totalVoidOrbsEarned); }, [totalVoidOrbsEarned]);

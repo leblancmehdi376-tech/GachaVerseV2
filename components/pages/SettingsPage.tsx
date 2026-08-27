@@ -7,6 +7,7 @@ import { redeemGiftCode } from '@/lib/firebase/giftCodes';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { formatSyncStatus, type CloudSyncStatus } from '@/hooks/useCloudSave';
+import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
   const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, username, setUsername } = useGameStore();
@@ -52,7 +53,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
       // Coins & gems
       useGameStore.setState(s => ({
         nekoGems:   s.nekoGems   + result.gems,
-        pixelCoins: s.pixelCoins + result.pixelCoins,
+        pixelCoins: bnAdd(s.pixelCoins, bnFromNumber(result.pixelCoins)),
       }));
       // Personnages
       if (result.characters && result.characters.length > 0) {
@@ -86,7 +87,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
       }
       const parts: string[] = [];
       if (result.gems              > 0) parts.push(`+${result.gems} 💎`);
-      if (result.pixelCoins        > 0) parts.push(`+${result.pixelCoins.toLocaleString()} 🪙`);
+      if (result.pixelCoins        > 0) parts.push(`+${formatNumber(result.pixelCoins)} 🪙`);
       if (result.characters?.length > 0) parts.push(`${result.characters.length} personnage(s) 🧬`);
       if (result.maxCharacters?.length > 0) parts.push(`${result.maxCharacters.length} personnage(s) 💎 MAX`);
       if (result.items?.length      > 0) parts.push(`${result.items.length} item(s) 🎁`);

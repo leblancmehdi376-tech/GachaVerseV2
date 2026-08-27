@@ -13,6 +13,7 @@ import { EQUIPMENT_SLOT_LABELS, EQUIPMENT_SLOTS } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { RARITY_CONFIG } from '@/types/game';
 import { getAffinityForId } from '@/lib/game/affinities';
+import { bnCompare } from '@/lib/game/bignum';
 import { AffinityBadge } from '@/components/ui/AffinityBadge';
 import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { EDITION_CONFIG } from '@/lib/game/editions';
@@ -167,10 +168,10 @@ export function CompanionsPage() {
       return (RARITY_PRIORITY[aTpl.rarity] ?? 9) - (RARITY_PRIORITY[bTpl.rarity] ?? 9);
     }
     if (sort === 'dps_desc') {
-      return calcCharDps(bTpl, b) - calcCharDps(aTpl, a);
+      return bnCompare(calcCharDps(bTpl, b), calcCharDps(aTpl, a));
     }
     if (sort === 'dps_asc') {
-      return calcCharDps(aTpl, a) - calcCharDps(bTpl, b);
+      return bnCompare(calcCharDps(aTpl, a), calcCharDps(bTpl, b));
     }
     return aTpl.name.localeCompare(bTpl.name);
   });
