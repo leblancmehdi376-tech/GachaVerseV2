@@ -104,6 +104,15 @@ export function GameLayout() {
   const [showDailyRewards, setShowDailyRewards] = useState(false);
   const [splashDone,    setSplashDone]    = useState(false);
   const isMobile = useIsMobile();
+  // Palier intermédiaire (desktop resserré) : la barre du haut (logo + avatar
+  // + ressources + fil d'ariane + 4 icônes labellisées) ne tient plus sur une
+  // ligne bien avant le vrai breakpoint mobile (820px) — sans ce palier, les
+  // icônes finissent par chevaucher le fil d'ariane/les ressources. On
+  // libère de la place en masquant le fil d'ariane et en repassant les
+  // icônes en mode icône seule (comme sur mobile) plutôt qu'en tentant de
+  // les faire rétrécir (flexbox ne les laisserait pas descendre sous leur
+  // contenu minimal sans wrap/overflow, d'où le chevauchement observé).
+  const isCompactHeader = useIsMobile(1250);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
@@ -189,7 +198,15 @@ export function GameLayout() {
       <ToastContainer />
 
       {/* ══ TOP BAR ══════════════════════════════════════════════════════ */}
-      <header style={{ height:'56px', flexShrink:0, display:'flex', alignItems:'center', background:'linear-gradient(180deg,#0a0818,var(--bg-dark))', borderBottom:'1px solid var(--border)', padding:isMobile?'0 12px':'0 20px', gap:isMobile?'10px':'16px', zIndex:30, boxShadow:'0 2px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.03)', position:'relative' }}>
+      <header style={{ height:'56px', flexShrink:0, display:'flex', alignItems:'center', background:'linear-gradient(180deg,#0a0818,var(--bg-dark))', borderBottom:'1px solid var(--border)', padding:isMobile?'0 10px':'0 20px', gap:isMobile?'8px':'16px', zIndex:30, boxShadow:'0 2px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.03)', position:'relative',
+        // Filet de sécurité : sur les très petits écrans (<~360px), même les
+        // marges déjà réduites ci-dessous peuvent ne pas suffire. Plutôt que
+        // de laisser les éléments se chevaucher (voir bug ressources/calendrier
+        // : un flex-item avec minWidth:0 se laisse rétrécir par son parent en
+        // dessous de la taille de SON PROPRE contenu, qui déborde alors par-
+        // dessus le voisin suivant), on préfère un défilement horizontal —
+        // jamais de superposition visuelle, dans le pire des cas on scrolle.
+        overflowX:'auto', overflowY:'hidden' }}>
         <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'1px', background:'linear-gradient(90deg,transparent,rgba(147,51,234,0.3),transparent)' }} />
 
         {/* Hamburger (mobile) */}
@@ -202,7 +219,7 @@ export function GameLayout() {
 
         {/* Logo */}
         <div style={{ width:isMobile?'auto':'200px', flexShrink:0 }}>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:isMobile?'15.5px':'18.5px', fontWeight:900, letterSpacing:isMobile?'1.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))' }}>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:isMobile?'13.5px':'18.5px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
             GACHAVERSE
           </div>
           {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'4px', marginTop:'3px' }}>MULTIVERS RPG</div>}
@@ -213,7 +230,7 @@ export function GameLayout() {
           style={{ display:'flex', alignItems:'center', gap:'10px',
             background: user ? 'var(--bg-card)' : 'linear-gradient(135deg,#3b0764,#6d28d9)',
             border: user ? '1px solid var(--border)' : '1px solid #c084fc',
-            borderRadius:'10px', padding:'5px 14px 5px 6px', cursor:'pointer',
+            borderRadius:'10px', padding: isMobile?'5px':'5px 14px 5px 6px', cursor:'pointer',
             transition:'all 0.15s', flexShrink:0,
             boxShadow: user ? 'none' : '0 0 16px rgba(168,85,247,0.4)' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.15)'}
@@ -239,13 +256,18 @@ export function GameLayout() {
           </div>}
         </button>
 
-        {/* Ressources */}
-        <div style={{ display:'flex', gap:isMobile?'6px':'8px', marginLeft:isMobile?'auto':undefined, minWidth:0 }}>
+        {/* Ressources — flexShrink:0 : sans ça, le flex parent peut réduire cette
+            boîte SOUS la taille naturelle de son propre contenu (les 2 pastilles,
+            elles-mêmes sans minWidth:0), qui déborde alors visuellement par-dessus
+            le bouton calendrier juste après (voir bug rapporté : chevauchement
+            sur petit écran). flexShrink:0 force le layout à respecter sa vraie
+            largeur — au pire ça déborde à droite du header, jamais de superposition. */}
+        <div style={{ display:'flex', gap:isMobile?'4px':'8px', marginLeft:isMobile?'auto':undefined, flexShrink:0 }}>
           {[
             { icon:'🪙', val:formatNumber(pixelCoins), color:'var(--gold)',  bg:'rgba(120,53,15,0.22)',  border:'rgba(245,158,11,0.35)'  },
             { icon:'💎', val:formatNumber(nekoGems),   color:'var(--cyan-hi)',  bg:'rgba(6,182,212,0.15)',    border:'rgba(34,211,238,0.35)' },
           ].map((r,i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:isMobile?'4px':'7px', background:r.bg, border:`1px solid ${r.border}`, borderRadius:'20px', padding:isMobile?'4px 10px':'5px 16px', cursor:'pointer', transition:'all 0.15s', boxShadow:`inset 0 1px 0 rgba(255,255,255,0.06)` }}
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:isMobile?'4px':'7px', background:r.bg, border:`1px solid ${r.border}`, borderRadius:'20px', padding:isMobile?'4px 8px':'5px 16px', cursor:'pointer', transition:'all 0.15s', boxShadow:`inset 0 1px 0 rgba(255,255,255,0.06)` }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.2)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
               <span style={{ fontSize:isMobile?'13.4px':'15.5px' }}>{r.icon}</span>
@@ -266,8 +288,8 @@ export function GameLayout() {
           </button>
         )}
 
-        {/* Breadcrumb page */}
-        {!isMobile && <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 14px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'8px' }}>
+        {/* Breadcrumb page — masqué en mode compact pour laisser la place aux icônes */}
+        {!isMobile && !isCompactHeader && <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 14px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'8px' }}>
           {(() => { const Icon = NAV_ICONS[currentNav.id]; return Icon ? <Icon size={14} color={currentNav.accent ?? 'var(--text-sub)'} /> : null; })()}
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color: currentNav.accent ?? 'var(--text-sub)', letterSpacing:'1px' }}>{currentNav.label}</span>
         </div>}
@@ -275,11 +297,11 @@ export function GameLayout() {
         {/* Icônes droite */}
         {!isMobile && <div style={{ marginLeft:'auto', display:'flex', gap:'6px', alignItems:'center' }}>
           <button onClick={() => setShowDailyRewards(true)}
-            style={{ background:'none', border:'1px solid transparent', borderRadius:'8px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', padding:'5px 10px', color:'var(--text-dim)', transition:'all 0.15s', position:'relative' }}
+            style={{ background:'none', border:'1px solid transparent', borderRadius:'8px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', padding: isCompactHeader?'6px 8px':'5px 10px', color:'var(--text-dim)', transition:'all 0.15s', position:'relative' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
             <NAV_ICONS.dailyReward size={18} color="currentColor" />
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>CALENDRIER</span>
+            {!isCompactHeader && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>CALENDRIER</span>}
             {!dailyRewardClaimedToday && (
               <div style={{ position:'absolute', top:'2px', right:'2px', width:10, height:10, background:'#ef4444', borderRadius:'50%', border:'1px solid var(--bg-dark)' }} />
             )}
@@ -292,11 +314,11 @@ export function GameLayout() {
             const Icon = NAV_ICONS[n.id];
             return (
             <button key={n.label} onClick={() => setPage(n.id)}
-              style={{ background:'none', border:'1px solid transparent', borderRadius:'8px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', padding:'5px 10px', color:'var(--text-dim)', transition:'all 0.15s', position:'relative' }}
+              style={{ background:'none', border:'1px solid transparent', borderRadius:'8px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', padding: isCompactHeader?'6px 8px':'5px 10px', color:'var(--text-dim)', transition:'all 0.15s', position:'relative' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
               {Icon && <Icon size={18} color="currentColor" />}
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>{n.label}</span>
+              {!isCompactHeader && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>{n.label}</span>}
               {n.id === 'quests' && claimable > 0 && (
                 <div style={{ position:'absolute', top:'2px', right:'2px', width:14, height:14, background:'#ef4444', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12px', color:'white', border:'1px solid var(--bg-dark)' }}>
                   {claimable}
