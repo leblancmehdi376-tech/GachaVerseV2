@@ -5,7 +5,7 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
-import { getEquipmentDef, type EquipmentDef } from '@/lib/game/items';
+import { getEquipmentDef, getEquipBonusMult, type EquipmentDef } from '@/lib/game/items';
 import { computeActiveSynergies, SYNERGIES_LIST } from '@/lib/game/synergies';
 import { calculateEquippedTeamDps, calculateCharacterEquippedDps, getEquipmentMultiplier } from '@/lib/game/dpsCalculation';
 import { calcCharDps } from '@/lib/game/formulas';
@@ -24,15 +24,10 @@ const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
 };
 
-// Reflète exactement getEquipmentMultiplier (dpsCalculation.ts) : le bonus de personnage
-// n'est appliqué que sur le slot arme, seul cas géré par le calcul de DPS réel.
+// Reflète exactement getEquipmentMultiplier (dpsCalculation.ts) : le bonus de
+// personnage s'applique quel que soit le slot.
 function getEquipScore(def: EquipmentDef, templateId: string): number {
-  const bonusFor = def.bonusFor;
-  const matchesTemplate = bonusFor
-    ? Array.isArray(bonusFor.templateId) ? bonusFor.templateId.includes(templateId) : bonusFor.templateId === templateId
-    : false;
-  const bonusMult = def.slot === 'weapon' && matchesTemplate ? bonusFor!.multiplier : 1;
-  return def.dpsMultiplier * bonusMult;
+  return def.dpsMultiplier * getEquipBonusMult(def, templateId);
 }
 
 // ── Panel synergies actives ───────────────────────────────────────────────

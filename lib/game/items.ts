@@ -3,6 +3,8 @@
 // joueur (gameStore.inventory), et consommés pour débloquer certaines
 // évolutions spéciales (voir EvoForm.requiredItemIds dans characters.ts).
 
+import { EQUIPMENT_SLOTS } from '@/types/game';
+
 export interface ItemDef {
   id: string;
   name: string;
@@ -492,6 +494,31 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
 
 export const getItemDef = (id: string): ItemDef | undefined => ITEM_DEFS[id];
 export const getEquipmentDef = (id: string): EquipmentDef | undefined => EQUIPMENT_DEFS[id];
+
+// Bonus "bonusFor" d'un équipement pour un perso donné — accepte une cible
+// unique ou plusieurs (ex: un objet qui boost Aizen ET Aizen Transcendant).
+// S'applique à TOUS les emplacements, pas juste l'arme (ex: Plastron
+// Primordial de Cid Kagenou).
+export function getEquipBonusMult(def: EquipmentDef | undefined, templateId: string): number {
+  if (!def?.bonusFor) return 1;
+  const target = def.bonusFor.templateId;
+  const matches = Array.isArray(target) ? target.includes(templateId) : target === templateId;
+  return matches ? def.bonusFor.multiplier : 1;
+}
+
+// Multiplicateur de DPS combiné des 5 emplacements équipés d'un perso
+// (dpsMultiplier de base × bonus perso par slot). Seule implémentation de ce
+// calcul — à réutiliser partout où le DPS équipé est nécessaire, pour éviter
+// toute divergence entre les différents écrans/calculs.
+export function computeEquippedMultiplier(
+  equippedItems: Partial<Record<EquipmentDef['slot'], string | null>> | undefined,
+  templateId: string
+): number {
+  return EQUIPMENT_SLOTS.reduce((mult, slot) => {
+    const def = getEquipmentDef(equippedItems?.[slot] ?? '');
+    return mult * (def?.dpsMultiplier ?? 1) * getEquipBonusMult(def, templateId);
+  }, 1);
+}
 
 // Tous les objets d'un slot+rareté donnés (générique + variantes personnalisées
 // "bonusFor" le cas échéant). Sert à la fois de pool de fodder et de pool de

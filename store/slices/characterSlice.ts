@@ -4,14 +4,14 @@ import type { StateCreator } from 'zustand';
 import { EVOLUTION_STONE_ITEM_ID } from '@/types/game';
 import { calcCharDps, levelUpCost, heroLevelUpCost, evoCost, canEvolve, canEvolveHero, evoStoneCost } from '@/lib/game/formulas';
 import { getCharacterById, HERO_TEMPLATE } from '@/lib/game/characters';
-import { getEquipmentDef } from '@/lib/game/items';
+import { computeEquippedMultiplier } from '@/lib/game/items';
 import { computeActiveSynergies, calcDpsWithSynergies } from '@/lib/game/synergies';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
-import { getGoldChestMultiplier, getGoldChestCost, runPeakPalierOf, getEquipBonusMult, getPrestigeBonuses } from '../gameStoreHelpers';
+import { getGoldChestMultiplier, getGoldChestCost, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice } from '../gameStore.types';
 
 export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlice> = (set, get) => ({
@@ -134,17 +134,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const boostMult    = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
     const prestigeMult = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel).dpsMult;
 
-    const helmetDef = getEquipmentDef(owned.equippedItems?.helmet ?? '');
-    const chestDef  = getEquipmentDef(owned.equippedItems?.chest ?? '');
-    const pantsDef  = getEquipmentDef(owned.equippedItems?.pants ?? '');
-    const bootsDef  = getEquipmentDef(owned.equippedItems?.boots ?? '');
-    const weaponDef = getEquipmentDef(owned.equippedItems?.weapon ?? '');
-    const helmetMult = (helmetDef?.dpsMultiplier ?? 1) * getEquipBonusMult(helmetDef, tpl.id);
-    const chestMult  = (chestDef?.dpsMultiplier  ?? 1) * getEquipBonusMult(chestDef,  tpl.id);
-    const pantsMult  = (pantsDef?.dpsMultiplier  ?? 1) * getEquipBonusMult(pantsDef,  tpl.id);
-    const bootsMult  = (bootsDef?.dpsMultiplier  ?? 1) * getEquipBonusMult(bootsDef,  tpl.id);
-    const weaponMult = (weaponDef?.dpsMultiplier ?? 1) * getEquipBonusMult(weaponDef, tpl.id);
-    const equippedMult = helmetMult * chestMult * pantsMult * bootsMult * weaponMult;
+    const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
 
     const dpsWithEquip = Math.floor(calcCharDps(tpl, owned) * equippedMult);
     const withSyn = calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies);
@@ -168,17 +158,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       const tpl   = getCharacterById(pureId);
       if (!owned || !tpl) return total;
       const baseDps  = calcCharDps(tpl, owned);
-      const helmetDef = getEquipmentDef(owned.equippedItems?.helmet ?? '');
-      const chestDef  = getEquipmentDef(owned.equippedItems?.chest ?? '');
-      const pantsDef  = getEquipmentDef(owned.equippedItems?.pants ?? '');
-      const bootsDef  = getEquipmentDef(owned.equippedItems?.boots ?? '');
-      const weaponDef = getEquipmentDef(owned.equippedItems?.weapon ?? '');
-      const helmetMult = (helmetDef?.dpsMultiplier ?? 1) * getEquipBonusMult(helmetDef, tpl.id);
-      const chestMult  = (chestDef?.dpsMultiplier  ?? 1) * getEquipBonusMult(chestDef,  tpl.id);
-      const pantsMult  = (pantsDef?.dpsMultiplier  ?? 1) * getEquipBonusMult(pantsDef,  tpl.id);
-      const bootsMult  = (bootsDef?.dpsMultiplier  ?? 1) * getEquipBonusMult(bootsDef,  tpl.id);
-      const weaponMult = (weaponDef?.dpsMultiplier ?? 1) * getEquipBonusMult(weaponDef, tpl.id);
-      const equippedMult = helmetMult * chestMult * pantsMult * bootsMult * weaponMult;
+      const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
       const dpsWithEquip = Math.floor(baseDps * equippedMult);
       const withSyn  = calcDpsWithSynergies(id, dpsWithEquip, activeSynergies);
       const ultMult  = get().getDpsMultiplierFor(id);

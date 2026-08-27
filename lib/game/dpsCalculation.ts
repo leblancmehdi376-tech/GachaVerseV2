@@ -1,28 +1,19 @@
 import { getCharacterById } from './characters';
-import { getEquipmentDef } from './items';
+import { computeEquippedMultiplier } from './items';
 import { calcCharDps } from '@/lib/game/formulas';
 import type { OwnedCharacter } from '@/types/game';
 import { calcDpsWithSynergies, computeActiveSynergies } from './synergies';
 
 /**
  * Calcule le multiplicateur d'équipement pour un personnage.
- * Inclut les multiplicateurs des armes et des synergies spécifiques.
+ * Inclut les multiplicateurs de base par slot et les bonus perso (bonusFor).
  */
 export function getEquipmentMultiplier(
   ownedChar: OwnedCharacter | undefined,
   tpl: ReturnType<typeof getCharacterById> | null
 ): number {
   if (!ownedChar || !tpl) return 1;
-  const weaponDef = getEquipmentDef(ownedChar.equippedItems?.weapon ?? '');
-  const weaponBonusMult =
-    weaponDef?.bonusFor?.templateId === tpl.id ? (weaponDef?.bonusFor?.multiplier ?? 1) : 1;
-  return (
-    Object.values(ownedChar.equippedItems ?? {}).reduce((mult, eqId) => {
-      if (!eqId) return mult;
-      const def = getEquipmentDef(eqId);
-      return def ? mult * def.dpsMultiplier : mult;
-    }, 1) * weaponBonusMult
-  );
+  return computeEquippedMultiplier(ownedChar.equippedItems, tpl.id);
 }
 
 /**

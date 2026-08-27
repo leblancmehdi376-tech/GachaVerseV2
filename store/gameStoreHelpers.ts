@@ -5,7 +5,7 @@
 import { GameState } from '@/types/game';
 import { generateEnemy, COIN_BASE, COIN_GROWTH } from '@/lib/game/enemies';
 import { getPalierConfig } from '@/lib/game/paliers';
-import { getEquipmentDef, getEquipmentDrop } from '@/lib/game/items';
+import { getEquipmentDrop } from '@/lib/game/items';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import {
@@ -131,18 +131,6 @@ export const OFFLINE_MIN_SECONDS = 60; // en dessous, on n'affiche pas de récap
 // sur maxPalierReached, ce qui est le comportement correct dans ce cas précis.
 export function runPeakPalierOf(state: { runPeakPalier: number | null; maxPalierReached: number }): number {
   return state.runPeakPalier ?? state.maxPalierReached;
-}
-
-// Vérifie le bonus "bonusFor" d'un équipement pour un perso donné — accepte
-// une cible unique ou plusieurs (ex: un objet qui boost Aizen ET Aizen
-// Transcendant). Utilisé pour TOUS les emplacements, pas juste l'arme —
-// avant ce correctif, le bonus des objets non-armes (ex: Plastron Primordial
-// de Cid Kagenou) était défini mais jamais réellement appliqué au DPS.
-export function getEquipBonusMult(def: ReturnType<typeof getEquipmentDef>, templateId: string): number {
-  if (!def?.bonusFor) return 1;
-  const target = def.bonusFor.templateId;
-  const matches = Array.isArray(target) ? target.includes(templateId) : target === templateId;
-  return matches ? def.bonusFor.multiplier : 1;
 }
 
 // Mémo : recalculer calcPrestigeBonuses() à chaque appel serait gaspillé — cette
