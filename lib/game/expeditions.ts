@@ -327,11 +327,11 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   {
     id:'cave_cristal', name:'Caverne de Cristal', icon:'💎', universe:'Subnautica',
     description:'Explore les cavernes sous-marines à la recherche de ressources.',
-    duration: 2*H, slots:1, palierRequired:1, minTeamDps: referenceTeamDps(rarityForPalier(1)),
+    duration: 2*H, slots:1, palierRequired:7, minTeamDps: referenceTeamDps(rarityForPalier(7)),
     // Seule expédition (avec les Mines de Gemme) à donner des gemmes via
     // dropGems plutôt qu'un gain garanti — comme les autres, elle bénéficie
     // désormais de tentatives supplémentaires à haut DPS (computeDropAttempts).
-    rewards:{ coinsMin:50_000, coinsMax:150_000, dropChance:0.5, dropQuantity:1, dropQuantityCap:5, dropGems:true, dropGemsAmount:2 },
+    rewards:{ coinsMin:50_000, coinsMax:150_000, dropChance:0.5, dropQuantity:1, dropQuantityCap:5, dropGems:true, dropGemsAmount:8 },
   },
   {
     id:'foret_kame', name:'Forêt de la Tortue', icon:'🐢', universe:'Dragon Ball Z',
@@ -389,7 +389,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   {
     id:'mine_gemme_abyssale', name:'Mine de Gemme Abyssale', icon:'💎', universe:'Mine',
     description:'Plonge au cœur des abysses de la mine de gemmes, et envoie tes compagnons te ramener le plus beau trésor possible.',
-    duration: 8*H, slots:2, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(9)),
+    duration: 8*H, slots:4, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(9)),
     rewards:{ coinsMin:200_000, coinsMax:600_000, dropChance:0.5, dropQuantity:1, dropGems:true, dropGemsAmount:4 },
   },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────
