@@ -27,8 +27,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     set(state => ({
       goldUpgradeLevel: (state.goldUpgradeLevel ?? 0) + 1,
     }));
-    get().bumpQuestProgress('d_upgrade_10', 1);
-    get().bumpQuestProgress('w_upgrade_50', 1);
+    get().bumpQuestProgress('d_upgrade', 1);
+    get().bumpQuestProgress('w_upgrade', 1);
     set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
@@ -52,8 +52,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     set(state => ({
       hero: { ...state.hero, level: state.hero.level + 1, xp: 0 },
     }));
-    get().bumpQuestProgress('d_upgrade_10', 1);
-    get().bumpQuestProgress('w_upgrade_50', 1);
+    get().bumpQuestProgress('d_upgrade', 1);
+    get().bumpQuestProgress('w_upgrade', 1);
     set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
@@ -82,8 +82,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
         [templateId]: { ...owned, level: owned.level + 1, xp: 0 },
       },
     }));
-    get().bumpQuestProgress('d_upgrade_10', 1);
-    get().bumpQuestProgress('w_upgrade_50', 1);
+    get().bumpQuestProgress('d_upgrade', 1);
+    get().bumpQuestProgress('w_upgrade', 1);
     set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 

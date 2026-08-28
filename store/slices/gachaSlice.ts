@@ -23,7 +23,8 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.single, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.single }));
     const id = rollCharacter(runPeakPalierOf(get()));
     const edition = get().addToCollection(id);
-    get().bumpQuestProgress('w_gacha_10', 1);
+    get().bumpQuestProgress('d_gacha', 1);
+    get().bumpQuestProgress('w_gacha', 1);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + 1 }));
     broadcastLocalState();
     requestUrgentSave('gacha_single');
@@ -34,7 +35,8 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi10, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi10 }));
     const ids = rollMulti(runPeakPalierOf(get()));
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
-    get().bumpQuestProgress('w_gacha_10', ids.length);
+    get().bumpQuestProgress('d_gacha', ids.length);
+    get().bumpQuestProgress('w_gacha', ids.length);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
     broadcastLocalState();
     requestUrgentSave('gacha_multi10');
@@ -45,7 +47,8 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi100, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi100 }));
     const ids = rollMulti100(runPeakPalierOf(get()));
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
-    get().bumpQuestProgress('w_gacha_10', ids.length);
+    get().bumpQuestProgress('d_gacha', ids.length);
+    get().bumpQuestProgress('w_gacha', ids.length);
     set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
     broadcastLocalState();
     requestUrgentSave('gacha_multi100');
@@ -104,7 +107,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     const uniqueOwned = new Set(
       Object.values(get().collection).map(c => c.templateId)
     ).size;
-    get().setQuestProgress('e_collection_20', uniqueOwned);
+    get().setQuestProgress('e_collection_100', uniqueOwned);
     return edition;
   },
 

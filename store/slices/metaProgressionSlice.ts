@@ -105,13 +105,12 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       // bnToNumber peut saturer à Infinity à très haut palier, mais
       // bumpCoinQuests ne s'en sert que pour comparer à un plafond de quête
       // fixe (Math.min) — reste correct même saturé.
-      const cq = bumpCoinQuests(state.quests, state.weeklyQuests ?? [], bnToNumber(gain.coins));
       return {
         pixelCoins: bnAdd(state.pixelCoins, gain.coins),
         nekoGems:   state.nekoGems + gain.gems,
         savedAt: gain.at,
         lastOfflineGain: gain,
-        quests: cq.quests, weeklyQuests: cq.weeklyQuests,
+        quests: bumpCoinQuests(state.quests, bnToNumber(gain.coins)),
       };
     });
     broadcastLocalState();
@@ -165,6 +164,9 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     // Succès "de run" (kills, dps, coins, pulls, amélios, collection,
     // quêtes, rang 7★) remis à zéro — voir lib/game/achievements.ts.
     get().resetPrestigeAchievements();
+    // Quête d'événement "Prestiger 1 fois" — les quêtes ne sont PAS remises à
+    // zéro par le set() ci-dessous (voir commentaire "Conservé" plus haut).
+    get().bumpEventQuest('e_prestige_1', 1);
 
     set({
       // ── Reset ──

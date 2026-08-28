@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { useGameStore, bumpBossQuests } from '@/store/gameStore';
+import { useGameStore, bumpEventBossQuests } from '@/store/gameStore';
 import { EVENT_BOSSES, rollEventDrop, getEventBossMaxHp, DropResult } from '@/lib/game/eventBoss';
 import { getItemDef } from '@/lib/game/items';
 import { Affinity, AFFINITY_CONFIG } from '@/lib/game/affinities';
@@ -72,7 +72,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
       const gemsGained  = results.filter(r => r.type === 'gems').reduce((s, r) => s + (r.qty ?? 0), 0);
       const crownsGained = results.filter(r => r.type === 'bossCrowns').reduce((s, r) => s + (r.qty ?? 0), 0);
       useGameStore.setState(s => {
-        const questUpdate = bumpBossQuests(s.quests, s.weeklyQuests, s.eventQuests);
+        const questUpdate = bumpEventBossQuests(s.quests, s.weeklyQuests, s.eventQuests);
         return {
           quests: questUpdate.quests,
           weeklyQuests: questUpdate.weeklyQuests,

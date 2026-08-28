@@ -52,14 +52,13 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
   // Crédite des récompenses (slots casino, jackpots...).
   grantEventRewards: (coins = BN_ZERO, gems = 0, crowns = 0) =>
     set(s => {
-      const cq = bumpCoinQuests(s.quests, s.weeklyQuests ?? [], bnToNumber(coins));
       const crownsGained = Math.max(0, Math.floor(crowns));
       return {
         pixelCoins: bnAdd(s.pixelCoins, coins),
         nekoGems:   s.nekoGems + Math.max(0, Math.floor(gems)),
         bossCrowns: s.bossCrowns + crownsGained,
         totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + crownsGained,
-        quests: cq.quests, weeklyQuests: cq.weeklyQuests,
+        quests: bumpCoinQuests(s.quests, bnToNumber(coins)),
       };
     }),
   buyGemsWithCrowns: (packId) => {

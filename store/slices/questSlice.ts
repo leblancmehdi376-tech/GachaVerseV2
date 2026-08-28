@@ -2,15 +2,15 @@
 // Extrait de gameStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
-import { DAILY_QUESTS, WEEKLY_QUESTS } from '../gameStoreHelpers';
+import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, rollQuestDefs, rollCoinHoursQuest } from '../gameStoreHelpers';
 import type { GameStore, QuestActions } from '../gameStore.types';
-import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
+import { bnAdd, bnFromNumber, bnToNumber } from '@/lib/game/bignum';
 
-export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (set) => ({
+export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (set, get) => ({
   // Helper générique et réutilisable pour toute future quête : cherche l'id
   // dans les 3 tableaux (jour/semaine/événement) et incrémente celle trouvée.
   // Appelable depuis n'importe où dans le store, ou depuis un autre store
-  // (ex: useGameStore.getState().bumpQuestProgress('w_expedition_1')).
+  // (ex: useGameStore.getState().bumpQuestProgress('w_expedition')).
   bumpQuestProgress: (id, by = 1) => set(state => {
     const bump = (arr: typeof state.quests) => arr.map(q => q.id === id && !q.done ? { ...q, current: Math.min(q.current + by, q.target) } : q);
     return {
@@ -39,19 +39,18 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     };
   }),
 
-  // Réinitialise les quêtes à un jour nouveau (progression + statut "réclamé" remis à zéro)
+  // Réinitialise les quêtes à un jour nouveau : chaque catégorie retire une
+  // NOUVELLE variante aléatoire (target+reward, voir rollQuestDefs) — cette
+  // variante reste figée jusqu'au prochain reset, même si le taux de gain du
+  // joueur évolue en cours de journée (cas de la quête "heures de coins").
   ensureDailyQuests: () => {
     const today = getTodayDayKey();
     set(state => {
       const dayChanged = state.questsDayKey !== today;
-      const quests = DAILY_QUESTS.map(def => {
-        const prev = state.quests.find(q => q.id === def.id);
-        return {
-          ...def,
-          current: dayChanged ? 0 : (prev?.current ?? 0),
-          done:    dayChanged ? false : (prev?.done ?? false),
-        };
-      });
+      if (!dayChanged) return {};
+      const coinsPerHour = bnToNumber(get().getOfflineCoinsPerHour());
+      const quests = [...rollQuestDefs(DAILY_QUEST_DEFS), rollCoinHoursQuest(coinsPerHour)]
+        .map(def => ({ ...def, current: 0, done: false }));
       return { questsDayKey: today, quests };
     });
   },
@@ -60,14 +59,8 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     const thisWeek = getThisWeekKey();
     set(state => {
       const weekChanged = state.weeklyQuestsDayKey !== thisWeek;
-      const weeklyQuests = WEEKLY_QUESTS.map(def => {
-        const prev = state.weeklyQuests?.find(q => q.id === def.id);
-        return {
-          ...def,
-          current: weekChanged ? 0 : (prev?.current ?? 0),
-          done:    weekChanged ? false : (prev?.done ?? false),
-        };
-      });
+      if (!weekChanged) return {};
+      const weeklyQuests = rollQuestDefs(WEEKLY_QUEST_DEFS).map(def => ({ ...def, current: 0, done: false }));
       return { weeklyQuestsDayKey: thisWeek, weeklyQuests };
     });
   },

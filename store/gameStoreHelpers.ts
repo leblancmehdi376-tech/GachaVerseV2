@@ -8,6 +8,7 @@ import { getPalierConfig } from '@/lib/game/paliers';
 import { getEquipmentDrop } from '@/lib/game/items';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
+import { formatNumber } from '@/lib/game/format';
 import {
   PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
 } from '@/lib/game/prestige';
@@ -53,34 +54,103 @@ if (BROADCAST_CHANNEL) {
 }
 
 // ── Quêtes : définitions statiques ──────────────────────────────────────
+// Quêtes journalières/hebdo : chaque catégorie a plusieurs variantes de
+// difficulté (target+reward) ; une variante est tirée au hasard à chaque
+// refresh de quête (voir rollQuestDefs, appelé depuis
+// ensureDailyQuests/ensureWeeklyQuests dans questSlice.ts) et reste FIXE
+// jusqu'au prochain reset (pas de recalcul en cours de journée/semaine).
+export interface QuestVariant { target: number; reward: number }
+export interface QuestDef {
+  id: string; icon: string; rewardType: 'gems' | 'coins';
+  type: 'daily' | 'weekly';
+  label: (target: number) => string;
+  variants: QuestVariant[];
+}
+
 // ── Quêtes journalières (reset 2h Paris) ─────────────────────────────────
-export const DAILY_QUESTS: Omit<Quest,'current'|'done'>[] = [
-  { id:'d_kills_500',    label:'Vaincre 500 monstres',          icon:'⚔',  target:500,   reward:15, rewardType:'gems',  type:'daily' },
-  { id:'d_kills_1000',   label:'Vaincre 1 000 monstres',        icon:'💀',  target:1000,  reward:25, rewardType:'gems',  type:'daily' },
-  { id:'d_kills_250',    label:'Vaincre 250 monstres',          icon:'⚔',  target:250,   reward:12, rewardType:'gems',  type:'daily' },
-  { id:'d_upgrade_10',   label:'Améliorer 10 fois',             icon:'⬆',  target:10,    reward:10, rewardType:'gems',  type:'daily' },
-  { id:'d_boss_kill',    label:'Vaincre 1 boss de palier',      icon:'👑',  target:1,     reward:20, rewardType:'gems',  type:'daily' },
-  { id:'d_coins_1m',     label:'Accumuler 1 000 000 coins',     icon:'🪙',  target:1_000_000, reward:15, rewardType:'gems', type:'daily' },
+export const DAILY_QUEST_DEFS: QuestDef[] = [
+  { id:'d_kills', icon:'⚔', rewardType:'gems', type:'daily',
+    label: n => `Vaincre ${n} monstres`,
+    variants: [{ target:250, reward:12 }, { target:500, reward:18 }, { target:1000, reward:28 }] },
+  { id:'d_upgrade', icon:'⬆', rewardType:'gems', type:'daily',
+    label: n => `Améliorer tes personnages ${n} fois`,
+    variants: [{ target:100, reward:15 }] },
+  { id:'d_boss_event', icon:'👹', rewardType:'gems', type:'daily',
+    label: n => `Vaincre ${n} boss d'événement`,
+    variants: [{ target:5, reward:20 }, { target:10, reward:35 }] },
+  { id:'d_boss_palier', icon:'👑', rewardType:'gems', type:'daily',
+    label: n => `Vaincre ${n} boss de palier`,
+    variants: [{ target:1, reward:20 }, { target:2, reward:35 }] },
+  { id:'d_gacha', icon:'💎', rewardType:'gems', type:'daily',
+    label: n => `Effectuer ${n} tirages gacha`,
+    variants: [{ target:50, reward:20 }, { target:100, reward:35 }] },
 ];
+
+// Quête spéciale "accumuler l'équivalent de X heures de gains hors ligne" :
+// le nombre d'heures est tiré au hasard comme les autres variantes, mais la
+// cible en coins qui en découle dépend du taux de gain hors-ligne du joueur
+// (getOfflineCoinsPerHour) — calculée UNE SEULE FOIS au reset et figée pour
+// le reste de la journée (voir ensureDailyQuests, seul appelant). Pas
+// d'équivalent hebdomadaire (absent du barème fourni).
+export const DAILY_COIN_HOURS_VARIANTS: { hours: number; reward: number }[] = [
+  { hours:0.5, reward:12 }, { hours:1, reward:18 }, { hours:1.5, reward:25 }, { hours:2, reward:32 },
+];
+// Tire une variante d'heures au hasard et fige la cible en golds d'après le
+// taux de gain hors-ligne du joueur AU MOMENT DE L'APPEL (coinsPerHour, déjà
+// converti en number par l'appelant via bnToNumber — voir ensureDailyQuests).
+// Le label affiche directement la cible en golds (pas les heures) : les
+// heures ne servent qu'en interne à calibrer la difficulté de la variante.
+export function rollCoinHoursQuest(coinsPerHour: number): Omit<Quest,'current'|'done'> {
+  const v = DAILY_COIN_HOURS_VARIANTS[Math.floor(Math.random() * DAILY_COIN_HOURS_VARIANTS.length)];
+  // Plancher à 1M : un compte neuf (DPS quasi nul) ne doit pas se retrouver
+  // avec une cible ridicule (voire 0) qui rendrait la quête instantanée.
+  const target = Math.max(1_000_000, Math.round(coinsPerHour * v.hours));
+  return {
+    id:'d_coins_hours', icon:'🪙',
+    label:`Accumuler ${formatNumber(target)} golds`,
+    target, reward:v.reward, rewardType:'gems', type:'daily',
+  };
+}
 
 // ── Quêtes hebdomadaires (reset lundi 2h Paris) ───────────────────────────
-export const WEEKLY_QUESTS: Omit<Quest,'current'|'done'>[] = [
-  { id:'w_kills_5000',   label:'Vaincre 5 000 monstres',        icon:'⚔',  target:5000,  reward:80,  rewardType:'gems',  type:'weekly' },
-  { id:'w_boss_5',       label:'Vaincre 5 boss de palier',      icon:'👑',  target:5,     reward:100, rewardType:'gems',  type:'weekly' },
-  { id:'w_upgrade_50',   label:'Améliorer 50 fois',             icon:'⬆',  target:50,    reward:60,  rewardType:'gems',  type:'weekly' },
-  { id:'w_gacha_10',     label:'Effectuer 10 tirages gacha',    icon:'💎',  target:10,    reward:120, rewardType:'gems',  type:'weekly' },
-  { id:'w_coins_10m',    label:'Accumuler 10 000 000 coins',    icon:'🪙',  target:10_000_000, reward:70, rewardType:'gems', type:'weekly' },
-  { id:'w_expedition_1', label:'Terminer 1 expédition',         icon:'🧭',  target:1,     reward:90,  rewardType:'gems',  type:'weekly' },
+export const WEEKLY_QUEST_DEFS: QuestDef[] = [
+  { id:'w_kills', icon:'⚔', rewardType:'gems', type:'weekly',
+    label: n => `Vaincre ${n} monstres`,
+    variants: [{ target:5000, reward:70 }, { target:7500, reward:100 }, { target:10000, reward:140 }] },
+  { id:'w_upgrade', icon:'⬆', rewardType:'gems', type:'weekly',
+    label: n => `Améliorer tes personnages ${n} fois`,
+    variants: [{ target:1000, reward:60 }, { target:1500, reward:85 }, { target:2000, reward:110 }] },
+  { id:'w_boss_event', icon:'👹', rewardType:'gems', type:'weekly',
+    label: n => `Vaincre ${n} boss d'événement`,
+    variants: [{ target:30, reward:90 }, { target:40, reward:120 }, { target:50, reward:150 }] },
+  { id:'w_boss_palier', icon:'👑', rewardType:'gems', type:'weekly',
+    label: n => `Vaincre ${n} boss de palier`,
+    variants: [{ target:5, reward:90 }, { target:8, reward:130 }, { target:10, reward:160 }] },
+  { id:'w_expedition', icon:'🧭', rewardType:'gems', type:'weekly',
+    label: n => `Terminer ${n} expéditions`,
+    variants: [{ target:1, reward:60 }, { target:2, reward:100 }, { target:3, reward:140 }] },
+  { id:'w_gacha', icon:'💎', rewardType:'gems', type:'weekly',
+    label: n => `Effectuer ${n} tirages gacha`,
+    variants: [{ target:750, reward:100 }, { target:1000, reward:130 }, { target:1250, reward:160 }, { target:1500, reward:190 }] },
 ];
 
-// ── Quêtes d'événement (permanentes jusqu'à complétion) ───────────────────
+// Tire une variante aléatoire par définition — appelé au reset journalier/hebdo.
+export function rollQuestDef(def: QuestDef): Omit<Quest,'current'|'done'> {
+  const v = def.variants[Math.floor(Math.random() * def.variants.length)];
+  return { id:def.id, icon:def.icon, label:def.label(v.target), target:v.target, reward:v.reward, rewardType:def.rewardType, type:def.type };
+}
+export function rollQuestDefs(defs: QuestDef[]): Omit<Quest,'current'|'done'>[] {
+  return defs.map(rollQuestDef);
+}
+
+// ── Quêtes d'événement (permanentes jusqu'à complétion, valeurs fixes) ────
 export const EVENT_QUESTS: Omit<Quest,'current'|'done'>[] = [
-  { id:'e_forge_1',      label:'Forger ton premier personnage',         icon:'⚗',  target:1,   reward:200, rewardType:'gems',  type:'event' },
-  { id:'e_expedition_5', label:'Terminer 5 expéditions',               icon:'🧭',  target:5,   reward:150, rewardType:'gems',  type:'event' },
-  { id:'e_palier_10',    label:'Atteindre le palier 10',               icon:'🌌',  target:10,  reward:180, rewardType:'gems',  type:'event' },
-  { id:'e_palier_20',    label:'Atteindre le palier 20',               icon:'👑',  target:20,  reward:300, rewardType:'gems',  type:'event' },
-  { id:'e_collection_20',label:'Obtenir 20 personnages différents',    icon:'📚',  target:20,  reward:120, rewardType:'gems',  type:'event' },
-  { id:'e_boss_20',      label:'Vaincre 20 boss au total',             icon:'💀',  target:20,  reward:250, rewardType:'gems',  type:'event' },
+  { id:'e_forge_1',        label:'Forger ton premier personnage',        icon:'⚗',  target:1,   reward:200, rewardType:'gems', type:'event' },
+  { id:'e_expedition_10',  label:'Terminer 10 expéditions',              icon:'🧭', target:10,  reward:200, rewardType:'gems', type:'event' },
+  { id:'e_palier_20',      label:'Atteindre le palier 20',               icon:'🌌', target:20,  reward:300, rewardType:'gems', type:'event' },
+  { id:'e_prestige_1',     label:'Prestiger 1 fois',                     icon:'⭐', target:1,   reward:400, rewardType:'gems', type:'event' },
+  { id:'e_collection_100', label:'Obtenir 100 personnages différents',   icon:'📚', target:100, reward:350, rewardType:'gems', type:'event' },
+  { id:'e_boss_event_200', label:"Vaincre 200 boss d'événement",         icon:'💀', target:200, reward:400, rewardType:'gems', type:'event' },
 ];
 
 // Coût et multiplicateur du Coffre d'Or — partagés entre upgradeGold() et resolveEnemyDeath()
@@ -185,31 +255,41 @@ export async function requestUrgentSaveAndWait(reason: string): Promise<boolean>
   try { return await require('@/hooks/useCloudSave').saveUrgentNow(reason); } catch { return false; }
 }
 
-// Incrémente les quêtes "vaincre X boss" (palier / semaine / événement) à chaque
-// mort de boss, progression ou re-farm. Les boss d'événement doivent passer par
-// ce helper pour être comptés comme des boss dans les quêtes et succés.
-export function bumpBossQuests(
+// Incrémente les quêtes "vaincre X boss DE PALIER" (jour/semaine) à chaque
+// mort de boss de palier, progression ou re-farm. Ne concerne PAS les boss
+// d'événement, comptés à part par bumpEventBossQuests ci-dessous.
+export function bumpPalierBossQuests(
   quests: Quest[],
-  weeklyQuests: Quest[],
-  eventQuests: Quest[] = []
-): { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] } {
+  weeklyQuests: Quest[]
+): { quests: Quest[]; weeklyQuests: Quest[] } {
   return {
-    quests: quests.map(q => q.id === 'd_boss_kill' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
-    weeklyQuests: weeklyQuests.map(q => q.id === 'w_boss_5' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
-    eventQuests: eventQuests.map(q => q.id === 'e_boss_20' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
+    quests: quests.map(q => q.id === 'd_boss_palier' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
+    weeklyQuests: weeklyQuests.map(q => q.id === 'w_boss_palier' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
   };
 }
 
-// Incrémente la progression des quêtes "accumuler X coins" (jour/semaine),
-// quelle que soit la source du gain (kill, offline, jackpot...). Sans ce
-// helper, ces quêtes restent bloquées à 0 puisqu'aucune autre logique ne les
-// met à jour ailleurs dans le store.
-export function bumpCoinQuests(quests: Quest[], weeklyQuests: Quest[], amount: number): { quests: Quest[]; weeklyQuests: Quest[] } {
-  if (amount <= 0) return { quests, weeklyQuests };
+// Incrémente les quêtes "vaincre X boss D'ÉVÉNEMENT" (jour/semaine/événement)
+// à chaque mort d'un boss d'event (voir EventBattle.tsx, seul appelant).
+export function bumpEventBossQuests(
+  quests: Quest[],
+  weeklyQuests: Quest[],
+  eventQuests: Quest[]
+): { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] } {
   return {
-    quests: quests.map(q => q.id === 'd_coins_1m' && !q.done ? { ...q, current: Math.min(q.current + amount, q.target) } : q),
-    weeklyQuests: weeklyQuests.map(q => q.id === 'w_coins_10m' && !q.done ? { ...q, current: Math.min(q.current + amount, q.target) } : q),
+    quests: quests.map(q => q.id === 'd_boss_event' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
+    weeklyQuests: weeklyQuests.map(q => q.id === 'w_boss_event' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
+    eventQuests: eventQuests.map(q => q.id === 'e_boss_event_200' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
   };
+}
+
+// Incrémente la progression de la quête journalière "accumuler l'équivalent de
+// X heures de coins", quelle que soit la source du gain (kill, offline,
+// jackpot...). Sans ce helper, cette quête resterait bloquée à 0 puisqu'aucune
+// autre logique ne la met à jour ailleurs dans le store. Pas d'équivalent
+// hebdomadaire (voir DAILY_COIN_HOURS_VARIANTS).
+export function bumpCoinQuests(quests: Quest[], amount: number): Quest[] {
+  if (amount <= 0) return quests;
+  return quests.map(q => q.id === 'd_coins_hours' && !q.done ? { ...q, current: Math.min(q.current + amount, q.target) } : q);
 }
 
 type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] };
@@ -238,21 +318,18 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
   const gems  = state.nekoGems + state.currentEnemy.gemsReward + mobGemDrop;
 
   const quests = state.quests.map(q =>
-    (q.id === 'd_kills_250' || q.id === 'd_kills_500' || q.id === 'd_kills_1000') && !q.done
+    q.id === 'd_kills' && !q.done
       ? { ...q, current: Math.min(q.current+1, q.target) } : q
   );
   const weeklyQuests = (state.weeklyQuests ?? []).map(q =>
-    q.id === 'w_kills_5000' && !q.done
+    q.id === 'w_kills' && !q.done
       ? { ...q, current: Math.min(q.current+1, q.target) } : q
   );
   // bnToNumber peut saturer à Infinity à très haut palier, mais bumpCoinQuests
   // ne s'en sert que pour comparer à un plafond de quête fixe (Math.min) — le
   // résultat reste correct même saturé (voir bnToNumber dans lib/game/bignum.ts).
-  const coinQuestUpdate = bumpCoinQuests(quests, weeklyQuests, bnToNumber(baseCoins));
-  const eventQuests = (state.eventQuests ?? []).map(q =>
-    q.id === 'e_boss_20' && state.currentEnemy.isBoss && !q.done
-      ? { ...q, current: Math.min(q.current+1, q.target) } : q
-  );
+  const questsAfterCoins = bumpCoinQuests(quests, bnToNumber(baseCoins));
+  const eventQuests = state.eventQuests ?? [];
   const bossCrownsBefore = (state as {bossCrowns?:number}).bossCrowns ?? 0;
   if (state.currentEnemy.isBoss) {
     const next = state.palier + 1;
@@ -278,12 +355,12 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     const crownGain    = isNewProgress ? 1 : 0;
     // Événement de victoire (source de vérité pour l'écran de victoire).
     const bossVictory = { palier: next, gems: passGems, coins: baseCoins, crowns: crownGain, at: Date.now() };
-    const bossQuestUpdate = bumpBossQuests(coinQuestUpdate.quests, coinQuestUpdate.weeklyQuests, eventQuests);
+    const bossQuestUpdate = bumpPalierBossQuests(questsAfterCoins, weeklyQuests);
     // "Atteindre le palier X" : on fixe la progression au palier réellement
     // atteint (pas un simple +1), et seulement lors d'une vraie progression.
     const finalEventQuests = isNewProgress
       ? eventQuests.map(q =>
-          (q.id === 'e_palier_10' || q.id === 'e_palier_20') && !q.done
+          q.id === 'e_palier_20' && !q.done
             ? { ...q, current: Math.min(Math.max(q.current, next), q.target) } : q
         )
       : eventQuests;
@@ -297,9 +374,9 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     // évité → boucle sur vague 1, le boss ne se déclenche jamais.
     const isFarming = state.palier < runPeak;
     if (isFarming || state.bossAvoided) {
-      return { pixelCoins:coins, nekoGems:gems, quests:coinQuestUpdate.quests, weeklyQuests:coinQuestUpdate.weeklyQuests, eventQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1 };
+      return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, eventQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1 };
     }
-    return { pixelCoins:coins, nekoGems:gems, quests:coinQuestUpdate.quests, weeklyQuests:coinQuestUpdate.weeklyQuests, eventQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1 };
+    return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, eventQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1 };
   }
   const equipDrop = getEquipmentDrop(
     state.unlockedEquipDropRarities ?? ['C'],
@@ -311,8 +388,8 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
   return {
     pixelCoins:coins,
     nekoGems:gems,
-    quests:coinQuestUpdate.quests,
-    weeklyQuests:coinQuestUpdate.weeklyQuests,
+    quests:questsAfterCoins,
+    weeklyQuests,
     eventQuests,
     wave:nw,
     ultUsedThisFight:[], currentEnemy:generateEnemy(nw,state.palier,runPeak),

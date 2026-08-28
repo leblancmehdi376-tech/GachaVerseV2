@@ -191,8 +191,8 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
       nekoGems:   s.nekoGems   + gems,
     }));
     // Quêtes "terminer N expédition(s)"
-    get().bumpQuestProgress('w_expedition_1', 1);
-    get().bumpQuestProgress('e_expedition_5', 1);
+    get().bumpQuestProgress('w_expedition', 1);
+    get().bumpQuestProgress('e_expedition_10', 1);
 
     // Appliquer le drop spécial
     if (dropGained > 0 && def.rewards.dropId) {

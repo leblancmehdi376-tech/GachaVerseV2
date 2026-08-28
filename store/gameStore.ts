@@ -15,7 +15,7 @@ import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels } from '@/lib/game/prestige';
 import type { GameStore } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
-import { DAILY_QUESTS, WEEKLY_QUESTS, EVENT_QUESTS } from './gameStoreHelpers';
+import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, EVENT_QUESTS, rollQuestDefs, rollCoinHoursQuest } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
 import { createCharacterSlice } from './slices/characterSlice';
 import { createEquipmentSlice } from './slices/equipmentSlice';
@@ -34,7 +34,7 @@ import { createMineSlice } from './slices/mineSlice';
 // pour tous les fichiers qui importent ces symboles.
 export type { Quest, OfflineGain, ActiveUlt, ActiveExpedition } from './gameStore.types';
 export {
-  getGoldChestCost, getGoldChestMultiplier, getPalierPassGems, bumpBossQuests,
+  getGoldChestCost, getGoldChestMultiplier, getPalierPassGems, bumpPalierBossQuests, bumpEventBossQuests,
   GOLD_CHEST_COST_BASE, GOLD_CHEST_COST_GROWTH, GOLD_CHEST_MULT_GROWTH,
   MOB_GEM_DROP_CHANCE, FARM_EQUIP_DROP_RATE,
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
@@ -59,9 +59,9 @@ const makeInitial = () => ({
   lastSaved: Date.now(),
   lastBossVictory: null as GameStore['lastBossVictory'],
   username: 'NEKOZ',
-  quests: DAILY_QUESTS.map(q => ({ ...q, current: 0, done: false })),
+  quests: [...rollQuestDefs(DAILY_QUEST_DEFS), rollCoinHoursQuest(0)].map(q => ({ ...q, current: 0, done: false })),
   questsDayKey: getTodayDayKey(),
-  weeklyQuests: WEEKLY_QUESTS.map(q => ({ ...q, current: 0, done: false })),
+  weeklyQuests: rollQuestDefs(WEEKLY_QUEST_DEFS).map(q => ({ ...q, current: 0, done: false })),
   weeklyQuestsDayKey: getThisWeekKey(),
   eventQuests: EVENT_QUESTS.map(q => ({ ...q, current: 0, done: false })),
   // Flag to temporarily suppress toasts/notifications during state restore
