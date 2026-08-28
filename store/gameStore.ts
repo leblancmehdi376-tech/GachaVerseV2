@@ -201,7 +201,23 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
       merge: (persisted, current) => {
-        const raw: Record<string, unknown> = { ...current, ...(persisted as object), ...migrateLegacyStoresOnce() };
+        // Réhydratation tardive (voir waitForAllHydrated dans useCloudSave.ts,
+        // filet de sécurité 3s) : si `current` porte déjà un `savedAt` plus
+        // récent que le blob localStorage qu'on s'apprête à fusionner, c'est
+        // qu'un chargement cloud (loadAndApply) a eu le temps de s'appliquer
+        // AVANT que cette réhydratation lente ne se termine — fusionner quand
+        // même écraserait silencieusement cette donnée cloud fraîche (ex: reset
+        // de prestige) par l'ancien state local périmé de CET appareil. On
+        // ignore alors le blob localStorage plutôt que de l'utiliser.
+        const persistedObj = (persisted ?? {}) as Record<string, unknown>;
+        const currentSavedAt = (current as GameStore).savedAt;
+        const persistedSavedAt = persistedObj.savedAt;
+        const currentTs = typeof currentSavedAt === 'number' && Number.isFinite(currentSavedAt) ? currentSavedAt : 0;
+        const persistedTs = typeof persistedSavedAt === 'number' && Number.isFinite(persistedSavedAt) ? persistedSavedAt : 0;
+        const staleLocalRehydration = persistedTs < currentTs;
+        const raw: Record<string, unknown> = staleLocalRehydration
+          ? { ...current, ...migrateLegacyStoresOnce() }
+          : { ...current, ...persistedObj, ...migrateLegacyStoresOnce() };
         // Migration BigNum : les anciennes sauvegardes (ou une save déjà
         // corrompue par le bug de débordement vers Infinity que ce type
         // corrige — JSON.stringify(Infinity) === null) stockent encore ces
