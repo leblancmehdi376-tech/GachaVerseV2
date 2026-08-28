@@ -146,9 +146,35 @@ describe('doPrestige — resets', () => {
     // kills_500 : resetsOnPrestige:true (lib/game/achievements.ts)
     expect(state.achievementProgress.kills_500).toBeUndefined();
     expect(state.achievementUnlocked.kills_500).toBeUndefined();
+    expect(state.achievementsClaimed.kills_500).toBeUndefined();
     // first_boss : pas de resetsOnPrestige, doit survivre au reset
     expect(state.achievementProgress.first_boss).toBe(1);
     expect(state.achievementUnlocked.first_boss).toBe(true);
     expect(state.achievementsClaimed.first_boss).toBe(true);
+  });
+
+  it("ne re-débloque pas un succès 'de run' basé sur un cumul à vie (kills, pulls, quêtes, améliorations) après reset", async () => {
+    setPrestigeableRunState();
+    // totalKills etc. sont des cumuls à vie, jamais remis à zéro par
+    // doPrestige (utilisés par l'admin/le classement) — sans référence de
+    // prestige, retracker ces compteurs juste après le reset (ex: le joueur
+    // rouvre la page Succès) redéclencherait instantanément kills_500, alors
+    // que son unlocked/claimed viennent d'être remis à zéro.
+    useGameStore.setState({ totalKills: 600, totalGachaPulls: 50, totalQuestsCompleted: 30, totalUpgradesPerformed: 100 });
+
+    await useGameStore.getState().doPrestige();
+
+    const { trackKills, trackGachaPulls, trackQuestsCompleted, trackUpgrades } = await import('@/store/achievementTrackers');
+    const s = useGameStore.getState();
+    trackKills(s.totalKills);
+    trackGachaPulls(s.totalGachaPulls);
+    trackQuestsCompleted(s.totalQuestsCompleted);
+    trackUpgrades(s.totalUpgradesPerformed);
+
+    const after = useGameStore.getState();
+    expect(after.achievementUnlocked.kills_500).toBeUndefined();
+    expect(after.achievementUnlocked.pull_10).toBeUndefined();
+    expect(after.achievementUnlocked.quest_10).toBeUndefined();
+    expect(after.achievementUnlocked.upgrade_10).toBeUndefined();
   });
 });

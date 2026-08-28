@@ -67,40 +67,57 @@ export function trackEquippedTeam(filledSlots: number) {
   s.setProgress('equip_team', Math.min(filledSlots, 4));
 }
 
+// `total` est le cumul À VIE (totalGachaPulls, jamais remis à zéro — utilisé
+// aussi par l'admin/le classement) — pull_* sont des succès "de run"
+// (resetsOnPrestige), donc on retranche la référence prise au dernier
+// Prestige (voir prestigeStatBaselines) pour obtenir la vraie progression
+// CETTE run, plutôt que le cumul brut (qui dépasserait déjà la target et
+// re-validerait le succès instantanément après son reset).
 export function trackGachaPulls(total: number) {
   const s = useGameStore.getState();
-  s.setProgress('pull_1',    Math.min(total, 1));
-  s.setProgress('pull_10',   Math.min(total, 10));
-  s.setProgress('pull_100',  Math.min(total, 100));
-  s.setProgress('pull_500',  Math.min(total, 500));
-  s.setProgress('pull_1000', Math.min(total, 1000));
-  s.setProgress('pull_5000', Math.min(total, 5000));
+  const run = Math.max(0, total - (s.prestigeStatBaselines?.totalGachaPulls ?? 0));
+  s.setProgress('pull_1',    Math.min(run, 1));
+  s.setProgress('pull_10',   Math.min(run, 10));
+  s.setProgress('pull_100',  Math.min(run, 100));
+  s.setProgress('pull_500',  Math.min(run, 500));
+  s.setProgress('pull_1000', Math.min(run, 1000));
+  s.setProgress('pull_5000', Math.min(run, 5000));
 }
 
+// `count` est le cumul à vie (totalQuestsCompleted) — voir le commentaire sur
+// trackGachaPulls ci-dessus, même raisonnement pour ces succès "de run".
 export function trackQuestsCompleted(count: number) {
   const s = useGameStore.getState();
-  s.setProgress('quest_10',  Math.min(count, 10));
-  s.setProgress('quest_20',  Math.min(count, 20));
-  s.setProgress('quest_50',  Math.min(count, 50));
-  s.setProgress('quest_100', Math.min(count, 100));
-  s.setProgress('quest_500', Math.min(count, 500));
+  const run = Math.max(0, count - (s.prestigeStatBaselines?.totalQuestsCompleted ?? 0));
+  s.setProgress('quest_10',  Math.min(run, 10));
+  s.setProgress('quest_20',  Math.min(run, 20));
+  s.setProgress('quest_50',  Math.min(run, 50));
+  s.setProgress('quest_100', Math.min(run, 100));
+  s.setProgress('quest_500', Math.min(run, 500));
 }
 
+// `totalKills` est le cumul à vie — voir le commentaire sur trackGachaPulls
+// ci-dessus, même raisonnement pour ces succès "de run".
 export function trackKills(totalKills: number) {
   const s = useGameStore.getState();
-  s.setProgress('kills_1',       Math.min(totalKills, 1));
-  s.setProgress('kills_500',     Math.min(totalKills, 500));
-  s.setProgress('kills_5000',    Math.min(totalKills, 5000));
-  s.setProgress('kills_50000',   Math.min(totalKills, 50000));
-  s.setProgress('kills_500000',  Math.min(totalKills, 500000));
-  s.setProgress('kills_1000000', Math.min(totalKills, 1000000));
+  const run = Math.max(0, totalKills - (s.prestigeStatBaselines?.totalKills ?? 0));
+  s.setProgress('kills_1',       Math.min(run, 1));
+  s.setProgress('kills_500',     Math.min(run, 500));
+  s.setProgress('kills_5000',    Math.min(run, 5000));
+  s.setProgress('kills_50000',   Math.min(run, 50000));
+  s.setProgress('kills_500000',  Math.min(run, 500000));
+  s.setProgress('kills_1000000', Math.min(run, 1000000));
 }
 
+// `totalUpgrades` est le cumul à vie (totalUpgradesPerformed) — voir le
+// commentaire sur trackGachaPulls ci-dessus, même raisonnement pour ces
+// succès "de run".
 export function trackUpgrades(totalUpgrades: number) {
   const s = useGameStore.getState();
-  s.setProgress('upgrade_10',  Math.min(totalUpgrades, 50));
-  s.setProgress('upgrade_50',  Math.min(totalUpgrades, 500));
-  s.setProgress('upgrade_200', Math.min(totalUpgrades, 200));
+  const run = Math.max(0, totalUpgrades - (s.prestigeStatBaselines?.totalUpgradesPerformed ?? 0));
+  s.setProgress('upgrade_10',  Math.min(run, 50));
+  s.setProgress('upgrade_50',  Math.min(run, 500));
+  s.setProgress('upgrade_200', Math.min(run, 200));
 }
 
 // ── Nouveaux traqueurs (20 succès difficiles) ─────────────────────────────

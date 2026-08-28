@@ -120,6 +120,16 @@ export interface GameState {
   // Cumuls à vie (jamais décrémentés, contrairement au solde dépensable) —
   // utilisés par les succès "au total"/"accumule X" (crowns_50, orbs_30).
   totalBossCrownsEarned: number; totalVoidOrbsEarned: number;
+  // Valeur de totalKills/totalGachaPulls/totalQuestsCompleted/totalUpgradesPerformed
+  // au moment du dernier Prestige — ces 4 compteurs sont à vie (jamais remis à
+  // zéro, utilisés aussi par l'admin/le classement), mais les succès qui les
+  // suivent (kills_*, pull_*, quest_*, upgrade_*) sont eux "de run"
+  // (resetsOnPrestige, voir lib/game/achievements.ts) : leur progression réelle
+  // se calcule en soustrayant cette référence à la valeur à vie courante (voir
+  // store/achievementTrackers.ts), plutôt que de comparer le cumul brut au
+  // target — sans quoi un succès "reset" par le Prestige se re-validait tout
+  // seul dès que ces compteurs (jamais eux-mêmes remis à zéro) rebougeaient.
+  prestigeStatBaselines: { totalKills: number; totalGachaPulls: number; totalQuestsCompleted: number; totalUpgradesPerformed: number };
   wave: number; palier: number; maxPalierReached: number;
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
   // maxPalierReached, qui ne redescend jamais et sert de référence pour le

@@ -48,6 +48,7 @@ export function getSerializableState() {
     voidOrbs:           s.voidOrbs,
     totalBossCrownsEarned: s.totalBossCrownsEarned ?? 0,
     totalVoidOrbsEarned:   s.totalVoidOrbsEarned ?? 0,
+    prestigeStatBaselines: s.prestigeStatBaselines ?? { totalKills: 0, totalGachaPulls: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0 },
     inventory:          s.inventory,
     equipmentInventory: s.equipmentInventory,
     championInventory:  s.championInventory ?? {},

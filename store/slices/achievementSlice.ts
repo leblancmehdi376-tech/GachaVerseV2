@@ -92,6 +92,18 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
       delete achievementUnlocked[a.id];
       delete achievementsClaimed[a.id];
     }
-    return { achievementProgress, achievementUnlocked, achievementsClaimed };
+    // totalKills/totalGachaPulls/totalQuestsCompleted/totalUpgradesPerformed
+    // sont des cumuls à vie (jamais remis à zéro, utilisés aussi par l'admin/
+    // le classement) — voir prestigeStatBaselines dans types/game.ts. Sans
+    // cette référence, les succès "de run" ci-dessus se re-valideraient tout
+    // seuls dès que ces compteurs (déjà au-delà de leur target) rebougent,
+    // au lieu de rester à 0 jusqu'à ce qu'ils soient re-atteints CETTE run.
+    const prestigeStatBaselines = {
+      totalKills: s.totalKills,
+      totalGachaPulls: s.totalGachaPulls,
+      totalQuestsCompleted: s.totalQuestsCompleted,
+      totalUpgradesPerformed: s.totalUpgradesPerformed,
+    };
+    return { achievementProgress, achievementUnlocked, achievementsClaimed, prestigeStatBaselines };
   }),
 });
