@@ -5,6 +5,8 @@ import { Rarity } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { correctedNow } from '@/lib/firebase/clockOffset';
+import { auth } from '@/lib/firebase/config';
+import { cancelAllActiveListings } from '@/lib/firebase/marketplace';
 import { calcTokensAwarded } from '@/lib/game/prestige';
 import { toast } from '@/hooks/useToast';
 import {
@@ -137,6 +139,14 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     const state = get();
     const runPeak = runPeakPalierOf(state);
     if (!state.canPrestige(runPeak)) return;
+
+    // Retire toutes les annonces actives (items en escrow) de l'hôtel de
+    // vente avant le reset — sinon elles restent en vente indéfiniment,
+    // orphelines d'une vie précédente. Pas besoin de recréditer localement
+    // (store.addItem/addEquipment/addToCollection) : tout est de toute
+    // façon vidé par le set() de reset ci-dessous.
+    const uid = auth?.currentUser?.uid;
+    if (uid) await cancelAllActiveListings(uid);
 
     // Rang MAX jamais atteint, TOUTES les cartes (voir bonus "Mémoire des
     // Rangs") — Math.max pour ne jamais écraser un pic antérieur par un

@@ -93,6 +93,25 @@ export async function cancelListing(listingId: string, sellerId: string): Promis
   } catch (e) { logger.error('[Marketplace] cancelListing:', e); return false; }
 }
 
+// Annule toutes les annonces ACTIVES (pas encore vendues) d'un joueur —
+// utilisé avant un prestige pour éviter de laisser des annonces d'une
+// vie précédente traîner sur l'hôtel de vente.
+export async function cancelAllActiveListings(sellerId: string): Promise<number> {
+  if (!db) return 0;
+  try {
+    const snap = await getDocs(query(
+      collection(db, 'marketplace'),
+      where('sellerId', '==', sellerId),
+      where('status', '==', 'active'),
+    ));
+    let cancelled = 0;
+    for (const d of snap.docs) {
+      if (await cancelListing(d.id, sellerId)) cancelled++;
+    }
+    return cancelled;
+  } catch (e) { logger.error('[Marketplace] cancelAllActiveListings:', e); return 0; }
+}
+
 export async function claimSaleReward(listingId: string, sellerId: string): Promise<boolean> {
   if (!db) return false;
   try {
