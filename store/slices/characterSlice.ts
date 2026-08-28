@@ -177,6 +177,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     // peut pas être équipé (voir aussi canStart dans expeditionSlice.ts,
     // qui bloque le sens inverse).
     if (get().isCharOnExpedition(parseInstanceKey(id).templateId)) return;
+    const pureId = parseInstanceKey(id).templateId;
     set(state => {
       const team = [...state.equippedTeam] as (string | null)[];
       const currentSlot = team.findIndex(entry => entry === id);
@@ -187,6 +188,13 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       const onBoss = state.bossActive || state.wave === 10;
       const occupant = team[slot];
       if (occupant && occupant !== id && onBoss && state.ultUsedThisFight.includes(occupant)) return { equippedTeam: team };
+      // Une seule édition d'un même personnage à la fois dans l'équipe
+      // (ex: Goku Or et Goku Diamant ne peuvent pas être équipés ensemble).
+      const otherEditionSlot = team.findIndex((entry, i) => i !== slot && entry !== null && parseInstanceKey(entry).templateId === pureId);
+      if (otherEditionSlot !== -1) {
+        if (onBoss && state.ultUsedThisFight.includes(team[otherEditionSlot]!)) return { equippedTeam: team };
+        team[otherEditionSlot] = null;
+      }
       if (currentSlot !== -1) team[currentSlot] = null;
       team[slot] = id;
       return { equippedTeam: team };
