@@ -35,6 +35,12 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = Object.fromEntries(
 TITLE_GOLD_BONUS_PCT['Six Seven'] = 6.7;
 TITLE_GOLD_BONUS_PCT['Réincarné'] = 15;
 
+// ── Titres de connexion journalière — bonus fixé au jour de déblocage ─────
+// Hors interpolation de TITLE_ORDER (pas liés à un succès), voir
+// lib/game/dailyRewards.ts pour le calendrier.
+TITLE_GOLD_BONUS_PCT['⚡ Le Protagoniste Prometteur'] = 7;
+TITLE_GOLD_BONUS_PCT['🌌 Briseur de Limites'] = 28;
+
 // ── Titres d'événement — drop rare (1%) sur un kill de boss d'event ───────
 // Hors interpolation de TITLE_ORDER (pas liés à un succès), bonus fixé
 // directement comme demandé.
