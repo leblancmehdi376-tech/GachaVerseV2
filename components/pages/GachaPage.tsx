@@ -4,7 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { BANNER_POOL } from '@/lib/game/characters';
-import { GACHA_COSTS, getDynamicRates, RARITY_GATES } from '@/lib/game/gacha';
+import { getDynamicRates, RARITY_GATES } from '@/lib/game/gacha';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { formatNumber } from '@/lib/game/format';
@@ -13,7 +13,7 @@ import { GachaRevealOverlay } from './gacha/GachaRevealOverlay';
 import type { Res } from './gacha/gachaTypes';
 
 export function GachaPage() {
-  const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, getRunPeakPalier } = useGameStore();
+  const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, getRunPeakPalier, getGachaCosts, totalGachaPulls, anomalyTokens } = useGameStore();
   const [results,     setResults]     = useState<Res[]>([]);
   const [pulling,     setPulling]     = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -22,10 +22,15 @@ export function GachaPage() {
   // PRESTIGE (pas le lifetime maxPalierReached, qui ne redescend jamais).
   const maxPalierReached = getRunPeakPalier();
   const currentRates = getDynamicRates(maxPalierReached);
+  // Coûts après réduction éventuelle des anomalies "Réduc. Coût Gacha".
+  const costs = getGachaCosts();
+  // Progression vers le prochain Jeton d'Anomalie (1 tous les 100 tirages cumulés).
+  const pullsInCycle = (totalGachaPulls ?? 0) % 100;
+  const pullsToNextToken = 100 - pullsInCycle;
 
-  const canS    = nekoGems >= GACHA_COSTS.single;
-  const canM    = nekoGems >= GACHA_COSTS.multi10;
-  const canM100 = nekoGems >= GACHA_COSTS.multi100;
+  const canS    = nekoGems >= costs.single;
+  const canM    = nekoGems >= costs.multi10;
+  const canM100 = nekoGems >= costs.multi100;
 
   const doSingle = () => {
     if (!canS || pulling) return;
@@ -102,7 +107,7 @@ export function GachaPage() {
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canS?'var(--purple-glow)':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×1</span>
             <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(34,211,238,0.25)', borderRadius:8, padding:'6px 16px' }}>
               <span style={{ fontSize:14.4 }}>💎</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'var(--cyan-hi)' }}>{GACHA_COSTS.single}</span>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'var(--cyan-hi)' }}>{costs.single}</span>
             </div>
           </button>
 
@@ -114,7 +119,7 @@ export function GachaPage() {
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canM?'#fbbf24':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×10</span>
             <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:8, padding:'6px 16px' }}>
               <span style={{ fontSize:14.4 }}>💎</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#fbbf24' }}>{GACHA_COSTS.multi10}</span>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#fbbf24' }}>{costs.multi10}</span>
             </div>
           </button>
 
@@ -126,9 +131,27 @@ export function GachaPage() {
             <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canM100?'#c084fc':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×100</span>
             <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(192,132,252,0.35)', borderRadius:8, padding:'6px 16px' }}>
               <span style={{ fontSize:14.4 }}>💎</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#c084fc' }}>{GACHA_COSTS.multi100}</span>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#c084fc' }}>{costs.multi100}</span>
             </div>
           </button>
+        </div>
+
+        {/* Progression vers le prochain Jeton d'Anomalie */}
+        <div className="panel" style={{ padding:'14px 18px', display:'flex', alignItems:'center', gap:14 }}>
+          <span style={{ fontSize:22.7, flexShrink:0 }}>🌀</span>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#e879f9', letterSpacing:1.5 }}>PROCHAIN JETON D&apos;ANOMALIE</span>
+              <span style={{ fontFamily:'var(--f-num)', fontSize:12.4, color:'var(--text-dim)' }}>{pullsInCycle}/100 tirages</span>
+            </div>
+            <div className="prog-track">
+              <div className="prog-fill" style={{ width:`${pullsInCycle}%`, background:'linear-gradient(90deg,#9333ea,#e879f9)', boxShadow:'0 0 6px #c084fc' }} />
+            </div>
+          </div>
+          <div style={{ flexShrink:0, textAlign:'right' }}>
+            <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.5, color:'#e879f9' }}>🌀 {formatNumber(anomalyTokens ?? 0)}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-muted)' }}>encore {pullsToNextToken}</div>
+          </div>
         </div>
 
         {/* Taux de drop dynamiques */}

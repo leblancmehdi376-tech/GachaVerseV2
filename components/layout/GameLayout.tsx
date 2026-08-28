@@ -22,6 +22,7 @@ import { ForgePage } from '@/components/pages/ForgePage';
 import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
 import { PrestigePage } from '@/components/pages/PrestigePage';
 import { MinePage } from '@/components/pages/MinePage';
+import { AnomaliePage } from '@/components/pages/AnomaliePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
 import { useGameStore } from '@/store/gameStore';
@@ -47,7 +48,7 @@ import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
 import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
 import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -66,6 +67,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'PROGRESSION', items: [
     { id:'upgrades',     label:'AMÉLIORATIONS',   accent:'var(--gold)'          },
     { id:'prestige',     label:'PRESTIGE',        accent:'var(--purple-glow)'   },
+    { id:'anomalie',     label:'ANOMALIE',        accent:'#e879f9'            },
     { id:'mine',         label:'MINE',            accent:'var(--cyan-hi)'       },
     { id:'achievements', label:'SUCCÈS',          accent:'#fbbf24'            },
   ]},
@@ -447,6 +449,7 @@ export function GameLayout() {
                   {page === 'equipment'   && <EquipmentUpgradePage />}
                   {page === 'prestige'    && <PrestigePage />}
                   {page === 'mine'        && <MinePage />}
+                  {page === 'anomalie'    && <AnomaliePage />}
                   {page === 'profile'     && <ProfilePage />}
                 </PageTransition>
               </div>

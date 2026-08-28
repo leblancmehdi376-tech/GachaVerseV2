@@ -18,6 +18,7 @@ import { Achievement } from '@/lib/game/achievements';
 import { PrestigeBonusLevels, PrestigeBonusType } from '@/lib/game/prestige';
 import { UltimateEffect } from '@/lib/game/ultimates';
 import { Affinity } from '@/lib/game/affinities';
+import { Anomaly } from '@/lib/game/anomalies';
 import { BigNum } from '@/lib/game/bignum';
 
 export interface Quest {
@@ -126,6 +127,8 @@ export interface GachaState {
 }
 export interface GachaActions {
   setCollectionFilters: (patch: { filter?: string; universe?: string | 'all'; affinity?: string; sort?: string }) => void;
+  // Coûts en gemmes après réduction des anomalies "Réduc. Coût Gacha" (arrondis).
+  getGachaCosts: () => { single: number; multi10: number; multi100: number };
   pullSingle: () => { templateId: string; edition: CardEdition } | null;
   pullMulti: () => { templateId: string; edition: CardEdition }[] | null;
   pullMulti100: () => { templateId: string; edition: CardEdition }[] | null;
@@ -358,6 +361,21 @@ export interface MineActions {
 }
 export type MineSlice = MineState & MineActions;
 
+// ─── Anomalies : bonus passifs permanents (jamais reset au Prestige) ───────
+export interface AnomalyState {
+  anomalyTokens: number;
+  ownedAnomalies: Anomaly[];
+  anomalySlots: number; // 1 par défaut, jusqu'à ANOMALY_MAX_SLOTS (5)
+}
+export interface AnomalyActions {
+  getAnomalyRerollCost: () => number;
+  rerollAnomalies: () => void;
+  toggleAnomalyLock: (id: string) => void;
+  getAnomalySlotCost: () => number | null;
+  buyAnomalySlot: () => void;
+}
+export type AnomalySlice = AnomalyState & AnomalyActions;
+
 // ─── Store combiné ─────────────────────────────────────────────────────────
 // GameState (types/game.ts) porte les champs de base partagés par plusieurs
 // domaines (pixelCoins, collection, equippedTeam, hero, currentEnemy...).
@@ -377,6 +395,7 @@ export type GameStore = GameState
   & UltimateSlice
   & ExpeditionSlice
   & MineSlice
+  & AnomalySlice
   & {
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;

@@ -6,8 +6,18 @@ import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/
 import { getCharacterById } from '@/lib/game/characters';
 import { rollCardEdition, makeInstanceKey } from '@/lib/game/editions';
 import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
+import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { broadcastLocalState, requestUrgentSave, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, GachaActions } from '../gameStore.types';
+
+// Jetons d'Anomalie : 1 tous les 100 tirages gacha CUMULÉS (à vie, jamais
+// remis à zéro par le Prestige — même compteur que totalGachaPulls). On
+// compte les paliers de 100 franchis entre l'ancien et le nouveau total,
+// plutôt qu'un simple modulo, pour ne rien perdre sur un pull ×10/×100 qui
+// chevauche plusieurs paliers de 100 d'un coup.
+function anomalyTokensEarned(before: number, after: number): number {
+  return Math.floor(after / 100) - Math.floor(before / 100);
+}
 
 export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (set, get) => ({
   setCollectionFilters: (patch) => set((state) => ({
@@ -17,39 +27,61 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     collectionSort: patch.sort ?? state.collectionSort,
   })),
 
+  getGachaCosts: () => {
+    const reduction = calcAnomalyBonuses(get().ownedAnomalies).gachaCostReductionPct;
+    const mult = 1 - reduction;
+    return {
+      single: Math.max(1, Math.round(GACHA_COSTS.single * mult)),
+      multi10: Math.max(1, Math.round(GACHA_COSTS.multi10 * mult)),
+      multi100: Math.max(1, Math.round(GACHA_COSTS.multi100 * mult)),
+    };
+  },
+
   // ─── Gacha ────────────────────────────────────────────────────────
   pullSingle: () => {
-    if (get().nekoGems < GACHA_COSTS.single) return null;
-    set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.single, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.single }));
+    const cost = get().getGachaCosts().single;
+    if (get().nekoGems < cost) return null;
+    set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
     const id = rollCharacter(runPeakPalierOf(get()));
     const edition = get().addToCollection(id);
     get().bumpQuestProgress('d_gacha', 1);
     get().bumpQuestProgress('w_gacha', 1);
-    set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + 1 }));
+    set(s => {
+      const total = (s.totalGachaPulls ?? 0) + 1;
+      return { totalGachaPulls: total, anomalyTokens: s.anomalyTokens + anomalyTokensEarned(s.totalGachaPulls ?? 0, total) };
+    });
     broadcastLocalState();
     requestUrgentSave('gacha_single');
     return { templateId: id, edition };
   },
   pullMulti: () => {
-    if (get().nekoGems < GACHA_COSTS.multi10) return null;
-    set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi10, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi10 }));
+    const cost = get().getGachaCosts().multi10;
+    if (get().nekoGems < cost) return null;
+    set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
     const ids = rollMulti(runPeakPalierOf(get()));
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);
-    set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
+    set(s => {
+      const total = (s.totalGachaPulls ?? 0) + ids.length;
+      return { totalGachaPulls: total, anomalyTokens: s.anomalyTokens + anomalyTokensEarned(s.totalGachaPulls ?? 0, total) };
+    });
     broadcastLocalState();
     requestUrgentSave('gacha_multi10');
     return results;
   },
   pullMulti100: () => {
-    if (get().nekoGems < GACHA_COSTS.multi100) return null;
-    set(s => ({ nekoGems: s.nekoGems - GACHA_COSTS.multi100, totalGemsSpent: (s.totalGemsSpent ?? 0) + GACHA_COSTS.multi100 }));
+    const cost = get().getGachaCosts().multi100;
+    if (get().nekoGems < cost) return null;
+    set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
     const ids = rollMulti100(runPeakPalierOf(get()));
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);
-    set(s => ({ totalGachaPulls: (s.totalGachaPulls ?? 0) + ids.length }));
+    set(s => {
+      const total = (s.totalGachaPulls ?? 0) + ids.length;
+      return { totalGachaPulls: total, anomalyTokens: s.anomalyTokens + anomalyTokensEarned(s.totalGachaPulls ?? 0, total) };
+    });
     broadcastLocalState();
     requestUrgentSave('gacha_multi100');
     return results;

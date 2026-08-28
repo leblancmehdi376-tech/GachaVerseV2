@@ -29,6 +29,7 @@ import { createPrestigeSlice } from './slices/prestigeSlice';
 import { createUltimateSlice } from './slices/ultimateSlice';
 import { createExpeditionSlice, initialDefAffinities, backfillDefAffinities } from './slices/expeditionSlice';
 import { createMineSlice } from './slices/mineSlice';
+import { createAnomalySlice } from './slices/anomalySlice';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
 // pour tous les fichiers qui importent ces symboles.
@@ -120,6 +121,10 @@ const makeInitial = () => ({
   mineSpeedLevel: 0,
   mineGems: 0,
   mineLastTickAt: 0,
+  // ── Anomalies (jamais reset au Prestige) ──
+  anomalyTokens: 0,
+  ownedAnomalies: [] as GameStore['ownedAnomalies'],
+  anomalySlots: 1,
 });
 
 // ─── Migration depuis les 4 anciens stores Zustand séparés ─────────────────
@@ -192,6 +197,7 @@ export const useGameStore = create<GameStore>()(
       ...createUltimateSlice(set, get, api),
       ...createExpeditionSlice(set, get, api),
       ...createMineSlice(set, get, api),
+      ...createAnomalySlice(set, get, api),
 
       resetGame: () => {
         try { localStorage.clear(); } catch {}
@@ -320,6 +326,9 @@ export const useGameStore = create<GameStore>()(
         expeditionDefAffinities:s.expeditionDefAffinities,
         mineOwned:s.mineOwned, mineCapLevel:s.mineCapLevel, mineSpeedLevel:s.mineSpeedLevel,
         mineGems:s.mineGems, mineLastTickAt:s.mineLastTickAt,
+        // Anomalies — jamais reset au Prestige (voir doPrestige), doivent donc
+        // être persistées comme bossCrowns/voidOrbs.
+        anomalyTokens:s.anomalyTokens ?? 0, ownedAnomalies:s.ownedAnomalies ?? [], anomalySlots:s.anomalySlots ?? 1,
       }),
     }
   )

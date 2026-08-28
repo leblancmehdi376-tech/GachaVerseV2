@@ -615,10 +615,25 @@ html, body {
 .page-scroll {
   height: 100%;
   overflow-y: auto;
+  /* Réserve en permanence la largeur de la scrollbar verticale (même quand
+     elle n'est pas encore nécessaire) : sans ça, tout contenu qui grandit en
+     hauteur (ex: une section repliable qu'on déplie) fait apparaître la
+     scrollbar sous Windows (non-overlay, ~15-17px), ce qui rétrécit d'autant
+     la largeur dispo et fait subtilement bouger/rétrécir TOUT le contenu de
+     la page (grilles en auto-fill qui perdent une colonne, etc.) — pas
+     seulement la section qu'on vient de déplier. */
+  scrollbar-gutter: stable;
+  overflow-x: hidden;
   padding: 24px 28px 40px;
 }
 .page-inner {
-  max-width: 1120px;
+  /* 1320 (plutôt que 1120) : aucune page existante n'utilisait plus de
+     1120px pour son propre conteneur interne (elles plafonnent déjà toutes
+     à 900-1100px) — ce plafond partagé ne change donc rien pour elles. Il
+     ne devient la contrainte active que pour AnomaliePage (maxWidth:1200),
+     pour que son tableau des raretés/bonus (~1100px) tienne par défaut sans
+     scroll interne ni redimensionnement du reste de la page à l'ouverture. */
+  max-width: 1320px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;

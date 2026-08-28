@@ -218,6 +218,19 @@ export function IconMine({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconAnomaly({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Fracture instable — noyau irrégulier entouré d'éclats orbitaux */}
+      <path d="M10 5l1.4 2.7L14 9l-2.6 1.3L10 13l-1.4-2.7L6 9l2.6-1.3z" />
+      <circle cx="3.6" cy="5.4" r="1.1" />
+      <circle cx="16.4" cy="6.2" r="1.1" />
+      <circle cx="4.4" cy="15" r="1.1" />
+      <circle cx="15.6" cy="14.4" r="1.1" />
+    </svg>
+  );
+}
+
 // Map from nav id to icon component
 export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   home:         IconHome,
@@ -234,6 +247,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   equipment:    IconShield,
   prestige:     IconPrestige,
   mine:         IconMine,
+  anomalie:     IconAnomaly,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,
   champions:    IconMedal,

@@ -11,6 +11,7 @@ import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
 import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
+import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { getGoldChestMultiplier, getGoldChestCost, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnMulScalar, type BigNum } from '@/lib/game/bignum';
@@ -22,7 +23,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const level = get().goldUpgradeLevel ?? 0;
     const maxLevel = runPeakPalierOf(get());
     if (level >= maxLevel) return; // pas encore débloqué par la progression de palier
-    const cost = getGoldChestCost(level);
+    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const cost = bnMulScalar(getGoldChestCost(level), anomalyMult);
     if (!get().spendPixelCoins(cost)) return;
     set(state => ({
       goldUpgradeLevel: (state.goldUpgradeLevel ?? 0) + 1,
@@ -36,18 +38,22 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const level = get().goldUpgradeLevel ?? 0;
     const chestMult = getGoldChestMultiplier(level);
     const titleMult = getTitleGoldMultiplier(get().activeTitle);
-    return bnMulScalar(chestMult, titleMult);
+    const anomalyGoldMult = calcAnomalyBonuses(get().ownedAnomalies).goldGainMult;
+    return bnMulScalar(chestMult, titleMult * anomalyGoldMult);
   },
 
   getGoldUpgradeCost: () => {
     const level = get().goldUpgradeLevel ?? 0;
     const maxLevel = runPeakPalierOf(get());
-    return level >= maxLevel ? BN_ZERO : getGoldChestCost(level);
+    if (level >= maxLevel) return BN_ZERO;
+    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    return bnMulScalar(getGoldChestCost(level), anomalyMult);
   },
 
   levelUpHero: () => {
     const { hero } = get();
-    const cost = heroLevelUpCost(hero.level);
+    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const cost = bnMulScalar(heroLevelUpCost(hero.level), anomalyMult);
     if (!get().spendPixelCoins(cost)) return;
     set(state => ({
       hero: { ...state.hero, level: state.hero.level + 1, xp: 0 },
@@ -61,7 +67,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const { hero } = get();
     const forms = HERO_TEMPLATE.forms ?? [];
     if (!canEvolveHero(forms, hero)) return;
-    const cost = evoCost('L', hero.currentForm);
+    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const cost = bnMulScalar(evoCost('L', hero.currentForm), anomalyMult);
     if (!get().spendPixelCoins(cost)) return;
     set(state => ({
       hero: { ...state.hero, currentForm: state.hero.currentForm + 1, level: state.hero.level + 1 },
@@ -74,7 +81,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     if (!owned) return;
     const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
     if (!tpl) return;
-    const cost = levelUpCost(owned.level);
+    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const cost = bnMulScalar(levelUpCost(owned.level), anomalyMult);
     if (!get().spendPixelCoins(cost)) return;
     set(state => ({
       collection: {
@@ -92,7 +100,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     if (!owned) return;
     const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
     if (!tpl || !canEvolve(tpl, owned, get().inventory, get().expeditionDropInventory)) return;
-    const cost = evoCost(tpl.rarity, owned.currentForm);
+    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const cost = bnMulScalar(evoCost(tpl.rarity, owned.currentForm), anomalyMult);
     if (!get().spendPixelCoins(cost)) return;
     // Consomme les Pierres d'Évolution (drop d'expédition) requises —
     // sauf pour les persos marqués noEvoStones (aucun actuellement).
@@ -133,15 +142,19 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const activeSynergies = computeActiveSynergies(equippedTeam);
     const boostMult    = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
     const prestigeMult = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel).dpsMult;
+    const anomalyBonuses = calcAnomalyBonuses(get().ownedAnomalies);
+    const anomalySynMult = 1 + (anomalyBonuses.synergyBoostByUniverse[tpl.universe ?? ''] ?? 0);
 
     const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
 
     const dpsWithEquip = bnMulScalar(calcCharDps(tpl, owned), equippedMult);
-    const withSyn = calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies);
+    const withSyn = bnMulScalar(calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies), anomalySynMult);
     const ultMult = get().getDpsMultiplierFor(templateId);
 
-    const base     = bnMulScalar(withSyn, ultMult * boostMult * prestigeMult);
-    const typeMult = getAffinityMultiplier(getAffinityForId(pureId), getAffinityForId(get().currentEnemy?.name ?? ''));
+    const base     = bnMulScalar(withSyn, ultMult * boostMult * prestigeMult * anomalyBonuses.globalDpsMult);
+    const charAffinity = getAffinityForId(pureId);
+    const anomalyTypeMult = 1 + (anomalyBonuses.typeDamageByAffinity[charAffinity] ?? 0);
+    const typeMult = getAffinityMultiplier(charAffinity, getAffinityForId(get().currentEnemy?.name ?? '')) * anomalyTypeMult;
     return { base, typeMult, final: bnMulScalar(base, typeMult) };
   },
 
@@ -150,6 +163,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const activeSynergies = computeActiveSynergies(equippedTeam);
     const boostMult = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
     const prestigeMult = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel).dpsMult; // passif +15%/niveau × shop "Transcendance"
+    const anomalyBonuses = calcAnomalyBonuses(get().ownedAnomalies);
     const enemyAffinity = getAffinityForId(get().currentEnemy?.name ?? ''); // type de l'ennemi courant
     const teamDps = equippedTeam.reduce((total: BigNum, id) => {
       if (!id) return total;
@@ -160,12 +174,15 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       const baseDps  = calcCharDps(tpl, owned);
       const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
       const dpsWithEquip = bnMulScalar(baseDps, equippedMult);
-      const withSyn  = calcDpsWithSynergies(id, dpsWithEquip, activeSynergies);
+      const anomalySynMult = 1 + (anomalyBonuses.synergyBoostByUniverse[tpl.universe ?? ''] ?? 0);
+      const withSyn  = bnMulScalar(calcDpsWithSynergies(id, dpsWithEquip, activeSynergies), anomalySynMult);
       const ultMult  = get().getDpsMultiplierFor(id);
-      const typeMult = getAffinityMultiplier(getAffinityForId(pureId), enemyAffinity); // avantage de type
+      const charAffinity = getAffinityForId(pureId);
+      const anomalyTypeMult = 1 + (anomalyBonuses.typeDamageByAffinity[charAffinity] ?? 0);
+      const typeMult = getAffinityMultiplier(charAffinity, enemyAffinity) * anomalyTypeMult; // avantage de type + anomalies
       return bnAdd(total, bnMulScalar(withSyn, ultMult * boostMult * typeMult));
     }, BN_ZERO);
-    return bnMulScalar(teamDps, prestigeMult);
+    return bnMulScalar(teamDps, prestigeMult * anomalyBonuses.globalDpsMult);
   },
   equipCharacter: (id, slot) => {
     const character = get().collection[id];

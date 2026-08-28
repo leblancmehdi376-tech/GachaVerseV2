@@ -104,6 +104,11 @@ export function getSerializableState() {
     mineSpeedLevel: s.mineSpeedLevel,
     mineGems:       s.mineGems,
     mineLastTickAt: s.mineLastTickAt,
+    // Anomalies — bonus passifs permanents, jamais reset au Prestige (voir
+    // doPrestige) : doivent être synchronisées comme bossCrowns/voidOrbs.
+    anomalyTokens:   s.anomalyTokens ?? 0,
+    ownedAnomalies:  s.ownedAnomalies ?? [],
+    anomalySlots:    s.anomalySlots ?? 1,
     savedAt:            correctedNow(),
   };
 }

@@ -12,6 +12,7 @@ import { formatNumber } from '@/lib/game/format';
 import {
   PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
 } from '@/lib/game/prestige';
+import { Anomaly, calcAnomalyBonuses } from '@/lib/game/anomalies';
 import type { Quest, ActiveUlt } from './gameStore.types';
 import { type BigNum, bnAdd, bnIsZero, bnMul, bnMulScalar, bnPow, bnToNumber } from '@/lib/game/bignum';
 
@@ -294,7 +295,7 @@ export function bumpCoinQuests(quests: Quest[], amount: number): Quest[] {
 
 type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] };
 type PrestigeReadState = { prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number };
-type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[] };
+type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[] };
 
 export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameState & QuestState> {
   // Garde-fou : ne résout la mort que si currentEnemy.currentHp <= 0 a bien été
@@ -309,7 +310,8 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
   const goldBoostEndsAt = (state as {goldBoostEndsAt?:number}).goldBoostEndsAt ?? 0;
   const boostGoldMult   = Date.now() < goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
   const prestigeCoinMult = getPrestigeBonuses(state.prestigeBonusLevels, state.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
-  const goldMult = bnMulScalar(chestMult, titleMult * ultCoinMult * boostGoldMult * prestigeCoinMult);
+  const anomalyGoldMult = calcAnomalyBonuses(state.ownedAnomalies ?? []).goldGainMult;
+  const goldMult = bnMulScalar(chestMult, titleMult * ultCoinMult * boostGoldMult * prestigeCoinMult * anomalyGoldMult);
   const baseCoins   = bnMul(state.currentEnemy.pixelCoinsReward, goldMult);
   const coins = bnAdd(state.pixelCoins, baseCoins);
 
