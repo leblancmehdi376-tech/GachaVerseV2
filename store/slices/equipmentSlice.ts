@@ -2,7 +2,10 @@
 // Extrait de gameStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
 import { defaultEquippedItems, getNextRarity, EquippedItems } from '@/types/game';
-import { ITEM_DEFS, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput } from '@/lib/game/items';
+import {
+  ITEM_DEFS, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput,
+  getSpecialWeaponGroup, pickRandomSpecialWeapon, isSpecialWeaponFusionRarity, SPECIAL_WEAPON_FUSION_COST,
+} from '@/lib/game/items';
 import type { GameStore, EquipmentActions } from '../gameStore.types';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 
@@ -64,6 +67,39 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
       let toConsume = 10;
       const newInv = { ...s.equipmentInventory };
       for (const item of fodderGroup) {
+        if (toConsume <= 0) break;
+        const have = newInv[item.id] ?? 0;
+        const take = Math.min(have, toConsume);
+        newInv[item.id] = have - take;
+        toConsume -= take;
+      }
+      newInv[output.id] = (newInv[output.id] ?? 0) + 1;
+      return { equipmentInventory: newInv };
+    });
+
+    return { ok: true, resultId: output.id };
+  },
+  fuseSpecialWeapons: (rarity) => {
+    if (!isSpecialWeaponFusionRarity(rarity)) {
+      return { ok: false, reason: 'Fusion réservée aux armes Cosmiques et plus' };
+    }
+
+    const pool = getSpecialWeaponGroup(rarity);
+    if (pool.length === 0) return { ok: false, reason: 'Aucune arme spéciale à cette rareté' };
+
+    const inv = get().equipmentInventory;
+    const totalOwned = pool.reduce((sum, item) => sum + (inv[item.id] ?? 0), 0);
+    if (totalOwned < SPECIAL_WEAPON_FUSION_COST) {
+      return { ok: false, reason: `Pas assez d’armes spéciales (${SPECIAL_WEAPON_FUSION_COST} requises)` };
+    }
+
+    const output = pickRandomSpecialWeapon(rarity);
+    if (!output) return { ok: false, reason: 'Aucune arme disponible à cette rareté' };
+
+    set(s => {
+      let toConsume = SPECIAL_WEAPON_FUSION_COST;
+      const newInv = { ...s.equipmentInventory };
+      for (const item of pool) {
         if (toConsume <= 0) break;
         const have = newInv[item.id] ?? 0;
         const take = Math.min(have, toConsume);

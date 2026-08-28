@@ -91,6 +91,9 @@ export interface EquipmentActions {
   focusExpedition: (id: string | null) => void;
   unlockEquipRarity: (rarity: Rarity) => void;
   upgradeEquipment: (slot: EquipmentSlot, rarity: Rarity) => { ok: boolean; reason?: string; resultId?: string };
+  // Fusion d'armes spéciales (3 armes de perso Cosmique+ d'une rareté → 1 arme
+  // de perso aléatoire de la MÊME rareté — pas de changement de rareté).
+  fuseSpecialWeapons: (rarity: Rarity) => { ok: boolean; reason?: string; resultId?: string };
   // Déblocage du drop d'équipement par rareté (via expédition "Chasse — Rareté X")
   unlockEquipDropRarity: (rarity: Rarity) => void;
 }
@@ -327,6 +330,33 @@ export interface ExpeditionActions {
 }
 export type ExpeditionSlice = ExpeditionState & ExpeditionActions;
 
+// ─── Mine de gemmes (débloquée au premier Prestige) ────────────────────────
+export interface MineState {
+  mineOwned: boolean;
+  mineCapLevel: number;
+  mineSpeedLevel: number;
+  mineGems: number;       // gemmes accumulées en attente de collecte (peut être fractionnaire entre 2 ticks)
+  mineLastTickAt: number; // timestamp de la dernière production appliquée (tick en ligne ou rattrapage hors-ligne)
+}
+export interface MineActions {
+  getMineCap: () => number;
+  getMineRatePerHour: () => number;
+  getMineCapUpgradeCost: () => number | null;
+  getMineSpeedUpgradeCost: () => number | null;
+  buyMine: () => void;
+  upgradeMineCap: () => void;
+  upgradeMineSpeed: () => void;
+  // Production en ligne (appelée chaque seconde, voir useDpsTick) — plein
+  // régime, seulement plafonnée par le stockage de la mine.
+  tickMine: () => void;
+  // Rattrapage hors-ligne (appelé une fois au chargement, voir
+  // useOfflineGainCheck) — plafonné par les mêmes quotas AFK (durée + taux)
+  // que les gains hors-ligne classiques.
+  applyMineOfflineProduction: () => void;
+  collectMineGems: () => void;
+}
+export type MineSlice = MineState & MineActions;
+
 // ─── Store combiné ─────────────────────────────────────────────────────────
 // GameState (types/game.ts) porte les champs de base partagés par plusieurs
 // domaines (pixelCoins, collection, equippedTeam, hero, currentEnemy...).
@@ -345,6 +375,7 @@ export type GameStore = GameState
   & PrestigeSlice
   & UltimateSlice
   & ExpeditionSlice
+  & MineSlice
   & {
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;

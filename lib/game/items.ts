@@ -546,6 +546,31 @@ export function pickEquipmentUpgradeOutput(slot: EquipmentDef['slot'], nextRarit
   return weighted[weighted.length - 1].item;
 }
 
+// ── Fusion d'armes spéciales (Cosmique et plus) ──────────────────────────
+// Contrairement à pickEquipmentUpgradeOutput (10 objets → 1 rareté sup.),
+// cette fusion ne change PAS la rareté : elle recycle des doublons d'armes
+// liées à un perso (bonusFor) en une arme spéciale aléatoire de la MÊME
+// rareté, pour un coût plus faible (3 pour 1). Réservée aux raretés
+// Cosmique/Primordiale/Transcendante — l'entrée ET la sortie ne contiennent
+// que des armes spéciales (jamais l'arme générique de la rareté).
+export const SPECIAL_WEAPON_FUSION_RARITIES = ['CO', 'P', 'T'] as const;
+export type SpecialWeaponFusionRarity = typeof SPECIAL_WEAPON_FUSION_RARITIES[number];
+export const SPECIAL_WEAPON_FUSION_COST = 3;
+
+export function isSpecialWeaponFusionRarity(rarity: string): rarity is SpecialWeaponFusionRarity {
+  return (SPECIAL_WEAPON_FUSION_RARITIES as readonly string[]).includes(rarity);
+}
+
+export function getSpecialWeaponGroup(rarity: string): EquipmentDef[] {
+  return Object.values(EQUIPMENT_DEFS).filter(item => item.slot === 'weapon' && item.rarity === rarity && !!item.bonusFor);
+}
+
+export function pickRandomSpecialWeapon(rarity: string): EquipmentDef | null {
+  const pool = getSpecialWeaponGroup(rarity);
+  if (pool.length === 0) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // ── Drop d'équipement en combat ──────────────────────────────────────────
 // Le déblocage du drop de chaque rareté ne dépend plus directement du palier :
 // il faut avoir terminé l'expédition "Chasse — Rareté X" correspondante

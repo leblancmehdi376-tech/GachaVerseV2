@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe, EXPEDITION_DEFS } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, Rarity } from '@/types/game';
+import { getEquipmentDef, getSpecialWeaponGroup, SPECIAL_WEAPON_FUSION_COST, SPECIAL_WEAPON_FUSION_RARITIES } from '@/lib/game/items';
 
 function IngredientRow({ type, id, quantity, label }: { type: string; id: string; quantity: number; label: string }) {
   const { expeditionDropInventory: dropInventory, collection, championInventory, focusExpedition } = useGameStore();
@@ -190,9 +191,80 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
   );
 }
 
+function WeaponFusionCard({ rarity }: { rarity: Rarity }) {
+  const { equipmentInventory, fuseSpecialWeapons } = useGameStore();
+  const [lastResult, setLastResult] = useState<string | null>(null);
+
+  const cfg = RARITY_CONFIG[rarity];
+  const pool = getSpecialWeaponGroup(rarity);
+  const qty = pool.reduce((sum, item) => sum + (equipmentInventory[item.id] ?? 0), 0);
+  const maxFusions = Math.floor(qty / SPECIAL_WEAPON_FUSION_COST);
+
+  const doFuse = (times: number) => {
+    if (times < 1) return;
+    let succeeded = 0;
+    let lastId: string | null = null;
+    for (let i = 0; i < times; i++) {
+      const res = fuseSpecialWeapons(rarity);
+      if (!res.ok) break;
+      succeeded++;
+      lastId = res.resultId ?? lastId;
+    }
+    if (succeeded > 0 && lastId) {
+      const def = getEquipmentDef(lastId);
+      setLastResult(`✦ ${succeeded} fusion${succeeded > 1 ? 's' : ''} réussie${succeeded > 1 ? 's' : ''} — dernière arme obtenue : ${def?.name ?? lastId}`);
+    }
+  };
+
+  if (pool.length === 0) return null;
+
+  return (
+    <div className="panel" style={{ padding:'16px 18px', borderColor:`${cfg.color}40` }}>
+      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{
+          width:44, height:44, flexShrink:0, borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:22, background:`${cfg.color}18`, border:`1px solid ${cfg.color}44`,
+        }}>
+          ⚔️
+        </div>
+        <div style={{ flex:1 }}>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:14.4, color:cfg.color, letterSpacing:1 }}>Armes {cfg.label}</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>
+            {qty} arme{qty !== 1 ? 's' : ''} spéciale{qty !== 1 ? 's' : ''} en stock ({pool.length} arme{pool.length !== 1 ? 's' : ''} possible{pool.length !== 1 ? 's' : ''} en sortie)
+          </div>
+        </div>
+        <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18, color: maxFusions > 0 ? '#4ade80' : 'var(--text-muted)', flexShrink:0 }}>
+          {maxFusions} fusion{maxFusions !== 1 ? 's' : ''}
+        </div>
+      </div>
+
+      <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:12 }}>
+        <button
+          onClick={() => doFuse(1)}
+          disabled={maxFusions < 1}
+          className={maxFusions >= 1 ? 'btn-primary' : 'btn-secondary'}
+          style={{ padding:'8px 14px', fontSize:12.4 }}>
+          Fusionner ×{SPECIAL_WEAPON_FUSION_COST} → 1
+        </button>
+        {maxFusions > 1 && (
+          <button onClick={() => doFuse(maxFusions)} className="btn-secondary" style={{ padding:'8px 14px', fontSize:12.4 }}>
+            Fusionner ×{maxFusions} (max)
+          </button>
+        )}
+      </div>
+
+      {lastResult && (
+        <div style={{ marginTop:10, fontFamily:'var(--f-ui)', fontSize:12, color:cfg.color, background:`${cfg.color}10`, border:`1px solid ${cfg.color}30`, borderRadius:8, padding:'8px 12px' }}>
+          {lastResult}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ForgePage() {
   const { expeditionDropInventory: dropInventory } = useGameStore();
-  const [tab, setTab] = useState<'recipes' | 'inventory'>('recipes');
+  const [tab, setTab] = useState<'recipes' | 'inventory' | 'weapons'>('recipes');
 
   const ownedDrops = PALIER_DROPS.filter(d => (dropInventory[d.id] ?? 0) > 0);
 
@@ -215,6 +287,7 @@ export function ForgePage() {
         <div style={{ display:'flex', gap:8 }}>
           {([
             { k:'recipes'   as const, label:`⚗ RECETTES (${CRAFT_RECIPES.length})` },
+            { k:'weapons'   as const, label:'⚔ FUSION D\'ARMES' },
             { k:'inventory' as const, label:`🎒 MES DROPS (${ownedDrops.length})` },
           ]).map(t => (
             <button key={t.k} onClick={() => setTab(t.k)}
@@ -230,6 +303,14 @@ export function ForgePage() {
         {tab === 'recipes' ? (
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
             {CRAFT_RECIPES.map(r => <RecipeCard key={r.id} recipe={r} />)}
+          </div>
+        ) : tab === 'weapons' ? (
+          /* ── Fusion d'armes spéciales ── */
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            <div className="panel" style={{ padding:'14px 16px', fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)', lineHeight:1.6 }}>
+              Fusionne {SPECIAL_WEAPON_FUSION_COST} armes spéciales (liées à un personnage) d&apos;une même rareté pour obtenir une arme spéciale <strong style={{ color:'var(--text)' }}>aléatoire de cette même rareté</strong> — pratique pour recycler les doublons d&apos;armes de persos déjà possédées. Contrairement à la fusion d&apos;équipement, la rareté ne change pas, d&apos;où un coût réduit.
+            </div>
+            {SPECIAL_WEAPON_FUSION_RARITIES.map(r => <WeaponFusionCard key={r} rarity={r} />)}
           </div>
         ) : (
           /* ── Inventaire drops ── */
