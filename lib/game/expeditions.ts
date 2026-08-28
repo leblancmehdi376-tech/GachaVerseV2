@@ -251,10 +251,12 @@ export interface ExpeditionDef {
     coinsMax:     number;
     gemsMin?:     number;
     gemsMax?:     number;
-    dropId?:      string;     // drop spécial possible
+    dropId?:      string;     // drop spécial possible (item), voir dropGems pour une variante en gemmes
     dropChance?:  number;     // 0-1
     dropQuantity?: number;
     dropQuantityCap?: number; // plafond du bonus de quantité (sinon illimité)
+    dropGems?:      boolean; // si vrai, chaque tentative de drop réussie (même mécanique que dropId : dropChance/dropQuantity/dropQuantityCap/computeDropAttempts) donne des gemmes au lieu d'un item
+    dropGemsAmount?: number; // gemmes accordées par tentative de drop réussie quand dropGems est vrai (défaut 1)
   };
   isFarming?:     boolean;    // expédition de retour-palier
   farmingPalier?: number;
@@ -326,7 +328,10 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     id:'cave_cristal', name:'Caverne de Cristal', icon:'💎', universe:'Subnautica',
     description:'Explore les cavernes sous-marines à la recherche de ressources.',
     duration: 2*H, slots:1, palierRequired:1, minTeamDps: referenceTeamDps(rarityForPalier(1)),
-    rewards:{ coinsMin:50_000, coinsMax:150_000, gemsMin:1, gemsMax:3 },
+    // Seule expédition (avec les Mines de Gemme) à donner des gemmes via
+    // dropGems plutôt qu'un gain garanti — comme les autres, elle bénéficie
+    // désormais de tentatives supplémentaires à haut DPS (computeDropAttempts).
+    rewards:{ coinsMin:50_000, coinsMax:150_000, dropChance:0.5, dropQuantity:1, dropQuantityCap:5, dropGems:true, dropGemsAmount:2 },
   },
   {
     id:'foret_kame', name:'Forêt de la Tortue', icon:'🐢', universe:'Dragon Ball Z',
@@ -358,6 +363,34 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     description:'Une île qui n\'apparaît qu\'une fois par génération, dit-on, chargée de fruits maudits.',
     duration: 48*H, slots:2, palierRequired:2, minTeamDps: referenceTeamDps('T'),
     rewards:{ coinsMin:200_000, coinsMax:500_000, gemsMin:2, gemsMax:6, dropId:'fruit_demon', dropChance:0.12, dropQuantity:1, dropQuantityCap:1 },
+  },
+  // ── Mine de Gemmes — pas de contrainte de personnage, contrainte de type ──
+  // universe:'Mine' ne correspond à aucun univers de CHARACTER_POOL : voir
+  // hasRealUniverse() plus haut, la contrainte bascule automatiquement sur un
+  // TYPE (affinité) tiré au hasard, sans restreindre quels personnages du bon
+  // type peuvent être envoyés. Répétable à l'infini (comme toute expédition,
+  // seul le cooldown `duration` limite la cadence). dropGems:true fait que la
+  // récompense en gemmes suit exactement la mécanique de drop d'objets
+  // (dropChance/dropQuantity/computeDropAttempts) au lieu d'un gain garanti :
+  // pas de dropQuantityCap ⇒ le nombre de tentatives grandit avec le DPS
+  // d'équipe sans plafond ("tentatives de drop infinies").
+  {
+    id:'mine_gemme', name:'Mine de Gemme', icon:'⛏️', universe:'Mine',
+    description:'Explore la mine de gemmes, et envoie tes compagnons te ramener le plus beau trésor possible.',
+    duration: 15*60, slots:1, palierRequired:1, minTeamDps: referenceTeamDps(rarityForPalier(1)),
+    rewards:{ coinsMin:6_000, coinsMax:18_000, dropChance:0.5, dropQuantity:1, dropGems:true, dropGemsAmount:1 },
+  },
+  {
+    id:'mine_gemme_profonde', name:'Mine de Gemme Profonde', icon:'🪨', universe:'Mine',
+    description:'Descends plus profondément dans la mine de gemmes, et envoie tes compagnons te ramener le plus beau trésor possible.',
+    duration: H, slots:2, palierRequired:2, minTeamDps: referenceTeamDps(rarityForPalier(2)),
+    rewards:{ coinsMin:25_000, coinsMax:75_000, dropChance:0.5, dropQuantity:1, dropGems:true, dropGemsAmount:2 },
+  },
+  {
+    id:'mine_gemme_abyssale', name:'Mine de Gemme Abyssale', icon:'💎', universe:'Mine',
+    description:'Plonge au cœur des abysses de la mine de gemmes, et envoie tes compagnons te ramener le plus beau trésor possible.',
+    duration: 8*H, slots:2, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(9)),
+    rewards:{ coinsMin:200_000, coinsMax:600_000, dropChance:0.5, dropQuantity:1, dropGems:true, dropGemsAmount:4 },
   },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────
   {
@@ -449,23 +482,27 @@ export interface ExpeditionRewardRoll {
   dropGained: number;
 }
 
-// Tire les récompenses d'une expédition terminée (pièces/gemmes aléatoires
-// entre min/max, + drop spécial : un dé à dropChance par tentative accordée
-// par computeDropAttempts, chaque succès valant 1 item). Utilisé par
+// Tire les récompenses d'une expédition terminée (pièces + gemmes fixes
+// aléatoires entre min/max, + drop spécial : un dé à dropChance par tentative
+// accordée par computeDropAttempts, chaque succès valant 1 item — ou, si
+// dropGems est vrai, dropGemsAmount gemmes au lieu d'un item). Utilisé par
 // claimExpedition (expeditionStore.ts).
 export function rollExpeditionRewards(def: ExpeditionDef, teamDps: BigNum): ExpeditionRewardRoll {
   const coins = Math.floor(
     def.rewards.coinsMin + Math.random() * (def.rewards.coinsMax - def.rewards.coinsMin)
   );
-  const gems = def.rewards.gemsMin !== undefined
+  let gems = def.rewards.gemsMin !== undefined
     ? Math.floor(def.rewards.gemsMin + Math.random() * ((def.rewards.gemsMax ?? def.rewards.gemsMin) - def.rewards.gemsMin))
     : 0;
 
   let dropGained = 0;
-  if (def.rewards.dropId) {
+  if (def.rewards.dropId || def.rewards.dropGems) {
     const attempts = computeDropAttempts(def, teamDps);
     for (let i = 0; i < attempts; i++) {
-      if (Math.random() < (def.rewards.dropChance ?? 0)) dropGained++;
+      if (Math.random() < (def.rewards.dropChance ?? 0)) {
+        if (def.rewards.dropGems) gems += def.rewards.dropGemsAmount ?? 1;
+        else dropGained++;
+      }
     }
   }
 
@@ -488,7 +525,7 @@ export interface DropTier { qty: number; dps: number }
 // (dropQuantityCap défini) : sans plafond, le nombre de tentatives grandit
 // indéfiniment avec le DPS (log10), donc aucun "palier final" n'a de sens.
 export function getDropTiers(def: ExpeditionDef): DropTier[] {
-  if (!def.rewards.dropId || def.rewards.dropQuantityCap === undefined) return [];
+  if (!(def.rewards.dropId || def.rewards.dropGems) || def.rewards.dropQuantityCap === undefined) return [];
   const cap = def.rewards.dropQuantityCap;
   const tiers: DropTier[] = [];
   for (let q = 1; q <= cap; q++) tiers.push({ qty: q, dps: dpsForDropQty(def, q) });

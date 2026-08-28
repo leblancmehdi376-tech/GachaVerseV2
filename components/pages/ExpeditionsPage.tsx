@@ -63,7 +63,7 @@ function CharSelector({ def, onConfirm, onClose }: {
   // du seuil minTeamDps, chaque palier supplémentaire (×10 DPS) accorde 1
   // tentative de drop de plus. La barre visualise la progression VERS LE
   // PROCHAIN palier — elle se "reset" à chaque fois qu'un palier est franchi.
-  const hasDrop = !!def.rewards.dropId;
+  const hasDrop = !!(def.rewards.dropId || def.rewards.dropGems);
   const baseAttempts = def.rewards.dropQuantity ?? 1;
   const cap = def.rewards.dropQuantityCap;
   const attempts = hasDrop && reqMet ? computeDropAttempts(def, score) : 0;
@@ -264,6 +264,11 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
                 </span>
               ) : null;
             })()}
+            {def.rewards.dropGems && (
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--cyan-hi)' }}>
+                💎 +{def.rewards.dropGemsAmount ?? 1}
+              </span>
+            )}
           </div>
         </div>
         {/* Actions */}
@@ -357,6 +362,11 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
                 </div>
               ) : null;
             })()}
+            {def.rewards.dropGems && (
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--cyan-hi)', background:'rgba(34,211,238,0.1)', border:'1px solid rgba(34,211,238,0.25)', borderRadius:6, padding:'3px 8px' }}>
+                💎 {def.rewards.dropGemsAmount ?? 1} ({Math.round((def.rewards.dropChance ?? 0) * 100)}%)
+              </div>
+            )}
           </div>
           {/* Paliers de drop selon le DPS d'équipe — pour que le joueur sache */}
           {/* quel DPS viser pour débloquer 2 ou 3 tentatives de drop (chacune */}

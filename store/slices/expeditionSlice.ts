@@ -27,9 +27,19 @@ let _seq = 0;
 // Tire un type initial pour chaque expédition sans univers de perso réel —
 // calculé une fois au chargement du module (liste d'expéditions statique).
 export function initialDefAffinities(): Record<string, Affinity> {
-  const out: Record<string, Affinity> = {};
+  return backfillDefAffinities({});
+}
+
+// Complète les affinités manquantes SANS toucher à celles déjà tirées —
+// utilisé par le merge() de persist (gameStore.ts) à chaque réhydratation,
+// pour qu'une expédition ajoutée après la dernière sauvegarde d'un joueur
+// reçoive un type roulé UNE SEULE FOIS (et persisté), plutôt que de retomber
+// sur le fallback de getExpeditionAffinity ci-dessous, qui re-tirerait un
+// type différent à chaque lecture tant que rien n'est enregistré en state.
+export function backfillDefAffinities(existing: Record<string, Affinity>): Record<string, Affinity> {
+  const out = { ...existing };
   for (const def of EXPEDITION_DEFS) {
-    if (!hasRealUniverse(def)) out[def.id] = rollAffinity();
+    if (!hasRealUniverse(def) && !out[def.id]) out[def.id] = rollAffinity();
   }
   return out;
 }

@@ -27,7 +27,7 @@ import { createMetaProgressionSlice } from './slices/metaProgressionSlice';
 import { createAchievementSlice } from './slices/achievementSlice';
 import { createPrestigeSlice } from './slices/prestigeSlice';
 import { createUltimateSlice } from './slices/ultimateSlice';
-import { createExpeditionSlice, initialDefAffinities } from './slices/expeditionSlice';
+import { createExpeditionSlice, initialDefAffinities, backfillDefAffinities } from './slices/expeditionSlice';
 import { createMineSlice } from './slices/mineSlice';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
@@ -241,6 +241,13 @@ export const useGameStore = create<GameStore>()(
           raw.lastBossVictory = { ...victory, coins: coerceBigNum(victory.coins) };
         }
         const merged = raw as unknown as GameStore;
+        // Backfill des types d'expédition manquants (voir backfillDefAffinities) :
+        // une sauvegarde antérieure à l'ajout d'une nouvelle expédition sans
+        // univers de perso réel n'a pas d'entrée pour elle dans
+        // expeditionDefAffinities — sans ce backfill, getExpeditionAffinity
+        // retombe sur un tirage à la volée à CHAQUE lecture (donc à chaque
+        // render) au lieu d'un type stable jusqu'au claim de l'expédition.
+        merged.expeditionDefAffinities = backfillDefAffinities(merged.expeditionDefAffinities ?? {});
         // Backfill titres (ex-onRehydrateStorage d'achievementStore) — tourne à
         // CHAQUE rehydration, pas juste lors d'une migration legacy : garantit
         // 'Novice' (titre de départ gratuit) même pour les parties commencées
