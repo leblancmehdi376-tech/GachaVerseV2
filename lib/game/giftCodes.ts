@@ -49,11 +49,11 @@ export const GIFT_CODES: GiftCodeDef[] = [
     gems:1200,
   },*/
   //code pour évo jinwoo et vegeta
-  {
+  /*{
     code:         'LULUUUUUUX',
     items:        ['elixir_vie', 'elixir_vie', 'manteau_ombre', 'manteau_ombre', 'beru'],
     drops:        { pierre_evolution: 40 },
-  },
+  },*/
   /*{
     code:         'CODE-SORRY-INES',
     pixelCoins:   1_000_000,
@@ -117,6 +117,10 @@ export const GIFT_CODES: GiftCodeDef[] = [
     code:      'EPEE-AUBE',
     equipment: ['weapon_primordial_dawn'],
   },*/
+  {
+    code:       'AIR-MAIS-CHAMP-TRACTEUR',
+    gems:       900,
+  }
 ];
 
 // Normalise une saisie utilisateur (espaces, casse) pour la comparaison
