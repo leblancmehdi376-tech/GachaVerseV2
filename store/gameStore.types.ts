@@ -143,7 +143,7 @@ export interface ShopState {
   goldBoostEndsAt: number;
   eventDpsMult: number;
   eventDpsMultEndsAt: number;
-  dailyShop: { dayKey: string; characterIds: string[]; purchased: string[] };
+  dailyShop: { dayKey: string; characterIds: string[]; purchased: string[]; rerollCount: number };
   starterPackClaimed: boolean;
 }
 export interface ShopActions {
@@ -159,6 +159,7 @@ export interface ShopActions {
   buyGoldWithGems: (packId: string) => void;
   ensureDailyShop: () => void;
   buyShopCharacter: (slotIndex: number) => void;
+  rerollDailyShop: () => void;
   buyGemsWithOrbs: (packId: string) => void;
   buyEquipmentChest: (tier: 'common' | 'rare' | 'epic') => string | null;
   recycleChampion:   (templateId: string) => void;

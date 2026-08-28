@@ -126,6 +126,14 @@ export function generateDailyShopCharacters(): string[] {
   return Array.from(ids);
 }
 
+// ── Reroll de la boutique du jour (payé en Orbes du Néant) ───────────────
+// Coût croissant (×1.5 par reroll déjà utilisé aujourd'hui, même logique que
+// getEventCharacterCost) pour éviter de reroll à l'infini à moindre coût.
+export const REROLL_SHOP_BASE_COST_ORBS = 15;
+export function getRerollShopCost(rerollCount: number): number {
+  return Math.round(REROLL_SHOP_BASE_COST_ORBS * Math.pow(1.5, rerollCount));
+}
+
 // ── Pack de démarrage Early Access ────────────────────────────────────────
 // ⚠️ À AJUSTER : remplacer par l'horodatage réel de mise en ligne sur Vercel.
 // ⚠️ Lancement : 00h00 le 14 août 2026 heure française (UTC+2 en été = 22h00 UTC le 13 août)

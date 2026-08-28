@@ -6,7 +6,7 @@ import { getCharacterById, BANNER_POOL } from '@/lib/game/characters';
 import { rollEquipmentChest } from '@/lib/game/items';
 import {
   CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, getGoldPackCoins, BOOST_COST_CROWNS, BOOST_DURATION_MS,
-  getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, generateDailyShopCharacters,
+  getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, generateDailyShopCharacters, getRerollShopCost,
   LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS, EQUIPMENT_CHESTS,
 } from '@/lib/game/shop';
 import { bumpCoinQuests, getGoldChestMultiplier, requestUrgentSave, resolveEnemyDeath } from '../gameStoreHelpers';
@@ -77,7 +77,17 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
   ensureDailyShop: () => {
     const today = getTodayDayKey();
     if (get().dailyShop.dayKey === today) return; // déjà à jour
-    set({ dailyShop: { dayKey: today, characterIds: generateDailyShopCharacters(), purchased: [] } });
+    set({ dailyShop: { dayKey: today, characterIds: generateDailyShopCharacters(), purchased: [], rerollCount: 0 } });
+  },
+  rerollDailyShop: () => {
+    const { dailyShop, voidOrbs } = get();
+    const cost = getRerollShopCost(dailyShop.rerollCount ?? 0);
+    if (voidOrbs < cost) return;
+    set(state => ({
+      voidOrbs: state.voidOrbs - cost,
+      dailyShop: { ...state.dailyShop, characterIds: generateDailyShopCharacters(), purchased: [], rerollCount: (state.dailyShop.rerollCount ?? 0) + 1 },
+    }));
+    requestUrgentSave('shop');
   },
   buyShopCharacter: (slotIndex) => {
     const { dailyShop, voidOrbs } = get();

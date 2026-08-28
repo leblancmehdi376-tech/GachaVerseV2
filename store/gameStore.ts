@@ -79,7 +79,7 @@ const makeInitial = () => ({
   unlockedEquipDropRarities: ['C'] as Rarity[],
   dpsBoostEndsAt: 0, goldBoostEndsAt: 0,
   eventDpsMult: 1, eventDpsMultEndsAt: 0,
-  dailyShop: { dayKey: '', characterIds: [] as string[], purchased: [] as string[] },
+  dailyShop: { dayKey: '', characterIds: [] as string[], purchased: [] as string[], rerollCount: 0 },
   collectionFilter: 'all',
   collectionUniverse: 'all',
   collectionAffinity: 'all',

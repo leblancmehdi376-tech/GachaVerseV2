@@ -9,10 +9,23 @@ import { formatNumber } from '@/lib/game/format';
 import {
   CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, getGoldPackCoins, BOOST_COST_CROWNS, BOOST_DURATION_MS, BOOST_MULTIPLIER,
   SHOP_CHAR_PRICE_ORBS, LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS,
-  EQUIPMENT_CHESTS,
+  EQUIPMENT_CHESTS, getRerollShopCost,
 } from '@/lib/game/shop';
 import { getEquipmentDef, getItemDef } from '@/lib/game/items';
 import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
+import { makeInstanceKey } from '@/lib/game/editions';
+
+function isCharacterOwned(collection: Record<string, unknown>, templateId: string): boolean {
+  return (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(templateId, ed)]);
+}
+
+function NewBadge() {
+  return (
+    <span style={{ position:'absolute', top:-6, right:-6, background:'#4ade80', color:'#052e12', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'10px', letterSpacing:'0.3px', padding:'2px 6px', borderRadius:'999px', boxShadow:'0 0 8px rgba(74,222,128,0.6)', zIndex:1 }}>
+      NEW
+    </span>
+  );
+}
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return '00:00';
@@ -33,10 +46,10 @@ function msUntilNextMidnight(): number {
 
 export function ShopPage() {
   const {
-    nekoGems, bossCrowns, voidOrbs, palier, inventory, goldUpgradeLevel,
+    nekoGems, bossCrowns, voidOrbs, palier, inventory, goldUpgradeLevel, collection,
     dpsBoostEndsAt, goldBoostEndsAt, isDpsBoostActive, isGoldBoostActive,
     buyDpsBoost, buyGoldBoost, buyGemsWithCrowns, buyGoldWithGems,
-    dailyShop, ensureDailyShop, buyShopCharacter, buyGemsWithOrbs, buyEquipmentChest,
+    dailyShop, ensureDailyShop, buyShopCharacter, rerollDailyShop, buyGemsWithOrbs, buyEquipmentChest,
     starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyEventCharacter,
     eventCharacterPurchases,
   } = useGameStore();
@@ -256,6 +269,17 @@ export function ShopPage() {
             </span>
           </div>
 
+          {(() => {
+            const rerollCost = getRerollShopCost(dailyShop.rerollCount ?? 0);
+            const canReroll = voidOrbs >= rerollCost;
+            return (
+              <button onClick={rerollDailyShop} disabled={!canReroll}
+                style={{ width:'100%', marginBottom:'14px', padding:'10px', background:canReroll?'rgba(192,132,252,0.14)':'rgba(255,255,255,0.03)', border:`1px solid ${canReroll?'#c084fc66':'var(--border)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canReroll?'#c084fc':'var(--text-muted)', cursor:canReroll?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px' }}>
+                🎲 REROLL LA BOUTIQUE · 🔮 {rerollCost}
+              </button>
+            );
+          })()}
+
           <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
             {dailyShop.characterIds.map(id => {
               const tpl = getCharacterById(id);
@@ -264,9 +288,13 @@ export function ShopPage() {
               const price   = SHOP_CHAR_PRICE_ORBS[tpl.rarity];
               const bought  = dailyShop.purchased.includes(id);
               const canBuy  = !bought && voidOrbs >= price;
+              const isNew   = !isCharacterOwned(collection, tpl.id);
               return (
                 <div key={id} style={{ background:bought?'rgba(74,222,128,0.05)':`${cfg.color}0c`, border:`1px solid ${bought?'rgba(74,222,128,0.3)':cfg.color+'55'}`, borderRadius:'12px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'8px' }}>
-                  <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
+                  <div style={{ position:'relative' }}>
+                    <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
+                    {isNew && <NewBadge />}
+                  </div>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', textAlign:'center' }}>{tpl.name}</span>
                   <RarityBadge rarity={tpl.rarity} />
                   <button onClick={() => buyShopCharacter(dailyShop.characterIds.indexOf(id))} disabled={!canBuy}
@@ -311,9 +339,13 @@ export function ShopPage() {
               const owned = inventory[boss.coinItemId] ?? 0;
               const cost  = getEventCharacterCost(boss, eventCharacterPurchases[boss.id] ?? 0);
               const canBuy = owned >= cost;
+              const isNew = !isCharacterOwned(collection, tpl.id);
               return (
                 <div key={boss.id} style={{ background:`${cfg.color}0c`, border:`1px solid ${cfg.color}55`, borderRadius:'12px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'8px' }}>
-                  <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
+                  <div style={{ position:'relative' }}>
+                    <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
+                    {isNew && <NewBadge />}
+                  </div>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', textAlign:'center' }}>{tpl.name}</span>
                   <RarityBadge rarity={tpl.rarity} />
                   <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12.4px', color: canBuy?'#fbbf24':'var(--text-muted)' }}>
