@@ -206,6 +206,18 @@ export function IconGear({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconMine({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Pioche croisée sur un cristal — mine de gemmes */}
+      <path d="M3 4c3.2 0 6.4 1.6 8.5 4.3M17 4c-3.2 0-6.4 1.6-8.5 4.3" />
+      <path d="M6.5 8.3l-3.5 8 2 1 3.5-7.4" />
+      <path d="M11.5 8.3l3.5 8-2 1-3.5-7.4" />
+      <path d="M10 12l1.6 2-1.6 2.4-1.6-2.4z" />
+    </svg>
+  );
+}
+
 // Map from nav id to icon component
 export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   home:         IconHome,
@@ -221,6 +233,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   forge:        IconForge,
   equipment:    IconShield,
   prestige:     IconPrestige,
+  mine:         IconMine,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,
   champions:    IconMedal,

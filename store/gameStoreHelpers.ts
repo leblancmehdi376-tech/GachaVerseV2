@@ -126,6 +126,15 @@ export const OFFLINE_MULT_COSTS  = [20, 45, 80, 130];                           
 export const OFFLINE_CAP_COSTS   = [10, 18, 28, 42, 60, 82, 108, 140, 178, 220];   // 11 paliers → 10 upgrades
 export const OFFLINE_MIN_SECONDS = 60; // en dessous, on n'affiche pas de récap
 
+// ─── Mine de gemmes (débloquée au premier Prestige, voir mineSlice.ts) ─────
+export const MINE_PURCHASE_COST_CROWNS = 10; // coût d'achat initial en 👑
+// Repère d'équilibrage : 3,75 gemmes/h ≈ 1% du taux de pulls d'un joueur.
+export const MINE_BASE_RATE_PER_HOUR = 10; // gemmes/h à l'achat (niveau de vitesse 0)
+export const MINE_CAP_TIERS = [50, 80, 120, 170, 230, 300]; // plafond de stockage (gemmes), index = mineCapLevel
+export const MINE_SPEED_MULT_TIERS = [1, 1.25, 1.5, 1.8, 2.2, 2.7]; // multiplicateur du taux de base, index = mineSpeedLevel
+export const MINE_CAP_UPGRADE_COSTS   = [15, 30, 50, 80, 120]; // coûts en 👑, index = niveau actuel
+export const MINE_SPEED_UPGRADE_COSTS = [15, 30, 50, 80, 120]; // coûts en 👑, index = niveau actuel
+
 // Palier max atteint DEPUIS LE DERNIER PRESTIGE — détermine le mode farm
 // (palier déjà validé CETTE run), la portée du voyage, et l'éligibilité/le
 // gain de jetons du prochain prestige. Contrairement à maxPalierReached (qui

@@ -21,6 +21,7 @@ import { ExpeditionsPage } from '@/components/pages/ExpeditionsPage';
 import { ForgePage } from '@/components/pages/ForgePage';
 import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
 import { PrestigePage } from '@/components/pages/PrestigePage';
+import { MinePage } from '@/components/pages/MinePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
 import { useGameStore } from '@/store/gameStore';
@@ -46,7 +47,7 @@ import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
 import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
 import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -65,6 +66,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'PROGRESSION', items: [
     { id:'upgrades',     label:'AMÉLIORATIONS',   accent:'var(--gold)'          },
     { id:'prestige',     label:'PRESTIGE',        accent:'var(--purple-glow)'   },
+    { id:'mine',         label:'MINE',            accent:'var(--cyan-hi)'       },
     { id:'achievements', label:'SUCCÈS',          accent:'#fbbf24'            },
   ]},
   { title:'ACTIVITÉS', items: [
@@ -438,6 +440,7 @@ export function GameLayout() {
                   {page === 'forge'       && <ForgePage />}
                   {page === 'equipment'   && <EquipmentUpgradePage />}
                   {page === 'prestige'    && <PrestigePage />}
+                  {page === 'mine'        && <MinePage />}
                   {page === 'profile'     && <ProfilePage />}
                 </PageTransition>
               </div>

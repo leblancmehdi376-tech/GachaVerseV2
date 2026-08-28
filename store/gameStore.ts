@@ -28,6 +28,7 @@ import { createAchievementSlice } from './slices/achievementSlice';
 import { createPrestigeSlice } from './slices/prestigeSlice';
 import { createUltimateSlice } from './slices/ultimateSlice';
 import { createExpeditionSlice, initialDefAffinities } from './slices/expeditionSlice';
+import { createMineSlice } from './slices/mineSlice';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
 // pour tous les fichiers qui importent ces symboles.
@@ -38,6 +39,8 @@ export {
   MOB_GEM_DROP_CHANCE, FARM_EQUIP_DROP_RATE,
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
   OFFLINE_MULT_COSTS, OFFLINE_CAP_COSTS, OFFLINE_MIN_SECONDS,
+  MINE_PURCHASE_COST_CROWNS, MINE_BASE_RATE_PER_HOUR, MINE_CAP_TIERS, MINE_SPEED_MULT_TIERS,
+  MINE_CAP_UPGRADE_COSTS, MINE_SPEED_UPGRADE_COSTS,
 } from './gameStoreHelpers';
 
 const makeInitial = () => ({
@@ -110,6 +113,12 @@ const makeInitial = () => ({
   expeditionCraftedRecipes: [] as string[],
   expeditionSlotLevel: 0,
   expeditionDefAffinities: initialDefAffinities(),
+  // ── Mine de gemmes ──
+  mineOwned: false,
+  mineCapLevel: 0,
+  mineSpeedLevel: 0,
+  mineGems: 0,
+  mineLastTickAt: 0,
 });
 
 // ─── Migration depuis les 4 anciens stores Zustand séparés ─────────────────
@@ -181,6 +190,7 @@ export const useGameStore = create<GameStore>()(
       ...createPrestigeSlice(set, get, api),
       ...createUltimateSlice(set, get, api),
       ...createExpeditionSlice(set, get, api),
+      ...createMineSlice(set, get, api),
 
       resetGame: () => {
         try { localStorage.clear(); } catch {}
@@ -283,6 +293,8 @@ export const useGameStore = create<GameStore>()(
         expeditionActive:s.expeditionActive, expeditionDropInventory:s.expeditionDropInventory,
         expeditionCraftedRecipes:s.expeditionCraftedRecipes, expeditionSlotLevel:s.expeditionSlotLevel,
         expeditionDefAffinities:s.expeditionDefAffinities,
+        mineOwned:s.mineOwned, mineCapLevel:s.mineCapLevel, mineSpeedLevel:s.mineSpeedLevel,
+        mineGems:s.mineGems, mineLastTickAt:s.mineLastTickAt,
       }),
     }
   )

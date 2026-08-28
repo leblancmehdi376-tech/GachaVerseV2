@@ -97,6 +97,12 @@ export function getSerializableState() {
     prestigeTokens:      s.prestigeTokens,
     prestigeBonusLevels: s.prestigeBonusLevels,
     prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel,
+    // Mine de gemmes.
+    mineOwned:      s.mineOwned,
+    mineCapLevel:   s.mineCapLevel,
+    mineSpeedLevel: s.mineSpeedLevel,
+    mineGems:       s.mineGems,
+    mineLastTickAt: s.mineLastTickAt,
     savedAt:            correctedNow(),
   };
 }

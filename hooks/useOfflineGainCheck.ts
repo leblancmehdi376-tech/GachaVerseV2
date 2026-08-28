@@ -24,6 +24,10 @@ export function useOfflineGainCheck(hasHydrated: boolean, cloudLoaded: boolean) 
     offlineCheckedRef.current = true;
     const g = useGameStore.getState().checkOfflineGain();
     if (g) setOfflineGain(g);
+    // Rattrapage de la Mine (silencieux, pas de popup — plafonné par son
+    // propre stockage) : même point d'entrée que checkOfflineGain, une fois
+    // par session, une fois `savedAt`/mineLastTickAt fiables.
+    useGameStore.getState().applyMineOfflineProduction();
   }, [hasHydrated, cloudLoaded]);
 
   const claimOfflineGain = () => {
