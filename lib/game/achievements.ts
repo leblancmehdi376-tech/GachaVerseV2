@@ -1,6 +1,13 @@
 // lib/game/achievements.ts — Définition de tous les succès GachaVerse
 
 import { CHARACTER_POOL } from './characters';
+import { EQUIPMENT_DEFS } from './items';
+
+// Totaux du Compadex — voir la section COMPADEX ci-dessous. Exportés pour que
+// hooks/useAchievementTrackers.ts puisse détecter la complétion à 100% sans
+// dupliquer CHARACTER_POOL.length / Object.keys(EQUIPMENT_DEFS).length.
+export const COMPADEX_CHAR_TOTAL = CHARACTER_POOL.length;
+export const COMPADEX_EQUIP_TOTAL = Object.keys(EQUIPMENT_DEFS).length;
 
 export type AchievCategory = 'combat' | 'collection' | 'gacha' | 'progression' | 'social';
 
@@ -320,6 +327,81 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward:{ type:'gems', value:1500 },
     secret:true,
     resetsOnPrestige:true,
+  },
+
+  // — Compadex : personnages/équipements DÉJÀ obtenus, à vie —
+  // Contrairement à collect_* ci-dessus (resetsOnPrestige, remis à zéro à
+  // chaque Prestige), ces succès suivent compadexCharactersSeen/
+  // compadexEquipmentSeen (voir types/game.ts) : un personnage/équipement
+  // compte dès sa toute première obtention et reste acquis pour toujours,
+  // même perdu ou remis à zéro depuis (Prestige, recyclage...).
+  {
+    id:'compadex_char_25', category:'collection', icon:'📖',
+    title:'Archiviste des Âmes', name:'Premières Pages',
+    description:'Compadex personnages : as croisé la route de 25% de tous les personnages du jeu (à vie).',
+    target: Math.ceil(COMPADEX_CHAR_TOTAL * 0.25),
+    reward:{ type:'gems', value:100 },
+  },
+  {
+    id:'compadex_char_50', category:'collection', icon:'📗',
+    title:'Chroniqueur des Âmes', name:'Mi-Parcours',
+    description:'Compadex personnages : as croisé la route de 50% de tous les personnages du jeu (à vie).',
+    target: Math.ceil(COMPADEX_CHAR_TOTAL * 0.5),
+    reward:{ type:'gems', value:300 },
+  },
+  {
+    id:'compadex_char_75', category:'collection', icon:'📘',
+    title:'Gardien des Âmes', name:'Presque Complet',
+    description:'Compadex personnages : as croisé la route de 75% de tous les personnages du jeu (à vie).',
+    target: Math.ceil(COMPADEX_CHAR_TOTAL * 0.75),
+    reward:{ type:'gems', value:800 },
+    secret:true,
+  },
+  {
+    id:'compadex_char_100', category:'collection', icon:'🌌',
+    title:'🌌 Rassembleur d\'Âmes', name:'Compadex Complet — Personnages',
+    description:'Complète 100% du Compadex des personnages (tous obtenus au moins une fois, à vie).',
+    target: COMPADEX_CHAR_TOTAL,
+    reward:{ type:'title', value:'🌌 Rassembleur d\'Âmes' },
+    secret:true,
+  },
+  {
+    id:'compadex_equip_25', category:'collection', icon:'🛡',
+    title:'Apprenti Forgeron', name:'Premières Reliques',
+    description:'Compadex équipements : as croisé la route de 25% de tous les équipements du jeu (à vie).',
+    target: Math.ceil(COMPADEX_EQUIP_TOTAL * 0.25),
+    reward:{ type:'gems', value:100 },
+  },
+  {
+    id:'compadex_equip_50', category:'collection', icon:'⚔',
+    title:'Forgeron Chevronné', name:'Arsenal Grandissant',
+    description:'Compadex équipements : as croisé la route de 50% de tous les équipements du jeu (à vie).',
+    target: Math.ceil(COMPADEX_EQUIP_TOTAL * 0.5),
+    reward:{ type:'gems', value:300 },
+  },
+  {
+    id:'compadex_equip_75', category:'collection', icon:'🏹',
+    title:'Maître d\'Armes', name:'Coffre Presque Plein',
+    description:'Compadex équipements : as croisé la route de 75% de tous les équipements du jeu (à vie).',
+    target: Math.ceil(COMPADEX_EQUIP_TOTAL * 0.75),
+    reward:{ type:'gems', value:800 },
+    secret:true,
+  },
+  {
+    id:'compadex_equip_100', category:'collection', icon:'⚔️',
+    title:'⚔️ Collectionneur de reliques', name:'Compadex Complet — Équipements',
+    description:'Complète 100% du Compadex des équipements (tous obtenus au moins une fois, à vie).',
+    target: COMPADEX_EQUIP_TOTAL,
+    reward:{ type:'title', value:'⚔️ Collectionneur de reliques' },
+    secret:true,
+  },
+  {
+    id:'compadex_both_100', category:'collection', icon:'👑',
+    title:'👑 Souverain des Reliques et des Âmes perdues', name:'Compadex Absolu',
+    description:'Complète 100% des DEUX Compadex à la fois — personnages ET équipements.',
+    target: 2,
+    reward:{ type:'title', value:'👑 Souverain des Reliques et des Âmes perdues' },
+    secret:true,
   },
 
   // — Personnages Transcendants —

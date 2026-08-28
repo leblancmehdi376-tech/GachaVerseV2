@@ -165,3 +165,26 @@ export function trackRank7(count7Star: number, fullTeamRank7: boolean) {
 export function trackSynergyMax(hasMaxSynergy: boolean) {
   if (hasMaxSynergy) useGameStore.getState().setProgress('synergy_max', 1);
 }
+
+// ── Compadex (permanent, jamais reset au Prestige — voir compadexCharactersSeen/
+// compadexEquipmentSeen dans types/game.ts et hooks/useCompadexTracker.ts) ──
+
+/** `seenCount` = Object.keys(compadexCharactersSeen).length, cumul à vie. */
+export function trackCompadexCharacters(seenCount: number) {
+  const s = useGameStore.getState();
+  for (const id of ['compadex_char_25', 'compadex_char_50', 'compadex_char_75', 'compadex_char_100']) {
+    s.setProgress(id, Math.min(seenCount, s.getAchievement(id)!.target));
+  }
+}
+
+/** `seenCount` = Object.keys(compadexEquipmentSeen).length, cumul à vie. */
+export function trackCompadexEquipment(seenCount: number) {
+  const s = useGameStore.getState();
+  for (const id of ['compadex_equip_25', 'compadex_equip_50', 'compadex_equip_75', 'compadex_equip_100']) {
+    s.setProgress(id, Math.min(seenCount, s.getAchievement(id)!.target));
+  }
+}
+
+export function trackCompadexBoth(charComplete: boolean, equipComplete: boolean) {
+  useGameStore.getState().setProgress('compadex_both_100', (charComplete ? 1 : 0) + (equipComplete ? 1 : 0));
+}

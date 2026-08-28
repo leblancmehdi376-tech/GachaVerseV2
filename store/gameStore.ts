@@ -54,6 +54,8 @@ const makeInitial = () => ({
   goldUpgradeLevel: 0,
   equippedTeam: [null, null, null, null] as (string|null)[],
   collection: {} as Record<string, OwnedCharacter>,
+  compadexCharactersSeen: {} as Record<string, true>,
+  compadexEquipmentSeen: {} as Record<string, true>,
   hero: { level: 1, currentForm: 0, xp: 0 } as HeroState,
   bossActive: false, bossTimeLeft: 0, bossAvoided: false,
   ultUsedThisFight: [] as string[],
@@ -329,6 +331,8 @@ export const useGameStore = create<GameStore>()(
         // Anomalies — jamais reset au Prestige (voir doPrestige), doivent donc
         // être persistées comme bossCrowns/voidOrbs.
         anomalyTokens:s.anomalyTokens ?? 0, ownedAnomalies:s.ownedAnomalies ?? [], anomalySlots:s.anomalySlots ?? 1,
+        // Compadex — jamais reset au Prestige (même traitement qu'historicalMaxRank).
+        compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
       }),
     }
   )

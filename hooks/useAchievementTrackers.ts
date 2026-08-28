@@ -3,12 +3,14 @@ import { useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { bnToNumber } from '@/lib/game/bignum';
 import { CHARACTER_POOL } from '@/lib/game/characters';
+import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { makeInstanceKey } from '@/lib/game/editions';
 import {
   trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection,
   trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige,
   trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax,
+  trackCompadexCharacters, trackCompadexEquipment, trackCompadexBoth,
 } from '@/store/achievementTrackers';
 
 // Synchronise en continu les compteurs de jeu vers le store de succès —
@@ -31,6 +33,8 @@ export function useAchievementTrackers() {
   } = useGameStore();
   const prestigeLevel = useGameStore(s => s.prestigeLevel);
   const unlockedTitlesCount = useGameStore(s => s.unlockedTitles.length);
+  const compadexCharactersSeen = useGameStore(s => s.compadexCharactersSeen);
+  const compadexEquipmentSeen = useGameStore(s => s.compadexEquipmentSeen);
 
   useEffect(() => { trackBossKills(totalBossKills); }, [totalBossKills]);
   useEffect(() => { trackBossCrowns(totalBossCrownsEarned); }, [totalBossCrownsEarned]);
@@ -85,4 +89,12 @@ export function useAchievementTrackers() {
     const fullTeamRank7 = equippedTeam.length === 4 && equippedTeam.every(id => id && col[id]?.rank >= 7);
     trackRank7(count7Star, fullTeamRank7);
   }, [col, equippedTeam]);
+
+  useEffect(() => {
+    const charSeenCount = Object.keys(compadexCharactersSeen).length;
+    const equipSeenCount = Object.keys(compadexEquipmentSeen).length;
+    trackCompadexCharacters(charSeenCount);
+    trackCompadexEquipment(equipSeenCount);
+    trackCompadexBoth(charSeenCount >= CHARACTER_POOL.length, equipSeenCount >= Object.keys(EQUIPMENT_DEFS).length);
+  }, [compadexCharactersSeen, compadexEquipmentSeen]);
 }

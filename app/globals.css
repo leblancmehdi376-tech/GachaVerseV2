@@ -549,6 +549,10 @@ html, body {
 .collection-card__body { border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.012); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; width: 100%; }
 .collection-card:hover .collection-card__body { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); border-color: var(--border-lit); }
 .collection-card.locked .collection-card__body { opacity: 0.5; }
+/* Compadex : déjà obtenu par le passé (mais plus en collection actuellement)
+   — moins estompé qu'un "jamais obtenu", pour rester lisible sans se confondre
+   avec une carte réellement possédée (.owned ci-dessous). */
+.collection-card.locked.compadex-seen .collection-card__body { opacity: 0.8; border-color: rgba(74,222,128,0.16); }
 .collection-card.owned .collection-card__body { background: rgba(96,165,250,0.07); border-color: rgba(96,165,250,0.22); box-shadow: 0 0 20px rgba(96,165,250,0.1); }
 .collection-card__thumb { position: relative; }
 .collection-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }

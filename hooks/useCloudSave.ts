@@ -109,24 +109,34 @@ export function getSerializableState() {
     anomalyTokens:   s.anomalyTokens ?? 0,
     ownedAnomalies:  s.ownedAnomalies ?? [],
     anomalySlots:    s.anomalySlots ?? 1,
+    // Compadex — jamais reset au Prestige (comme historicalMaxRank/anomalies),
+    // doit donc être synchronisé pour survivre à un changement d'appareil.
+    compadexCharactersSeen: s.compadexCharactersSeen ?? {},
+    compadexEquipmentSeen:  s.compadexEquipmentSeen ?? {},
     savedAt:            correctedNow(),
   };
 }
 
-// Fusionne l'état des succès (achievementStore, jamais synchro par simple
-// "dernier gagne" comme le reste de l'état — voir plus bas) vu sur cet
+// Fusionne les champs qui ne font QUE grandir (jamais synchro par simple
+// "dernier gagne" comme le reste de l'état — voir plus bas), vus sur cet
 // appareil et sur Firebase (le localStorage n'est plus une source à la
 // connexion — voir loadAndApply) :
-// - `claimed` et `unlockedTitles` ne font QUE grandir : un claim ou un titre
-//   débloqué (ex: drop de boss d'event, non dérivable des stats) ne doit
-//   JAMAIS pouvoir redisparaître, même si la source qui le connaît n'est pas
-//   la plus récente des deux.
+// - `claimed`, `unlockedTitles`, `compadexCharactersSeen`/`compadexEquipmentSeen`
+//   ne font QUE grandir : un claim, un titre débloqué (ex: drop de boss
+//   d'event, non dérivable des stats) ou une entrée de Compadex ne doit
+//   JAMAIS pouvoir redisparaître, même si la source qui la connaît n'est pas
+//   la plus récente des deux (sinon un device qui synchronise en retard
+//   "gagnerait" et effacerait silencieusement la progression Compadex faite
+//   entre-temps sur l'autre appareil).
 // - `activeTitle` (préférence d'affichage, pas un déblocage) suit lui la
 //   source la plus fraîche (`freshest`), comme le reste de l'état.
-function mergeAchievementState(
+function mergeMonotonicState(
   remote: Record<string, unknown> | null,
   freshest: Record<string, unknown> | null
-): { achievementsClaimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string } {
+): {
+  achievementsClaimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string;
+  compadexCharactersSeen: Record<string, true>; compadexEquipmentSeen: Record<string, true>;
+} {
   const current = useGameStore.getState();
   const achievementsClaimed: Record<string, boolean> = { ...current.achievementsClaimed };
   const unlockedTitles = new Set<string>(current.unlockedTitles);
@@ -136,7 +146,15 @@ function mergeAchievementState(
   if (Array.isArray(t)) for (const title of t) unlockedTitles.add(title);
   const freshTitle = freshest?.activeTitle as string | undefined;
   const activeTitle = typeof freshTitle === 'string' && unlockedTitles.has(freshTitle) ? freshTitle : current.activeTitle;
-  return { achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle };
+
+  const compadexCharactersSeen: Record<string, true> = { ...current.compadexCharactersSeen };
+  const remoteChars = remote?.compadexCharactersSeen as Record<string, unknown> | undefined;
+  if (remoteChars) for (const id of Object.keys(remoteChars)) compadexCharactersSeen[id] = true;
+  const compadexEquipmentSeen: Record<string, true> = { ...current.compadexEquipmentSeen };
+  const remoteEquip = remote?.compadexEquipmentSeen as Record<string, unknown> | undefined;
+  if (remoteEquip) for (const id of Object.keys(remoteEquip)) compadexEquipmentSeen[id] = true;
+
+  return { achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen };
 }
 
 // ── Rafraîchissement local de savedAt ──────────────────────────────────────
@@ -174,11 +192,14 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   delete data.prestigePoints;
   delete data.prestigePurchased;
 
-  // unlockedTitles/activeTitle sont gérés séparément par mergeAchievementState
-  // (règles de fusion différentes du reste — "ne fait que grandir", voir son
-  // commentaire) : on ne les laisse pas ici écraser ce merge en "dernier gagne".
+  // unlockedTitles/activeTitle/compadex* sont gérés séparément par
+  // mergeMonotonicState (règles de fusion différentes du reste — "ne fait
+  // que grandir", voir son commentaire) : on ne les laisse pas ici écraser
+  // ce merge en "dernier gagne".
   delete data.unlockedTitles;
   delete data.activeTitle;
+  delete data.compadexCharactersSeen;
+  delete data.compadexEquipmentSeen;
 
   // Migration BigNum : une sauvegarde cloud écrite par une version antérieure
   // (ou par un client qui n'a pas encore rechargé ce code) stocke encore ces
@@ -381,10 +402,11 @@ async function loadAndApply(userId: string, generation: number) {
 
     if (best.data) applyRemoteState(best.data as Record<string, unknown>);
 
-    // Fusion des succès/titres — TOUJOURS, indépendamment de la source "la
-    // plus récente" choisie ci-dessus (un claim ou un titre débloqué ne doit
-    // jamais dépendre d'un timestamp : voir mergeAchievementState).
-    const merged = mergeAchievementState(
+    // Fusion des succès/titres/Compadex — TOUJOURS, indépendamment de la
+    // source "la plus récente" choisie ci-dessus (un claim, un titre débloqué
+    // ou une entrée de Compadex ne doit jamais dépendre d'un timestamp : voir
+    // mergeMonotonicState).
+    const merged = mergeMonotonicState(
       remote as Record<string, unknown> | null,
       best.data as Record<string, unknown> | null
     );

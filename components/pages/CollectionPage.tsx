@@ -27,7 +27,8 @@ const UNIVERSES = Array.from(new Set(CHARACTER_POOL.map(c => c.universe).filter(
 interface CollectionEntry {
   tpl: typeof CHARACTER_POOL[number];
   key: string;               // clé de collection (instance) : templateId ou templateId::edition
-  owned: OwnedCharacter | null; // null = pas encore possédé (aucune édition)
+  owned: OwnedCharacter | null; // null = pas ACTUELLEMENT possédé (aucune édition)
+  seen: boolean;              // Compadex : déjà obtenu au moins une fois, à vie (voir compadexCharactersSeen)
 }
 const ALL_EDITIONS: CardEdition[] = ['base', 'gold', 'diamond'];
 
@@ -37,20 +38,25 @@ const ALL_EDITIONS: CardEdition[] = ['base', 'gold', 'diamond'];
 // démonter/remonter toutes les cartes à chaque tick — d'où le clignotement
 // perçu quand on laisse la souris dessus assez longtemps pour subir plusieurs ticks.
 const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => void }) => {
-  const { tpl, owned } = entry;
+  const { tpl, owned, seen } = entry;
   const cfg2  = RARITY_CONFIG[tpl.rarity];
   const ult   = getUltimateDef(tpl.id);
   if (!owned) {
+    // Compadex : distingue "jamais obtenu" (silhouette + nom masqués) de
+    // "déjà obtenu par le passé, mais plus actuellement" (nom/art visibles,
+    // pas de cadenas — juste un badge indiquant l'absence en collection).
     return (
-      <div className="collection-card locked" onClick={onClick} style={{ cursor:'pointer' }}>
+      <div className={`collection-card locked${seen ? ' compadex-seen' : ''}`} onClick={onClick} style={{ cursor:'pointer' }}>
         <div className="collection-card__body">
           <div style={{ position:'relative' }}>
             <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={72} height={98} />
-            <div className="collection-lock">🔒</div>
+            {!seen && <div className="collection-lock">🔒</div>}
           </div>
           <div className="collection-card__name">{tpl.name}</div>
           <RarityBadge rarity={tpl.rarity} />
-          {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'2px' }}>{tpl.universe}</div>}
+          {seen
+            ? <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color:'var(--text-muted)', marginTop:'2px' }}>🕓 Déjà obtenu</div>
+            : tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'2px' }}>{tpl.universe}</div>}
         </div>
       </div>
     );
@@ -84,7 +90,7 @@ const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => v
 // Modale de détail : type (affinité), DPS de base, nb de formes, description —
 // tout ce qui n'a pas la place sur la carte compacte de la grille.
 const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: () => void }) => {
-  const { tpl, owned } = entry;
+  const { tpl, owned, seen } = entry;
   const cfg   = RARITY_CONFIG[tpl.rarity];
   const ult   = getUltimateDef(tpl.id);
   const aff   = AFFINITY_CONFIG[getAffinityForId(tpl.id)];
@@ -146,7 +152,9 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
               </div>
             </div>
           ) : (
-            <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)' }}>🔒 Personnage non possédé</div>
+            <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)' }}>
+              {seen ? '🕓 Déjà obtenu par le passé — non possédé actuellement' : '🔒 Personnage jamais obtenu'}
+            </div>
           )}
 
           {forms.length > 0 && (
@@ -177,7 +185,7 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 };
 
 export function CollectionPage() {
-  const { collection, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters } = useGameStore();
+  const { collection, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore();
   const [view, setView] = useState<'characters' | 'equipment'>('characters');
   const [detailKey, setDetailKey] = useState<string | null>(null);
   const filter = collectionFilter as CollectionFilterMode;
@@ -189,38 +197,41 @@ export function CollectionPage() {
   const setAffinity = (next: CollectionAffinityMode) => setCollectionFilters({ affinity: next });
   const setSort = (next: CollectionSortMode) => setCollectionFilters({ sort: next });
 
-  // Chaque template possédé se décline en autant d'entrées que d'éditions
-  // réellement obtenues ; un template jamais obtenu garde une seule entrée
-  // "verrouillée" (on n'affiche pas 3 cadenas pour un seul perso jamais eu).
+  // Chaque template possédé ACTUELLEMENT se décline en autant d'entrées que
+  // d'éditions réellement en collection ; un template jamais obtenu OU perdu
+  // depuis (Prestige...) garde une seule entrée "verrouillée" (pas 3 cadenas
+  // pour un seul perso), avec son statut Compadex (`seen`) à part.
   const allEntries = useMemo<CollectionEntry[]>(() => {
     const entries: CollectionEntry[] = [];
     for (const tpl of CHARACTER_POOL) {
+      const seen = !!compadexCharactersSeen[tpl.id];
       const ownedEditions = ALL_EDITIONS
         .map(ed => makeInstanceKey(tpl.id, ed))
         .filter(key => collection[key]);
       if (ownedEditions.length === 0) {
-        entries.push({ tpl, key: tpl.id, owned: null });
+        entries.push({ tpl, key: tpl.id, owned: null, seen });
       } else {
-        for (const key of ownedEditions) entries.push({ tpl, key, owned: collection[key] });
+        for (const key of ownedEditions) entries.push({ tpl, key, owned: collection[key], seen });
       }
     }
     return entries;
-  }, [collection]);
+  }, [collection, compadexCharactersSeen]);
 
-  // Le ratio d'en-tête ("X / 192 personnages") compte les TEMPLATES uniques
-  // possédés (au moins une édition) — pas le nombre d'instances shiny.
-  const ownedCount = useMemo(
-    () => CHARACTER_POOL.filter(c => ALL_EDITIONS.some(ed => collection[makeInstanceKey(c.id, ed)])).length,
-    [collection]
-  );
+  // Compadex : nombre de templates DÉJÀ obtenus au moins une fois, à vie
+  // (jamais remis à zéro par le Prestige — voir compadexCharactersSeen) —
+  // contrairement à l'ancien ratio "possédés", basé sur la collection
+  // ACTUELLE (vidée au Prestige).
+  const compadexCharCount = useMemo(() => Object.keys(compadexCharactersSeen).length, [compadexCharactersSeen]);
 
   // ── Filtrage ────────────────────────────────────────────────────────────
+  // "Possédés"/"Manquants" filtrent maintenant sur le Compadex (déjà obtenu
+  // à vie), pas sur la possession ACTUELLE — cohérent avec le sens de cette
+  // page depuis sa transformation en Compadex.
   const filtered = useMemo(() => {
     return allEntries.filter(e => {
-      const isOwned = !!e.owned;
       const matchesAffinity = affinity === 'all' ? true : getAffinityForId(e.tpl.id) === affinity;
-      if (filter === 'owned')   return isOwned && matchesAffinity;
-      if (filter === 'missing') return !isOwned && matchesAffinity;
+      if (filter === 'owned')   return e.seen && matchesAffinity;
+      if (filter === 'missing') return !e.seen && matchesAffinity;
       if (filter !== 'all')     return e.tpl.rarity === filter && matchesAffinity;
       return matchesAffinity;
     }).filter(e =>
@@ -264,21 +275,31 @@ export function CollectionPage() {
     }),
   []);
 
+  // Compadex équipements : nombre d'ids DÉJÀ obtenus au moins une fois, à vie
+  // (jamais remis à zéro par le Prestige — voir compadexEquipmentSeen).
+  const compadexEquipCount = useMemo(() => Object.keys(compadexEquipmentSeen).length, [compadexEquipmentSeen]);
+
+  const charPct  = Math.round((compadexCharCount / CHARACTER_POOL.length) * 100);
+  const equipPct = Math.round((compadexEquipCount / equipmentList.length) * 100);
+  const headerPct = view === 'characters' ? charPct : equipPct;
+
   return (
     <PageScroll>
 
         {/* Header */}
         <SectionHeader
-          eyebrow={`${ownedCount} / ${CHARACTER_POOL.length} personnages · ${filtered.length} affichés`}
-          title="COLLECTION"
+          eyebrow={view === 'characters'
+            ? `${compadexCharCount} / ${CHARACTER_POOL.length} personnages compadexés · ${filtered.length} affichés`
+            : `${compadexEquipCount} / ${equipmentList.length} équipements compadexés`}
+          title="COMPADEX"
           accent="#60a5fa"
           right={
             <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'5px', minWidth:'160px' }}>
               <div className="prog-track" style={{ width:'100%' }}>
-                <div className="prog-fill" style={{ width:`${(ownedCount/CHARACTER_POOL.length)*100}%`, background:'linear-gradient(90deg,#1d4ed8,#60a5fa)', boxShadow:'0 0 8px #60a5fa88' }} />
+                <div className="prog-fill" style={{ width:`${headerPct}%`, background:'linear-gradient(90deg,#1d4ed8,#60a5fa)', boxShadow:'0 0 8px #60a5fa88' }} />
               </div>
               <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12.4px', color:'#60a5fa' }}>
-                {Math.round((ownedCount/CHARACTER_POOL.length)*100)}%
+                {headerPct}%{headerPct >= 100 && ' 🏆'}
               </span>
             </div>
           }
@@ -328,7 +349,7 @@ export function CollectionPage() {
                 const list = grouped.get(r) ?? [];
                 if (list.length === 0) return null;
                 const cfg2 = RARITY_CONFIG[r];
-                const uniqueOwned = new Set(list.filter(e => e.owned).map(e => e.tpl.id)).size;
+                const uniqueOwned = new Set(list.filter(e => e.seen).map(e => e.tpl.id)).size;
                 const uniqueTotal = new Set(list.map(e => e.tpl.id)).size;
                 return (
                   <div key={r} className="collection-group">
@@ -352,18 +373,30 @@ export function CollectionPage() {
         ) : (
           /* ── ÉQUIPEMENT ──────────────────────────────────────────────────── */
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(230px, 1fr))', gap:'12px' }}>
-            {equipmentList.map(item => (
-              <div key={item.id} className="panel" style={{ padding:'14px', borderColor:`${item.color}33` }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
-                  <div style={{ width:44, height:44, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20.6px', flexShrink:0 }}>{item.icon}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
+            {equipmentList.map(item => {
+              const stock = equipmentInventory[item.id] ?? 0;
+              const seen  = !!compadexEquipmentSeen[item.id];
+              const badge = stock > 0
+                ? { label:`×${stock}`, color:'#4ade80' }
+                : seen
+                  ? { label:'🕓 Obtenu', color:'var(--text-muted)' }
+                  : { label:'🔒 Jamais obtenu', color:'var(--text-muted)' };
+              return (
+                <div key={item.id} className="panel" style={{ padding:'14px', borderColor:`${item.color}33`, opacity: seen ? 1 : 0.6 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
+                    <div style={{ width:44, height:44, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20.6px', flexShrink:0 }}>{item.icon}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
+                    </div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color: badge.color, background: stock > 0 ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)', border:`1px solid ${stock > 0 ? 'rgba(74,222,128,0.3)' : 'var(--border)'}`, borderRadius:999, padding:'2px 8px', flexShrink:0, whiteSpace:'nowrap' }}>
+                      {badge.label}
+                    </div>
                   </div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>{item.description}</div>
                 </div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>{item.description}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

@@ -130,7 +130,9 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   //         (sinon le coût resterait gonflé alors que les pièces sont à 0).
   // Conserve : gemmes, maxPalierReached (classement), succès/titres
   //            (store dédié), quêtes, monnaies premium (BossCrowns,
-  //            Orbes du Néant). TOUTES les cartes (shiny/forge/event
+  //            Orbes du Néant), Compadex (compadexCharactersSeen/
+  //            compadexEquipmentSeen — jamais touché par ce set(), voir
+  //            hooks/useCompadexTracker.ts). TOUTES les cartes (shiny/forge/event
   //            compris — même traitement que les persos normaux depuis
   //            l'unification) ont leur rang max banqué (historicalMaxRank),
   //            récupérable à la re-obtention seulement via le bonus de

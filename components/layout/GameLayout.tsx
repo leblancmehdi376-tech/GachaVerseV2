@@ -34,6 +34,7 @@ import { useOfflineGainCheck } from '@/hooks/useOfflineGainCheck';
 import { useBossVictoryWatcher } from '@/hooks/useBossVictoryWatcher';
 import { useGameToasts } from '@/hooks/useGameToasts';
 import { useAchievementTrackers } from '@/hooks/useAchievementTrackers';
+import { useCompadexTracker } from '@/hooks/useCompadexTracker';
 import { formatNumber } from '@/lib/game/format';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -62,7 +63,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'ÉQUIPE', items: [
     { id:'companions',   label:'COMPAGNONS',      accent:'var(--purple-hi)'     },
     { id:'equipment',    label:'ÉQUIPEMENT',      accent:'#93c5fd'            },
-    { id:'collection',   label:'COLLECTION',      accent:'#60a5fa'            },
+    { id:'collection',   label:'COMPADEX',        accent:'#60a5fa'            },
   ]},
   { title:'PROGRESSION', items: [
     { id:'upgrades',     label:'AMÉLIORATIONS',   accent:'var(--gold)'          },
@@ -129,6 +130,7 @@ export function GameLayout() {
   const { victory, dismissVictory } = useBossVictoryWatcher();
   const claimable = useGameToasts();
   useAchievementTrackers();
+  useCompadexTracker();
 
   // Navigation Forge → Expéditions : dès qu'un ingrédient à récolter est
   // "focusé", on bascule automatiquement sur la page Expéditions (qui se

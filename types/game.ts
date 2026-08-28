@@ -142,6 +142,14 @@ export interface GameState {
   equippedTeam: (string | null)[];
   goldUpgradeLevel: number;
   collection: Record<string, OwnedCharacter>;
+  // ── Compadex ───────────────────────────────────────────────────────────
+  // Union persistante des templateId de personnages / id d'équipements DÉJÀ
+  // obtenus au moins une fois, TOUTES vies confondues — contrairement à
+  // `collection`/`equipmentInventory`, ces deux maps ne sont JAMAIS vidées
+  // par le Prestige (voir doPrestige dans metaProgressionSlice.ts) ni par
+  // aucune autre action : on n'y fait qu'AJOUTER (voir useCompadexTracker).
+  compadexCharactersSeen: Record<string, true>;
+  compadexEquipmentSeen: Record<string, true>;
   hero: HeroState;
   bossActive: boolean; bossTimeLeft: number; lastSaved: number;
   bossAvoided: boolean;

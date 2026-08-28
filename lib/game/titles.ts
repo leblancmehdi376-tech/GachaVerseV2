@@ -19,6 +19,8 @@ const TITLE_ORDER: string[] = [
   // ── Extrêmement difficiles (au-delà de tout ce qui précède) ────────────
   'Finisseur', 'Légende Vivante', 'Apocalypse', 'Insatiable Absolu', 'Singularité',
   'Renaissant', 'Élu Suprême', 'Empereur', 'Éternel', 'Architecte du Panthéon',
+  // ── Compadex 100% — parmi les tout derniers succès du jeu ──────────────
+  '🌌 Rassembleur d\'Âmes', '⚔️ Collectionneur de reliques', '👑 Souverain des Reliques et des Âmes perdues',
 ];
 
 const MIN_BONUS_PCT = 5;   // Novice
