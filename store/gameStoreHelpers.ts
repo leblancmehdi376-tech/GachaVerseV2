@@ -335,7 +335,11 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     const next = state.palier + 1;
     // On ne pousse au classement QUE lors d'une vraie progression : re-farmer un
     // palier déjà validé (voyage) ne doit pas écraser le score avec une valeur plus basse.
-    const isNewProgress = next > state.maxPalierReached;
+    // Comparaison sur runPeakPalierOf (pic de CETTE run, remis à 1 à chaque
+    // prestige) et non maxPalierReached (lifetime, jamais remis à zéro) — sinon
+    // re-grimper après un prestige ne redonnerait plus jamais la gemme/couronne
+    // de palier tant que l'ancien record lifetime n'est pas redépassé.
+    const isNewProgress = next > runPeakPalierOf(state);
     // Passage à un palier jamais atteint : événement majeur, sauvegarde immédiate
     // (pas d'attente du prochain cycle périodique) pour ne jamais perdre cette progression.
     // IMPORTANT : resolveEnemyDeath() est appelée DEPUIS l'intérieur d'un set()
