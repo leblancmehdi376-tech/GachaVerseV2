@@ -384,8 +384,14 @@ export function GameLayout() {
 
           <div style={{ flex:1 }} />
 
-          {/* Événement */}
-          <div style={{ background:'linear-gradient(160deg,#150a28,#1e0e38)', border:'1px solid var(--border-glow)', borderRadius:'12px', padding:'14px', marginTop:'8px', position:'relative', overflow:'hidden', boxShadow:'0 0 20px rgba(124,58,237,0.08), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+          {/* Événement — flexShrink:0 : ce bloc a overflow:hidden (pour clipper le
+              cercle décoratif), ce qui retire sa protection de taille minimale en
+              flexbox. Sans flexShrink:0, quand le contenu de la sidebar dépasse la
+              hauteur dispo, ce bloc se fait écraser (quelques px) par l'algorithme
+              de shrink au lieu de garder sa taille et de laisser le scroll (aside,
+              overflowY:auto) le révéler entièrement — d'où le bug "scroll ne va
+              pas jusqu'au bout de l'info événement". */}
+          <div style={{ flexShrink:0, background:'linear-gradient(160deg,#150a28,#1e0e38)', border:'1px solid var(--border-glow)', borderRadius:'12px', padding:'14px', marginTop:'8px', position:'relative', overflow:'hidden', boxShadow:'0 0 20px rgba(124,58,237,0.08), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
             <div style={{ position:'absolute', top:'-15px', right:'-15px', width:'80px', height:'80px', background:'radial-gradient(circle,rgba(168,85,247,0.16),transparent)', borderRadius:'50%' }} />
             <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>★ ÉVÉNEMENT</div>
             <div style={{ fontFamily:'var(--f-title)', fontSize:'12.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>BOSS DES OMBRES</div>
