@@ -361,11 +361,7 @@ export function CollectionPage() {
                     <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
                   </div>
                 </div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5, marginBottom:'10px' }}>{item.description}</div>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>Recyclage</span>
-                  <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13.4px', color:'var(--green)' }}>{item.recycleValue} 🪙</span>
-                </div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>{item.description}</div>
               </div>
             ))}
           </div>
