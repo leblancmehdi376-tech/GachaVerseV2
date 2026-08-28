@@ -128,17 +128,152 @@ export function AnomaliePage() {
   const slots = Array.from({ length: anomalySlots }, (_, i) => ownedAnomalies[i] ?? null);
 
   return (
-    <PageScroll>
+    <>
+      <style>{`
+        .anomaly-page {
+          width: min(100%, 1200px);
+          box-sizing: border-box;
+        }
+
+        .anomaly-page *,
+        .anomaly-page *::before,
+        .anomaly-page *::after {
+          box-sizing: border-box;
+        }
+
+        .anomaly-header > div:first-child {
+          min-width: 0;
+        }
+
+        .anomaly-header button,
+        .anomaly-slots-header button,
+        .anomaly-extension button {
+          min-height: 40px;
+        }
+
+        .anomaly-grid {
+          width: 100%;
+        }
+
+        .anomaly-table-panel {
+          width: 100%;
+          min-width: 0;
+        }
+
+        @media (max-width: 700px) {
+          .anomaly-page {
+            gap: 16px !important;
+          }
+
+          .anomaly-header {
+            padding: 16px !important;
+            align-items: flex-start !important;
+            gap: 14px !important;
+          }
+
+          .anomaly-header > div:first-child {
+            width: 100%;
+          }
+
+          .anomaly-header > div:last-child {
+            width: 100%;
+            text-align: left;
+          }
+
+          .anomaly-slots-header {
+            align-items: stretch !important;
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .anomaly-slots-header button {
+            width: 100%;
+            padding: 10px 12px !important;
+            line-height: 1.35;
+          }
+
+          .anomaly-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+          }
+
+          .anomaly-grid > * {
+            min-width: 0;
+          }
+
+          .anomaly-grid > div {
+            padding: 12px !important;
+          }
+
+          .anomaly-extension {
+            padding: 14px !important;
+          }
+
+          .anomaly-extension > div:last-child {
+            align-items: stretch !important;
+          }
+
+          .anomaly-extension button {
+            width: 100%;
+          }
+
+          .anomaly-table-panel > button {
+            padding: 13px 14px !important;
+            gap: 10px;
+            text-align: left;
+          }
+
+          .anomaly-table-panel > button > span:first-child {
+            min-width: 0;
+            line-height: 1.35;
+          }
+
+          .anomaly-table-panel > button > span:last-child {
+            flex: 0 0 auto;
+          }
+
+          .anomaly-table-panel > div {
+            padding: 0 10px 12px !important;
+          }
+
+          .anomaly-table-panel table {
+            min-width: 760px !important;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .anomaly-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .anomaly-header {
+            padding: 14px !important;
+          }
+
+          .anomaly-header span {
+            letter-spacing: 2px !important;
+          }
+
+          .anomaly-table-panel > button {
+            align-items: flex-start !important;
+          }
+
+          .anomaly-table-panel > button > span:last-child {
+            font-size: 11px !important;
+          }
+        }
+      `}</style>
+      <PageScroll>
       {/* maxWidth élargi à 1200 (plutôt que 980) pour que le tableau des raretés
           déplié (8 colonnes, ~1100px de contenu) tienne directement dedans —
           sans ça, le déplier forçait ponctuellement toute la page à s'élargir
           (voir minWidth:0 ci-dessous et sur RarityTable pour le filet de
           sécurité si un écran plus étroit ne suffit toujours pas : le tableau
           scrolle alors dans SA PROPRE boîte au lieu d'élargir la page). */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22, minWidth: 0 }}>
+      <div className="anomaly-page" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22, minWidth: 0 }}>
 
         {/* Header */}
-        <div className="panel panel--glow" style={{ padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+        <div className="panel panel--glow anomaly-header" style={{ padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <div style={{ width: 4, height: 20, background: 'linear-gradient(180deg,#e879f9,#9333ea)', borderRadius: 2, boxShadow: '0 0 8px #c084fc' }} />
@@ -153,7 +288,7 @@ export function AnomaliePage() {
 
         {/* Emplacements */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div className="anomaly-slots-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-dim)', letterSpacing: 2 }}>
               EMPLACEMENTS ({anomalySlots}/{ANOMALY_MAX_SLOTS})
             </div>
@@ -162,7 +297,7 @@ export function AnomaliePage() {
               🌀 TIRER — {rerollCost} jeton{rerollCost > 1 ? 's' : ''} {lockedCount > 0 ? `(${lockedCount} verrouillée${lockedCount > 1 ? 's' : ''})` : ''}
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+          <div className="anomaly-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
             {slots.map((a, i) => a
               ? <AnomalyCard key={a.id} anomaly={a} onToggleLock={() => toggleAnomalyLock(a.id)} />
               : <EmptySlot key={`empty_${i}`} />
@@ -171,7 +306,7 @@ export function AnomaliePage() {
         </div>
 
         {/* Extension d'emplacements (Boss Crowns, post-Prestige) */}
-        <div className="panel" style={{ padding: '18px 20px' }}>
+        <div className="panel anomaly-extension" style={{ padding: '18px 20px' }}>
           <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-dim)', letterSpacing: 2, marginBottom: 10 }}>EXTENSION D&apos;EMPLACEMENTS</div>
           {prestigeLevel < 1 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-muted)', fontFamily: 'var(--f-ui)', fontSize: 12.4 }}>
@@ -194,7 +329,7 @@ export function AnomaliePage() {
         </div>
 
         {/* Tableau récapitulatif */}
-        <div className="panel" style={{ overflow: 'hidden' }}>
+        <div className="panel anomaly-table-panel" style={{ overflow: 'hidden' }}>
           <button onClick={() => setShowTable(!showTable)}
             style={{ width: '100%', padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: 'var(--text-sub)', letterSpacing: 1 }}>
             <span>{showTable ? '▲' : '▼'} TABLEAU DES RARETÉS & BONUS</span>
@@ -208,6 +343,7 @@ export function AnomaliePage() {
         </div>
 
       </div>
-    </PageScroll>
+      </PageScroll>
+    </>
   );
 }
