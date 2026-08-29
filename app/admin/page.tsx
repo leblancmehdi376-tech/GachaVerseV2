@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/layout/AuthModal';
-import { getAllUsers, approveUser, PlayerRow } from '@/lib/firebase/accessRequests';
+import { getAllUsers, approveUser, findUsernameMismatches, applyUsernameSync, PlayerRow, UsernameMismatch } from '@/lib/firebase/accessRequests';
 import { PlayerSaveSummary } from '@/lib/firebase/adminTools';
 import { checkIsAdmin } from '@/lib/admin';
 import { RequestsTab } from '@/components/pages/admin/RequestsTab';
@@ -37,6 +37,44 @@ export default function AdminPage() {
   const [busy, setBusy]           = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showTab, setShowTab] = useState<'requests'|'players'>('players');
+
+  // ── Rattrapage des pseudos désynchronisés (voir scripts/sync_usernames.js,
+  // dont ceci est l'équivalent utilisable directement depuis le panel) ──────
+  // null = jamais vérifié ; [] = vérifié, rien à corriger ; non-vide = liste
+  // en attente de confirmation avant écriture.
+  const [usernameMismatches, setUsernameMismatches] = useState<UsernameMismatch[] | null>(null);
+  const [checkingUsernames, setCheckingUsernames]   = useState(false);
+  const [applyingUsernames, setApplyingUsernames]   = useState(false);
+  const [usernameSyncMsg, setUsernameSyncMsg]       = useState<string | null>(null);
+
+  const handleCheckUsernames = async () => {
+    setCheckingUsernames(true);
+    setUsernameSyncMsg(null);
+    const result = await findUsernameMismatches();
+    setUsernameMismatches(result);
+    setCheckingUsernames(false);
+  };
+
+  const handleApplyUsernameSync = async () => {
+    if (!usernameMismatches || usernameMismatches.length === 0) return;
+    setApplyingUsernames(true);
+    const fixed = await applyUsernameSync(usernameMismatches);
+    // Répercute les pseudos corrigés sur la liste déjà chargée (et son cache)
+    // sans tout relire — mêmes valeurs que celles qu'on vient d'écrire.
+    setAllUsers(list => {
+      const updated = list.map(u => {
+        const m = usernameMismatches.find(mm => mm.uid === u.uid);
+        return m ? { ...u, username: m.to } : u;
+      });
+      accountsCache = updated;
+      return updated;
+    });
+    setUsernameSyncMsg(fixed === usernameMismatches.length
+      ? `✅ ${fixed} pseudo(s) corrigé(s).`
+      : `⚠️ ${fixed}/${usernameMismatches.length} pseudo(s) corrigé(s) — voir la console pour le détail des échecs.`);
+    setUsernameMismatches(null);
+    setApplyingUsernames(false);
+  };
 
   // Dérivés localement depuis `allUsers` (déjà chargé en un seul aller-retour
   // par getAllUsers) au lieu de deux requêtes Firestore séparées.
@@ -135,13 +173,50 @@ export default function AdminPage() {
             Demandes {pending.length > 0 ? `(${pending.length})` : ''}
           </button>
 
+          <button onClick={handleCheckUsernames} disabled={checkingUsernames} title="Détecte les comptes renommés en jeu dont la fiche admin (users/{uid}) n'a jamais été resynchronisée — voir scripts/sync_usernames.js" style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 8, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', cursor: checkingUsernames ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+            {checkingUsernames ? 'Vérification…' : '🔍 Vérifier les pseudos'}
+          </button>
+
           {/* Seul déclencheur d'une vraie relecture Firestore de la liste des
               comptes — sinon la liste en cache (module-level) est réutilisée
               telle quelle, même en changeant d'onglet ou en revenant sur la page. */}
-          <button onClick={load} disabled={refreshing} title="Recharger la liste des comptes depuis Firestore" style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 8, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', cursor: refreshing ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+          <button onClick={load} disabled={refreshing} title="Recharger la liste des comptes depuis Firestore" style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', cursor: refreshing ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             {refreshing ? 'Actualisation…' : '🔄 Actualiser'}
           </button>
         </div>
+
+        {/* ── Résultat de la vérification des pseudos ─────────────────────
+            usernameMismatches === null : jamais vérifié depuis le chargement
+            de la page, rien à afficher. */}
+        {usernameMismatches !== null && (
+          <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.25)', marginBottom: 16 }}>
+            {usernameMismatches.length === 0 ? (
+              <div style={{ color: '#4ade80', fontSize: 13.4, fontWeight: 700 }}>✅ Tous les pseudos sont déjà synchronisés.</div>
+            ) : (
+              <>
+                <div style={{ color: '#fbbf24', fontSize: 13.4, fontWeight: 700, marginBottom: 10 }}>
+                  {usernameMismatches.length} compte(s) désynchronisé(s) — la fiche admin affiche un ancien pseudo :
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12, maxHeight: 200, overflowY: 'auto' }}>
+                  {usernameMismatches.map(m => (
+                    <div key={m.uid} style={{ fontSize: 12.4, color: 'rgba(255,255,255,0.7)' }}>
+                      <span style={{ color: '#f87171' }}>{m.from}</span> → <span style={{ color: '#4ade80' }}>{m.to}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.3)' }}> ({m.uid})</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={handleApplyUsernameSync} disabled={applyingUsernames} style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: applyingUsernames ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+                  {applyingUsernames ? 'Correction…' : `✅ Corriger ${usernameMismatches.length > 1 ? 'ces ' + usernameMismatches.length + ' pseudos' : 'ce pseudo'}`}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+        {usernameSyncMsg && (
+          <div style={{ fontSize: 12.4, color: usernameSyncMsg.startsWith('✅') ? '#4ade80' : '#fbbf24', marginTop: -8, marginBottom: 16 }}>
+            {usernameSyncMsg}
+          </div>
+        )}
 
         {showTab === 'players' && (
           <PlayersTab players={allUsers} onSaveUpdate={handleSaveUpdate} />

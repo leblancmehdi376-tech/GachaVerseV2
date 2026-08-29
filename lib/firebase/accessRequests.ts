@@ -206,3 +206,74 @@ export async function approveUser(uid: string): Promise<boolean> {
     return true;
   } catch (e) { logger.error('[Access] approveUser:', e); return false; }
 }
+
+export interface UsernameMismatch {
+  uid:  string;
+  from: string; // pseudo actuel de users/{uid} (ce que l'admin voit)
+  to:   string; // pseudo réel dans saves/{uid} (jeu/classement/marché)
+}
+
+// Même normalisation que updatePlayerScore (lib/firebase/leaderboard.ts) —
+// pour ne jamais signaler un "mismatch" qui ne serait dû qu'à un espace ou
+// une troncature que le jeu aurait de toute façon appliqués au prochain
+// renommage.
+function normalizeUsername(raw: unknown): string {
+  return typeof raw === 'string' ? raw.trim().slice(0, 20) : '';
+}
+
+/**
+ * Rattrapage PONCTUEL (bouton "Vérifier les pseudos" du panel admin) pour
+ * les comptes renommés AVANT le correctif qui synchronise users/{uid} et
+ * saves/{uid} à chaque renommage (voir updatePlayerScore, lib/firebase/
+ * leaderboard.ts) : détecte tous les comptes où users/{uid}.username
+ * (source de vérité, affichée dans le panel admin) a divergé de
+ * saves/{uid}.username (le pseudo réellement affiché en jeu/classement/
+ * marché). Équivalent en lecture seule du script scripts/sync_usernames.js,
+ * exécutable directement depuis l'app par un admin connecté (les règles
+ * Firestore l'autorisent déjà à lire toutes les fiches — voir isAdmin() dans
+ * firestore.rules).
+ */
+export async function findUsernameMismatches(): Promise<UsernameMismatch[]> {
+  if (!db) return [];
+  try {
+    const [usersSnap, savesSnap] = await Promise.all([
+      getDocs(collection(db, 'users')),
+      getDocs(collection(db, 'saves')),
+    ]);
+    const usersByUid = new Map<string, Record<string, unknown>>();
+    for (const d of usersSnap.docs) usersByUid.set(d.id, d.data());
+
+    const mismatches: UsernameMismatch[] = [];
+    for (const saveDoc of savesSnap.docs) {
+      const userData = usersByUid.get(saveDoc.id);
+      // Pas de fiche users/{uid} : hors périmètre — déjà géré séparément par
+      // getAllUsers (comptes antérieurs au système de fiches), rien à
+      // synchroniser puisqu'il n'y a pas de document cible à corriger.
+      if (!userData) continue;
+
+      const saveUsername = normalizeUsername(saveDoc.data().username);
+      const userUsername = normalizeUsername(userData.username);
+      if (!saveUsername || saveUsername === userUsername) continue;
+
+      mismatches.push({ uid: saveDoc.id, from: userUsername || '(vide)', to: saveUsername });
+    }
+    return mismatches;
+  } catch (e) { logger.error('[Access] findUsernameMismatches:', e); return []; }
+}
+
+/** Applique les corrections détectées par findUsernameMismatches — chaque
+ *  écriture est indépendante (un compte supprimé entre-temps ne doit pas
+ *  faire échouer les autres) ; renvoie le nombre réellement corrigé. */
+export async function applyUsernameSync(mismatches: UsernameMismatch[]): Promise<number> {
+  if (!db || mismatches.length === 0) return 0;
+  const results = await Promise.all(mismatches.map(async m => {
+    try {
+      await updateDoc(doc(db!, 'users', m.uid), { username: m.to });
+      return true;
+    } catch (e) {
+      logger.error('[Access] applyUsernameSync:', m.uid, e);
+      return false;
+    }
+  }));
+  return results.filter(Boolean).length;
+}

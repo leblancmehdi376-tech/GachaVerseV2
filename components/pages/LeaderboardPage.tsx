@@ -98,6 +98,28 @@ export function LeaderboardPage() {
   const myRank  = myEntry ? entries.indexOf(myEntry) + 1 : null;
 
   return (
+    <>
+      <style>{`
+        @media (max-width: 640px) {
+          .leaderboard-row {
+            grid-template-columns: 40px 1fr !important;
+            grid-template-areas: "rank name" "stats stats";
+            row-gap: 10px !important;
+          }
+          .leaderboard-rank { grid-area: rank; }
+          .leaderboard-name { grid-area: name; }
+          .leaderboard-stats {
+            grid-area: stats;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 6px !important;
+          }
+        }
+        @media (max-width: 420px) {
+          .leaderboard-stats > div > div:first-child {
+            font-size: 9.5px !important;
+          }
+        }
+      `}</style>
     <PageScroll>
 
         {/* Header */}
@@ -178,8 +200,8 @@ export function LeaderboardPage() {
               {entries.map((entry, idx) => {
                 const isMe = entry.uid === user?.uid;
                 return (
-                  <div key={entry.uid} style={{
-                    display:'grid', gridTemplateColumns:'48px 1fr 90px 100px 120px',
+                  <div key={entry.uid} className="leaderboard-row" style={{
+                    display:'grid', gridTemplateColumns:'48px 1fr auto',
                     alignItems:'center', gap:'8px',
                     padding:'12px 16px', borderRadius:'10px',
                     background: isMe ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
@@ -187,27 +209,40 @@ export function LeaderboardPage() {
                     boxShadow: isMe ? '0 0 12px rgba(168,85,247,0.15)' : 'none',
                   }}>
                     {/* Rang */}
-                    <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize: idx < 3 ? '20px' : '14px', color:getRankColor(idx), textAlign:'center' }}>
+                    <div className="leaderboard-rank" style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize: idx < 3 ? '20px' : '14px', color:getRankColor(idx), textAlign:'center' }}>
                       {getRankDisplay(idx)}
                     </div>
-                    {/* Pseudo */}
-                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                      {entry.username}{isMe && ' (toi)'}
+                    {/* Pseudo + titre équipé */}
+                    <div className="leaderboard-name" style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0, overflow:'hidden' }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        {entry.username}{isMe && ' (toi)'}
+                      </div>
+                      {entry.activeTitle && (
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'10.5px', color:'#fbbf24', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          👑 « {entry.activeTitle} »
+                        </div>
+                      )}
                     </div>
-                    {/* Palier max atteint (ne redescend jamais après un prestige) */}
-                    <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PALIER MAX</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.maxPalierReached}</div>
-                    </div>
-                    {/* Nombre de prestiges — affichage uniquement, n'influence pas le tri */}
-                    <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PRESTIGE</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'#a855f7' }}>{entry.prestigeLevel}</div>
-                    </div>
-                    {/* Pixel-Coins */}
-                    <div style={{ textAlign:'center' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PIXEL-COINS</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#fbbf24' }}>{formatNumber(entry.pixelCoins)}</div>
+                    {/* Stats — regroupées dans un wrapper pour pouvoir passer en
+                        ligne complète sous le pseudo sur mobile (voir <style>
+                        plus bas) sans dupliquer 3 colonnes fixes dans la grille
+                        principale de la ligne. */}
+                    <div className="leaderboard-stats" style={{ display:'grid', gridTemplateColumns:'90px 100px 120px', gap:'8px' }}>
+                      {/* Palier max atteint (ne redescend jamais après un prestige) */}
+                      <div style={{ textAlign:'center' }}>
+                        <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PALIER MAX</div>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{entry.maxPalierReached}</div>
+                      </div>
+                      {/* Nombre de prestiges — affichage uniquement, n'influence pas le tri */}
+                      <div style={{ textAlign:'center' }}>
+                        <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PRESTIGE</div>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'#a855f7' }}>{entry.prestigeLevel}</div>
+                      </div>
+                      {/* Pixel-Coins */}
+                      <div style={{ textAlign:'center' }}>
+                        <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>PIXEL-COINS</div>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#fbbf24' }}>{formatNumber(entry.pixelCoins)}</div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -217,5 +252,6 @@ export function LeaderboardPage() {
         </div>
 
     </PageScroll>
+    </>
   );
 }

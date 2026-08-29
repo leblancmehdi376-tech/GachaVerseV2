@@ -12,7 +12,7 @@ export function EventLobby({ onSelect }: { onSelect: (id: string) => void }) {
   const now = Date.now();
   const { bossCrowns, nekoGems } = useGameStore();
   return (
-    <div style={{ height:'100%', overflowY:'auto', background:'var(--bg-void)', position:'relative' }}>
+    <div style={{ height:'100%', overflowY:'auto', position:'relative' }}>
       <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 50% 20%,rgba(147,51,234,0.08),transparent 60%)', pointerEvents:'none' }} />
       <div style={{ position:'relative', maxWidth:1000, margin:'0 auto', padding:'28px 24px', display:'flex', flexDirection:'column', gap:28 }}>
 
