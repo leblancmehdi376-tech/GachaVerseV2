@@ -3,6 +3,7 @@ import { db } from './config';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
 import { getItemDef, getEquipmentDef } from '@/lib/game/items';
+import { EVENT_QUESTS } from '@/store/gameStoreHelpers';
 import { Rarity, RARITY_ORDER_ASC } from '@/types/game';
 import { logger } from '../logger';
 import { coerceBigNum, type BigNum } from '@/lib/game/bignum';
@@ -197,6 +198,28 @@ export async function correctPlayerProgress(
     return true;
   } catch (e) {
     logger.error('[AdminTools] correctPlayerProgress:', e);
+    return false;
+  }
+}
+
+/**
+ * Réinitialise les quêtes d'événement d'un joueur à zéro (progression et
+ * statut "terminée" remis à l'état initial) — utile pour un joueur bloqué
+ * après un bug, ou pour relancer l'événement en cours. Même mécanisme
+ * `adminCorrectionAt` que les autres corrections : appliqué en direct si le
+ * joueur est déjà connecté, sans attendre qu'il se reconnecte.
+ */
+export async function resetPlayerEventQuests(uid: string): Promise<boolean> {
+  if (!db) return false;
+  try {
+    await updateDoc(doc(db, 'saves', uid), {
+      eventQuests: EVENT_QUESTS.map(q => ({ ...q, current: 0, done: false })),
+      lastSaved: Date.now(),
+      adminCorrectionAt: Date.now(),
+    });
+    return true;
+  } catch (e) {
+    logger.error('[AdminTools] resetPlayerEventQuests:', e);
     return false;
   }
 }

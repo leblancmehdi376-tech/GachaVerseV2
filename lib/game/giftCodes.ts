@@ -1,10 +1,15 @@
 // ── Codes cadeaux ─────────────────────────────────────────────────────
-// Codes à usage unique GLOBAL : le premier joueur qui valide un code donné
-// le consomme définitivement (tracké côté Firestore, voir lib/firebase/giftCodes.ts).
+// Deux modes d'usage unique, au choix par code (voir `perUser` ci-dessous) :
+//  - GLOBAL (par défaut) : le premier joueur qui valide le code le consomme
+//    définitivement, pour tout le monde.
+//  - PAR JOUEUR (perUser: true) : chaque joueur peut valider le code une
+//    seule fois, indépendamment des autres (ex: code de bienvenue).
+// Tracké côté Firestore, voir lib/firebase/giftCodes.ts.
 // Pour ajouter/retirer des codes, modifie simplement ce tableau.
 
 export interface GiftCodeDef {
   code: string;           // stocké en MAJUSCULES, la saisie est normalisée avant comparaison
+  perUser?: boolean;      // true = chaque joueur peut l'utiliser une fois ; sinon usage unique GLOBAL
   gems?: number;          // Neko-Gemmes à distribuer (optionnel)
   pixelCoins?: number;    // Pixel-Coins à distribuer (optionnel)
   characters?: string[];  // IDs de personnages à ajouter à la collection (édition tirée normalement)
@@ -13,6 +18,36 @@ export interface GiftCodeDef {
   equipment?: string[];   // IDs d'équipements (armes/armures) à ajouter à l'équipementInventaire (optionnel)
   drops?: Record<string, number>; // Drops spéciaux d'expédition (dropInventory) à ajouter, ex: { pierre_evolution: 1000 }
 }
+
+// ── Exemples (à titre indicatif, ne pas décommenter tel quel) ──────────
+//
+// 1) Code global classique — gemmes + coins, épuisé après le 1er joueur :
+//    { code: 'NOEL-2026', gems: 500, pixelCoins: 1_000_000 },
+//
+// 2) Code "par joueur" — chaque compte peut le valider une fois, pas de
+//    limite globale (idéal pour un code de bienvenue distribué à tous) :
+//    { code: 'BIENVENUE-2026', perUser: true, gems: 100 },
+//
+// 3) Personnage offert, tiré "normalement" (niveau 1, forme de base) :
+//    { code: 'LUFFY-CADEAU', characters: ['luffy'] },
+//
+// 4) Même personnage mais directement au maximum (7★, dernière évolution,
+//    niveau max, édition Diamant) :
+//    { code: 'LUFFY-DIAMOND-MAX', maxCharacters: ['luffy'] },
+//
+// 5) Équipement + items d'inventaire combinés :
+//    { code: 'EPEE-AUBE', equipment: ['weapon_primordial_dawn'], items: ['elixir_vie'] },
+//
+// 6) Drops spéciaux d'expédition (dropInventory), ex: pierres d'évolution :
+//    { code: 'PIERRE-EVO-TEST-1000', drops: { pierre_evolution: 1000 } },
+//
+// 7) Combo complet, code global (un seul gagnant au monde) :
+//    { code: 'EVENT-RARE', perUser: false, gems: 1200, pixelCoins: 500_000,
+//      characters: ['dazai'], items: ['manteau_ombre'], drops: { pierre_evolution: 40 } },
+//
+// Rappel : `perUser` absent ou `false` = usage unique GLOBAL (comportement
+// par défaut, un seul joueur au total peut consommer le code). `perUser: true`
+// = usage unique PAR JOUEUR (chacun peut le valider une fois).
 
 export const GIFT_CODES: GiftCodeDef[] = [
   // Débloque tous les personnages du jeu (édition tirée normalement, pas
@@ -119,6 +154,12 @@ export const GIFT_CODES: GiftCodeDef[] = [
   },*/
   {
     code:       'AIR-MAIS-CHAMP-TRACTEUR',
+    gems:       900,
+  },
+  // Code utilisable par chaque joueur (une fois par compte), pas de limite globale
+  {
+    code:       'CT-BOGOSSE',
+    perUser:    true,
     gems:       900,
   }
 ];

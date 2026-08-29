@@ -36,11 +36,15 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
   if (!def) return { success: false, reason: 'invalid' };
 
   const codeKey = normalizeGiftCode(rawCode);
+  // Codes globaux : une seule clé de suivi, partagée par tout le monde.
+  // Codes perUser : la clé de suivi est scopée à l'utilisateur, donc chacun
+  // peut consommer le code indépendamment des autres.
+  const trackingKey = def.perUser && userId ? `${codeKey}__${userId}` : codeKey;
 
   if (!userId && isLocal) {
     // Local-only redemption: do not touch Firestore, use localStorage to mark used
-    if (getLocalUsedCodes().includes(codeKey)) return { success: false, reason: 'already_used' };
-    markCodeUsedLocally(codeKey);
+    if (getLocalUsedCodes().includes(trackingKey)) return { success: false, reason: 'already_used' };
+    markCodeUsedLocally(trackingKey);
     return {
       success:    true,
       gems:       def.gems       ?? 0,
@@ -54,16 +58,17 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
   }
 
   // ── 1. Vérification locale (rapide, hors-ligne) ──────────────────────
-  if (getLocalUsedCodes().includes(codeKey)) {
+  if (getLocalUsedCodes().includes(trackingKey)) {
     return { success: false, reason: 'already_used' };
   }
 
   // ── 2. Vérification + écriture Firestore ─────────────────────────────
   if (db) {
     try {
-      const ref = doc(db, 'giftCodes', codeKey);
+      const ref = doc(db, 'giftCodes', trackingKey);
 
-      // Vérifie si le code a déjà été utilisé par N'IMPORTE QUI
+      // Codes globaux : vérifie si le code a déjà été utilisé par N'IMPORTE QUI.
+      // Codes perUser : vérifie seulement si CET utilisateur l'a déjà utilisé.
       const existing = await Promise.race([
         getDoc(ref),
         new Promise<never>((_, reject) =>
@@ -72,17 +77,18 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
       ]);
 
       if (existing.exists()) {
-        // Le code est déjà dans Firestore → quelqu'un l'a déjà utilisé
-        markCodeUsedLocally(codeKey); // synchro locale
+        // Déjà utilisé (globalement, ou par cet utilisateur si perUser)
+        markCodeUsedLocally(trackingKey); // synchro locale
         return { success: false, reason: 'already_used' };
       }
 
-      // Personne ne l'a utilisé → on le crée (usage unique garanti)
+      // Pas encore utilisé (selon la portée du code) → on le crée
       await Promise.race([
         setDoc(ref, {
           redeemed:   true,
           redeemedBy: userId,
           redeemedAt: serverTimestamp(),
+          perUser:    def.perUser ?? false,
           gems:       def.gems       ?? 0,
           pixelCoins: def.pixelCoins ?? 0,
           characters: def.characters ?? [],
@@ -96,7 +102,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
         ),
       ]);
 
-      markCodeUsedLocally(codeKey);
+      markCodeUsedLocally(trackingKey);
       return {
         success:    true,
         gems:       def.gems       ?? 0,
@@ -111,7 +117,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
     } catch (e) {
       logger.warn('[GiftCode] Firebase indisponible, fallback localStorage:', e);
       // Fallback si Firebase est down (ex: quota dépassé)
-      markCodeUsedLocally(codeKey);
+      markCodeUsedLocally(trackingKey);
       return {
         success:    true,
         gems:       def.gems       ?? 0,
@@ -126,7 +132,7 @@ export async function redeemGiftCode(userId: string | null, rawCode: string): Pr
   }
 
   // ── 3. Pas de Firebase du tout — localStorage uniquement ─────────────
-  markCodeUsedLocally(codeKey);
+  markCodeUsedLocally(trackingKey);
   return {
     success:    true,
     gems:       def.gems       ?? 0,

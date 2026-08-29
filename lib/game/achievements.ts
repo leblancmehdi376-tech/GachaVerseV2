@@ -186,7 +186,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'palier_40', category:'progression', icon:'🏁',
     title:'Finisseur', name:'Le Bout du Voyage',
-    description:'Atteins le palier 40, la fin du voyage.', target:40,
+    description:'Atteins le palier 40, la fin du voyage...', target:40,
     reward:{ type:'gems', value:1000 },
     secret:true,
   },
@@ -258,7 +258,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id:'prestige_1', category:'progression', icon:'🔄',
     title:'Réincarné', name:'Nouveau Départ',
-    description:'Effectue ton premier Prestige.', target:1,
+    description:'Effectue ton premier Prestige. Le début d\'une nouvelle ère ?', target:1,
     reward:{ type:'title', value:'Réincarné' },
   },
   {

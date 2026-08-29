@@ -1,9 +1,11 @@
 // Récompenses de connexion journalière — calendrier 28 jours (voir
 // lib/game/dailyRewards.ts pour le contenu). Même principe de reset que les
 // quêtes (ensureDailyQuests) : on compare la date du jour (getTodayDayKey) à
-// la dernière connue, et on avance le pointeur d'UN jour à chaque nouvelle
-// journée détectée — pas de rattrapage si le joueur saute des jours, pas de
-// pénalité non plus (on ne fait qu'avancer d'un cran par connexion).
+// la dernière connue. Le pointeur n'avance QUE si le jour affiché a été
+// réclamé (dailyRewardClaimedToday) — sinon on reste bloqué dessus tant que
+// le joueur ne l'a pas réclamé, même si plusieurs vraies journées passent.
+// Ainsi impossible de sauter un jour du calendrier en se reconnectant sans
+// avoir cliqué sur "Réclamer" la veille.
 import type { StateCreator } from 'zustand';
 import { getTodayDayKey } from '@/lib/game/shop';
 import { DAILY_REWARDS, DAILY_REWARD_CYCLE_LENGTH, getDailyRewardDay } from '@/lib/game/dailyRewards';
@@ -19,7 +21,7 @@ export const createDailyRewardSlice: StateCreator<GameStore, [], [], DailyReward
       const isFirstEver = !state.dailyRewardDayKey;
       let nextDay = state.dailyRewardCurrentDay || 1;
       let claimedDays = state.dailyRewardClaimedDays ?? [];
-      if (!isFirstEver) {
+      if (!isFirstEver && state.dailyRewardClaimedToday) {
         nextDay += 1;
         if (nextDay > DAILY_REWARD_CYCLE_LENGTH) {
           nextDay = 1;

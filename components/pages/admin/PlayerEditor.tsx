@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  getPlayerDetail, correctPlayerBalance, correctPlayerProgress,
+  getPlayerDetail, correctPlayerBalance, correctPlayerProgress, resetPlayerEventQuests,
   removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, sortOwnedCharacters,
   addPlayerItem, addPlayerEquipment, sortOwnedEquipment,
   PlayerSaveSummary, PlayerDetail, OwnedCharacterSummary, OwnedItemSummary, OwnedEquipmentSummary,
@@ -73,6 +73,8 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
   const [progressMsg, setProgressMsg]   = useState<string | null>(null);
   const [correctBusy, setCorrectBusy] = useState(false);
   const [correctMsg, setCorrectMsg]   = useState<string | null>(null);
+  const [questsBusy, setQuestsBusy]   = useState(false);
+  const [questsMsg, setQuestsMsg]     = useState<string | null>(null);
 
   const [charBusy, setCharBusy]       = useState<string | null>(null);
   const [levelEdits, setLevelEdits]   = useState<Record<string, string>>({});
@@ -232,6 +234,14 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
     setProgressBusy(false);
   };
 
+  const handleResetEventQuests = async () => {
+    if (!confirm('Réinitialiser les quêtes d\'événement de ce joueur ? Sa progression sur toutes les quêtes d\'événement repassera à zéro.')) return;
+    setQuestsBusy(true); setQuestsMsg(null);
+    const ok = await resetPlayerEventQuests(uid);
+    setQuestsMsg(ok ? '✅ Quêtes d\'événement réinitialisées (effectif à la prochaine connexion/sauvegarde du joueur).' : '❌ Échec de la réinitialisation.');
+    setQuestsBusy(false);
+  };
+
   if (!playerSave) {
     return (
       <div style={{ padding: '16px 20px', color: 'rgba(255,255,255,0.4)', fontSize: 13.4 }}>
@@ -306,6 +316,19 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
           {progressBusy ? 'Correction en cours…' : '✅ Appliquer le palier'}
         </button>
         {progressMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: progressMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{progressMsg}</div>}
+      </div>
+
+      {/* ── Quêtes d'événement ───────────────────────────────────── */}
+      <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 4 }}>Quêtes d&apos;événement</div>
+        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 14 }}>
+          Remet à zéro la progression et le statut de toutes les quêtes d&apos;événement de ce joueur.
+        </div>
+        <button onClick={handleResetEventQuests} disabled={questsBusy}
+          style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.5)', color: '#fbbf24', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
+          {questsBusy ? 'Réinitialisation en cours…' : '♻️ Réinitialiser les quêtes d\'événement'}
+        </button>
+        {questsMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: questsMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{questsMsg}</div>}
       </div>
 
       {/* ── Gestion de la collection de personnages ────────────── */}
