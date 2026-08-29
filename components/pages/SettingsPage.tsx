@@ -7,10 +7,11 @@ import { redeemGiftCode } from '@/lib/firebase/giftCodes';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { formatSyncStatus, type CloudSyncStatus } from '@/hooks/useCloudSave';
+import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
-  const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, username, setUsername } = useGameStore();
+  const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore();
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
@@ -24,6 +25,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   // ── Code cadeau ──────────────────────────────────────────────────────
   const [nameInput,   setNameInput]   = useState(username);
   const [nameFeedback, setNameFeedback] = useState<string | null>(null);
+  const [savingName,  setSavingName]  = useState(false);
   const [giftInput,    setGiftInput]    = useState('');
   const [giftLoading,  setGiftLoading]  = useState(false);
   const [giftFeedback, setGiftFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -32,14 +34,31 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
     setNameInput(username);
   }, [username]);
 
-  const handleSaveName = () => {
+  const handleSaveName = async () => {
     const finalName = nameInput.trim().slice(0, 20);
     if (!finalName) {
       setNameFeedback('Le pseudo ne peut pas être vide.');
       return;
     }
+    if (!user) {
+      setNameFeedback('Connecte-toi pour changer ton pseudo.');
+      return;
+    }
+    setSavingName(true);
     setUsername(finalName);
-    setNameFeedback('Pseudo enregistré.');
+    try {
+      // Synchronise immédiatement `users/{uid}` (fiche identité, lue par
+      // l'admin) ET `saves/{uid}` (classement/marché) via la même fonction
+      // que LeaderboardPage — sans cet appel immédiat, seul `saves/{uid}`
+      // aurait fini par recevoir le nouveau pseudo (au prochain autosave,
+      // jusqu'à 10min plus tard), laissant la fiche admin définitivement
+      // périmée puisque rien d'autre ne l'aurait jamais resynchronisée.
+      await updatePlayerScore(user.uid, { username: finalName, palier, maxPalierReached, wave, totalClicks, pixelCoins, totalDps: getTotalDps() });
+      setNameFeedback('Pseudo enregistré.');
+    } catch {
+      setNameFeedback('Erreur réseau, réessaie.');
+    }
+    setSavingName(false);
   };
 
   const handleRedeemGift = async () => {
@@ -156,9 +175,9 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
                   <input type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
                     placeholder="Ton pseudo"
                     style={{ flex:1, minWidth:'180px', padding:'12px 14px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'10px', color:'var(--text)', fontFamily:'var(--f-ui)', fontWeight:700 }} />
-                  <button onClick={handleSaveName}
-                    style={{ padding:'12px 20px', background:'linear-gradient(135deg,#6d28d9,#a855f7)', border:'1px solid #c084fc', borderRadius:'10px', fontFamily:'var(--f-ui)', fontWeight:700, color:'white', cursor:'pointer' }}>
-                    ENREGISTRER
+                  <button onClick={handleSaveName} disabled={savingName}
+                    style={{ padding:'12px 20px', background:'linear-gradient(135deg,#6d28d9,#a855f7)', border:'1px solid #c084fc', borderRadius:'10px', fontFamily:'var(--f-ui)', fontWeight:700, color:'white', cursor: savingName ? 'wait' : 'pointer' }}>
+                    {savingName ? '...' : 'ENREGISTRER'}
                   </button>
                 </div>
                 {nameFeedback && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>{nameFeedback}</div>}

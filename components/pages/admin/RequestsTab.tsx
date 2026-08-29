@@ -19,7 +19,7 @@ export function RequestsTab({ pending, approvedList, busy, onApprove }: Requests
             <div>
               <div style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{r.username}</div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, marginTop: 2 }}>{r.email}</div>
-              <div style={{ color: '#7289da', fontSize: 12.4, marginTop: 2 }}>Discord : {r.discordUsername}</div>
+              <div style={{ color: '#7289da', fontSize: 12.4, marginTop: 2 }}>Discord : {r.discordHandle}</div>
               <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 4 }}>
                 Demandé le {new Date(r.createdAt).toLocaleString('fr-FR')}
               </div>
@@ -37,7 +37,7 @@ export function RequestsTab({ pending, approvedList, busy, onApprove }: Requests
           <div key={r.uid} style={{ display: 'flex', gap: 12, padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12.4 }}>
             <span style={{ color: '#fff', fontWeight: 700, minWidth: 140 }}>{r.username}</span>
             <span style={{ color: 'rgba(255,255,255,0.4)' }}>{r.email}</span>
-            <span style={{ color: '#7289da' }}>{r.discordUsername}</span>
+            <span style={{ color: '#7289da' }}>{r.discordHandle}</span>
           </div>
         ))}
       </div>

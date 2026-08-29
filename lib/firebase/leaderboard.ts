@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, limit, query, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, limit, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from './config';
 import { logger } from '../logger';
 import { logFirestoreOp } from './telemetry';
@@ -80,11 +80,27 @@ export async function updatePlayerScore(userId: string, data: Partial<{
     if (typeof data.palier === 'number' && typeof data.wave === 'number') {
       entry.score = data.palier * 100 + data.wave;
     }
+    let username: string | undefined;
     if (typeof entry.username === 'string') {
-      entry.username = (entry.username as string).trim().slice(0, 20);
+      username = (entry.username as string).trim().slice(0, 20);
+      entry.username = username;
     }
     entry.updatedAt = serverTimestamp();
-    await setDoc(doc(db, 'saves', userId), entry, { merge: true });
+    const writes: Promise<unknown>[] = [setDoc(doc(db, 'saves', userId), entry, { merge: true })];
+    // `saves/{uid}.username` (écrit ci-dessus) n'est qu'une copie dénormalisée
+    // — `users/{uid}.username` est la source de vérité lue par le panel admin
+    // (voir AccessRequest.username dans accessRequests.ts). Sans cette
+    // resynchro immédiate, l'admin restait bloqué sur le pseudo de
+    // l'inscription dès qu'un joueur se renommait ici.
+    // `updateDoc` (pas `setDoc` merge) : échoue proprement — capturé juste en
+    // dessous, sans faire échouer l'écriture `saves` ci-dessus — si
+    // `users/{uid}` n'existe pas encore (très vieux comptes antérieurs à ce
+    // doc, voir le commentaire dans getAllUsers). `setDoc` merge y créerait à
+    // la place un doc incomplet (juste `username`, sans email/approved/
+    // createdAt), faisant apparaître ce joueur à tort comme "en attente"
+    // dans le panel admin.
+    if (username) writes.push(updateDoc(doc(db, 'users', userId), { username }).catch(() => {}));
+    await Promise.all(writes);
     logFirestoreOp('write', 'leaderboard_score');
   } catch (e) {
     logger.error('Leaderboard update error:', e);

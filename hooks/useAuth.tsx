@@ -18,7 +18,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, username: string, discordUsername: string) => Promise<void>;
+  signUp: (email: string, password: string, username: string, discordHandle: string) => Promise<void>;
   signInGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   kickedOut: boolean;
@@ -81,12 +81,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // setUser), pour éviter la course avec watchSession — voir son commentaire.
   };
 
-  const signUp = async (email: string, password: string, username: string, discordUsername: string) => {
+  const signUp = async (email: string, password: string, username: string, discordHandle: string) => {
     if (!auth) throw new Error('Firebase non configuré');
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    // Compte créé mais PAS de session/accès automatique : il reste "en attente"
-    // tant que le pseudo Discord n'a pas été vérifié manuellement.
-    await createAccessRequest(cred.user.uid, email, username, discordUsername);
+    // discordHandle est déclaratif (texte libre, pas d'OAuth) — voir le
+    // commentaire sur AccessRequest.discordHandle dans accessRequests.ts.
+    // Le compte est immédiatement approuvé (createAccessRequest), il n'y a
+    // plus de vérification manuelle avant accès malgré ce que ce commentaire
+    // suggérait historiquement.
+    await createAccessRequest(cred.user.uid, email, username, discordHandle);
   };
 
   const signInGoogle = async () => {

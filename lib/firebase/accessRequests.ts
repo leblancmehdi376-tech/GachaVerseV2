@@ -5,12 +5,38 @@ import type { PlayerSaveSummary } from './adminTools';
 import { coerceBigNum } from '@/lib/game/bignum';
 
 export interface AccessRequest {
-  uid:             string;
-  email:           string;
-  username:        string; // pseudo en jeu
-  discordUsername: string;
-  approved:        boolean;
-  createdAt:       number;
+  uid:            string;
+  email:          string;
+  // Pseudo unique affiché PARTOUT (jeu, classement, marché, admin) — un seul
+  // concept, pas de "pseudo classement" séparé. `users/{uid}.username` est la
+  // source de vérité (fiche d'identité) ; `saves/{uid}.username` n'en est
+  // qu'une copie dénormalisée, gardée pour que le classement/marché puissent
+  // continuer à lire uniquement `saves` en masse sans jointure coûteuse sur
+  // `users`. Les deux ne doivent JAMAIS être écrits séparément : seul
+  // `updatePlayerScore` (lib/firebase/leaderboard.ts) est autorisé à changer
+  // ce pseudo, et le fait toujours dans les deux documents à la fois — voir
+  // SettingsPage/LeaderboardPage, qui passent tous les deux par lui.
+  username:       string;
+  // Pseudo Discord déclaratif saisi librement à l'inscription — PAS d'OAuth,
+  // jamais vérifié automatiquement (voir commentaire dans useAuth.signUp).
+  discordHandle:  string;
+  approved:       boolean;
+  createdAt:      number;
+}
+
+/** Normalise un doc `users/{uid}` brut en AccessRequest — tolère les anciens
+ *  documents écrits avant le renommage `discordUsername` → `discordHandle`
+ *  (pas de script de migration : cette fonction fait la conversion à la
+ *  lecture, pour toujours). */
+export function normalizeAccessRequest(uid: string, data: Record<string, unknown>): AccessRequest {
+  return {
+    uid,
+    email:         (data.email as string) ?? '',
+    username:      (data.username as string) ?? '',
+    discordHandle: (data.discordHandle as string) ?? (data.discordUsername as string) ?? '',
+    approved:      (data.approved as boolean) ?? false,
+    createdAt:     (data.createdAt as number) ?? 0,
+  };
 }
 
 /**
@@ -29,11 +55,11 @@ export interface PlayerRow extends AccessRequest {
  *  Le compte est immédiatement validé : il n'y a plus de demande d'accès à
  *  approuver manuellement, l'inscription donne un accès direct au jeu. */
 export async function createAccessRequest(
-  uid: string, email: string, username: string, discordUsername: string
+  uid: string, email: string, username: string, discordHandle: string
 ): Promise<void> {
   if (!db) return;
   await setDoc(doc(db, 'users', uid), {
-    uid, email, username, discordUsername,
+    uid, email, username, discordHandle,
     approved: true,
     createdAt: Date.now(),
   });
@@ -91,7 +117,7 @@ export async function ensureUserDoc(
       uid,
       email: email || '',
       username: resolvedUsername,
-      discordUsername: '',
+      discordHandle: '',
       approved: true,
       createdAt: Date.now(),
     });
@@ -148,7 +174,7 @@ export async function getAllUsers(): Promise<PlayerRow[]> {
 
     const byUid = new Map<string, PlayerRow>();
     for (const d of usersSnap.docs) {
-      const u = d.data() as AccessRequest;
+      const u = normalizeAccessRequest(d.id, d.data());
       const saveDoc = saveDocsByUid.get(d.id);
       byUid.set(d.id, { ...u, save: saveDoc ? summarizePlayerSave(saveDoc) : undefined });
     }
@@ -161,7 +187,7 @@ export async function getAllUsers(): Promise<PlayerRow[]> {
         uid,
         email: '(compte antérieur au système de fiches — email inconnu)',
         username: username || '(pseudo inconnu)',
-        discordUsername: '',
+        discordHandle: '',
         approved: true,
         createdAt: (saveDoc.lastSaved as number) ?? 0,
         save: summarizePlayerSave(saveDoc),
