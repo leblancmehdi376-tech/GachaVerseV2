@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   rollAnomalyRarity, rollAnomaly, getAnomalyRerollCost, getAnomalySlotCost,
   calcAnomalyBonuses, ANOMALY_RARITY_TABLE, ANOMALY_SLOT_COSTS_CROWNS, ANOMALY_MAX_SLOTS,
-  ANOMALY_BONUS_TYPES, type Anomaly,
+  ANOMALY_BONUS_TYPES, migrateAnomalyValue, migrateAnomalies, type Anomaly,
 } from './anomalies';
 import { RARITY_ORDER_ASC } from '@/types/game';
 import { AFFINITY_ORDER } from './affinities';
@@ -139,13 +139,13 @@ describe('calcAnomalyBonuses', () => {
   });
 
   it('plafonne la réduction de coût gacha à 90%', () => {
-    const many = Array.from({ length: 20 }, () => makeAnomaly({ bonusType: 'gachaCostReduction', value: 10 }));
+    const many = Array.from({ length: 20 }, () => makeAnomaly({ bonusType: 'gachaCostReduction', rarity: 'T', value: 10 }));
     const b = calcAnomalyBonuses(many);
     expect(b.gachaCostReductionPct).toBe(0.9);
   });
 
   it('plafonne la réduction de coût amélioration à 90%', () => {
-    const many = Array.from({ length: 20 }, () => makeAnomaly({ bonusType: 'upgradeCostReduction', value: 20 }));
+    const many = Array.from({ length: 20 }, () => makeAnomaly({ bonusType: 'upgradeCostReduction', rarity: 'T', value: 20 }));
     const b = calcAnomalyBonuses(many);
     expect(b.upgradeCostReductionPct).toBe(0.9);
   });
@@ -166,5 +166,50 @@ describe('calcAnomalyBonuses', () => {
       makeAnomaly({ bonusType: 'typeDamage', value: 15, target: 'chaos' }),
     ]);
     expect(b.typeDamageByAffinity.chaos).toBeCloseTo(0.25, 10);
+  });
+
+});
+
+describe('migrateAnomalyValue / migrateAnomalies', () => {
+  it('retire une nouvelle valeur dans la plage actuelle si l\'ancienne valeur est hors plage', () => {
+    // Ex-plage 'S' de upgradeCostReduction avant rework : 77-110%. Barème
+    // actuel : 5.0 fixe. Une anomalie persistée à 95 doit être migrée.
+    const legacy = makeAnomaly({ bonusType: 'upgradeCostReduction', rarity: 'S', value: 95 });
+    const migrated = migrateAnomalyValue(legacy);
+    const [min, max] = ANOMALY_RARITY_TABLE.S.ranges.upgradeCostReduction;
+    expect(migrated.value).toBeGreaterThanOrEqual(min);
+    expect(migrated.value).toBeLessThanOrEqual(max);
+    expect(migrated.value).toBe(5); // plage fixe [5,5] pour 'S'
+  });
+
+  it('ne touche pas une anomalie déjà conforme au barème actuel (idempotent)', () => {
+    const fresh = makeAnomaly({ bonusType: 'upgradeCostReduction', rarity: 'C', value: 0.2 });
+    const migrated = migrateAnomalyValue(fresh);
+    expect(migrated).toBe(fresh); // même référence : pas de copie inutile
+  });
+
+  it('préserve id/rarity/bonusType/target/locked, ne change que value', () => {
+    const legacy = makeAnomaly({
+      id: 'anom_legacy', bonusType: 'upgradeCostReduction', rarity: 'T', value: 200, locked: true,
+    });
+    const migrated = migrateAnomalyValue(legacy);
+    expect(migrated).toMatchObject({ id: 'anom_legacy', rarity: 'T', bonusType: 'upgradeCostReduction', target: null, locked: true });
+    expect(migrated.value).toBe(15);
+  });
+
+  it('ne touche pas aux types de bonus dont la plage n\'a pas changé (ex: globalDps)', () => {
+    const [min, max] = ANOMALY_RARITY_TABLE.M.ranges.globalDps;
+    const inRange = makeAnomaly({ bonusType: 'globalDps', rarity: 'M', value: (min + max) / 2 });
+    expect(migrateAnomalyValue(inRange)).toBe(inRange);
+  });
+
+  it('migrateAnomalies applique la migration à tout le tableau', () => {
+    const list = [
+      makeAnomaly({ id: 'a', bonusType: 'upgradeCostReduction', rarity: 'T', value: 200 }),
+      makeAnomaly({ id: 'b', bonusType: 'globalDps', rarity: 'C', value: 0.2 }),
+    ];
+    const migrated = migrateAnomalies(list);
+    expect(migrated[0].value).toBe(15);
+    expect(migrated[1]).toBe(list[1]);
   });
 });

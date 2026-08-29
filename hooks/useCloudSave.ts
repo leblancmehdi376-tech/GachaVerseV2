@@ -8,6 +8,7 @@ import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
 import { logFirestoreOp } from '@/lib/firebase/telemetry';
 import { logger } from '@/lib/logger';
 import { BN_ZERO, coerceBigNum, type BigNum } from '@/lib/game/bignum';
+import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
 
 const FIREBASE_INTERVAL_MS = 600_000; // Firebase toutes les 10min (quota)
 const LOCAL_INTERVAL_MS    =  30_000; // rafraîchissement de savedAt toutes les 30s (gratuit, illimité)
@@ -224,6 +225,14 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   if (data.lastBossVictory && typeof data.lastBossVictory === 'object') {
     const victory = data.lastBossVictory as Record<string, unknown>;
     data.lastBossVictory = { ...victory, coins: coerceBigNum(victory.coins) };
+  }
+
+  // Même migration d'anomalies que côté local (voir gameStore.ts::merge) —
+  // ce chemin cloud n'y passe pas (setState direct ci-dessous, pas le `merge`
+  // du middleware persist), donc une save cloud écrite par une version
+  // antérieure au rework d'échelle doit être migrée ici aussi.
+  if (Array.isArray(data.ownedAnomalies)) {
+    data.ownedAnomalies = migrateAnomalies(data.ownedAnomalies as Anomaly[]);
   }
 
   useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);

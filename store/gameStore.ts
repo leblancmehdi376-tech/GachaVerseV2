@@ -30,6 +30,7 @@ import { createUltimateSlice } from './slices/ultimateSlice';
 import { createExpeditionSlice, initialDefAffinities, backfillDefAffinities } from './slices/expeditionSlice';
 import { createMineSlice } from './slices/mineSlice';
 import { createAnomalySlice } from './slices/anomalySlice';
+import { migrateAnomalies } from '@/lib/game/anomalies';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
 // pour tous les fichiers qui importent ces symboles.
@@ -256,6 +257,12 @@ export const useGameStore = create<GameStore>()(
         // retombe sur un tirage à la volée à CHAQUE lecture (donc à chaque
         // render) au lieu d'un type stable jusqu'au claim de l'expédition.
         merged.expeditionDefAffinities = backfillDefAffinities(merged.expeditionDefAffinities ?? {});
+        // Migration des anomalies possédées dont la `value` persistée ne
+        // correspond plus au barème actuel (rework d'échelle, voir
+        // migrateAnomalies) — tourne à CHAQUE réhydratation, pas juste lors
+        // d'une migration legacy, pour rattraper aussi un joueur qui n'ouvre
+        // le jeu qu'après plusieurs rebalances successives.
+        merged.ownedAnomalies = migrateAnomalies(merged.ownedAnomalies ?? []);
         // Backfill titres (ex-onRehydrateStorage d'achievementStore) — tourne à
         // CHAQUE rehydration, pas juste lors d'une migration legacy : garantit
         // 'Novice' (titre de départ gratuit) même pour les parties commencées

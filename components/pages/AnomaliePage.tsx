@@ -25,7 +25,7 @@ function targetLabel(a: Anomaly): string | null {
 }
 
 function formatBonusRange(type: AnomalyBonusType, [min, max]: [number, number]): string {
-  const decimals = type === 'globalDps' ? 2 : type === 'gachaCostReduction' ? 1 : 0;
+  const decimals = type === 'globalDps' ? 2 : type === 'gachaCostReduction' || type === 'upgradeCostReduction' ? 1 : 0;
   if (min === max) return `+${min.toFixed(decimals)}%`;
   return `+${min.toFixed(decimals)}% – +${max.toFixed(decimals)}%`;
 }
