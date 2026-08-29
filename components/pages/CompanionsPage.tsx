@@ -123,7 +123,6 @@ export function CompanionsPage() {
     equipmentInventory,
     equipItem,
     unequipItem,
-    recycleEquipment,
     collectionFilter,
     collectionUniverse,
     collectionAffinity,
@@ -468,12 +467,6 @@ export function CompanionsPage() {
                               onClick={() => selectedCharacterId && equipItem(selectedCharacterId, item.slot, item.id)}
                             >
                               Équiper
-                            </button>
-                            <button
-                              className="companion-button companion-button--soft"
-                              onClick={() => recycleEquipment(item.id)}
-                            >
-                              Recycler
                             </button>
                           </div>
                         </div>

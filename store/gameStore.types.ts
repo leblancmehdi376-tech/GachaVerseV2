@@ -85,7 +85,6 @@ export interface EquipmentActions {
   addItem: (itemId: string, qty?: number) => void;
   sellItem: (itemId: string, qty: number) => void;
   addEquipment: (equipmentId: string, qty?: number) => void;
-  recycleEquipment: (equipmentId: string, qty?: number) => void;
   equipItem: (templateId: string, slot: EquipmentSlot, equipmentId: string) => void;
   unequipItem: (templateId: string, slot: EquipmentSlot) => void;
   setLastEquipmentDrop: (id: string | null) => void;

@@ -7,7 +7,6 @@ import {
   getSpecialWeaponGroup, pickRandomSpecialWeapon, isSpecialWeaponFusionRarity, SPECIAL_WEAPON_FUSION_COST,
 } from '@/lib/game/items';
 import type { GameStore, EquipmentActions } from '../gameStore.types';
-import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 
 export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActions> = (set, get) => ({
   addItem: (itemId, qty = 1) => set(s => ({
@@ -29,19 +28,6 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
   addEquipment: (equipmentId, qty = 1) => set(s => ({
     equipmentInventory: { ...s.equipmentInventory, [equipmentId]: (s.equipmentInventory[equipmentId] ?? 0) + qty },
   })),
-  recycleEquipment: (equipmentId, qty = 1) => {
-    const def = getEquipmentDef(equipmentId);
-    if (!def) return;
-    set(s => {
-      const current = s.equipmentInventory[equipmentId] ?? 0;
-      if (current <= 0) return {};
-      const removed = Math.min(current, qty);
-      return {
-        equipmentInventory: { ...s.equipmentInventory, [equipmentId]: current - removed },
-        pixelCoins: bnAdd(s.pixelCoins, bnFromNumber(def.recycleValue * removed)),
-      };
-    });
-  },
   unlockEquipRarity: (rarity) => set(s =>
     s.unlockedEquipRarities.includes(rarity) ? {} : { unlockedEquipRarities: [...s.unlockedEquipRarities, rarity] }
   ),
