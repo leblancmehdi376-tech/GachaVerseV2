@@ -18,14 +18,14 @@ export function EventBg({ boss }: { boss: EventBossDef }) {
 export function BossSprite({ boss, deadStyle }: { boss: EventBossDef; deadStyle: boolean }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(stripKnownExtension(boss.spritePath)));
   if (failed || !src) return (
-    <div style={{ width:240, height:320, background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <span style={{ fontSize:82.4, filter:'drop-shadow(0 0 20px #c084fc)' }}>👤</span>
+    <div style={{ width:336, height:448, background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <span style={{ fontSize:115.4, filter:'drop-shadow(0 0 20px #c084fc)' }}>👤</span>
     </div>
   );
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={boss.name}
-      style={{ width:240, height:320, objectFit:'contain', imageRendering:'pixelated', filter: deadStyle ? 'grayscale(1) brightness(0.3)' : undefined }}
+      style={{ width:336, height:448, objectFit:'contain', imageRendering:'pixelated', filter: deadStyle ? 'grayscale(1) brightness(0.3)' : undefined }}
       onError={onError} />
   );
 }

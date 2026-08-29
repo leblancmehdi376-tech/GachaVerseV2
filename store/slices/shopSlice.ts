@@ -81,7 +81,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
   },
   rerollDailyShop: () => {
     const { dailyShop, voidOrbs } = get();
-    const cost = getRerollShopCost(dailyShop.rerollCount ?? 0);
+    const cost = getRerollShopCost();
     if (voidOrbs < cost) return;
     set(state => ({
       voidOrbs: state.voidOrbs - cost,

@@ -81,14 +81,12 @@ export const ARTHUR_LEYWIN_BOSS: EventBossDef = {
   dropTable: [...buildEventDropTable(['cristal_ether', 'epee_ether', 'sylvia']), titleDropEntry(EVENT_TITLES.arthur_leywin)],
 };
 
-// ⚠️ Sprites manquants : ni eminence_shadow.webp ni eminence_shadow_bg.* n'existent
-// dans public/sprites/events/ — ce boss affiche un placeholder tant qu'ils ne sont pas ajoutés.
 export const EMINENCE_SHADOW_BOSS: EventBossDef = {
   id:          'eminence_shadow',
   name:        "L'Éminence de l'Ombre",
   subtitle:    'Celui qui se tapit dans l’ombre',
-  spritePath:  '/sprites/events/eminence_shadow.webp',
-  bgImagePath: '/sprites/events/eminence_shadow_bg',
+  spritePath:  '/sprites/events/cid_kagenou.webp',
+  bgImagePath: '/sprites/events/cid_kagenou_bg',
   description: "Il ne cherche ni la gloire ni la reconnaissance. Il agit dans l'ombre, et frappe quand nul ne l'attend.",
   bgGradient:  'linear-gradient(180deg,#100a24,#05030d)',
   accentColor: '#a78bfa',

@@ -178,3 +178,53 @@ describe('doPrestige — resets', () => {
     expect(after.achievementUnlocked.upgrade_10).toBeUndefined();
   });
 });
+
+describe('claimOfflineEarnings — progression des quêtes "Vaincre X monstres"', () => {
+  beforeEach(() => {
+    useGameStore.getState().resetGame();
+  });
+
+  function offlineGain(kills: number) {
+    return {
+      coins: bnFromNumber(1000), gems: 0, kills,
+      seconds: 3600, rawSeconds: 3600, capped: false, at: Date.now(),
+    };
+  }
+
+  it('incrémente les quêtes journalière et hebdomadaire de kills du nombre de monstres vaincus hors-ligne', () => {
+    const before = useGameStore.getState();
+    const dBefore = before.quests.find(q => q.id === 'd_kills')!.current;
+    const wBefore = before.weeklyQuests.find(q => q.id === 'w_kills')!.current;
+
+    useGameStore.getState().claimOfflineEarnings(offlineGain(42));
+
+    const after = useGameStore.getState();
+    expect(after.quests.find(q => q.id === 'd_kills')!.current).toBe(dBefore + 42);
+    expect(after.weeklyQuests.find(q => q.id === 'w_kills')!.current).toBe(wBefore + 42);
+  });
+
+  it('incrémente le cumul à vie totalKills (utilisé par le suivi de succès trackKills)', () => {
+    const before = useGameStore.getState().totalKills ?? 0;
+
+    useGameStore.getState().claimOfflineEarnings(offlineGain(17));
+
+    expect(useGameStore.getState().totalKills).toBe(before + 17);
+  });
+
+  it('ne dépasse jamais la cible de la quête (plafonnement comme un kill normal)', () => {
+    const target = useGameStore.getState().quests.find(q => q.id === 'd_kills')!.target;
+
+    useGameStore.getState().claimOfflineEarnings(offlineGain(target + 1000));
+
+    expect(useGameStore.getState().quests.find(q => q.id === 'd_kills')!.current).toBe(target);
+  });
+
+  it("ne touche pas aux quêtes de kills si aucun monstre n'a été vaincu hors-ligne", () => {
+    const before = useGameStore.getState();
+    const dBefore = before.quests.find(q => q.id === 'd_kills')!.current;
+
+    useGameStore.getState().claimOfflineEarnings(offlineGain(0));
+
+    expect(useGameStore.getState().quests.find(q => q.id === 'd_kills')!.current).toBe(dBefore);
+  });
+});

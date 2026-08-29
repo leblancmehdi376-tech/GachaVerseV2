@@ -66,9 +66,9 @@ describe('hasRealUniverse', () => {
 describe('Mine de Gemme — les 3 expéditions de farm de gemmes', () => {
   const H = 3600;
   const specs: Array<{ id: string; duration: number; gemsPerSuccess: number }> = [
-    { id: 'mine_gemme',          duration: 15 * 60, gemsPerSuccess: 1 },
-    { id: 'mine_gemme_profonde', duration: H,        gemsPerSuccess: 2 },
-    { id: 'mine_gemme_abyssale', duration: 8 * H,     gemsPerSuccess: 4 },
+    { id: 'mine_gemme',          duration: 15 * 60, gemsPerSuccess: 2 },
+    { id: 'mine_gemme_profonde', duration: H,        gemsPerSuccess: 4 },
+    { id: 'mine_gemme_abyssale', duration: 8 * H,     gemsPerSuccess: 8 },
   ];
 
   it('existent avec le bon cooldown, le bon gain par succès et 50% de chance de succès', () => {

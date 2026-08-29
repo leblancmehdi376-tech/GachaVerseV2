@@ -270,7 +270,7 @@ export function ShopPage() {
           </div>
 
           {(() => {
-            const rerollCost = getRerollShopCost(dailyShop.rerollCount ?? 0);
+            const rerollCost = getRerollShopCost();
             const canReroll = voidOrbs >= rerollCost;
             return (
               <button onClick={rerollDailyShop} disabled={!canReroll}

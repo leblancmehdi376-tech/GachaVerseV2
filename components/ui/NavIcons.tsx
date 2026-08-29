@@ -19,14 +19,12 @@ export function IconHome({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function IconSword({ size = 18, color = 'currentColor' }: IconProps) {
+export function IconTrendUp({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
-      <path d="M14 3l3 3-9 9-3-3z" />
-      <path d="M17 3l-3 3" />
-      <path d="M3 17l2-5" />
-      <path d="M5 12l3 3" />
-      <path d="M3 17l3-1" />
+      {/* Courbe de progression en zigzag façon éclair, terminée par une flèche montante */}
+      <path d="M2.5 16.5l4-5.7 2.7 2.8L16.5 4" />
+      <path d="M12 4h4.5v4.5" />
     </svg>
   );
 }
@@ -137,10 +135,13 @@ export function IconProfile({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function IconExpedition({ size = 18, color = 'currentColor' }: IconProps) {
+export function IconFoldedMap({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
-      <path d="M10 2l2 6h6l-5 3.5 2 6L10 14l-5 3.5 2-6L2 8h6z" />
+      <path d="M3 5.5l4.5-1.8 5 1.8 4.5-1.8V15l-4.5 1.8-5-1.8L3 16.7z" />
+      <path d="M7.5 3.7v11.3" />
+      <path d="M12.5 5.5v11.3" />
+      <path d="M6 9.6c1.3-.8 2.6.6 4-.2s2.6-1 3.7-.2" strokeDasharray="1.6 1.6" />
     </svg>
   );
 }
@@ -166,13 +167,13 @@ export function IconMarket({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function IconMedal({ size = 18, color = 'currentColor' }: IconProps) {
+export function IconVoidPortal({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
-      <circle cx="10" cy="13" r="5" />
-      <path d="M7 3l3 5 3-5" />
-      <path d="M7 3h6" />
-      <path d="M10 11v2l1.5 1" />
+      <circle cx="10" cy="10" r="7" />
+      <path d="M10 4.5c3 0 5.5 2.5 5.5 5.5S13 15.5 10 15.5" />
+      <path d="M10 7c1.7 0 3 1.3 3 3s-1.3 3-3 3" />
+      <circle cx="10" cy="10" r="0.9" />
     </svg>
   );
 }
@@ -234,7 +235,7 @@ export function IconAnomaly({ size = 18, color = 'currentColor' }: IconProps) {
 // Map from nav id to icon component
 export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   home:         IconHome,
-  upgrades:     IconSword,
+  upgrades:     IconTrendUp,
   companions:   IconPaw,
   collection:   IconCollection,
   gacha:        IconDiamond,
@@ -242,7 +243,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   quests:       IconScroll,
   events:       IconStar,
   achievements: IconAchievement,
-  expeditions:  IconExpedition,
+  expeditions:  IconFoldedMap,
   forge:        IconForge,
   equipment:    IconShield,
   prestige:     IconPrestige,
@@ -250,7 +251,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   anomalie:     IconAnomaly,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,
-  champions:    IconMedal,
+  champions:    IconVoidPortal,
   profile:      IconProfile,
   settings:     IconGear,
   dailyReward:  IconCalendar,

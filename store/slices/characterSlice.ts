@@ -73,6 +73,9 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     set(state => ({
       hero: { ...state.hero, currentForm: state.hero.currentForm + 1, level: state.hero.level + 1 },
     }));
+    get().bumpQuestProgress('d_upgrade', 1);
+    get().bumpQuestProgress('w_upgrade', 1);
+    set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
   // ─── Personnages ──────────────────────────────────────────────────
@@ -128,6 +131,9 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
         },
       };
     });
+    get().bumpQuestProgress('d_upgrade', 1);
+    get().bumpQuestProgress('w_upgrade', 1);
+    set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
   // Détail du DPS d'UN allié équipé : base (avant type), multiplicateur de

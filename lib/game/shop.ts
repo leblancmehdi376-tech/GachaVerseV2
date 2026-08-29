@@ -127,11 +127,10 @@ export function generateDailyShopCharacters(): string[] {
 }
 
 // ── Reroll de la boutique du jour (payé en Orbes du Néant) ───────────────
-// Coût croissant (×1.5 par reroll déjà utilisé aujourd'hui, même logique que
-// getEventCharacterCost) pour éviter de reroll à l'infini à moindre coût.
+// Coût fixe, quel que soit le nombre de rerolls déjà utilisés aujourd'hui.
 export const REROLL_SHOP_BASE_COST_ORBS = 15;
-export function getRerollShopCost(rerollCount: number): number {
-  return Math.round(REROLL_SHOP_BASE_COST_ORBS * Math.pow(1.5, rerollCount));
+export function getRerollShopCost(): number {
+  return REROLL_SHOP_BASE_COST_ORBS;
 }
 
 // ── Pack de démarrage Early Access ────────────────────────────────────────

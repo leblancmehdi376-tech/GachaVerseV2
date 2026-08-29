@@ -107,12 +107,18 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       // bnToNumber peut saturer à Infinity à très haut palier, mais
       // bumpCoinQuests ne s'en sert que pour comparer à un plafond de quête
       // fixe (Math.min) — reste correct même saturé.
+      const bumpKills = (arr: typeof state.quests) => arr.map(q =>
+        (q.id === 'd_kills' || q.id === 'w_kills') && !q.done
+          ? { ...q, current: Math.min(q.current + gain.kills, q.target) } : q
+      );
       return {
         pixelCoins: bnAdd(state.pixelCoins, gain.coins),
         nekoGems:   state.nekoGems + gain.gems,
         savedAt: gain.at,
         lastOfflineGain: gain,
-        quests: bumpCoinQuests(state.quests, bnToNumber(gain.coins)),
+        quests: bumpCoinQuests(bumpKills(state.quests), bnToNumber(gain.coins)),
+        weeklyQuests: bumpKills(state.weeklyQuests ?? []),
+        totalKills: (state.totalKills ?? 0) + gain.kills,
       };
     });
     broadcastLocalState();

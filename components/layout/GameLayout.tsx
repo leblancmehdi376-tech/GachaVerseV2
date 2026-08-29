@@ -62,6 +62,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   ]},
   { title:'ÉQUIPE', items: [
     { id:'companions',   label:'COMPAGNONS',      accent:'var(--purple-hi)'     },
+    { id:'champions',    label:'INV. CHAMPIONS',  accent:'#fbbf24'            },
     { id:'equipment',    label:'ÉQUIPEMENT',      accent:'#93c5fd'            },
     { id:'collection',   label:'COMPADEX',        accent:'#60a5fa'            },
   ]},
@@ -75,7 +76,6 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'ACTIVITÉS', items: [
     { id:'events',       label:'ÉVÉNEMENTS',      accent:'#fbbf24'            },
     { id:'expeditions',  label:'EXPÉDITIONS',     accent:'#fb923c'            },
-    { id:'champions',    label:'INV. CHAMPIONS',  accent:'#fbbf24'            },
   ]},
   { title:'ÉCONOMIE', items: [
     { id:'gacha',        label:'GACHA',           accent:'var(--cyan-hi)'       },
