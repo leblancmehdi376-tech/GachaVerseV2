@@ -9,7 +9,7 @@ import {
   getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, generateDailyShopCharacters, getRerollShopCost,
   LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS, EQUIPMENT_CHESTS,
 } from '@/lib/game/shop';
-import { bumpCoinQuests, getGoldChestMultiplier, requestUrgentSave, resolveEnemyDeath } from '../gameStoreHelpers';
+import { bumpCoinQuests, getGoldChestMultiplier, requestUrgentSave, resolveEnemyDeath, runPeakPalierOf } from '../gameStoreHelpers';
 import type { GameStore, ShopActions } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnIsZero, bnSub, bnToNumber, type BigNum } from '@/lib/game/bignum';
 
@@ -77,7 +77,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
   ensureDailyShop: () => {
     const today = getTodayDayKey();
     if (get().dailyShop.dayKey === today) return; // déjà à jour
-    set({ dailyShop: { dayKey: today, characterIds: generateDailyShopCharacters(), purchased: [], rerollCount: 0 } });
+    set({ dailyShop: { dayKey: today, characterIds: generateDailyShopCharacters(runPeakPalierOf(get())), purchased: [], rerollCount: 0 } });
   },
   rerollDailyShop: () => {
     const { dailyShop, voidOrbs } = get();
@@ -85,7 +85,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     if (voidOrbs < cost) return;
     set(state => ({
       voidOrbs: state.voidOrbs - cost,
-      dailyShop: { ...state.dailyShop, characterIds: generateDailyShopCharacters(), purchased: [], rerollCount: (state.dailyShop.rerollCount ?? 0) + 1 },
+      dailyShop: { ...state.dailyShop, characterIds: generateDailyShopCharacters(runPeakPalierOf(get())), purchased: [], rerollCount: (state.dailyShop.rerollCount ?? 0) + 1 },
     }));
     requestUrgentSave('shop');
   },

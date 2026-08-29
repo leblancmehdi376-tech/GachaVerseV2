@@ -116,11 +116,11 @@ export function getThisWeekKey(): string {
   return `week-${monday.getUTCFullYear()}-${String(monday.getUTCMonth()+1).padStart(2,'0')}-${String(monday.getUTCDate()).padStart(2,'0')}`;
 }
 
-export function generateDailyShopCharacters(): string[] {
+export function generateDailyShopCharacters(maxPalier = 1): string[] {
   const ids = new Set<string>();
   let guard = 0;
   while (ids.size < 3 && guard < 200) {
-    ids.add(rollCharacter());
+    ids.add(rollCharacter(maxPalier));
     guard++;
   }
   return Array.from(ids);
