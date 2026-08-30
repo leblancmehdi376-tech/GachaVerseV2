@@ -6,16 +6,17 @@ import { formatNumber } from '@/lib/game/format';
 
 const PRESTIGE_PALIER_REQUIRED = 41;
 
-function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, saving }: {
+function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, saving, syncPending }: {
   onConfirm: () => void;
   onCancel:  () => void;
   prestigeLevel: number;
   tokensToGain: number;
   saving: boolean;
+  syncPending: boolean;
 }) {
   const [typed, setTyped] = useState('');
   const CONFIRM_WORD = 'PRESTIGE';
-  const ready = typed === CONFIRM_WORD && !saving;
+  const ready = typed === CONFIRM_WORD && !saving && !syncPending;
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(4,3,14,0.95)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
@@ -72,7 +73,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
         <div style={{ display:'flex', gap:10 }}>
           <button onClick={onCancel} disabled={saving} className="btn-secondary"
             style={{ flex:1, padding:'12px', fontSize:13.4, opacity: saving ? 0.35 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
-            ANNULER
+            {syncPending ? 'FERMER' : 'ANNULER'}
           </button>
           <button onClick={onConfirm} disabled={!ready} className="btn-primary"
             style={{ flex:1, padding:'12px', fontSize:13.4, opacity: ready ? 1 : 0.35, cursor: ready ? 'pointer' : 'not-allowed' }}>
@@ -82,6 +83,11 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
         {saving && (
           <div style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'var(--text-dim)' }}>
             Ne ferme pas le jeu ni ne change d'appareil pendant la sauvegarde…
+          </div>
+        )}
+        {syncPending && (
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'#f87171' }}>
+            Sauvegarde cloud pas encore confirmée — un nouvel essai est en cours en arrière-plan. Évite de changer d'appareil pour l'instant.
           </div>
         )}
       </div>
@@ -119,6 +125,7 @@ export function PrestigePage() {
   } = useGameStore();
   const [showConfirm, setShowConfirm] = useState(false);
   const [savingPrestige, setSavingPrestige] = useState(false);
+  const [syncPending, setSyncPending] = useState(false);
   const [rollResult, setRollResult] = useState<PrestigeBonusType | null>(null);
 
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (pas le lifetime) : c'est
@@ -128,15 +135,23 @@ export function PrestigePage() {
   const eligible = canPrestige(runPeakPalier);
   const tokensToGain = calcTokensAwarded(runPeakPalier, bonusLevels.tokenGain);
 
-  // On garde le dialogue ouvert (boutons désactivés) jusqu'à ce que doPrestige()
-  // ait confirmé que le reset a bien atteint Firestore — sinon rien n'empêche
-  // le joueur de changer d'appareil dans la seconde qui suit, avant que la
-  // sauvegarde urgente n'ait eu le temps de partir (voir metaProgressionSlice).
+  // On garde le dialogue ouvert (bouton de confirmation désactivé, message
+  // "sync en attente") tant que doPrestige() n'a pas confirmé que le reset a
+  // bien atteint Firestore — sinon rien n'empêche le joueur de changer
+  // d'appareil dans la seconde qui suit, avant que la sauvegarde urgente
+  // n'ait eu le temps de partir (voir metaProgressionSlice). Le reset local
+  // a déjà eu lieu à ce stade dans les deux cas ; en cas d'échec, un
+  // rattrapage tourne déjà en arrière-plan (voir doPrestige).
   const handlePrestige = async () => {
     setSavingPrestige(true);
-    await doPrestige();
+    const confirmed = await doPrestige();
     setSavingPrestige(false);
-    setShowConfirm(false);
+    if (confirmed) {
+      setShowConfirm(false);
+      setSyncPending(false);
+    } else {
+      setSyncPending(true);
+    }
   };
 
   const handleSpendToken = () => {
@@ -151,8 +166,9 @@ export function PrestigePage() {
           prestigeLevel={level}
           tokensToGain={tokensToGain}
           onConfirm={handlePrestige}
-          onCancel={() => setShowConfirm(false)}
+          onCancel={() => { setShowConfirm(false); setSyncPending(false); }}
           saving={savingPrestige}
+          syncPending={syncPending}
         />
       )}
       {rollResult && <RollResultPopup type={rollResult} onClose={() => setRollResult(null)} />}
@@ -179,7 +195,7 @@ export function PrestigePage() {
 
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, flexShrink:0 }}>
             {eligible ? (
-              <button onClick={() => setShowConfirm(true)} className="btn-primary"
+              <button onClick={() => { setSyncPending(false); setShowConfirm(true); }} className="btn-primary"
                 style={{ padding:'14px 28px', fontSize:15.5, letterSpacing:2, display:'flex', alignItems:'center', gap:10 }}>
                 ⭐ PRESTIGE {level + 1}
               </button>
