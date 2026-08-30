@@ -164,43 +164,47 @@ function CharCard({ templateId }: { templateId: string }) {
         </button>
         <button onClick={handleLevelUpX10} disabled={!canAffordLv} title="Améliore jusqu'à 10 niveaux d'affilée"
           style={{ flexShrink:0, padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}>×10</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}> × 10 </span>
         </button>
-        {!canEvo_ && reqItems.length > 0 && (
-          <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert :</span>
-            {reqItems.map(d => {
-              const have = (inventory[d.id] ?? 0) >= 1;
-              return (
-                <span key={d.id} style={{ fontFamily:'var(--f-ui)', fontSize:12, color: have ? '#4ade80' : '#c084fc', display:'flex', alignItems:'center', gap:4, opacity: have ? 0.7 : 1 }}>
-                  <span style={{ fontSize:14.4 }}>{d.icon}</span><b>{d.name}</b>{have && <span>✓</span>}
-                </span>
-              );
-            })}
-          </div>
-        )}
-        {!canEvo_ && canEvolveAtAll && !hasStones && (
-          <div
-            onClick={evoStoneExpedition ? () => focusExpedition(evoStoneExpedition.id) : undefined}
-            style={{ padding:'7px 10px', background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, cursor:evoStoneExpedition?'pointer':'default', transition:'background 0.15s, border-color 0.15s' }}
-            onMouseEnter={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='var(--purple-glow)'; (e.currentTarget as HTMLElement).style.background='rgba(192,132,252,0.1)'; } : undefined}
-            onMouseLeave={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='rgba(96,165,250,0.25)'; (e.currentTarget as HTMLElement).style.background='rgba(96,165,250,0.08)'; } : undefined}
-          >
-            <span style={{ fontSize:14.4 }}>{evoStoneDrop?.icon ?? '🔷'}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b></span>
-          </div>
-        )}
-        {canEvo_ && (
-          <button onClick={() => evolveCharacter(templateId)} disabled={!canAffordEvo}
-            style={{ flex:1, padding:'8px 10px', background:canAffordEvo?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${canAffordEvo?'#d97706':'var(--border)'}`, borderRadius:8, cursor:canAffordEvo?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:canAffordEvo?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:canAffordEvo?'#fbbf24':'var(--text-muted)' }}>
-              {reqItems.length > 0 ? `${reqItems.map(d => d.icon).join('')} ÉVOLUER` : '✦ ÉVOLUER'}
-            </span>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
-          </button>
-        )}
       </div>
+      {canEvolveAtAll && (
+        <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:8, paddingLeft:8 }}>
+          {!canEvo_ && reqItems.length > 0 && (
+            <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert :</span>
+              {reqItems.map(d => {
+                const have = (inventory[d.id] ?? 0) >= 1;
+                return (
+                  <span key={d.id} style={{ fontFamily:'var(--f-ui)', fontSize:12, color: have ? '#4ade80' : '#c084fc', display:'flex', alignItems:'center', gap:4, opacity: have ? 0.7 : 1 }}>
+                    <span style={{ fontSize:14.4 }}>{d.icon}</span><b>{d.name}</b>{have && <span>✓</span>}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          {!canEvo_ && !hasStones && (
+            <div
+              onClick={evoStoneExpedition ? () => focusExpedition(evoStoneExpedition.id) : undefined}
+              style={{ padding:'7px 10px', background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, cursor:evoStoneExpedition?'pointer':'default', transition:'background 0.15s, border-color 0.15s' }}
+              onMouseEnter={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='var(--purple-glow)'; (e.currentTarget as HTMLElement).style.background='rgba(192,132,252,0.1)'; } : undefined}
+              onMouseLeave={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='rgba(96,165,250,0.25)'; (e.currentTarget as HTMLElement).style.background='rgba(96,165,250,0.08)'; } : undefined}
+            >
+              <span style={{ fontSize:14.4 }}>{evoStoneDrop?.icon ?? '🔷'}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b></span>
+            </div>
+          )}
+          {canEvo_ && (
+            <button onClick={() => evolveCharacter(templateId)} disabled={!canAffordEvo}
+              style={{ padding:'8px 10px', background:canAffordEvo?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${canAffordEvo?'#d97706':'var(--border)'}`, borderRadius:8, cursor:canAffordEvo?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:canAffordEvo?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:canAffordEvo?'#fbbf24':'var(--text-muted)' }}>
+                {reqItems.length > 0 ? `${reqItems.map(d => d.icon).join('')} ÉVOLUER` : '✦ ÉVOLUER'}
+              </span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
