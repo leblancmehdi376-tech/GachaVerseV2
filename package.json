@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "create-admin": "node scripts/create_admin.js"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "firebase": "^12.14.0",
