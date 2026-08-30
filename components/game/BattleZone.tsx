@@ -1,258 +1,21 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useGameStore, getGoldChestMultiplier } from '@/store/gameStore';
+import { useGameStore } from '@/store/gameStore';
 import { ActiveUltsBar } from '@/components/game/UltAnimation';
 import { PixelSprite } from '@/components/ui/PixelSprite';
-import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
-import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
 import { formatNumber } from '@/lib/game/format';
-import { getPalierConfig, PALIERS } from '@/lib/game/paliers';
-import { RARITY_CONFIG } from '@/types/game';
-import { PALIER_DROPS } from '@/lib/game/expeditions';
+import { getPalierConfig } from '@/lib/game/paliers';
 import { getAffinityForId } from '@/lib/game/affinities';
-import { parseInstanceKey } from '@/lib/game/editions';
-import { AffinityBadge } from '@/components/ui/AffinityBadge';
-import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { RandomEventOverlay } from '@/components/game/events/RandomEventOverlay';
-import { getCharacterById, getCharFormName } from '@/lib/game/characters';
-import { getUltimateDef } from '@/lib/game/ultimates';
-import { computeActiveSynergies } from '@/lib/game/synergies';
 import { BattleParticles } from '@/components/game/BattleParticles';
-import { SkillTooltip } from '@/components/ui/SkillTooltip';
-import { bnDivRatio, bnFromNumber, bnGt, bnIsZero, bnMul, type BigNum } from '@/lib/game/bignum';
-
-const ONE = bnFromNumber(1);
-
+import { bnDivRatio, bnIsZero, type BigNum } from '@/lib/game/bignum';
+import { PalierBg } from '@/components/game/battle-zone/PalierBg';
+import { ActiveBoostsBar } from '@/components/game/battle-zone/ActiveBoostsBar';
+import { PalierTravelModal } from '@/components/game/battle-zone/PalierTravelModal';
+import { EnemyHud } from '@/components/game/battle-zone/EnemyHud';
+import { TeamBar } from '@/components/game/battle-zone/TeamBar';
 
 interface Dmg { id: number; x: number; y: number; val: BigNum; }
-
-function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {
-  // Les visuels de fond n'existent que pour les paliers 1..40 — au-delà, on
-  // réutilise le visuel du palier cyclé (même thème/mobs que getPalierConfig).
-  const cycledPalier = ((palier - 1) % PALIERS.length) + 1;
-  const { src, failed, onError } = useFallbackImage(buildImageCandidates(`/backgrounds/bg_palier_${cycledPalier}`));
-  if (!failed && src) return (
-    <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt=""
-        onError={onError}
-        style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', imageRendering:'pixelated' }} />
-      <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.4) 0%,transparent 25%,transparent 60%,rgba(0,0,0,0.85) 100%)' }} />
-    </>
-  );
-  return <div style={{ position:'absolute', inset:0, background:gradient }} />;
-}
-
-// ── Carte alliée style gacha ──────────────────────────────────────────────
-function AllyCard({ templateId, onManage }: { templateId: string; onManage: () => void }) {
-  const { collection, activateCharacterUltimate, getCharDpsBreakdown } = useGameStore();
-  const { ultCooldowns: cooldowns, ultActiveUlts: activeUlts } = useGameStore();
-  const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom/ulti partagés entre éditions)
-  const tpl   = getCharacterById(pureId);
-  const owned = collection[templateId];
-
-  // Slot vide
-  if (!tpl || !owned) return (
-    <div onClick={onManage} style={{ width:'100%', display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer', opacity:0.5 }}>
-      <div style={{ width:'100%', aspectRatio:'306 / 517', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
-        <span style={{ fontSize:22.7, color:'rgba(255,255,255,0.2)' }}>+</span>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.2)', fontWeight:600, letterSpacing:1 }}>VIDE</span>
-      </div>
-    </div>
-  );
-
-  const cd       = cooldowns[templateId] ?? 0;
-  const ready    = cd === 0;
-  const isActive = activeUlts.some(a => a.templateId === templateId);
-  const mins     = Math.floor(cd / 60);
-  const secs     = cd % 60;
-  const ultLabel = `${mins}:${String(secs).padStart(2,'0')}`;
-  const formIdx  = owned.currentForm;
-  const name     = getCharFormName(tpl, formIdx);
-
-  const rc  = RARITY_CONFIG[tpl.rarity];
-  const ult = getUltimateDef(pureId);
-  const { base, typeMult, final } = getCharDpsBreakdown(templateId);
-  const strong = typeMult > 1, weak = typeMult < 1;
-  const multCol = strong ? '#4ade80' : weak ? '#f87171' : 'rgba(255,255,255,0.5)';
-  const multTxt = typeMult === 1 ? 'OK' : `×${typeMult}`;
-  const finalCol = strong ? '#4ade80' : weak ? '#f87171' : 'var(--green)';
-
-  return (
-    <div style={{
-      width: '100%', borderRadius: 10, overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      background: 'linear-gradient(180deg, rgba(20,14,40,0.96), rgba(10,8,20,0.96))',
-      border: `1.5px solid ${isActive ? '#c084fc' : ready ? '#fbbf24aa' : rc.color + '55'}`,
-      boxShadow: isActive ? '0 0 14px #c084fc77' : ready ? `0 0 10px ${rc.glow}44` : '0 3px 12px rgba(0,0,0,0.5)',
-      transition: 'box-shadow 0.2s, border-color 0.2s',
-    }}>
-      {/* Illustration (le nom est déjà sur la carte) — cliquable pour l'ult, survol = compétence */}
-      <SkillTooltip ult={ult}>
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '306 / 517', cursor: ready ? 'pointer' : 'default' }}
-          onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}>
-          <CharacterCardThumb templateId={pureId} formIndex={formIdx} name={name} rarity={tpl.rarity} edition={owned.edition}
-            width={88} height={149} style={{ border: 'none', boxShadow: 'none', borderRadius: 0, objectFit: 'contain', width: '100%', height: '100%' }} />
-
-          {/* Niveau + rang — overlay haut-gauche */}
-          <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-            <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, padding: '1px 4px' }}>LV{owned.level}</span>
-            {owned.rank > 0 && <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: '#fbbf24', background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 4, padding: '1px 4px' }}>★{owned.rank}</span>}
-          </div>
-
-        </div>
-      </SkillTooltip>
-
-      {/* Pied : ULTI / BASE / TYPE / DPS — empilés en lignes pleine largeur
-          (au lieu d'un badge en overlay sur l'illustration, qui se lisait mal
-          une fois superposé à l'art) pour laisser assez de place aux valeurs
-          formatées (ex: "447.00T") sans qu'elles se chevauchent, la carte
-          faisant seulement 88px de large. */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '5px 7px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22` }}>
-        <div onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '7px 4px', marginBottom: 2, borderRadius: 4, cursor: ready ? 'pointer' : 'default',
-            background: ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',
-            border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)' }}>
-          {!ready && <span style={{ fontSize: 12 }}>⏳</span>}
-          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
-            {ready ? 'ULTI PRÊT' : ultLabel}
-          </span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4 }}>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, flexShrink: 0 }}>BASE</span>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.8)', lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(base)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4 }}>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, flexShrink: 0 }}>TYPE</span>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: multCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{multTxt}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4, marginTop: 2, paddingTop: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5, flexShrink: 0 }}>DPS</span>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 900, color: finalCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(final)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ── Barre des boosts BossCrown actifs (+20% DPS / +20% Or) ───────────────
-function ActiveBoostsBar() {
-  const { dpsBoostEndsAt, goldBoostEndsAt, isDpsBoostActive, isGoldBoostActive } = useGameStore();
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const dpsActive  = isDpsBoostActive();
-  const goldActive = isGoldBoostActive();
-  if (!dpsActive && !goldActive) return null;
-
-  const fmt = (endsAt: number) => {
-    const s = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-    return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-  };
-
-  return (
-    <div style={{ position:'relative', zIndex:3, display:'flex', gap:8, padding:'0 18px 8px', flexShrink:0 }}>
-      {dpsActive && (
-        <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(248,113,113,0.12)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:8, padding:'4px 10px' }}>
-          <span style={{ fontSize:12.4 }}>⚡</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#f87171' }}>+20% DPS — {fmt(dpsBoostEndsAt)}</span>
-        </div>
-      )}
-      {goldActive && (
-        <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(74,222,128,0.12)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:8, padding:'4px 10px' }}>
-          <span style={{ fontSize:12.4 }}>💰</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#4ade80' }}>+20% Or — {fmt(goldBoostEndsAt)}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sélecteur de palier : voyager vers un palier déjà atteint pour re-farmer.
-// Marque les paliers qui possèdent un drop exclusif (source d'expédition).
-const DROPS_BY_PALIER: Record<number, { icon: string; name: string }[]> = (() => {
-  const m: Record<number, { icon: string; name: string }[]> = {};
-  for (const d of PALIER_DROPS) {
-    (m[d.palier] ??= []).push({ icon: d.icon, name: d.name });
-  }
-  return m;
-})();
-
-function PalierTravelModal({
-  current, maxReached, onTravel, onClose,
-}: {
-  current: number; maxReached: number;
-  onTravel: (p: number) => void; onClose: () => void;
-}) {
-  const paliers = Array.from({ length: maxReached }, (_, i) => i + 1);
-  return (
-    <div
-      onClick={onClose}
-      style={{ position:'absolute', inset:0, zIndex:40, background:'rgba(3,2,8,0.82)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        className="panel panel--glow"
-        style={{ width:'min(720px,100%)', maxHeight:'86%', display:'flex', flexDirection:'column', padding:0, overflow:'hidden' }}
-      >
-        {/* En-tête */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', borderBottom:'1px solid var(--border)' }}>
-          <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-            <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, fontWeight:700, color:'var(--purple-glow)', letterSpacing:2 }}>🗺 CARTE DES MONDES</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-sub)', letterSpacing:0.5 }}>
-              Voyage vers un palier déjà atteint pour re-farmer coins &amp; ressources
-            </span>
-          </div>
-          <button onClick={onClose} className="btn-secondary" style={{ padding:'6px 12px', fontSize:12.4 }}>✕</button>
-        </div>
-
-        {/* Grille des paliers */}
-        <div style={{ overflowY:'auto', padding:16, display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))', gap:10 }}>
-          {paliers.map(p => {
-            const cfg     = getPalierConfig(p);
-            const drops   = DROPS_BY_PALIER[p] ?? [];
-            const isHere  = p === current;
-            return (
-              <button
-                key={p}
-                onClick={() => { onTravel(p); onClose(); }}
-                disabled={isHere}
-                style={{
-                  position:'relative', textAlign:'left', cursor:isHere?'default':'pointer',
-                  background:isHere ? 'rgba(109,63,214,0.18)' : 'rgba(0,0,0,0.35)',
-                  border:`1px solid ${isHere ? 'var(--purple-glow)' : cfg.accentColor + '44'}`,
-                  borderRadius:10, padding:'10px 12px',
-                  boxShadow:isHere ? '0 0 18px rgba(192,132,252,0.28)' : 'none',
-                  transition:'transform 0.12s, box-shadow 0.12s, border-color 0.12s',
-                }}
-                onMouseEnter={e => { if (!isHere) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.borderColor=cfg.accentColor; } }}
-                onMouseLeave={e => { if (!isHere) { e.currentTarget.style.transform='none'; e.currentTarget.style.borderColor=cfg.accentColor+'44'; } }}
-              >
-                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
-                  <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:13.4, color:cfg.accentColor }}>P{p}</span>
-                  {isHere && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:800, color:'var(--purple-glow)', letterSpacing:1, border:'1px solid var(--purple-glow)', borderRadius:4, padding:'1px 5px' }}>ICI</span>}
-                  {drops.length > 0 && (
-                    <span title={drops.map(d => d.name).join(', ')} style={{ marginLeft:'auto', fontSize:12.4, filter:'drop-shadow(0 0 4px rgba(245,158,11,0.6))' }}>
-                      {drops.map(d => d.icon).join('')}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'white', lineHeight:1.15, marginBottom:1 }}>{cfg.name}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-sub)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{cfg.universe}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Tooltip moved to components/ui/AffinityTooltip.tsx
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function BattleZone() {
@@ -308,109 +71,21 @@ export function BattleZone() {
         />
       )}
 
-      {/* Timer boss */}
-      {bossActive && (
-        <div style={{ position:'absolute', top:0, left:0, right:0, height:3, zIndex:5 }}>
-          <div style={{ height:'100%', width:`${(bossTimeLeft/cfg.bossTimerSeconds)*100}%`, background:bossWarn?'#ef4444':'#dc2626', transition:'width 1s linear', boxShadow:bossWarn?'0 0 10px #ef4444':undefined }} />
-        </div>
-      )}
-
-      {/* HUD top */}
-      <div style={{ position:'relative', zIndex:3, padding:'12px 18px 10px', background:'linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%)', flexShrink:0 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:8, flexWrap:'wrap' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:cfg.accentColor, letterSpacing:2 }}>{cfg.universe.toUpperCase()}</span>
-            <span style={{ color:'rgba(255,255,255,0.2)' }}>·</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.3)', letterSpacing:1 }}>{cfg.arc}</span>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:currentEnemy.isBoss?'rgba(127,29,29,0.8)':isFarming?'rgba(52,211,153,0.15)':'rgba(0,0,0,0.5)', border:`1px solid ${currentEnemy.isBoss?'rgba(239,68,68,0.5)':isFarming?'rgba(52,211,153,0.5)':cfg.accentColor+'33'}`, borderRadius:6, padding:'2px 10px' }}>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:currentEnemy.isBoss?'#f87171':isFarming?'#34d399':cfg.accentColor }}>
-                {currentEnemy.isBoss ? '★ BOSS' : isFarming ? `🔁 FARM · ÉTAGE ${wave}/9` : `ÉTAGE ${wave} / 10`}
-              </span>
-            </div>
-            {runPeakPalier > 1 && (
-              <button
-                onClick={e => { e.stopPropagation(); if (!bossActive) setShowTravel(true); }}
-                disabled={bossActive}
-                title={bossActive ? 'Impossible pendant un boss' : 'Voyager vers un palier déjà atteint'}
-                style={{
-                  display:'inline-flex', alignItems:'center', gap:5,
-                  background:'rgba(109,63,214,0.22)', border:'1px solid var(--purple-glow)',
-                  borderRadius:6, padding:'6px 10px', cursor:bossActive?'not-allowed':'pointer',
-                  opacity:bossActive?0.4:1, transition:'opacity 0.15s',
-                }}
-              >
-                <span style={{ fontSize:12 }}>🗺</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:'var(--purple-glow)', letterSpacing:1 }}>VOYAGER</span>
-              </button>
-            )}
-            {isFarming && (
-              <button
-                onClick={e => { e.stopPropagation(); travelToPalier(runPeakPalier); }}
-                title={`Retourner à ta progression actuelle (palier ${runPeakPalier})`}
-                style={{
-                  display:'inline-flex', alignItems:'center', gap:5,
-                  background:'rgba(52,211,153,0.18)', border:'1px solid #34d399',
-                  borderRadius:6, padding:'6px 10px', cursor:'pointer', transition:'filter 0.15s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.filter='brightness(1.2)'; }}
-                onMouseLeave={e => { e.currentTarget.style.filter='none'; }}
-              >
-                <span style={{ fontSize:12 }}>↩</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:'#34d399', letterSpacing:1 }}>RETOUR · P{runPeakPalier}</span>
-              </button>
-            )}
-          </div>
-          {bossActive && (
-            <div style={{ display:'flex', alignItems:'center', gap:8, background:'rgba(127,29,29,0.85)', border:'1px solid rgba(239,68,68,0.5)', borderRadius:8, padding:'5px 14px' }}>
-              <span style={{ fontSize:13.4, animation:'warnFlash 0.5s infinite' }}>⚠</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13.4, color:'#f87171' }}>BOSS — {bossTimeLeft}s</span>
-            </div>
-          )}
-          {isFarming && !bossActive && (
-            <div style={{ display:'flex', alignItems:'center', gap:7, background:'rgba(52,211,153,0.12)', border:'1px solid rgba(52,211,153,0.4)', borderRadius:8, padding:'4px 12px' }}>
-              <span style={{ fontSize:12.4 }}>🔁</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#34d399' }}>Farm en boucle · boss désactivé</span>
-            </div>
-          )}
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom:8 }}>
-          <h2 style={{ fontFamily:'var(--f-title)', fontSize:currentEnemy.isBoss?'18px':'15px', fontWeight:700, color:'white', letterSpacing:2, textShadow:currentEnemy.isBoss?'0 0 24px rgba(239,68,68,0.7)':'0 0 16px rgba(255,255,255,0.2)', margin:0 }}>
-            {currentEnemy.name}
-          </h2>
-          <AffinityTooltip affinity={enemyAffinity}>
-            <AffinityBadge affinity={enemyAffinity} size="sm" />
-          </AffinityTooltip>
-          {(() => {
-            const em = getEventDpsMult();
-            if (em === 1) return null;
-            const buff = em > 1;
-            return (
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:12, padding:'2px 8px', borderRadius:999,
-                color: buff ? '#4ade80' : '#f87171',
-                background: buff ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
-                border: `1px solid ${buff ? 'rgba(74,222,128,0.4)' : 'rgba(248,113,113,0.4)'}` }}>
-                {buff ? '🔥' : '💀'} ×{em.toFixed(2)} DPS
-              </span>
-            );
-          })()}
-        </div>
-        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.35)', letterSpacing:1 }}>HP</span>
-          <span style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'rgba(255,255,255,0.75)' }}>{formatNumber(currentEnemy.currentHp)} / {formatNumber(currentEnemy.maxHp)}</span>
-        </div>
-        <div style={{ height:8, background:'rgba(0,0,0,0.5)', borderRadius:10, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)', marginBottom:6 }}>
-          <div style={{ height:'100%', width:`${hp}%`, transition:'width 0.15s ease', borderRadius:10,
-            background:hp>50?'linear-gradient(90deg,#166534,#4ade80)':hp>25?'linear-gradient(90deg,#78350f,#fbbf24)':'linear-gradient(90deg,#7f1d1d,#f87171)',
-            boxShadow:`0 0 12px ${hp>50?'#4ade8077':hp>25?'#fbbf2477':'#f8717177'}` }} />
-        </div>
-        <div style={{ display:'flex', gap:3 }}>
-          {Array.from({length:10},(_,i)=>(
-            <div key={i} style={{ flex:1, height:3, borderRadius:2,
-              background:i+1<wave?cfg.accentColor:i+1===wave?(currentEnemy.isBoss?'#ef4444':cfg.accentColor):'rgba(255,255,255,0.08)',
-              border:i===9?'1px solid rgba(239,68,68,0.4)':undefined, transition:'background 0.3s' }} />
-          ))}
-        </div>
-      </div>
+      <EnemyHud
+        currentEnemy={currentEnemy}
+        cfg={cfg}
+        wave={wave}
+        isFarming={isFarming}
+        runPeakPalier={runPeakPalier}
+        bossActive={bossActive}
+        bossTimeLeft={bossTimeLeft}
+        bossWarn={bossWarn}
+        enemyAffinity={enemyAffinity}
+        eventDpsMult={getEventDpsMult()}
+        hp={hp}
+        onOpenTravel={() => setShowTravel(true)}
+        onReturnToPeak={() => travelToPalier(runPeakPalier)}
+      />
 
       {/* Barre des effets actifs */}
       <ActiveUltsBar />
@@ -438,135 +113,18 @@ export function BattleZone() {
         ))}
       </div>
 
-      {/* BARRE BAS */}
-      <div style={{ position:'relative', zIndex:3, background:'linear-gradient(0deg,rgba(5,4,15,0.97),rgba(5,4,15,0.7))', borderTop:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
-
-        {/* Compagnons — barre horizontale */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 8,
-          padding: '8px 12px',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}>
-          {/* Panel compagnons */}
-          <div style={{ 
-            background:'linear-gradient(160deg,rgba(15,10,30,0.92),rgba(8,6,18,0.92))', 
-            border:'1px solid rgba(255,255,255,0.09)', 
-            borderRadius:12, 
-            padding:'10px 12px 8px', 
-            display:'flex', 
-            flexDirection:'column', 
-            alignItems:'flex-start',
-            gap:8, 
-            boxShadow:'inset 0 1px 0 rgba(255,255,255,0.04)',
-            //scrollable
-            overflowX:'auto',
-            overflowY:'hidden',
-            scrollbarWidth:'thin',
-            msOverflowStyle:'-ms-autohiding-scrollbar',
-          }}>
-            <span style={{ 
-              fontFamily:'var(--f-ui)', 
-              fontSize:12, 
-              fontWeight:700, 
-              color:'rgba(255,255,255,0.35)', 
-              letterSpacing:2,
-              //center text
-              alignSelf:'center',
-            }}>COMPAGNONS</span>
-            <div style={{ 
-              display:'flex', 
-              gap:10, 
-              alignItems:'flex-start',
-            }}>
-              {equippedTeam.map((tid, i) => (
-                <div key={i} style={{ position:'relative', width:88, flexShrink:0 }}>
-                  <AllyCard templateId={tid ?? ''} onManage={() => {}} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ flex:1 }} />
-
-          {/* Synergies actives */}
-          {(() => {
-            const syns = computeActiveSynergies(equippedTeam);
-            if (syns.length === 0) return null;
-            return (
-              <div style={{ display:'flex', gap:4, alignItems:'center', marginRight:8 }}>
-                {syns.map(s => (
-                  <div key={s.def.id} title={`${s.def.label} — ${s.threshold.label}`}
-                    style={{ display:'flex', alignItems:'center', gap:4, background:`${s.def.color}18`, border:`1px solid ${s.def.color}55`, borderRadius:6, padding:'3px 8px', boxShadow:`0 0 8px ${s.def.glow}33` }}>
-                    <div style={{ width:16, height:16, flexShrink:0 }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/sprites/synergies/${s.def.id}.webp`} alt={s.def.label}
-                        style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:2 }}
-                        onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:12px">${s.def.icon}</span>`; }} />
-                    </div>
-                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:s.def.color, whiteSpace:'nowrap' }}>
-                      {s.threshold.dpsBonus > 0 ? `+${s.threshold.dpsBonus}%` : `+${s.threshold.globalBonus}% glb`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-
-          {/* Butin de l'ennemi courant */}
-          <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'7px 12px', flexShrink:0, textAlign:'right', marginRight:12 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
-              +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
-              {(() => {
-                const chestMult = getGoldChestMultiplier(goldUpgradeLevel ?? 0);
-                if (!bnGt(chestMult, ONE)) return null;
-                const withChest = bnMul(currentEnemy.pixelCoinsReward, chestMult);
-                return <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(withChest)})</span>;
-              })()}
-            </div>
-            {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
-          </div>
-
-          {/* DPS d'équipe */}
-          <div style={{ textAlign:'right' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:1.5 }}>🔥 DPS</div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
-              {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
-            </div>
-          </div>
-
-          {/* Actions boss — dans la barre, seulement pendant/après un boss */}
-          {(bossActive || wave === 10) && (
-            <button
-              onClick={e => { e.stopPropagation(); retreatFromBoss(); }}
-              style={{ padding:'10px 14px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.4)', borderRadius:10, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:2, flexShrink:0, alignSelf:'center', transition:'background 0.2s' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.25)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.12)')}
-              title="Abandonner le boss et retourner à la vague 1"
-            >
-              <span style={{ fontSize:16.5 }}>🏳️</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
-            </button>
-          )}
-          {bossAvoided && !bossActive && wave !== 10 && (
-            <button
-              onClick={e => { e.stopPropagation(); challengeBoss(); }}
-              style={{ padding:'10px 14px', background:'rgba(234,179,8,0.12)', border:'1px solid rgba(234,179,8,0.5)', borderRadius:10, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:2, flexShrink:0, alignSelf:'center', transition:'background 0.2s', animation:'pulse 2s infinite' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.25)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.12)')}
-              title="Retenter le boss"
-            >
-              <span style={{ fontSize:16.5 }}>⚡</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
-            </button>
-          )}
-        </div>
-      </div>
+      <TeamBar
+        equippedTeam={equippedTeam}
+        currentEnemy={currentEnemy}
+        goldUpgradeLevel={goldUpgradeLevel}
+        dps={dps}
+        dpsUltMult={dpsUltMult}
+        bossActive={bossActive}
+        bossAvoided={bossAvoided}
+        wave={wave}
+        retreatFromBoss={retreatFromBoss}
+        challengeBoss={challengeBoss}
+      />
 
       <style>{`
         @keyframes rainbowShift { 0%{background-position:0% center} 100%{background-position:200% center} }
