@@ -363,7 +363,7 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
 
     if (!reachable) {
       reconciliationAttempts++;
-      if (reconciliationAttempts > MAX_BLOCKING_RECONCILIATION_ATTEMPTS) {
+      if (reconciliationAttempts >= MAX_BLOCKING_RECONCILIATION_ATTEMPTS) {
         logger.warn('[CloudSave] Cloud injoignable après plusieurs tentatives — écritures réautorisées par défaut, reconciliation continue en arrière-plan.');
         setCloudSyncConfirmed(true); // fail-open : ne bloque pas indéfiniment le jeu
         // pendingLocalSnapshotTs n'est PAS effacé : une reconciliation réussie
