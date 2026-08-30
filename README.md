@@ -1,41 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GachaVerse
 
-## Getting Started
+Jeu gacha/idle en React/TypeScript (Next.js App Router) avec Firebase pour le backend et Zustand pour l'état global.
+
+## Démarrage
 
 ```bash
 npm install
-```
-
-First, run the development server:
-
-```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvre [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` — serveur de développement
+- `npm run build` / `npm run start` — build de production
+- `npm run lint` — ESLint
+- `npm test` / `npm run test:watch` — tests Vitest
 
-## Learn More
+## Arborescence
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/            Routing Next.js (App Router) — peu de routes, l'app est quasi mono-page
+components/
+  game/         Éléments de gameplay actif (zone de combat, animations, events)
+  pages/        Un composant par écran du jeu (Gacha, Collection, Forge, Prestige, ...)
+  layout/       Structure globale (layout du jeu, sidebar, auth, maintenance)
+  ui/           Composants réutilisables génériques (badges, tooltips, sprites...)
+  system/       Écrans système (splash screen, détection d'onglet dupliqué)
+lib/
+  game/         Logique de jeu pure (formules, gacha, prestige, expéditions...), testée
+  firebase/     Accès aux données (sauvegarde, leaderboard, marketplace, sessions...)
+store/          État global Zustand, découpé en slices par domaine (store/slices/)
+hooks/          Hooks React custom (auth, sauvegarde cloud, tick DPS, toasts...)
+types/          Types TypeScript partagés
+scripts/        Scripts utilitaires (ex: synchro des pseudos)
+public/         Assets statiques (sprites, sons, backgrounds)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Pattern général** : séparation entre logique de jeu pure et testée (`lib/game`), état global (`store`), accès données (`lib/firebase`) et présentation (`components`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Stack
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-"# GachaVerse" 
+Next.js 16 · React 19 · TypeScript · Zustand · Firebase · Tailwind CSS · Vitest
