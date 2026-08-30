@@ -139,6 +139,7 @@ function summarizePlayerSave(d: Record<string, unknown>): PlayerSaveSummary {
     palier:           (d.palier as number) ?? 1,
     wave:             (d.wave as number) ?? 1,
     maxPalierReached: (d.maxPalierReached as number) ?? 1,
+    runPeakPalier:    (d.runPeakPalier as number) ?? null,
     lastSaved:        (d.lastSaved as number) ?? null,
   };
 }

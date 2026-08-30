@@ -222,10 +222,18 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
     const newMaxPalierReached = capMaxPalier
       ? Math.min(playerSave.maxPalierReached, newPalier)
       : Math.max(playerSave.maxPalierReached, newPalier);
-    const ok = await correctPlayerProgress(uid, { palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached });
+    // Le pic de palier de la run en cours (runPeakPalier) gate l'éligibilité
+    // au Prestige — sans le corriger en même temps que maxPalierReached,
+    // l'onglet Prestige du joueur resterait bloqué sur l'ancien pic (voir
+    // runPeakPalierOf côté client, et le commentaire dans correctPlayerProgress).
+    const currentRunPeak = playerSave.runPeakPalier ?? playerSave.maxPalierReached;
+    const newRunPeakPalier = capMaxPalier
+      ? Math.min(currentRunPeak, newPalier)
+      : Math.max(currentRunPeak, newPalier);
+    const ok = await correctPlayerProgress(uid, { palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached, runPeakPalier: newRunPeakPalier });
     setProgressMsg(ok ? '✅ Palier corrigé — appliqué immédiatement s\'il est en ligne.' : '❌ Échec de la correction.');
     if (ok) {
-      const patch = { palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached };
+      const patch = { palier: newPalier, wave: newWave, maxPalierReached: newMaxPalierReached, runPeakPalier: newRunPeakPalier };
       const updatedSave = { ...playerSave, ...patch };
       setPlayerSave(updatedSave);
       patchCache({ save: updatedSave });

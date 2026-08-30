@@ -628,7 +628,30 @@ export function buildAdminCorrectionPatch(
   if (typeof data.palier     === 'number') patch.palier     = data.palier;
   if (typeof data.wave       === 'number') patch.wave       = data.wave;
   if (typeof data.maxPalierReached === 'number') patch.maxPalierReached = data.maxPalierReached;
+  // Pic de palier de la run en cours — gate l'éligibilité au Prestige (voir
+  // runPeakPalierOf) : doit être corrigé en direct comme palier/maxPalierReached,
+  // sinon l'onglet Prestige reste bloqué sur l'ancien pic tant que le joueur
+  // ne s'est pas reconnecté (voir correctPlayerProgress dans adminTools.ts).
+  if (typeof data.runPeakPalier === 'number' || data.runPeakPalier === null) patch.runPeakPalier = data.runPeakPalier;
   if (data.collection && typeof data.collection === 'object') patch.collection = data.collection;
+
+  // Mob en cours + état de combat associé — correctPlayerProgress les
+  // régénère pour le nouveau palier/vague (voir son commentaire) ; sans les
+  // répercuter ici, un joueur déjà connecté resterait avec le mob de
+  // l'ANCIEN palier jusqu'à son prochain combat/voyage.
+  if (data.currentEnemy && typeof data.currentEnemy === 'object') {
+    const enemy = data.currentEnemy as Record<string, unknown>;
+    patch.currentEnemy = {
+      ...enemy,
+      maxHp: coerceBigNum(enemy.maxHp),
+      currentHp: coerceBigNum(enemy.currentHp),
+      pixelCoinsReward: coerceBigNum(enemy.pixelCoinsReward),
+    };
+  }
+  if (typeof data.bossActive  === 'boolean') patch.bossActive  = data.bossActive;
+  if (typeof data.bossTimeLeft === 'number') patch.bossTimeLeft = data.bossTimeLeft;
+  if (typeof data.bossAvoided === 'boolean') patch.bossAvoided = data.bossAvoided;
+  if (Array.isArray(data.ultUsedThisFight)) patch.ultUsedThisFight = data.ultUsedThisFight;
 
   return { patch, correctionAt };
 }

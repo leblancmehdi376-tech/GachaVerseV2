@@ -3,6 +3,8 @@ import { db } from './config';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
 import { getItemDef, getEquipmentDef } from '@/lib/game/items';
+import { generateEnemy } from '@/lib/game/enemies';
+import { getPalierConfig } from '@/lib/game/paliers';
 import { EVENT_QUESTS } from '@/store/gameStoreHelpers';
 import { Rarity, RARITY_ORDER_ASC } from '@/types/game';
 import { logger } from '../logger';
@@ -17,6 +19,7 @@ export interface PlayerSaveSummary {
   palier: number;
   wave: number;
   maxPalierReached: number;
+  runPeakPalier: number | null;
   lastSaved: number | null;
 }
 
@@ -133,6 +136,7 @@ export async function getPlayerDetail(uid: string): Promise<PlayerDetail> {
       palier:           d.palier ?? 1,
       wave:             d.wave ?? 1,
       maxPalierReached: d.maxPalierReached ?? 1,
+      runPeakPalier:    d.runPeakPalier ?? null,
       lastSaved:        d.lastSaved ?? null,
     };
     return {
@@ -179,22 +183,42 @@ export async function correctPlayerBalance(
 }
 
 /**
- * Corrige la progression d'un joueur (palier, vague, palier max atteint) —
- * utile pour annuler une avancée obtenue via un bug/exploit. Même mécanisme
- * `adminCorrectionAt` que correctPlayerBalance : appliqué en direct si le
- * joueur est déjà connecté, sans attendre qu'il se reconnecte.
+ * Corrige la progression d'un joueur (palier, vague, palier max atteint,
+ * pic de palier de la run en cours) — utile pour annuler une avancée obtenue
+ * via un bug/exploit. Même mécanisme `adminCorrectionAt` que
+ * correctPlayerBalance : appliqué en direct si le joueur est déjà connecté,
+ * sans attendre qu'il se reconnecte.
+ *
+ * `runPeakPalier` DOIT être corrigé en même temps que `palier`/
+ * `maxPalierReached` : c'est lui (et non maxPalierReached, le lifetime) qui
+ * gate l'éligibilité au Prestige (voir runPeakPalierOf côté client) — sans
+ * ça, l'onglet Prestige reste bloqué sur l'ancien pic malgré la correction.
+ *
+ * `currentEnemy` (+ état de combat associé) est régénéré pour le nouveau
+ * palier/vague, comme le fait travelToPalier/challengeBoss côté jeu — sinon
+ * le joueur reste avec le mob de l'ANCIEN palier jusqu'à son prochain combat.
  */
 export async function correctPlayerProgress(
   uid: string,
-  updates: { palier?: number; wave?: number; maxPalierReached?: number }
+  updates: { palier?: number; wave?: number; maxPalierReached?: number; runPeakPalier?: number }
 ): Promise<boolean> {
   if (!db) return false;
   try {
-    await updateDoc(doc(db, 'saves', uid), {
+    const patch: Record<string, unknown> = {
       ...updates,
       lastSaved: Date.now(),
       adminCorrectionAt: Date.now(),
-    });
+    };
+    if (updates.palier !== undefined && updates.wave !== undefined) {
+      const runPeak = updates.runPeakPalier ?? updates.maxPalierReached ?? updates.palier;
+      const isBossWave = updates.wave === 10;
+      patch.currentEnemy    = generateEnemy(updates.wave, updates.palier, runPeak);
+      patch.bossActive      = isBossWave;
+      patch.bossTimeLeft    = isBossWave ? getPalierConfig(updates.palier).bossTimerSeconds : 0;
+      patch.bossAvoided     = false;
+      patch.ultUsedThisFight = [];
+    }
+    await updateDoc(doc(db, 'saves', uid), patch);
     return true;
   } catch (e) {
     logger.error('[AdminTools] correctPlayerProgress:', e);
