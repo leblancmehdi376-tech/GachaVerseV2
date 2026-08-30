@@ -26,7 +26,7 @@ export async function saveGameToFirestore(userId: string, state: Partial<GameSta
 //
 // `reachable` distingue "round-trip Firestore réussi" de "il n'y avait rien à
 // lire" : les deux cas renvoient `data: null`, mais seul le premier doit
-// autoriser la synchro cloud (voir cloudSyncConfirmed dans useCloudSave.ts) —
+// autoriser la synchro cloud (voir cloudSyncConfirmed dans cloudSaveSync.ts) —
 // un simple compte tout neuf ne doit jamais être traité comme une panne réseau.
 export async function loadGameFromFirestore(userId: string, source = 'login'): Promise<{ data: Partial<GameState> | null; reachable: boolean }> {
   if (!db) return { data: null, reachable: false };

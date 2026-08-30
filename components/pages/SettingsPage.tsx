@@ -6,7 +6,7 @@ import { formatNumber } from '@/lib/game/format';
 import { redeemGiftCode } from '@/lib/firebase/giftCodes';
 import { useSpoilerStore } from '@/store/spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { formatSyncStatus, type CloudSyncStatus } from '@/hooks/useCloudSave';
+import { formatSyncStatus, type CloudSyncStatus } from '@/lib/firebase/cloudSaveSync';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 

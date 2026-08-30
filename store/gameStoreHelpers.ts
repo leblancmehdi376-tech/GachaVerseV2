@@ -1,7 +1,7 @@
 // Helpers et constantes partagés entre plusieurs slices du store de jeu.
 // Fichier "feuille" : ne dépend JAMAIS de gameStore.ts ni d'aucun slice, pour
 // éviter tout cycle d'import statique (voir le commentaire sur
-// requestUrgentSave ci-dessous — même souci que useCloudSave/expeditionStore).
+// requestUrgentSave ci-dessous — même souci que cloudSaveSync/expeditionStore).
 import { GameState } from '@/types/game';
 import { generateEnemy, COIN_BASE, COIN_GROWTH } from '@/lib/game/enemies';
 import { getPalierConfig } from '@/lib/game/paliers';
@@ -21,9 +21,9 @@ import { type BigNum, bnAdd, bnIsZero, bnMul, bnMulScalar, bnPow, bnToNumber } f
 // BroadcastChannel, pour qu'un pull gacha (ou autre dépense) dans un onglet
 // se répercute immédiatement dans les autres — sans ça, un joueur pourrait
 // dépenser les mêmes gemmes deux fois en jonglant entre onglets avant que la
-// synchro périodique (30s/10min, voir useCloudSave.ts) ne les recale.
+// synchro périodique (30s/10min, voir lib/firebase/cloudSaveSync.ts) ne les recale.
 // N'écrit PAS en localStorage : ça a existé (clé 'gachaverse_save_v2',
-// partagée avec useCloudSave.ts) mais rien ne relisait jamais cette clé —
+// partagée avec cloudSaveSync.ts) mais rien ne relisait jamais cette clé —
 // seul le message BroadcastChannel ci-dessous est réellement consommé (par
 // le listener juste en dessous, dans les autres onglets).
 const BROADCAST_CHANNEL = typeof window !== 'undefined' ? new BroadcastChannel('gachaverse_state') : null;
@@ -240,11 +240,11 @@ export function getActiveCoinMultiplier(ultActiveUlts: ActiveUlt[]): number {
 // boss vaincu, expédition récupérée) — sans ça, ces gains ne seraient garantis
 // en base qu'au prochain cycle périodique (jusqu'à 10min plus tard) et
 // pourraient être perdus en cas de fermeture/crash avant cette échéance.
-// Import différé : useCloudSave importe déjà gameStore (qui importe ce
+// Import différé : cloudSaveSync importe déjà gameStore (qui importe ce
 // fichier), un import statique créerait un cycle.
 export function requestUrgentSave(reason = 'urgent') {
   if (typeof window === 'undefined') return;
-  try { require('@/hooks/useCloudSave').requestUrgentSave(reason); } catch { /* ignore */ }
+  try { require('@/lib/firebase/cloudSaveSync').requestUrgentSave(reason); } catch { /* ignore */ }
 }
 
 // Variante ATTENDUE de ci-dessus, réservée au prestige : l'appelant (UI) reste
@@ -253,7 +253,7 @@ export function requestUrgentSave(reason = 'urgent') {
 // collection d'avant-prestige (voir doPrestige, seul appelant).
 export async function requestUrgentSaveAndWait(reason: string): Promise<boolean> {
   if (typeof window === 'undefined') return false;
-  try { return await require('@/hooks/useCloudSave').saveUrgentNow(reason); } catch { return false; }
+  try { return await require('@/lib/firebase/cloudSaveSync').saveUrgentNow(reason); } catch { return false; }
 }
 
 // Incrémente les quêtes "vaincre X boss DE PALIER" (jour/semaine) à chaque
@@ -350,7 +350,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     // set()). Un requestUrgentSave() synchrone ici lirait donc l'ANCIEN palier
     // via getSerializableState() → useGameStore.getState(). queueMicrotask()
     // reporte l'appel à juste après que set() ait commité — la sauvegarde lit
-    // alors le palier réellement à jour. saveToFirebase (voir useCloudSave.ts)
+    // alors le palier réellement à jour. saveToFirebase (voir lib/firebase/cloudSaveSync.ts)
     // inclut déjà username/palier/maxPalierReached/wave/pixelCoins/totalDps/score
     // dans ce même setDoc : pas besoin d'un updatePlayerScore() séparé ici, ça
     // doublerait l'écriture sur le même document 'saves/{uid}' pour rien.

@@ -99,7 +99,7 @@ export function rollAnomalyRarity(): Rarity {
 // valeur aléatoire DANS la plage courante (même logique que rollAnomaly) au
 // lieu d'un simple clamp — évite d'empiler tous les joueurs migrés pile sur le
 // max. Doit tourner à CHAQUE réhydratation (gameStore.ts::merge ET
-// useCloudSave.ts::applyRemoteState — les deux chemins de chargement, local et
+// cloudSaveSync.ts::applyRemoteState — les deux chemins de chargement, local et
 // cloud, ne partagent pas la même logique) ; idempotente : une anomalie déjà
 // dans la bonne plage n'est jamais retirée une seconde fois.
 export function migrateAnomalyValue(a: Anomaly): Anomaly {

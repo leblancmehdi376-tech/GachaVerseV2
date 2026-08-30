@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { useGameStore } from '@/store/gameStore';
-import { getSerializableState } from './useCloudSave';
+import { getSerializableState } from './cloudSaveSync';
 
 // Champs de gameStore volontairement absents de la sauvegarde cloud/locale —
 // état transitoire ou dérivable, qui n'a pas besoin de survivre à un refresh
 // ou de se synchroniser entre appareils. Documenté ici pour que toute
 // exclusion future soit un choix conscient, pas un oubli — voir le
-// commentaire au-dessus de getSerializableState dans useCloudSave.ts pour
+// commentaire au-dessus de getSerializableState dans cloudSaveSync.ts pour
 // l'historique de bugs (champs ajoutés au store mais jamais synchronisés)
 // que ce test vise justement à prévenir.
 const INTENTIONALLY_TRANSIENT_FIELDS = new Set([

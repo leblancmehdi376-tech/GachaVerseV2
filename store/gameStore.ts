@@ -210,7 +210,7 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
       merge: (persisted, current) => {
-        // Réhydratation tardive (voir waitForAllHydrated dans useCloudSave.ts,
+        // Réhydratation tardive (voir waitForAllHydrated dans lib/firebase/cloudSaveSync.ts,
         // filet de sécurité 3s) : si `current` porte déjà un `savedAt` plus
         // récent que le blob localStorage qu'on s'apprête à fusionner, c'est
         // qu'un chargement cloud (loadAndApply) a eu le temps de s'appliquer

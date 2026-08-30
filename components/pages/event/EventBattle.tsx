@@ -6,7 +6,7 @@ import { getItemDef } from '@/lib/game/items';
 import { Affinity, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { calculateEquippedTeamDps } from '@/lib/game/dpsCalculation';
 import { formatNumber } from '@/lib/game/format';
-import { requestUrgentSave } from '@/hooks/useCloudSave';
+import { requestUrgentSave } from '@/lib/firebase/cloudSaveSync';
 import { MAX_EVENT_COMPANIONS, Dmg, rollBossAffinity, computeDurationMult } from './eventBattleHelpers';
 import { CompanionSelector } from './CompanionSelector';
 import { EventBg, BossSprite } from './EventSprites';
