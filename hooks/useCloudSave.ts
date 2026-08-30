@@ -49,12 +49,15 @@ export function useCloudSave(userId: string | null) {
 
   // Chargement au login
   useEffect(() => {
-    // Toute génération précédente (login/logout antérieur, éventuellement
-    // encore en vol sur un await) devient périmée dès qu'un effet tourne ici —
-    // voir le commentaire sur sessionGeneration dans cloudSaveSync.ts.
-    const myGeneration = bumpSessionGeneration();
-
     if (!userId) {
+      // Toute génération précédente (login antérieur, éventuellement encore
+      // en vol sur un await) devient périmée dès qu'on traite une VRAIE
+      // transition ici — voir le commentaire sur sessionGeneration dans
+      // cloudSaveSync.ts. Bumpée seulement quand on agit réellement (pas à
+      // chaque exécution de l'effet, voir le bail-out ci-dessous pour userId
+      // non-null) pour ne jamais périmer un chargement encore en cours pour
+      // CE MÊME userId.
+      bumpSessionGeneration();
       // Ne réinitialise que sur une VRAIE déconnexion (userIdRef.current
       // passait d'un compte à null) — pas au tout premier rendu d'un invité
       // qui n'a jamais été connecté, sinon sa progression locale serait
@@ -71,7 +74,14 @@ export function useCloudSave(userId: string | null) {
       if (wasLoggedIn) useGameStore.getState().resetGame();
       return;
     }
+    // Bail-out AVANT de bumper la génération : un remount de l'effet sans
+    // changement de userId (ex: double-invoke React.StrictMode au montage)
+    // ne doit PAS périmer le chargement déjà en vol lancé par la 1ʳᵉ passe —
+    // sinon son `myGeneration` capturé plus bas devient obsolète dès son
+    // premier `await`, `loaded` reste bloqué à false, et cette 2ᵉ passe ne
+    // relance rien puisqu'elle bail-out ici sans démarrer de nouveau chargement.
     if (userId === userIdRef.current) return;
+    const myGeneration = bumpSessionGeneration();
     userIdRef.current = userId;
     loadedRef.current = false;
     setUrgentSaveUserId(userId);
