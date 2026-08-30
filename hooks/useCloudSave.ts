@@ -63,7 +63,7 @@ export function useCloudSave(userId: string | null) {
       // qui n'a jamais été connecté, sinon sa progression locale serait
       // effacée dès l'ouverture du jeu.
       const wasLoggedIn = userIdRef.current !== null;
-      loadedRef.current = false; userIdRef.current = null; setLoaded(true);
+      loadedRef.current = false; userIdRef.current = null; lastCorrectionRef.current = 0; setLoaded(true);
       setUrgentSaveUserId(null); setUrgentSaveReady(false);
       // Pas de reconciliation à poursuivre pour un utilisateur déconnecté.
       resetSyncState();
@@ -84,6 +84,7 @@ export function useCloudSave(userId: string | null) {
     const myGeneration = bumpSessionGeneration();
     userIdRef.current = userId;
     loadedRef.current = false;
+    lastCorrectionRef.current = 0;
     setUrgentSaveUserId(userId);
     setUrgentSaveReady(false);
     // Repart d'un état propre : une reconciliation encore en attente pour un
