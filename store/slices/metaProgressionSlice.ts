@@ -13,7 +13,7 @@ import {
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
   OFFLINE_MULT_COSTS, OFFLINE_CAP_COSTS, OFFLINE_MIN_SECONDS, MOB_GEM_DROP_CHANCE,
   broadcastLocalState, bumpCoinQuests, runPeakPalierOf, getPrestigeBonuses,
-  requestUrgentSaveAndWait,
+  requestUrgentSaveAndWait, requestUrgentSave,
 } from '../gameStoreHelpers';
 import type { GameStore, MetaProgressionActions, OfflineGain } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnDivRatio, bnIsZero, bnMul, bnMulScalar, bnToNumber } from '@/lib/game/bignum';
@@ -146,7 +146,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   doPrestige: async () => {
     const state = get();
     const runPeak = runPeakPalierOf(state);
-    if (!state.canPrestige(runPeak)) return;
+    if (!state.canPrestige(runPeak)) return false;
 
     // Retire toutes les annonces actives (items en escrow) de l'hôtel de
     // vente avant le reset — sinon elles restent en vente indéfiniment,
@@ -224,6 +224,20 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     // (jusqu'à 10min) — sans ça, changer d'appareil juste après un prestige
     // peut recharger l'ancienne collection alors que prestigeLevel, lui, a
     // déjà été incrémenté (voir requestUrgentSaveAndWait).
-    await requestUrgentSaveAndWait('prestige');
+    // Le résultat DOIT être vérifié : saveUrgentNow renvoie false en cas
+    // d'échec réel (ex: synchro cloud pas encore confirmée après un souci
+    // réseau au login), auquel cas ce garde-fou ne protégerait rien si on
+    // laissait le prestige continuer sans prévenir le joueur. On relance
+    // alors un rattrapage en arrière-plan (requestUrgentSave gère déjà sa
+    // propre retry en cas de nouvel échec, voir cloudSaveSync.ts).
+    const confirmed = await requestUrgentSaveAndWait('prestige');
+    if (!confirmed) {
+      toast.error(
+        'Sauvegarde cloud en attente',
+        'Le reset de prestige n’est pas encore confirmé en ligne — évite de changer d’appareil pour l’instant.'
+      );
+      requestUrgentSave('prestige-retry');
+    }
+    return confirmed;
   },
 });

@@ -554,7 +554,16 @@ export function requestUrgentSave(reason = 'urgent') {
 
   lastUrgentSaveAt = now;
   refreshLocalSavedAt();
-  saveToFirebase(urgentSaveUserId, reason);
+  // Ne pas laisser un échec réel (ex: cloudSyncConfirmed encore false pendant
+  // la fenêtre de reconciliation) consommer le throttle sans rattrapage :
+  // avant ce correctif, saveToFirebase pouvait renvoyer false silencieusement
+  // et l'événement n'était resynchronisé qu'au prochain cycle périodique
+  // (jusqu'à 10min). On reprogramme ici le même mécanisme de rattrapage que
+  // pour le throttle/chargement initial ci-dessus.
+  saveToFirebase(urgentSaveUserId, reason).then((ok) => {
+    if (ok || pendingUrgentSaveTimer) return;
+    pendingUrgentSaveTimer = setTimeout(() => { pendingUrgentSaveTimer = null; requestUrgentSave(reason); }, URGENT_SAVE_MIN_GAP_MS);
+  });
 }
 
 // Variante ATTENDUE (contourne le throttle 15s ci-dessus) — pour un événement

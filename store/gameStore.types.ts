@@ -219,8 +219,11 @@ export interface MetaProgressionActions {
   claimOfflineEarnings: (gain: OfflineGain) => void;
   // Async : attend la confirmation Firestore avant de résoudre (voir
   // requestUrgentSaveAndWait) — l'UI doit attendre cette promesse avant de
-  // rendre la main au joueur (fermer le dialogue de confirmation).
-  doPrestige: () => Promise<void>;
+  // rendre la main au joueur (fermer le dialogue de confirmation). Renvoie
+  // false si la confirmation cloud a échoué (un toast d'avertissement a déjà
+  // été affiché et un rattrapage en arrière-plan programmé) — l'appelant
+  // peut choisir d'agir dessus (ex: garder un indicateur visible).
+  doPrestige: () => Promise<boolean>;
 }
 export type MetaProgressionSlice = MetaProgressionState & MetaProgressionActions;
 
