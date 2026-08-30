@@ -95,7 +95,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
   );
 }
 
-function formatBonusValue(type: PrestigeBonusType, level: number): string {
+export function formatBonusValue(type: PrestigeBonusType, level: number): string {
   const def = PRESTIGE_BONUS_DEFS[type];
   const total = def.perLevel * level;
   if (type === 'tokenGain') return `+${total}`;

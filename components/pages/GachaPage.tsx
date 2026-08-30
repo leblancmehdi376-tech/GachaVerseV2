@@ -12,6 +12,17 @@ import { PageScroll } from '@/components/ui/Page';
 import { GachaRevealOverlay } from './gacha/GachaRevealOverlay';
 import type { Res } from './gacha/gachaTypes';
 
+// 1 Jeton d'Anomalie tous les 100 tirages gacha cumulés (voir gachaSlice.ts).
+export function getPullsToNextToken(totalGachaPulls: number): { pullsInCycle: number; pullsToNextToken: number } {
+  const pullsInCycle = (totalGachaPulls ?? 0) % 100;
+  return { pullsInCycle, pullsToNextToken: 100 - pullsInCycle };
+}
+
+// Affichage adapté aux très petits taux (< 0.01% → plus de décimales).
+export function formatDropRate(rate: number): string {
+  return rate >= 0.01 ? `${rate.toFixed(2)}%` : rate > 0 ? `${rate.toFixed(4)}%` : '0%';
+}
+
 export function GachaPage() {
   const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, getRunPeakPalier, getGachaCosts, totalGachaPulls, anomalyTokens } = useGameStore();
   const [results,     setResults]     = useState<Res[]>([]);
@@ -25,8 +36,7 @@ export function GachaPage() {
   // Coûts après réduction éventuelle des anomalies "Réduc. Coût Gacha".
   const costs = getGachaCosts();
   // Progression vers le prochain Jeton d'Anomalie (1 tous les 100 tirages cumulés).
-  const pullsInCycle = (totalGachaPulls ?? 0) % 100;
-  const pullsToNextToken = 100 - pullsInCycle;
+  const { pullsInCycle, pullsToNextToken } = getPullsToNextToken(totalGachaPulls ?? 0);
 
   const canS    = nekoGems >= costs.single;
   const canM    = nekoGems >= costs.multi10;
@@ -178,8 +188,7 @@ export function GachaPage() {
                   const gate       = RARITY_GATES[r];
                   const rate       = currentRates[r] ?? 0;
                   const fillPct    = gate.rateAtMax > 0 ? Math.min(100, (rate / gate.rateAtMax) * 100) : 0;
-                  // Affichage adapté aux très petits taux (< 0.01% → plus de décimales)
-                  const rateTxt    = rate >= 0.01 ? `${rate.toFixed(2)}%` : rate > 0 ? `${rate.toFixed(4)}%` : '0%';
+                  const rateTxt    = formatDropRate(rate);
                   return (
                     <div key={r} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', background:'rgba(255,255,255,0.02)', borderRadius:8 }}>
                       <div style={{ width:80, flexShrink:0 }}><RarityBadge rarity={r} /></div>

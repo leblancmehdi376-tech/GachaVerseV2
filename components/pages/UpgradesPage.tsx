@@ -30,9 +30,14 @@ function SectionHead({ color, children }: { color: string; children: React.React
 
 // Le niveau n'est plus plafonné : la barre montre juste la progression vers
 // le prochain palier de multiplicateur (tous les 100 niveaux).
-function LevelBar({ level, color }: { level: number; color: string }) {
+export function levelBarProgress(level: number): { pct: number; nextTier: number } {
   const nextTier = (Math.floor(level / 100) + 1) * 100;
   const pct = ((level % 100) / 100) * 100;
+  return { pct, nextTier };
+}
+
+function LevelBar({ level, color }: { level: number; color: string }) {
+  const { pct, nextTier } = levelBarProgress(level);
   return (
     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
       <div style={{ flex:1, height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden' }}>

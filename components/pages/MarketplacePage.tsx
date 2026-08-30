@@ -11,7 +11,7 @@ import {
   getActiveListings, getMyListings,
   createListing, buyListing, cancelListing, claimSaleReward,
 } from '@/lib/firebase/marketplace';
-import { bnAdd, bnFromNumber, bnGte } from '@/lib/game/bignum';
+import { bnAdd, bnFromNumber, bnGte, type BigNum } from '@/lib/game/bignum';
 
 const CURRENCY_ICON: Record<ListingCurrency, string> = {
   gems:   '💎',
@@ -25,7 +25,17 @@ const TYPE_LABEL: Record<ListingType, string> = {
   character: 'Personnage',
 };
 
-function getListingLabel(l: MarketplaceListing): string {
+export function canAffordListing(
+  currency: ListingCurrency,
+  price: number,
+  balances: { nekoGems: number; bossCrowns: number; pixelCoins: BigNum },
+): boolean {
+  if (currency === 'gems') return balances.nekoGems >= price;
+  if (currency === 'crowns') return balances.bossCrowns >= price;
+  return bnGte(balances.pixelCoins, bnFromNumber(price));
+}
+
+export function getListingLabel(l: MarketplaceListing): string {
   if (l.type === 'character') {
     const tpl = getCharacterById(parseInstanceKey(l.itemId).templateId);
     return tpl?.name ?? l.itemId;
@@ -36,7 +46,7 @@ function getListingLabel(l: MarketplaceListing): string {
   return ITEM_DEFS[l.itemId]?.name ?? l.itemId;
 }
 
-function getListingIcon(l: MarketplaceListing): string {
+export function getListingIcon(l: MarketplaceListing): string {
   if (l.type === 'character') return '🧬';
   if (l.type === 'equipment') return getEquipmentDef(l.itemId)?.icon ?? '🔧';
   return ITEM_DEFS[l.itemId]?.icon ?? '📦';
@@ -149,9 +159,7 @@ export function MarketplacePage() {
   const handleBuy = async (listing: MarketplaceListing) => {
     if (!user) return;
     // Vérifie la balance
-    const canAfford = listing.currency === 'gems' ? store.nekoGems >= listing.price
-      : listing.currency === 'crowns' ? store.bossCrowns >= listing.price
-      : bnGte(store.pixelCoins, bnFromNumber(listing.price));
+    const canAfford = canAffordListing(listing.currency, listing.price, store);
     if (!canAfford) { showMsg(false, `Pas assez de ${CURRENCY_ICON[listing.currency]}`); return; }
 
     const result = await buyListing(listing.id, user.uid, store.username || 'Joueur');
@@ -261,9 +269,7 @@ export function MarketplacePage() {
             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
               {filtered.map(l => {
                 const isOwn   = l.sellerId === user?.uid;
-                const canAfford = l.currency === 'gems' ? store.nekoGems >= l.price
-                  : l.currency === 'crowns' ? store.bossCrowns >= l.price
-                  : bnGte(store.pixelCoins, bnFromNumber(l.price));
+                const canAfford = canAffordListing(l.currency, l.price, store);
                 const canBuy  = !isOwn && canAfford;
                 return (
                   <div key={l.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'12px 16px', display:'grid', gridTemplateColumns:'36px 1fr auto auto', gap:'12px', alignItems:'center' }}>

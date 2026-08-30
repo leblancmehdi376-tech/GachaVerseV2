@@ -11,7 +11,7 @@ import { correctedNow } from '@/lib/firebase/clockOffset';
 import { bnCompare, bnFromNumber, bnGte, bnToNumber } from '@/lib/game/bignum';
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
-function fmtDuration(secs: number): string {
+export function fmtDuration(secs: number): string {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   const s = Math.floor(secs % 60);
@@ -20,7 +20,7 @@ function fmtDuration(secs: number): string {
   return `${s}s`;
 }
 
-function fmtDurationLabel(secs: number): string {
+export function fmtDurationLabel(secs: number): string {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   if (h >= 24) return `${Math.floor(h/24)}j ${h%24}h`;
@@ -408,8 +408,8 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
 // chasses) > forge (tout le reste par défaut — items de craft, farm palier,
 // expéditions génériques sans drop).
 const isEquipUnlock = (d: ExpeditionDef) => !!d.unlocksEquipRarity || !!d.unlocksEquipDropRarity;
-type ExpTab = 'forge' | 'equipment' | 'special';
-function tabOf(d: ExpeditionDef): ExpTab {
+export type ExpTab = 'forge' | 'equipment' | 'special';
+export function tabOf(d: ExpeditionDef): ExpTab {
   if (d.isSpecialItem) return 'special';
   if (isEquipUnlock(d)) return 'equipment';
   return 'forge';

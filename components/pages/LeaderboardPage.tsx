@@ -18,10 +18,10 @@ const SAVE_NAME_COOLDOWN_MS = 15_000;
 const RANK_COLORS = ['#fbbf24', '#94a3b8', '#b45309', '#a855f7', '#6366f1'];
 const RANK_ICONS  = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
 
-function getRankColor(idx: number): string {
+export function getRankColor(idx: number): string {
   return RANK_COLORS[idx] ?? 'var(--text-dim)';
 }
-function getRankDisplay(idx: number): string {
+export function getRankDisplay(idx: number): string {
   return idx < 5 ? (RANK_ICONS[idx] ?? `#${idx+1}`) : `#${idx+1}`;
 }
 

@@ -12,7 +12,7 @@ type QuestItem = {
   rewardType: 'gems' | 'coins'; done: boolean;
 };
 
-function fmtCountdown(targetMs: number): string {
+export function fmtCountdown(targetMs: number): string {
   const rem = Math.max(0, targetMs - Date.now());
   const h = Math.floor(rem / 3600_000);
   const m = Math.floor((rem % 3600_000) / 60_000);
@@ -20,7 +20,7 @@ function fmtCountdown(targetMs: number): string {
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-function getNextResetMs(type: 'daily' | 'weekly'): number {
+export function getNextResetMs(type: 'daily' | 'weekly'): number {
   // Prochain reset à 2h du matin Paris
   const now = new Date();
   const paris = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));

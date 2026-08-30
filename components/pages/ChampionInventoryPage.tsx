@@ -9,6 +9,21 @@ import { createListing, ListingCurrency } from '@/lib/firebase/marketplace';
 
 const CURRENCY_ICON: Record<ListingCurrency, string> = { gems:'💎', coins:'🪙', crowns:'👑' };
 
+// Groupes par rareté (pour le recyclage en masse).
+export function groupChampionsByRarity(
+  champions: { qty: number; tpl: { rarity: Rarity } | null | undefined }[],
+): { rarity: Rarity; count: number; orbs: number }[] {
+  const byRarity = champions.reduce((acc, c) => {
+    if (!c.tpl) return acc;
+    const rarity = c.tpl.rarity;
+    if (!acc[rarity]) acc[rarity] = { rarity, count: 0, orbs: 0 };
+    acc[rarity].count += c.qty;
+    acc[rarity].orbs  += c.qty * getVoidOrbsForRarity(rarity);
+    return acc;
+  }, {} as Record<Rarity, { rarity: Rarity; count: number; orbs: number }>);
+  return Object.values(byRarity);
+}
+
 export function ChampionInventoryPage() {
   const store = useGameStore();
   const user  = auth?.currentUser;
@@ -39,16 +54,7 @@ export function ChampionInventoryPage() {
     showMsg(true, `+${orbs} Orbe(s) du Néant 🔮`);
   };
 
-  // Groupes par rareté (pour le recyclage en masse)
-  const rarityGroups = Object.values(
-    champions.reduce((acc, c) => {
-      const rarity = c.tpl!.rarity;
-      if (!acc[rarity]) acc[rarity] = { rarity, count: 0, orbs: 0 };
-      acc[rarity].count += c.qty;
-      acc[rarity].orbs  += c.qty * getVoidOrbsForRarity(rarity);
-      return acc;
-    }, {} as Record<Rarity, { rarity: Rarity; count: number; orbs: number }>)
-  );
+  const rarityGroups = groupChampionsByRarity(champions);
 
   const handleRecycleRarity = (rarity: Rarity) => {
     if (confirmRarity !== rarity) {

@@ -11,7 +11,7 @@ import { AFFINITY_CONFIG, Affinity } from '@/lib/game/affinities';
 import { SYNERGIES_LIST } from '@/lib/game/synergies';
 import { formatNumber } from '@/lib/game/format';
 
-function targetLabel(a: Anomaly): string | null {
+export function targetLabel(a: Anomaly): string | null {
   if (!a.target) return null;
   if (a.bonusType === 'typeDamage') {
     const cfg = AFFINITY_CONFIG[a.target as Affinity];
@@ -24,7 +24,7 @@ function targetLabel(a: Anomaly): string | null {
   return null;
 }
 
-function formatBonusRange(type: AnomalyBonusType, [min, max]: [number, number]): string {
+export function formatBonusRange(type: AnomalyBonusType, [min, max]: [number, number]): string {
   const decimals = type === 'globalDps' ? 2 : type === 'gachaCostReduction' || type === 'upgradeCostReduction' ? 1 : 0;
   if (min === max) return `+${min.toFixed(decimals)}%`;
   return `+${min.toFixed(decimals)}% – +${max.toFixed(decimals)}%`;

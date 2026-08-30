@@ -24,13 +24,44 @@ const UNIVERSES = Array.from(new Set(CHARACTER_POOL.map(c => c.universe).filter(
 // Un template possédé en plusieurs éditions produit PLUSIEURS entrées, chacune
 // avec sa propre progression (rang/niveau) — chaque édition compte comme un
 // personnage à part, tout en partageant l'art/nom/ultime du template.
-interface CollectionEntry {
+export interface CollectionEntry {
   tpl: typeof CHARACTER_POOL[number];
   key: string;               // clé de collection (instance) : templateId ou templateId::edition
   owned: OwnedCharacter | null; // null = pas ACTUELLEMENT possédé (aucune édition)
   seen: boolean;              // Compadex : déjà obtenu au moins une fois, à vie (voir compadexCharactersSeen)
 }
 const ALL_EDITIONS: CardEdition[] = ['base', 'gold', 'diamond'];
+
+// "Possédés"/"Manquants" filtrent sur le Compadex (déjà obtenu à vie, `seen`),
+// pas sur la possession ACTUELLE — cohérent avec le sens de cette page depuis
+// sa transformation en Compadex.
+export function matchesCompadexFilters(
+  entry: CollectionEntry,
+  filter: CollectionFilterMode,
+  universe: string | 'all',
+  affinity: CollectionAffinityMode,
+): boolean {
+  if (universe !== 'all' && entry.tpl.universe !== universe) return false;
+  const matchesAffinity = affinity === 'all' ? true : getAffinityForId(entry.tpl.id) === affinity;
+  if (filter === 'owned')   return entry.seen && matchesAffinity;
+  if (filter === 'missing') return !entry.seen && matchesAffinity;
+  if (filter !== 'all')     return entry.tpl.rarity === filter && matchesAffinity;
+  return matchesAffinity;
+}
+
+export function compareCompadexEntries(a: CollectionEntry, b: CollectionEntry, sort: CollectionSortMode): number {
+  if (sort === 'rarity') {
+    const ri = RARITY_ORDER.slice().reverse();
+    const diff = ri.indexOf(a.tpl.rarity) - ri.indexOf(b.tpl.rarity);
+    return diff !== 0 ? diff : a.tpl.name.localeCompare(b.tpl.name);
+  }
+  if (sort === 'dps_desc' || sort === 'dps_asc') {
+    const dpsA = a.owned ? calcCharDps(a.tpl, a.owned) : BN_ZERO;
+    const dpsB = b.owned ? calcCharDps(b.tpl, b.owned) : BN_ZERO;
+    return sort === 'dps_desc' ? bnCompare(dpsB, dpsA) : bnCompare(dpsA, dpsB);
+  }
+  return a.tpl.name.localeCompare(b.tpl.name);
+}
 
 // Composant au scope module (pas défini dans le corps de CollectionPage) :
 // sinon chaque tick du jeu (tickDps re-render CollectionPage via useGameStore)
@@ -224,40 +255,14 @@ export function CollectionPage() {
   const compadexCharCount = useMemo(() => Object.keys(compadexCharactersSeen).length, [compadexCharactersSeen]);
 
   // ── Filtrage ────────────────────────────────────────────────────────────
-  // "Possédés"/"Manquants" filtrent maintenant sur le Compadex (déjà obtenu
-  // à vie), pas sur la possession ACTUELLE — cohérent avec le sens de cette
-  // page depuis sa transformation en Compadex.
-  const filtered = useMemo(() => {
-    return allEntries.filter(e => {
-      const matchesAffinity = affinity === 'all' ? true : getAffinityForId(e.tpl.id) === affinity;
-      if (filter === 'owned')   return e.seen && matchesAffinity;
-      if (filter === 'missing') return !e.seen && matchesAffinity;
-      if (filter !== 'all')     return e.tpl.rarity === filter && matchesAffinity;
-      return matchesAffinity;
-    }).filter(e =>
-      universe === 'all' ? true : e.tpl.universe === universe
-    );
-  }, [allEntries, filter, universe, affinity]);
+  const filtered = useMemo(() =>
+    allEntries.filter(e => matchesCompadexFilters(e, filter, universe, affinity)),
+  [allEntries, filter, universe, affinity]);
 
   // ── Tri ─────────────────────────────────────────────────────────────────
-  const sorted = useMemo(() => {
-    if (sort === 'rarity') {
-      // Groupe par rareté (T>CO>S>... garde ordre RARITY_ORDER inversé)
-      return [...filtered].sort((a, b) => {
-        const ri = RARITY_ORDER.slice().reverse();
-        const diff = ri.indexOf(a.tpl.rarity) - ri.indexOf(b.tpl.rarity);
-        return diff !== 0 ? diff : a.tpl.name.localeCompare(b.tpl.name);
-      });
-    }
-    if (sort === 'dps_desc' || sort === 'dps_asc') {
-      return [...filtered].sort((a, b) => {
-        const dpsA = a.owned ? calcCharDps(a.tpl, a.owned) : BN_ZERO;
-        const dpsB = b.owned ? calcCharDps(b.tpl, b.owned) : BN_ZERO;
-        return sort === 'dps_desc' ? bnCompare(dpsB, dpsA) : bnCompare(dpsA, dpsB);
-      });
-    }
-    return [...filtered].sort((a, b) => a.tpl.name.localeCompare(b.tpl.name));
-  }, [filtered, sort]);
+  const sorted = useMemo(() =>
+    [...filtered].sort((a, b) => compareCompadexEntries(a, b, sort)),
+  [filtered, sort]);
 
   // ── Groupage par rareté (uniquement en mode rarity) ─────────────────────
   const grouped = useMemo(() => {

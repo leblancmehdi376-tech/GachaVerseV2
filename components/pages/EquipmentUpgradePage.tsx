@@ -11,7 +11,7 @@ const UPGRADE_COST = 10;
 
 // Objet "représentatif" d'un groupe slot+rareté pour l'affichage (icône/nom) :
 // le générique s'il existe, sinon le premier objet personnalisé du groupe.
-function representativeItem(slot: EquipmentSlot, rarity: Rarity): EquipmentDef | null {
+export function representativeItem(slot: EquipmentSlot, rarity: Rarity): EquipmentDef | null {
   const group = getEquipmentGroup(slot, rarity);
   return group.find(item => !item.bonusFor) ?? group[0] ?? null;
 }

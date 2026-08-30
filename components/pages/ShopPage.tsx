@@ -15,7 +15,7 @@ import { getEquipmentDef, getItemDef } from '@/lib/game/items';
 import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
 import { makeInstanceKey } from '@/lib/game/editions';
 
-function isCharacterOwned(collection: Record<string, unknown>, templateId: string): boolean {
+export function isCharacterOwned(collection: Record<string, unknown>, templateId: string): boolean {
   return (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(templateId, ed)]);
 }
 
@@ -27,7 +27,7 @@ function NewBadge() {
   );
 }
 
-function formatDuration(ms: number): string {
+export function formatDuration(ms: number): string {
   if (ms <= 0) return '00:00';
   const totalSec = Math.ceil(ms / 1000);
   const h = Math.floor(totalSec / 3600);

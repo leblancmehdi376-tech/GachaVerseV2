@@ -14,6 +14,28 @@ import { bnGt, type BigNum } from '@/lib/game/bignum';
 
 const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
+// collection est indexée par clé d'instance (templateId, ou templateId::gold/
+// ::diamond pour les shiny), pas par id de template pur, donc on passe par
+// parseInstanceKey pour ne pas rater les persos possédés uniquement en
+// édition shiny.
+export function getOwnedChars(collection: Record<string, unknown>): typeof CHARACTER_POOL {
+  const ownedTemplateIds = new Set(Object.keys(collection).map(k => parseInstanceKey(k).templateId));
+  return CHARACTER_POOL.filter(c => ownedTemplateIds.has(c.id));
+}
+
+export function computeRarityBreakdown(ownedChars: typeof CHARACTER_POOL): Partial<Record<Rarity, number>> {
+  const counts: Partial<Record<Rarity, number>> = {};
+  for (const tpl of ownedChars) {
+    counts[tpl.rarity] = (counts[tpl.rarity] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export function fmtDur(s: number): string {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return h > 0 ? (m > 0 ? `${h}h ${m}min` : `${h}h`) : (m > 0 ? `${m}min` : `${s}s`);
+}
+
 export function ProfilePage() {
   const store = useGameStore();
   const {
@@ -24,24 +46,11 @@ export function ProfilePage() {
 
   const cfg = getPalierConfig(palier);
 
-  // Stats calculées — collection est indexée par clé d'instance (templateId,
-  // ou templateId::gold/::diamond pour les shiny), pas par id de template pur,
-  // donc on passe par parseInstanceKey pour ne pas rater les persos possédés
-  // uniquement en édition shiny.
-  const ownedChars = useMemo(() => {
-    const ownedTemplateIds = new Set(Object.keys(collection).map(k => parseInstanceKey(k).templateId));
-    return CHARACTER_POOL.filter(c => ownedTemplateIds.has(c.id));
-  }, [collection]);
+  const ownedChars = useMemo(() => getOwnedChars(collection), [collection]);
 
   const totalDps = getTotalDps();
 
-  const rarityBreakdown = useMemo(() => {
-    const counts: Partial<Record<Rarity, number>> = {};
-    for (const tpl of ownedChars) {
-      counts[tpl.rarity] = (counts[tpl.rarity] ?? 0) + 1;
-    }
-    return counts;
-  }, [ownedChars]);
+  const rarityBreakdown = useMemo(() => computeRarityBreakdown(ownedChars), [ownedChars]);
 
   const highestDpsChar = useMemo(() => {
     let best: { name: string; dps: BigNum } | null = null;
@@ -195,7 +204,6 @@ export function ProfilePage() {
           const nextMult  = OFFLINE_MULT_TIERS[multLvl + 1];
           const nextCapH  = OFFLINE_CAP_TIERS_H[capLvl + 1];
           const last      = store.lastOfflineGain;
-          const fmtDur = (s: number) => { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h>0?(m>0?`${h}h ${m}min`:`${h}h`):(m>0?`${m}min`:`${s}s`); };
 
           const UpgradeRow = ({ icon, label, current, next, cost, onBuy }: { icon:string; label:string; current:string; next:string|null; cost:number|null; onBuy:()=>void }) => {
             const affordable = cost !== null && bossCrowns >= cost;
