@@ -112,8 +112,6 @@ function CharCard({ templateId }: { templateId: string }) {
   const cfg      = RARITY_CONFIG[tpl.rarity];
   const nextForm = tpl.forms?.[owned.currentForm + 1];
   const reqItems   = (nextForm?.requiredItemIds ?? []).map(id => getItemDef(id)).filter((d): d is NonNullable<typeof d> => !!d);
-  const missingItems = reqItems.filter(d => (inventory[d.id] ?? 0) < 1);
-  const hasItem  = missingItems.length === 0;
   const canEvolveAtAll = !!tpl.forms && owned.currentForm < tpl.forms.length - 1;
   const stonesNeeded = canEvolveAtAll && !tpl.noEvoStones ? evoStoneCost(tpl.rarity, owned.currentForm) : 0;
   const stonesHave   = dropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0;
@@ -168,7 +166,7 @@ function CharCard({ templateId }: { templateId: string }) {
           style={{ flexShrink:0, padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}>×10</span>
         </button>
-        {!canEvo_ && !hasItem && (
+        {!canEvo_ && reqItems.length > 0 && (
           <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert :</span>
             {reqItems.map(d => {
