@@ -90,7 +90,7 @@ export function GachaPage() {
         }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/gacha_banner.png" alt="Bannière"
-            style={{ width:'100%', display:'block', imageRendering:'pixelated', maxHeight:220, objectFit:'cover', objectPosition:'center top' }} />
+            style={{ width:'100%', display:'block', imageRendering:'pixelated', maxHeight:220, objectFit:'cover', objectPosition:'center' }} />
           <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'70%', background:'linear-gradient(0deg,rgba(6,4,15,0.96),transparent)', pointerEvents:'none' }} />
           <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 24px', zIndex:2 }}>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--purple-hi)', letterSpacing:3, marginBottom:4 }}>✦ BANNIÈRE EXCLUSIVE</div>
