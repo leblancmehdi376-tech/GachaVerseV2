@@ -1,4 +1,5 @@
 'use client';
+import { formatNumber } from '@/lib/game/format';
 
 export function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:string; label:string; current:number; target:number; reward:number; rewardType:string; done:boolean }[]; claimQuest: (id: string) => void }) {
   return (
@@ -31,7 +32,7 @@ export function QuestsCard({ quests, claimQuest }: { quests: { id:string; icon:s
               <div style={{ height:'5px', background:'rgba(255,255,255,0.05)', borderRadius:'3px', overflow:'hidden', marginBottom:'4px' }}>
                 <div style={{ height:'100%', width:`${pct}%`, background:q.done?'linear-gradient(90deg,#166534,#4ade80)':'linear-gradient(90deg,#4c1d95,#a855f7)', borderRadius:'3px', transition:'width 0.3s', boxShadow:canClaim?'0 0 6px #a855f766':undefined }} />
               </div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', textAlign:'right', fontWeight:600 }}>{q.current}/{q.target}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', textAlign:'right', fontWeight:600 }}>{formatNumber(q.current)}/{formatNumber(q.target)}</div>
             </div>
           );
         })}
