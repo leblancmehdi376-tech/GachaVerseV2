@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { useGameStore } from '@/store/gameStore';
-import { getSerializableState } from './cloudSaveSync';
+import { getSerializableState, mergeMonotonicState } from './cloudSaveSync';
 
 // Champs de gameStore volontairement absents de la sauvegarde cloud/locale —
 // état transitoire ou dérivable, qui n'a pas besoin de survivre à un refresh
@@ -52,5 +52,30 @@ describe('getSerializableState — exhaustivité', () => {
       `Champs présents dans gameStore mais absents de getSerializableState() (probablement oubliés — ` +
       `voir INTENTIONALLY_TRANSIENT_FIELDS si l'absence est volontaire) : ${missing.join(', ')}`
     ).toEqual([]);
+  });
+});
+
+describe('mergeMonotonicState — achievementsClaimed', () => {
+  it("ne ressuscite pas le claim d'un succès resetsOnPrestige depuis un remote pré-Prestige pas encore synchronisé", () => {
+    // Simule l'état juste après un Prestige : kills_500 (resetsOnPrestige)
+    // vient d'être remis à zéro localement (voir resetPrestigeAchievements),
+    // mais le document Firestore distant a encore l'ancien claim — le push
+    // du reset n'a pas encore été confirmé (voir requestUrgentSaveAndWait).
+    useGameStore.setState({ achievementsClaimed: {} });
+
+    const merged = mergeMonotonicState({ achievementsClaimed: { kills_500: true } }, null);
+
+    expect(merged.achievementsClaimed.kills_500).toBeUndefined();
+  });
+
+  it('réintègre bien le claim d\'un succès permanent (non resetsOnPrestige) connu du remote mais pas en local', () => {
+    // Comportement existant à préserver : un succès permanent claim sur un
+    // autre appareil ne doit jamais disparaître si celui-ci resynchronise en
+    // retard — voir le commentaire au-dessus de mergeMonotonicState.
+    useGameStore.setState({ achievementsClaimed: {} });
+
+    const merged = mergeMonotonicState({ achievementsClaimed: { first_boss: true } }, null);
+
+    expect(merged.achievementsClaimed.first_boss).toBe(true);
   });
 });

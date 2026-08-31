@@ -54,6 +54,43 @@ describe('achievementSlice — setProgress', () => {
   });
 });
 
+describe('achievementSlice — setProgress, rattrapage des claims périmés', () => {
+  beforeEach(() => {
+    useGameStore.getState().resetGame();
+    useToastStore.setState({ toasts: [] });
+  });
+
+  it("efface le claim d'un succès resetsOnPrestige si la progression recalculée prouve qu'il n'est plus terminé", () => {
+    // Simule un compte touché par le bug de fusion cloud (mergeMonotonicState) :
+    // kills_500 est marqué claimed alors que sa progression réelle (recalculée
+    // depuis les stats, elles bien synchronisées) est repassée sous la target
+    // après un Prestige.
+    useGameStore.setState({ achievementsClaimed: { kills_500: true } });
+
+    useGameStore.getState().setProgress('kills_500', 10); // très en dessous de target:500
+
+    const s = useGameStore.getState();
+    expect(s.isClaimed('kills_500')).toBe(false);
+    expect(s.isUnlocked('kills_500')).toBe(false);
+  });
+
+  it('ne touche pas au claim d\'un succès permanent (non resetsOnPrestige) même sous sa target', () => {
+    useGameStore.setState({ achievementsClaimed: { bosses_100: true } });
+
+    useGameStore.getState().setProgress('bosses_100', 1); // très en dessous de target:100
+
+    expect(useGameStore.getState().isClaimed('bosses_100')).toBe(true);
+  });
+
+  it("ne touche pas au claim d'un succès resetsOnPrestige toujours réellement terminé", () => {
+    useGameStore.setState({ achievementsClaimed: { kills_500: true } });
+
+    useGameStore.getState().setProgress('kills_500', 500); // target atteinte
+
+    expect(useGameStore.getState().isClaimed('kills_500')).toBe(true);
+  });
+});
+
 describe('achievementSlice — claimAchievement', () => {
   beforeEach(() => {
     useGameStore.getState().resetGame();

@@ -30,10 +30,29 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
     const next    = Math.max(prev, value);
     const done    = next >= achiev.target;
 
-    set(s => ({
-      achievementProgress: { ...s.achievementProgress, [id]: next },
-      achievementUnlocked: done ? { ...s.achievementUnlocked, [id]: true } : s.achievementUnlocked,
-    }));
+    set(s => {
+      const patch: Partial<GameStore> = {
+        achievementProgress: { ...s.achievementProgress, [id]: next },
+        achievementUnlocked: done ? { ...s.achievementUnlocked, [id]: true } : s.achievementUnlocked,
+      };
+      // Rattrapage : un succès "de run" (resetsOnPrestige) peut se retrouver
+      // marqué `claimed` alors qu'il n'est plus débloqué — un claim pré-
+      // Prestige ressuscité par un remote Firestore pas encore synchronisé au
+      // moment du reset (voir mergeMonotonicState dans cloudSaveSync.ts, bug
+      // de fusion désormais corrigé, mais les comptes déjà touchés avant ce
+      // correctif gardent la trace). On la corrige ici, dès que la vraie
+      // progression (recalculée depuis les stats, elles bien synchronisées)
+      // prouve que ce n'est PAS actuellement terminé — le bouton RÉCUP
+      // réapparaît alors normalement au lieu du badge "Reçu" trompeur, sans
+      // risque de double-récompense : tant que `!done`, aucun bouton RÉCUP ne
+      // s'affiche de toute façon (voir AchievementsPage.tsx).
+      if (!done && achiev.resetsOnPrestige && s.achievementsClaimed[id]) {
+        const achievementsClaimed = { ...s.achievementsClaimed };
+        delete achievementsClaimed[id];
+        patch.achievementsClaimed = achievementsClaimed;
+      }
+      return patch;
+    });
 
     // Notification de déblocage — la récompense elle-même n'est créditée
     // que via le bouton RÉCUP (claimAchievement), pas automatiquement ici.

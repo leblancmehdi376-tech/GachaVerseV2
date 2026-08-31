@@ -4,6 +4,7 @@ import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
 import { logger } from '@/lib/logger';
 import { BN_ZERO, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
+import { ACHIEVEMENTS } from '@/lib/game/achievements';
 
 // Logique pure/orchestration de la synchro cloud (indépendante de React) —
 // voir hooks/useCloudSave.ts, qui ne garde que le wiring useEffect/useState
@@ -130,7 +131,7 @@ export function getSerializableState() {
 //   entre-temps sur l'autre appareil).
 // - `activeTitle` (préférence d'affichage, pas un déblocage) suit lui la
 //   source la plus fraîche (`freshest`), comme le reste de l'état.
-function mergeMonotonicState(
+export function mergeMonotonicState(
   remote: Record<string, unknown> | null,
   freshest: Record<string, unknown> | null
 ): {
@@ -141,7 +142,19 @@ function mergeMonotonicState(
   const achievementsClaimed: Record<string, boolean> = { ...current.achievementsClaimed };
   const unlockedTitles = new Set<string>(current.unlockedTitles);
   const c = remote?.achievementsClaimed as Record<string, boolean> | undefined;
-  if (c) for (const id of Object.keys(c)) if (c[id]) achievementsClaimed[id] = true;
+  if (c) for (const id of Object.keys(c)) {
+    if (!c[id]) continue;
+    // Succès "de run" (resetsOnPrestige) : un Prestige dévalide volontairement
+    // leur claim (voir resetPrestigeAchievements dans achievementSlice.ts) —
+    // contrairement aux succès permanents, cette "disparition" est légitime et
+    // ne doit PAS être ressuscitée par un remote pas encore synchronisé après
+    // le reset (fenêtre entre le reset local et la confirmation du push
+    // Firestore post-Prestige). Un id inconnu reste inclus par défaut, comme
+    // avant ce correctif.
+    const achiev = ACHIEVEMENTS.find(a => a.id === id);
+    if (achiev?.resetsOnPrestige) continue;
+    achievementsClaimed[id] = true;
+  }
   const t = remote?.unlockedTitles as string[] | undefined;
   if (Array.isArray(t)) for (const title of t) unlockedTitles.add(title);
   const freshTitle = freshest?.activeTitle as string | undefined;
