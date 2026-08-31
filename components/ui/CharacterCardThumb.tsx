@@ -75,8 +75,11 @@ export function CharacterCardThumb({ templateId, formIndex = 0, name, rarity, ed
   if (!isShiny) return content;
 
   // Emballage avec halo pulsé + reflet balayant + badge d'édition.
+  // Reprend la largeur/hauteur du style passé par l'appelant (ex: 100%) si présentes,
+  // sinon les props numériques par défaut — sinon le badge en coin peut se retrouver
+  // hors des dimensions réellement affichées et être rogné par un ancêtre overflow:hidden.
   return (
-    <div style={{ position:'relative', width, height, flexShrink:0, borderRadius:8, overflow:'visible' }}>
+    <div style={{ position:'relative', width: style?.width ?? width, height: style?.height ?? height, flexShrink:0, borderRadius:8, overflow:'visible' }}>
       {content}
       {/* Reflet animé qui balaie la carte */}
       <div style={{
