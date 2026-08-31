@@ -26,6 +26,7 @@ import { AnomaliePage } from '@/components/pages/AnomaliePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
 import { useGameStore } from '@/store/gameStore';
+import { getCompadexProgress } from '@/lib/game/compadex';
 import { useAuth } from '@/hooks/useAuth';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { formatSyncStatus } from '@/lib/firebase/cloudSaveSync';
@@ -122,7 +123,8 @@ export function GameLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
-  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId, dailyRewardClaimedToday } = useGameStore();
+  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId, dailyRewardClaimedToday, compadexCharactersSeen, compadexEquipmentSeen } = useGameStore();
+  const { count: compadexCount, total: compadexTotal } = getCompadexProgress(compadexCharactersSeen, compadexEquipmentSeen);
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
   const { forceSave, loaded: cloudLoaded, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
 
@@ -377,6 +379,12 @@ export function GameLayout() {
                     {Icon && <Icon size={17} color="currentColor" />}
                   </span>
                   <span>{item.label}</span>
+                  {/* Progression Compadex */}
+                  {item.id === 'collection' && (
+                    <span style={{ marginLeft:'auto', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'11px', color: isActive ? item.accent ?? '#60a5fa' : 'var(--text-muted)' }}>
+                      {compadexCount}/{compadexTotal}
+                    </span>
+                  )}
                   {/* Badge quêtes */}
                   {item.id === 'quests' && claimable > 0 && (
                     <div style={{ position:'absolute', right:'10px', width:18, height:18, background:'linear-gradient(135deg,#dc2626,#ef4444)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:12, color:'white', boxShadow:'0 0 8px rgba(239,68,68,0.6)' }}>{claimable}</div>
