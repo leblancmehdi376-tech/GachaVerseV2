@@ -402,4 +402,20 @@ export type GameStore = GameState
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;
     resetGame: () => void;
+    // Combat de boss d'événement en cours (voir components/pages/event/EventBattle.tsx) —
+    // conservé en mémoire (hors partialize, pas de persistance disque/cloud) pour
+    // survivre à un changement d'onglet de l'appli (EventPage démonte/remonte
+    // EventBattle à chaque fois) sans perdre la progression déjà faite.
+    eventBossFight: EventBossFightState | null;
+    setEventBossFight: (fight: EventBossFightState | null) => void;
   };
+
+export interface EventBossFightState {
+  bossId: string;
+  hp: BigNum;
+  maxHp: BigNum;
+  bossAffinity: Affinity;
+  companionIds: string[];
+  kills: number;
+  dead: boolean;
+}

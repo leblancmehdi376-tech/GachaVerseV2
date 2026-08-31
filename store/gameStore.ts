@@ -128,6 +128,8 @@ const makeInitial = () => ({
   anomalyTokens: 0,
   ownedAnomalies: [] as GameStore['ownedAnomalies'],
   anomalySlots: 1,
+  // ── Combat de boss d'événement en cours (jamais persisté, voir GameStore) ──
+  eventBossFight: null as GameStore['eventBossFight'],
 });
 
 // ─── Migration depuis les 4 anciens stores Zustand séparés ─────────────────
@@ -206,6 +208,8 @@ export const useGameStore = create<GameStore>()(
         try { localStorage.clear(); } catch {}
         set(makeInitial());
       },
+
+      setEventBossFight: (fight) => set({ eventBossFight: fight }),
     }),
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs

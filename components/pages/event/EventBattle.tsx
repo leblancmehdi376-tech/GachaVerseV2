@@ -14,15 +14,23 @@ import { DropPopup } from './DropPopup';
 import { bnDivRatio, bnIsZero, bnMulScalar, bnSub, type BigNum } from '@/lib/game/bignum';
 
 export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
-  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, getActiveEnemyDamageTakenMultiplier, unlockedTitles } = useGameStore();
+  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setEventBossFight } = useGameStore();
 
   const boss = useMemo(() => EVENT_BOSSES.find(b => b.id === bossId) ?? EVENT_BOSSES[0], [bossId]);
   const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection), [equippedTeam, collection]);
 
+  // Combat déjà en cours pour CE boss (ex: retour depuis un autre onglet de
+  // l'appli — voir eventBossFight dans le store) : on reprend sa progression
+  // au lieu de repartir à 100% de vie. N'est lu qu'au montage (composant
+  // toujours (dé)monté à chaque changement de boss, jamais juste re-rendu
+  // avec un nouveau bossId — voir EventPage.tsx).
+  const savedFight = useGameStore.getState().eventBossFight;
+  const resumable = savedFight && savedFight.bossId === bossId ? savedFight : null;
+
   // Type du boss : tiré au hasard à chaque nouveau lancement (entrée + chaque
   // respawn après un kill — voir respawn() plus bas), pas déterministe.
-  const [bossAffinity, setBossAffinity] = useState<Affinity>(() => rollBossAffinity());
-  const [companionIds, setCompanionIds] = useState<string[]>([]);
+  const [bossAffinity, setBossAffinity] = useState<Affinity>(() => resumable?.bossAffinity ?? rollBossAffinity());
+  const [companionIds, setCompanionIds] = useState<string[]>(() => resumable?.companionIds ?? []);
   const [showCompanions, setShowCompanions] = useState(false);
   const durationMult = useMemo(() => computeDurationMult(companionIds, bossAffinity), [companionIds, bossAffinity]);
   const toggleCompanion = (id: string) => setCompanionIds(prev =>
@@ -31,20 +39,20 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
       : prev
   );
 
-  const [maxHp, setMaxHp] = useState<BigNum>(() => getEventBossMaxHp(boss, totalEquippedDps, durationMult));
-  const [hp, setHp] = useState<BigNum>(maxHp);
+  const [maxHp, setMaxHp] = useState<BigNum>(() => resumable?.maxHp ?? getEventBossMaxHp(boss, totalEquippedDps, durationMult));
+  const [hp, setHp] = useState<BigNum>(() => resumable?.hp ?? maxHp);
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
   const [drops, setDrops] = useState<DropResult[] | null>(null);
-  const [dead, setDead] = useState(false);
-  const [kills, setKills] = useState(0);
+  const [dead, setDead] = useState(() => resumable?.dead ?? false);
+  const [kills, setKills] = useState(() => resumable?.kills ?? 0);
   const now = Date.now();
 
-  // Nouveau combat (montage, ou changement de boss) : reset complet.
+  // Sauvegarde continue dans le store (voir eventBossFight) : permet de
+  // reprendre le combat là où il en était après un changement d'onglet de
+  // l'appli, EventBattle étant démonté/remonté à chaque fois par EventPage.
   useEffect(() => {
-    const freshMax = getEventBossMaxHp(boss, totalEquippedDps, durationMult);
-    setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boss]);
+    setEventBossFight({ bossId: boss.id, bossAffinity, companionIds, maxHp, hp, dead, kills });
+  }, [setEventBossFight, boss.id, bossAffinity, companionIds, maxHp, hp, dead, kills]);
 
   // DPS d'équipe ou compagnons modifiés en cours de combat : le PV max
   // change (la durée visée change) mais la progression déjà faite doit
