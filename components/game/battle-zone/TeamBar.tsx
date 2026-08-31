@@ -39,8 +39,8 @@ export function TeamBar({
         {/* Panel compagnons */}
         <div style={{
           background:'linear-gradient(160deg,rgba(15,10,30,0.92),rgba(8,6,18,0.92))',
-          border:'1px solid rgba(255,255,255,0.09)',
-          borderRadius:12,
+          border:'1px solid rgba(255,255,255,0.08)',
+          borderRadius:10,
           padding:'10px 12px 8px',
           display:'flex',
           flexDirection:'column',
@@ -77,42 +77,46 @@ export function TeamBar({
 
         <div style={{ flex:1 }} />
 
-        {/* Synergies actives */}
-        {syns.length > 0 && (
-          <div style={{ display:'flex', gap:4, alignItems:'center', marginRight:8, alignSelf:'flex-end' }}>
-            {syns.map(s => (
-              <div key={s.def.id} title={`${s.def.label} — ${s.threshold.label}`}
-                style={{ display:'flex', alignItems:'center', gap:4, background:`${s.def.color}18`, border:`1px solid ${s.def.color}55`, borderRadius:6, padding:'3px 8px', boxShadow:`0 0 8px ${s.def.glow}33` }}>
-                <div style={{ width:16, height:16, flexShrink:0 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/sprites/synergies/${s.def.id}.webp`} alt={s.def.label}
-                    style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:2 }}
-                    onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:12px">${s.def.icon}</span>`; }} />
+        {/* Barre d'infos de combat unifiée : synergies / butin / DPS partagent
+            un seul cadre avec séparateurs internes, plutôt que des boîtes
+            bordées séparées (moins de cadres empilés, hauteur cohérente). */}
+        <div style={{ display:'flex', alignItems:'stretch', background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, overflow:'hidden', flexShrink:0, alignSelf:'flex-end' }}>
+          {syns.length > 0 && (
+            <div style={{ display:'flex', gap:6, alignItems:'center', padding:'0 12px', borderRight:'1px solid rgba(255,255,255,0.07)' }}>
+              {syns.map(s => (
+                <div key={s.def.id} title={`${s.def.label} — ${s.threshold.label}`}
+                  style={{ display:'flex', alignItems:'center', gap:4 }}>
+                  <div style={{ width:16, height:16, flexShrink:0 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/sprites/synergies/${s.def.id}.webp`} alt={s.def.label}
+                      style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:2 }}
+                      onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:12px">${s.def.icon}</span>`; }} />
+                  </div>
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:s.def.color, whiteSpace:'nowrap' }}>
+                    {s.threshold.dpsBonus > 0 ? `+${s.threshold.dpsBonus}%` : `+${s.threshold.globalBonus}% glb`}
+                  </span>
                 </div>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:s.def.color, whiteSpace:'nowrap' }}>
-                  {s.threshold.dpsBonus > 0 ? `+${s.threshold.dpsBonus}%` : `+${s.threshold.globalBonus}% glb`}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        {/* Butin de l'ennemi courant */}
-        <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'7px 12px', flexShrink:0, textAlign:'right', marginRight:12, alignSelf:'flex-end' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
-          <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
-            +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
-            {withChest && <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(withChest)})</span>}
+          {/* Butin de l'ennemi courant */}
+          <div style={{ padding:'7px 14px', textAlign:'right', borderRight:'1px solid rgba(255,255,255,0.07)' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
+            <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
+              +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
+              {withChest && <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(withChest)})</span>}
+            </div>
+            {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.4, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>
-          {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
-        </div>
 
-        {/* DPS d'équipe */}
-        <div style={{ textAlign:'right', alignSelf:'flex-end' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.3)', letterSpacing:1.5 }}>🔥 DPS</div>
-          <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
-            {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
+          {/* DPS d'équipe */}
+          <div style={{ padding:'7px 14px', textAlign:'right' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS</div>
+            <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
+              {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
+            </div>
           </div>
         </div>
 
@@ -132,9 +136,9 @@ export function TeamBar({
         {bossAvoided && !bossActive && wave !== 10 && (
           <button
             onClick={e => { e.stopPropagation(); challengeBoss(); }}
-            style={{ padding:'10px 14px', background:'rgba(234,179,8,0.12)', border:'1px solid rgba(234,179,8,0.5)', borderRadius:10, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:2, flexShrink:0, alignSelf:'flex-end', transition:'background 0.2s', animation:'pulse 2s infinite' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.25)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.12)')}
+            style={{ padding:'10px 14px', background:'rgba(234,179,8,0.08)', border:'1px solid rgba(234,179,8,0.35)', borderRadius:10, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:2, flexShrink:0, alignSelf:'flex-end', transition:'background 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.22)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.08)')}
             title="Retenter le boss"
           >
             <span style={{ fontSize:16.5 }}>⚡</span>

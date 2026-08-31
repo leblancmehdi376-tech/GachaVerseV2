@@ -170,7 +170,7 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
         inset: 0,
         pointerEvents: 'none',
         zIndex: 2,
-        background: 'radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(0,0,0,0.45) 65%, rgba(0,0,0,0.82) 100%)',
+        background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.55) 100%)',
       }} />
 
       {/* Bottom fog — blends into the bottom panel */}
@@ -182,7 +182,7 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
         height: '40%',
         pointerEvents: 'none',
         zIndex: 2,
-        background: 'linear-gradient(0deg, rgba(5,4,15,0.95) 0%, rgba(5,4,15,0.4) 50%, transparent 100%)',
+        background: 'linear-gradient(0deg, rgba(5,4,15,0.7) 0%, rgba(5,4,15,0.28) 50%, transparent 100%)',
       }} />
 
       {/* Corner darkening */}
@@ -192,8 +192,8 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
         pointerEvents: 'none',
         zIndex: 2,
         background: `
-          radial-gradient(ellipse at 0% 0%, rgba(0,0,0,0.5) 0%, transparent 50%),
-          radial-gradient(ellipse at 100% 0%, rgba(0,0,0,0.5) 0%, transparent 50%)
+          radial-gradient(ellipse at 0% 0%, rgba(0,0,0,0.38) 0%, transparent 50%),
+          radial-gradient(ellipse at 100% 0%, rgba(0,0,0,0.38) 0%, transparent 50%)
         `,
       }} />
     </>

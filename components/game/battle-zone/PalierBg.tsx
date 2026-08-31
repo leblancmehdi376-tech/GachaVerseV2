@@ -13,7 +13,7 @@ export function PalierBg({ palier, gradient }: { palier: number; gradient: strin
       <img src={src} alt=""
         onError={onError}
         style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', imageRendering:'pixelated' }} />
-      <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.4) 0%,transparent 25%,transparent 60%,rgba(0,0,0,0.85) 100%)' }} />
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.28) 0%,transparent 30%,transparent 55%,rgba(0,0,0,0.6) 100%)' }} />
     </>
   );
   return <div style={{ position:'absolute', inset:0, background:gradient }} />;

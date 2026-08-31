@@ -207,7 +207,7 @@ export function GameLayout() {
       <ToastContainer />
 
       {/* ══ TOP BAR ══════════════════════════════════════════════════════ */}
-      <header style={{ height:'56px', flexShrink:0, display:'flex', alignItems:'center', background:'linear-gradient(180deg,#0a0818,var(--bg-dark))', borderBottom:'1px solid var(--border)', padding:isMobile?'0 10px':'0 20px', gap:isMobile?'8px':'16px', zIndex:30, boxShadow:'0 2px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.03)', position:'relative',
+      <header style={{ height:'56px', flexShrink:0, display:'flex', alignItems:'center', background:'linear-gradient(180deg,#0a0818,var(--bg-dark))', borderBottom:'1px solid var(--border)', padding:isMobile?'0 10px':'0 20px', gap:isMobile?'8px':isCompactHeader?'16px':'22px', zIndex:30, boxShadow:'0 2px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.03)', position:'relative',
         // Filet de sécurité : sur les très petits écrans (<~360px), même les
         // marges déjà réduites ci-dessous peuvent ne pas suffire. Plutôt que
         // de laisser les éléments se chevaucher (voir bug ressources/calendrier
@@ -426,7 +426,7 @@ export function GameLayout() {
                 <BattleZone />
               </div>
               {/* Sidebar droite de combat (passe en dessous sur mobile) */}
-              <aside style={{ width:isMobile?'100%':'260px', flexShrink:0, display:'flex', flexDirection:'column', gap:'10px', overflowY:isMobile?'visible':'auto' }}>
+              <aside style={{ width:isMobile?'100%':'224px', flexShrink:0, display:'flex', flexDirection:'column', gap:'10px', overflowY:isMobile?'visible':'auto' }}>
                 <ProgressCard palier={palier} wave={wave} progressPct={progressPct} cfg={cfg} />
                 <QuestsCard quests={quests} claimQuest={useGameStore.getState().claimQuest} />
                 <StatsCard maxPalierReached={maxPalierReached} />
