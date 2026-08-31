@@ -39,10 +39,25 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   const [kills, setKills] = useState(0);
   const now = Date.now();
 
+  // Nouveau combat (montage, ou changement de boss) : reset complet.
   useEffect(() => {
     const freshMax = getEventBossMaxHp(boss, totalEquippedDps, durationMult);
     setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null);
-  }, [boss, totalEquippedDps, durationMult]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boss]);
+
+  // DPS d'équipe ou compagnons modifiés en cours de combat : le PV max
+  // change (la durée visée change) mais la progression déjà faite doit
+  // être conservée — on ne garde que le pourcentage de vie restant plutôt
+  // que de reset le combat à 100%.
+  useEffect(() => {
+    if (dead) return;
+    const freshMax = getEventBossMaxHp(boss, totalEquippedDps, durationMult);
+    const ratio = bnIsZero(maxHp) ? 1 : Math.min(1, Math.max(0, bnDivRatio(hp, maxHp)));
+    setMaxHp(freshMax);
+    setHp(bnMulScalar(freshMax, ratio));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalEquippedDps, durationMult]);
 
   // ── Combat automatique : dégâts du DPS d'équipe chaque seconde, avec
   // un pop-up de dégâts flottant pour le retour visuel (plus de clic).
