@@ -88,15 +88,11 @@ export const GIFT_CODES: GiftCodeDef[] = [
     code:         'LULUUUUUUX',
     items:        ['elixir_vie', 'elixir_vie', 'manteau_ombre', 'manteau_ombre', 'beru'],
     drops:        { pierre_evolution: 40 },
-<<<<<<< Updated upstream
   },*/
-=======
-  },
   {
     code:         'CRISTAL-ETHER',
     items:        ['cristal_ether'],
   },
->>>>>>> Stashed changes
   /*{
     code:         'CODE-SORRY-INES',
     pixelCoins:   1_000_000,
