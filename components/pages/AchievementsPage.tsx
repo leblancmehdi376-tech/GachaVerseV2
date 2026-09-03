@@ -5,6 +5,7 @@ import { ACHIEVEMENTS, CATEGORY_LABELS, AchievCategory } from '@/lib/game/achiev
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 import { TITLE_GOLD_BONUS_PCT, EVENT_TITLES } from '@/lib/game/titles';
+import { DAILY_REWARD_TITLES } from '@/lib/game/dailyRewards';
 
 const CATEGORIES: (AchievCategory | 'all')[] = ['all', 'combat', 'progression', 'collection', 'gacha', 'social'];
 
@@ -226,6 +227,43 @@ export function AchievementsPage() {
                     </div>
                     <div style={{ marginTop:'6px', fontFamily:'var(--f-num)', fontSize:'12px', fontWeight:800, color: isUnlk ? 'var(--gold-hi)' : 'var(--text-muted)' }}>
                       🪙 +{TITLE_GOLD_BONUS_PCT[titleStr] ?? 0}% d'or
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── Titres de connexion journalière — calendrier 28 jours, pas de succès associé ── */}
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:2, marginTop:'8px' }}>TITRES DE CONNEXION JOURNALIÈRE</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:'10px' }}>
+              {DAILY_REWARD_TITLES.map(({ day, title: titleStr }) => {
+                const isUnlk   = unlockedTitles.includes(titleStr);
+                const isActive = activeTitle === titleStr;
+                return (
+                  <div key={titleStr} onClick={() => isUnlk && setActiveTitle(titleStr)}
+                    className="panel"
+                    style={{
+                      padding:'14px 16px',
+                      cursor: isUnlk ? 'pointer' : 'not-allowed',
+                      opacity: isUnlk ? 1 : 0.45,
+                      borderColor: isActive ? '#fbbf2466' : isUnlk ? 'var(--border-lit)' : 'var(--border)',
+                      background: isActive ? 'rgba(251,191,36,0.08)' : undefined,
+                      boxShadow: isActive ? '0 0 20px rgba(251,191,36,0.15)' : 'none',
+                      transition:'all 0.15s',
+                    }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
+                      <span style={{ fontSize:'20.6px' }}>📅</span>
+                      {isActive && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color:'#fbbf24', letterSpacing:'1px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.3)', padding:'2px 7px', borderRadius:'4px' }}>ACTIF</span>}
+                      {!isUnlk && <span style={{ fontSize:'12.4px' }}>🔒</span>}
+                    </div>
+                    <div style={{ fontFamily:'var(--f-title)', fontSize:'15.5px', fontWeight:700, color: isActive ? '#fbbf24' : isUnlk ? 'var(--text)' : 'var(--text-muted)', letterSpacing:'1px', marginBottom:'3px' }}>
+                      « {titleStr} »
+                    </div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>
+                      {isUnlk ? `Récompense de connexion — jour ${day}` : `Récompense de connexion : jour ${day}`}
+                    </div>
+                    <div style={{ marginTop:'6px', fontFamily:'var(--f-num)', fontSize:'12px', fontWeight:800, color: isUnlk ? 'var(--gold-hi)' : 'var(--text-muted)' }}>
+                      🪙 +{TITLE_GOLD_BONUS_PCT[titleStr] ?? 0}% d&apos;or
                     </div>
                   </div>
                 );
