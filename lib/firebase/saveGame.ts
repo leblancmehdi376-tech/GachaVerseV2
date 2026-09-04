@@ -9,7 +9,19 @@ export async function saveGameToFirestore(userId: string, state: Partial<GameSta
   if (!db) return;
   try {
     const ref = doc(db, 'saves', userId);
-    await setDoc(ref, { ...state, lastSaved: correctedNow() }, { merge: true });
+    const data = { ...state, lastSaved: correctedNow() };
+    // mergeFields (pas merge:true) : remplace ENTIÈREMENT chaque champ listé
+    // (donc un objet imbriqué comme `collection: {}` vide vraiment le champ
+    // côté cloud — merge:true, lui, fusionne récursivement et ne supprime
+    // jamais une sous-clé absente du payload, ce qui empêchait un reset local
+    // (Prestige, etc.) de se propager). Les champs du doc absents de `data`
+    // (session, clockProbe, corrections admin...) restent intacts, comme
+    // avec merge:true — seule la granularité change.
+    // Suppose que `state` est TOUJOURS un snapshot complet des champs qu'il
+    // contient (jamais un delta partiel d'un objet imbriqué) : un appelant
+    // qui enverrait un `collection` ne contenant qu'UN personnage effacerait
+    // silencieusement tous les autres côté cloud.
+    await setDoc(ref, data, { mergeFields: Object.keys(data) });
     logFirestoreOp('write', source);
   } catch (e) {
     logger.error('Save error:', e);

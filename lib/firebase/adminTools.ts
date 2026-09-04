@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, deleteField, increment, FieldPath } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteField, FieldPath } from 'firebase/firestore';
 import { db } from './config';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
@@ -248,6 +248,46 @@ export async function resetPlayerEventQuests(uid: string): Promise<boolean> {
   }
 }
 
+// ── Filet de sécurité contre une collision avec l'autosave du joueur ───────
+// Depuis que saveGameToFirestore (côté joueur) écrit `collection`/
+// `inventory`/`equipmentInventory` via mergeFields (remplacement ENTIER de
+// ces champs, voir saveGame.ts), une correction ciblée par FieldPath peut se
+// faire écraser si l'autosave du joueur part d'un état local qui ne connaît
+// pas encore cette correction (le listener temps réel de useCloudSave.ts
+// l'aurait normalement rattrapée avant, mais rien ne garantit l'ordre en cas
+// de collision serrée — ex: joueur qui enchaîne des urgent saves pendant
+// qu'un admin corrige sa sauvegarde). On revérifie donc une fois, après un
+// court délai, et on réapplique si la valeur a divergé. Fire-and-forget côté
+// appelant (le panel admin ne doit pas attendre ce délai pour afficher un
+// résultat) — les erreurs sont juste loguées.
+const CORRECTION_VERIFY_DELAY_MS = 2500;
+
+function getAtPath(obj: unknown, path: string[]): unknown {
+  let cur = obj;
+  for (const seg of path) {
+    if (cur == null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[seg];
+  }
+  return cur;
+}
+
+function verifyAndReapply(uid: string, path: string[], expected: unknown, reapply: () => Promise<unknown>): void {
+  const database = db;
+  if (!database) return;
+  setTimeout(async () => {
+    try {
+      const snap = await getDoc(doc(database, 'saves', uid));
+      if (!snap.exists()) return;
+      const actual = getAtPath(snap.data(), path);
+      if (JSON.stringify(actual) === JSON.stringify(expected)) return;
+      logger.warn(`[AdminTools] Correction sur "${path.join('.')}" écrasée par une écriture concurrente, réapplication:`, uid);
+      await reapply();
+    } catch (e) {
+      logger.error('[AdminTools] verifyAndReapply:', e);
+    }
+  }, CORRECTION_VERIFY_DELAY_MS);
+}
+
 // ── Gestion de la collection de personnages ────────────────────────────────
 // removePlayerCharacter/setPlayerCharacterLevel ciblent directement la clé
 // `collection.{instanceKey}` du doc via FieldPath, au lieu de lire tout le
@@ -259,15 +299,18 @@ export async function resetPlayerEventQuests(uid: string): Promise<boolean> {
 /** Retire un personnage (une édition précise) de la collection d'un joueur. */
 export async function removePlayerCharacter(uid: string, instanceKey: string): Promise<boolean> {
   if (!db) return false;
+  const database = db;
   try {
     // adminCorrectionAt : même mécanisme que pour le solde — permet au client
     // du joueur (s'il est en ligne) d'appliquer le changement en direct au
     // lieu de le laisser écraser par son propre autosave (voir useCloudSave.ts).
-    await updateDoc(doc(db, 'saves', uid),
+    const write = () => updateDoc(doc(database, 'saves', uid),
       new FieldPath('collection', instanceKey), deleteField(),
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
     );
+    await write();
+    verifyAndReapply(uid, ['collection', instanceKey], undefined, write);
     return true;
   } catch (e) {
     logger.error('[AdminTools] removePlayerCharacter:', e);
@@ -286,6 +329,7 @@ export async function addPlayerCharacter(
   uid: string, templateId: string, edition: CardEdition, level: number, rank: number, currentForm: number = 0
 ): Promise<{ ok: boolean; error?: string; char?: OwnedCharacterSummary }> {
   if (!db) return { ok: false, error: 'Firebase non configuré' };
+  const database = db;
   const tpl = getCharacterById(templateId);
   if (!tpl) return { ok: false, error: `Personnage "${templateId}" introuvable — vérifie l'id exact` };
   try {
@@ -293,7 +337,7 @@ export async function addPlayerCharacter(
     // pour un perso déjà possédé, il faut préserver copies/xp/equippedItems —
     // des champs invisibles côté résumé admin, donc pas déductibles de l'état
     // déjà affiché dans le panel.
-    const snap = await getDoc(doc(db, 'saves', uid));
+    const snap = await getDoc(doc(database, 'saves', uid));
     if (!snap.exists()) return { ok: false, error: 'Sauvegarde introuvable pour ce joueur' };
     const instanceKey = makeInstanceKey(templateId, edition);
     const existing = (snap.data().collection ?? {})[instanceKey];
@@ -311,11 +355,13 @@ export async function addPlayerCharacter(
       xp: existing?.xp ?? 0,
       ...(existing?.equippedItems ? { equippedItems: existing.equippedItems } : {}),
     };
-    await updateDoc(doc(db, 'saves', uid),
+    const write = () => updateDoc(doc(database, 'saves', uid),
       new FieldPath('collection', instanceKey), entry,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
     );
+    await write();
+    verifyAndReapply(uid, ['collection', instanceKey], entry, write);
     return {
       ok: true,
       char: {
@@ -333,12 +379,16 @@ export async function addPlayerCharacter(
 /** Change juste le niveau d'un personnage déjà possédé (sans toucher au reste). */
 export async function setPlayerCharacterLevel(uid: string, instanceKey: string, newLevel: number): Promise<boolean> {
   if (!db) return false;
+  const database = db;
   try {
-    await updateDoc(doc(db, 'saves', uid),
-      new FieldPath('collection', instanceKey, 'level'), Math.max(1, Math.min(999, Math.floor(newLevel))),
+    const clampedLevel = Math.max(1, Math.min(999, Math.floor(newLevel)));
+    const write = () => updateDoc(doc(database, 'saves', uid),
+      new FieldPath('collection', instanceKey, 'level'), clampedLevel,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
     );
+    await write();
+    verifyAndReapply(uid, ['collection', instanceKey, 'level'], clampedLevel, write);
     return true;
   } catch (e) {
     logger.error('[AdminTools] setPlayerCharacterLevel:', e);
@@ -347,23 +397,35 @@ export async function setPlayerCharacterLevel(uid: string, instanceKey: string, 
 }
 
 // ── Objets d'évolution et équipement ("drops") ──────────────────────────────
-// increment() permet d'ajouter une quantité de façon atomique SANS lire le
-// doc au préalable (contrairement à addPlayerCharacter, qui doit préserver
-// des champs invisibles pour un perso déjà possédé) — la valeur ajoutée est
-// simplement additionnée au stock déjà présent, quel qu'il soit.
+// Valeur absolue (lecture + calcul + écriture), pas increment() : increment()
+// est atomique côté serveur mais ça ne protège pas contre le vrai risque ici
+// — l'autosave du joueur qui remplace tout `inventory`/`equipmentInventory`
+// (mergeFields, voir saveGame.ts) SANS connaître notre ajout. La correction
+// serait alors silencieusement perdue quel que soit le mécanisme d'écriture.
+// Passer en valeur absolue permet à verifyAndReapply de vérifier et
+// réappliquer la correction si ça arrive — au prix d'un léger risque de
+// "lost update" si DEUX corrections admin visent le même objet au même
+// instant (acceptable : action manuelle rare, un seul opérateur à la fois).
 
 /** Ajoute une quantité d'un objet d'évolution (ITEM_DEFS) à l'inventaire d'un joueur. */
 export async function addPlayerItem(uid: string, itemId: string, qty: number): Promise<{ ok: boolean; error?: string; item?: OwnedItemSummary }> {
   if (!db) return { ok: false, error: 'Firebase non configuré' };
+  const database = db;
   const def = getItemDef(itemId);
   if (!def) return { ok: false, error: `Objet "${itemId}" introuvable — vérifie l'id exact` };
   const addedQty = Math.max(1, Math.min(999999, Math.floor(qty)));
   try {
-    await updateDoc(doc(db, 'saves', uid),
-      new FieldPath('inventory', itemId), increment(addedQty),
+    const snap = await getDoc(doc(database, 'saves', uid));
+    if (!snap.exists()) return { ok: false, error: 'Sauvegarde introuvable pour ce joueur' };
+    const current = (snap.data().inventory ?? {})[itemId] ?? 0;
+    const newQty = current + addedQty;
+    const write = () => updateDoc(doc(database, 'saves', uid),
+      new FieldPath('inventory', itemId), newQty,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
     );
+    await write();
+    verifyAndReapply(uid, ['inventory', itemId], newQty, write);
     return { ok: true, item: { id: itemId, name: def.name, icon: def.icon, color: def.color, qty: addedQty } };
   } catch (e) {
     logger.error('[AdminTools] addPlayerItem:', e);
@@ -374,15 +436,22 @@ export async function addPlayerItem(uid: string, itemId: string, qty: number): P
 /** Ajoute une quantité d'un équipement ("drop", EQUIPMENT_DEFS) au stock non-équipé d'un joueur. */
 export async function addPlayerEquipment(uid: string, equipmentId: string, qty: number): Promise<{ ok: boolean; error?: string; equipment?: OwnedEquipmentSummary }> {
   if (!db) return { ok: false, error: 'Firebase non configuré' };
+  const database = db;
   const def = getEquipmentDef(equipmentId);
   if (!def) return { ok: false, error: `Équipement "${equipmentId}" introuvable — vérifie l'id exact` };
   const addedQty = Math.max(1, Math.min(999999, Math.floor(qty)));
   try {
-    await updateDoc(doc(db, 'saves', uid),
-      new FieldPath('equipmentInventory', equipmentId), increment(addedQty),
+    const snap = await getDoc(doc(database, 'saves', uid));
+    if (!snap.exists()) return { ok: false, error: 'Sauvegarde introuvable pour ce joueur' };
+    const current = (snap.data().equipmentInventory ?? {})[equipmentId] ?? 0;
+    const newQty = current + addedQty;
+    const write = () => updateDoc(doc(database, 'saves', uid),
+      new FieldPath('equipmentInventory', equipmentId), newQty,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
     );
+    await write();
+    verifyAndReapply(uid, ['equipmentInventory', equipmentId], newQty, write);
     return { ok: true, equipment: { id: equipmentId, name: def.name, icon: def.icon, color: def.color, rarity: def.rarity as Rarity, qty: addedQty } };
   } catch (e) {
     logger.error('[AdminTools] addPlayerEquipment:', e);
