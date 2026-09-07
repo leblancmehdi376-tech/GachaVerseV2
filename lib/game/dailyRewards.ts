@@ -63,6 +63,20 @@ export function getDailyRewardDay(day: number): DailyRewardDay | undefined {
   return DAILY_REWARDS.find(d => d.day === day);
 }
 
+export interface DailyRewardTitle {
+  day: number;
+  title: string;
+}
+
+// Titres distribués par le calendrier de connexion (jours 7 et 28 actuellement)
+// — utilisé par l'onglet "Titres" pour les lister, en plus des titres liés aux
+// succès et aux événements (ces titres-là ne sont rattachés à aucun succès).
+export const DAILY_REWARD_TITLES: DailyRewardTitle[] = DAILY_REWARDS.flatMap(d =>
+  d.items
+    .filter((i): i is DailyRewardItem & { title: string } => i.kind === 'title' && !!i.title)
+    .map(i => ({ day: d.day, title: i.title }))
+);
+
 export function formatDailyRewardLabel(item: DailyRewardItem): string {
   switch (item.kind) {
     case 'voidOrbs':     return `${item.amount} Orbes du Néant`;
