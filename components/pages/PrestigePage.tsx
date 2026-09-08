@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, RANK_RECOVERY_MAX_LEVEL, getRankRecoveryCost, rankRecoveryCap } from '@/lib/game/prestige';
 import { formatNumber } from '@/lib/game/format';
@@ -103,16 +103,136 @@ export function formatBonusValue(type: PrestigeBonusType, level: number): string
   return `+${(total * 100).toFixed(0)}%`;
 }
 
-function RollResultPopup({ type, onClose }: { type: PrestigeBonusType; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 3200); return () => clearTimeout(t); }, [onClose]);
-  const def = PRESTIGE_BONUS_DEFS[type];
+// ─── Roue de tirage (façon lootbox) ─────────────────────────────────────────
+const REEL_ITEM_WIDTH = 130;
+const REEL_ITEM_GAP = 14;
+const REEL_SLOT = REEL_ITEM_WIDTH + REEL_ITEM_GAP;
+const REEL_LENGTH = 50;
+const REEL_WIN_INDEX = 44;
+const REEL_SPIN_MS = 4600;
+const REEL_SKIP_MS = 280;
+
+const BONUS_COLORS: Record<PrestigeBonusType, string> = {
+  dps: '#f97316',
+  gold: '#eab308',
+  shinyGold: '#38bdf8',
+  shinyDiamond: '#f472b6',
+  equipDrop: '#4ade80',
+  tokenGain: '#fbbf24',
+};
+
+function buildReel(winner: PrestigeBonusType): PrestigeBonusType[] {
+  const arr: PrestigeBonusType[] = [];
+  for (let i = 0; i < REEL_LENGTH; i++) {
+    arr.push(i === REEL_WIN_INDEX ? winner : PRESTIGE_BONUS_TYPES[Math.floor(Math.random() * PRESTIGE_BONUS_TYPES.length)]);
+  }
+  return arr;
+}
+
+function PrestigeReelPopup({ result, onClose }: { result: PrestigeBonusType; onClose: () => void }) {
+  const [reel] = useState(() => buildReel(result));
+  const [phase, setPhase] = useState<'spinning' | 'revealed'>('spinning');
+  const [posX, setPosX] = useState(0);
+  const [durationMs, setDurationMs] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const targetXRef = useRef(0);
+  const skippedRef = useRef(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const width = container.clientWidth;
+    const jitter = (Math.random() - 0.5) * (REEL_ITEM_WIDTH * 0.5);
+    const winnerCenter = REEL_WIN_INDEX * REEL_SLOT + REEL_ITEM_WIDTH / 2;
+    targetXRef.current = width / 2 - winnerCenter + jitter;
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setDurationMs(REEL_SPIN_MS);
+        setPosX(targetXRef.current);
+      });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const handleTransitionEnd = (e: React.TransitionEvent) => {
+    if (e.propertyName !== 'transform' || phase !== 'spinning') return;
+    setPhase('revealed');
+  };
+
+  const handleSkip = () => {
+    if (phase !== 'spinning' || skippedRef.current || !trackRef.current) return;
+    skippedRef.current = true;
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(trackRef.current).transform);
+    setDurationMs(0);
+    setPosX(matrix.m41);
+    requestAnimationFrame(() => {
+      setDurationMs(REEL_SKIP_MS);
+      setPosX(targetXRef.current);
+    });
+  };
+
+  const def = PRESTIGE_BONUS_DEFS[result];
+
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:9995, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.75)' }} onClick={onClose}>
-      <div className="panel panel--glow" style={{ padding:'32px 44px', textAlign:'center', display:'flex', flexDirection:'column', gap:10 }}>
-        <div style={{ fontSize:53.6 }}>{def.icon}</div>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', letterSpacing:2 }}>BONUS OBTENU</div>
-        <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'#fbbf24' }}>{def.label}</div>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.3)', marginTop:8 }}>Cliquez pour fermer</div>
+    <div style={{ position:'fixed', inset:0, zIndex:9995, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.82)', padding:16 }}>
+      <div className="panel panel--glow" style={{ width:'100%', maxWidth:680, padding:'26px 20px', display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', letterSpacing:2 }}>
+          {phase === 'spinning' ? 'TIRAGE EN COURS…' : 'BONUS OBTENU'}
+        </div>
+
+        <div ref={containerRef} style={{ position:'relative', overflow:'hidden', width:'100%', maxWidth:640, height:118 }}>
+          <div style={{ position:'absolute', inset:0, left:'50%', width:2, transform:'translateX(-50%)', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', zIndex:2, boxShadow:'0 0 14px #fbbf24', pointerEvents:'none' }} />
+          <div style={{ position:'absolute', top:-2, left:'50%', transform:'translateX(-50%)', zIndex:3, width:0, height:0, borderLeft:'9px solid transparent', borderRight:'9px solid transparent', borderTop:'11px solid #fbbf24', filter:'drop-shadow(0 0 6px #fbbf24)', pointerEvents:'none' }} />
+          <div style={{ position:'absolute', bottom:-2, left:'50%', transform:'translateX(-50%)', zIndex:3, width:0, height:0, borderLeft:'9px solid transparent', borderRight:'9px solid transparent', borderBottom:'11px solid #fbbf24', filter:'drop-shadow(0 0 6px #fbbf24)', pointerEvents:'none' }} />
+          <div style={{ position:'absolute', top:0, bottom:0, left:0, width:70, background:'linear-gradient(90deg,var(--panel-bg,#0a0814) 20%,transparent)', zIndex:4, pointerEvents:'none' }} />
+          <div style={{ position:'absolute', top:0, bottom:0, right:0, width:70, background:'linear-gradient(270deg,var(--panel-bg,#0a0814) 20%,transparent)', zIndex:4, pointerEvents:'none' }} />
+
+          <div
+            ref={trackRef}
+            onClick={handleSkip}
+            onTransitionEnd={handleTransitionEnd}
+            style={{
+              display:'flex', alignItems:'center', gap:REEL_ITEM_GAP, height:'100%',
+              transform:`translateX(${posX}px)`,
+              transition: durationMs ? `transform ${durationMs}ms cubic-bezier(0.12,0.72,0.18,1)` : 'none',
+              willChange:'transform', cursor: phase === 'spinning' ? 'pointer' : 'default',
+            }}
+          >
+            {reel.map((type, i) => {
+              const itemDef = PRESTIGE_BONUS_DEFS[type];
+              const color = BONUS_COLORS[type];
+              const isWinner = i === REEL_WIN_INDEX;
+              const highlight = isWinner && phase === 'revealed';
+              return (
+                <div key={i} style={{
+                  width:REEL_ITEM_WIDTH, flexShrink:0, borderRadius:10, textAlign:'center', padding:'14px 8px',
+                  border:`2px solid ${highlight ? color : color + '55'}`,
+                  background:`linear-gradient(180deg, ${color}22, rgba(10,8,20,0.9))`,
+                  boxShadow: highlight ? `0 0 26px ${color}` : 'none',
+                  transform: highlight ? 'scale(1.08)' : 'scale(1)',
+                  transition:'transform 0.3s, box-shadow 0.3s, border-color 0.3s',
+                }}>
+                  <div style={{ fontSize:32 }}>{itemDef.icon}</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:10.5, color:'var(--text-dim)', marginTop:6, lineHeight:1.3 }}>{itemDef.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {phase === 'spinning' && (
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.35)' }}>Cliquez sur la bande pour accélérer</div>
+        )}
+
+        {phase === 'revealed' && (
+          <>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
+              <span>{def.icon}</span>{def.label}
+            </div>
+            <button onClick={onClose} className="btn-primary" style={{ padding:'10px 30px', fontSize:13.4, marginTop:4 }}>FERMER</button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -184,7 +304,7 @@ export function PrestigePage() {
           syncPending={syncPending}
         />
       )}
-      {rollResult && <RollResultPopup type={rollResult} onClose={() => setRollResult(null)} />}
+      {rollResult && <PrestigeReelPopup result={rollResult} onClose={() => setRollResult(null)} />}
 
       <div style={{ maxWidth:900, margin:'0 auto', display:'flex', flexDirection:'column', gap:22 }}>
 
@@ -239,8 +359,8 @@ export function PrestigePage() {
             <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:4 }}>JETONS DE PRESTIGE</div>
             <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26.8, color:'#fbbf24' }}>🎫 {tokens}</div>
           </div>
-          <button onClick={handleSpendToken} disabled={tokens <= 0} className={tokens > 0 ? 'btn-primary' : 'btn-secondary'}
-            style={{ padding:'12px 24px', fontSize:14.4, cursor: tokens > 0 ? 'pointer' : 'not-allowed', opacity: tokens > 0 ? 1 : 0.4 }}>
+          <button onClick={handleSpendToken} disabled={tokens <= 0 || rollResult !== null} className={tokens > 0 ? 'btn-primary' : 'btn-secondary'}
+            style={{ padding:'12px 24px', fontSize:14.4, cursor: (tokens > 0 && rollResult === null) ? 'pointer' : 'not-allowed', opacity: (tokens > 0 && rollResult === null) ? 1 : 0.4 }}>
             🎲 Utiliser un jeton — bonus aléatoire
           </button>
         </div>
