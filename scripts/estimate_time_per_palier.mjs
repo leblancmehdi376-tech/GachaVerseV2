@@ -103,10 +103,11 @@
  *     globale, pas par perso — un joueur optimal donne toujours sa
  *     meilleure pièce à l'emplacement qui en a le plus besoin) ; l'ancienne
  *     pièce déplacée (ou la pièce reçue si elle n'était pas assez bonne)
- *     devient fodder de fusion pour SA rareté. Fusion 10 pour 1 (comme en
- *     jeu, pickEquipmentUpgradeOutput) : 10 pièces fodder d'une rareté
- *     donnée fusionnent en 1 pièce de la rareté supérieure, qui retente
- *     aussitôt de remplacer l'emplacement le plus faible — en cascade si
+ *     devient fodder de fusion pour SA rareté. Fusion N pour 1 (comme en
+ *     jeu, getEquipmentUpgradeCost dans types/game.ts) : N pièces fodder
+ *     d'une rareté donnée (N décroît de 10 à C→U jusqu'au plancher 6 à
+ *     partir de M→S) fusionnent en 1 pièce de la rareté supérieure, qui
+ *     retente aussitôt de remplacer l'emplacement le plus faible — en cascade si
  *     besoin. Contrairement au tirage, la FUSION n'est PAS plafonnée par le
  *     déblocage du palier (pickEquipmentUpgradeOutput n'a aucune contrainte
  *     de ce type en jeu). Multiplicateur de DPS d'un perso = produit des
@@ -223,9 +224,12 @@ const CHAR_POOL_SIZE_BY_RARITY = { C: 38, U: 29, R: 13, E: 18, L: 21, M: 20, S: 
 const EQUIP_RARITY_MIN_PALIER = { C:1, U:3, R:5, E:7, L:9, M:11, S:13, CO:15, P:17, T:19 };
 const EQUIP_RARITY_BASE_MULT  = { C:1.05, U:1.08, R:1.12, E:1.17, L:1.23, M:1.3, S:1.38, CO:1.47, P:1.57, T:1.68 };
 const EQUIP_SLOT_COUNT = 5;
-// Craft d'équipement (lib/game/items.ts::pickEquipmentUpgradeOutput) : 10
-// pièces fodder d'un emplacement+rareté → 1 pièce de la rareté supérieure.
-const EQUIPMENT_FUSE_SIZE = 10;
+// Craft d'équipement (types/game.ts::getEquipmentUpgradeCost) : N pièces
+// fodder d'un emplacement+rareté → 1 pièce de la rareté supérieure. N décroît
+// de 1 par rareté à partir de 10 (C→U=10, U→R=9, ...), plancher à 6 (M→S et +).
+function equipmentFuseSize(rarityIdx) {
+  return Math.max(6, 10 - rarityIdx);
+}
 
 // Taux de drop d'équipement (copie exacte de lib/game/items.ts) : poids par
 // rareté (% par kill, avant filtrage des raretés non débloquées) et ordre
@@ -647,8 +651,9 @@ export function simulate({ rarity, paliers, baseDps, seed, chestLookahead }) {
   // croisé receiveEquipmentItem <-> addEquipmentFodder sans souci d'ordre.
   function addEquipmentFodder(rarityIdx) {
     fodder[rarityIdx] += 1;
-    if (fodder[rarityIdx] >= EQUIPMENT_FUSE_SIZE && rarityIdx < RARITY_KEYS.length - 1) {
-      fodder[rarityIdx] -= EQUIPMENT_FUSE_SIZE;
+    const fuseSize = equipmentFuseSize(rarityIdx);
+    if (fodder[rarityIdx] >= fuseSize && rarityIdx < RARITY_KEYS.length - 1) {
+      fodder[rarityIdx] -= fuseSize;
       receiveEquipmentItem(rarityIdx + 1); // pièce fusionnée : retente aussitôt de s'équiper
     }
   }
@@ -877,9 +882,10 @@ Rangs          Rang de CHAQUE membre (1 à 7, MÊME ORDRE que "Équipe") à
                rapportent rien. Une pièce obtenue REMPLACE l'emplacement le
                plus faible des 20 seulement si elle est meilleure ;
                l'ancienne pièce (ou la nouvelle si pas assez bonne) part en
-               fodder — 10 pièces fodder d'une rareté fusionnent en 1 pièce
-               de la rareté sup. (comme en jeu), qui retente aussitôt de
-               s'équiper. Résultat aléatoire, voir --seed.
+               fodder — N pièces fodder d'une rareté fusionnent en 1 pièce
+               de la rareté sup. (comme en jeu, N décroît de 10 à 6 selon la
+               rareté), qui retente aussitôt de s'équiper. Résultat
+               aléatoire, voir --seed.
 Pulls          Nombre CUMULÉ de pulls gacha effectués depuis le début,
                financés par les gemmes de progression (palier×10 au boss,
                +1 à la vague 5), les SUCCÈS (kills/boss/palier/upgrades/

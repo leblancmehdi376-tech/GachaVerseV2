@@ -1,7 +1,7 @@
 // Équipement : inventaire d'objets, équipement de personnages, fusion d'objets.
 // Extrait de gameStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
-import { defaultEquippedItems, getNextRarity, EquippedItems } from '@/types/game';
+import { defaultEquippedItems, getNextRarity, getEquipmentUpgradeCost, EquippedItems } from '@/types/game';
 import {
   ITEM_DEFS, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput,
   getSpecialWeaponGroup, pickRandomSpecialWeapon, isSpecialWeaponFusionRarity, SPECIAL_WEAPON_FUSION_COST,
@@ -41,16 +41,17 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
       return { ok: false, reason: 'Fusion non débloquée pour cette rareté' };
     }
 
+    const cost = getEquipmentUpgradeCost(rarity);
     const fodderGroup = getEquipmentGroup(slot, rarity);
     const inv = get().equipmentInventory;
     const totalOwned = fodderGroup.reduce((sum, item) => sum + (inv[item.id] ?? 0), 0);
-    if (totalOwned < 10) return { ok: false, reason: 'Pas assez d’objets (10 requis)' };
+    if (totalOwned < cost) return { ok: false, reason: `Pas assez d’objets (${cost} requis)` };
 
     const output = pickEquipmentUpgradeOutput(slot, nextRarity);
     if (!output) return { ok: false, reason: 'Aucun objet disponible à cette rareté' };
 
     set(s => {
-      let toConsume = 10;
+      let toConsume = cost;
       const newInv = { ...s.equipmentInventory };
       for (const item of fodderGroup) {
         if (toConsume <= 0) break;

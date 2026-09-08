@@ -523,7 +523,8 @@ export function getEquipmentGroup(slot: EquipmentDef['slot'], rarity: string): E
   return Object.values(EQUIPMENT_DEFS).filter(item => item.slot === slot && item.rarity === rarity);
 }
 
-// Tirage pondéré du résultat d'une fusion d'équipement (10 → 1 rareté sup.) :
+// Tirage pondéré du résultat d'une fusion d'équipement (N → 1 rareté sup.,
+// N = getEquipmentUpgradeCost dans types/game.ts) :
 // l'objet générique (sans bonusFor) est nettement plus probable que chaque
 // variante personnalisée liée à un perso précis.
 const UPGRADE_GENERIC_WEIGHT = 6;

@@ -3,11 +3,9 @@ import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { getEquipmentGroup, getEquipmentDef, type EquipmentDef } from '@/lib/game/items';
 import {
-  EQUIPMENT_SLOTS, EQUIPMENT_SLOT_LABELS, RARITY_CONFIG, RARITY_ORDER_ASC, getNextRarity,
+  EQUIPMENT_SLOTS, EQUIPMENT_SLOT_LABELS, RARITY_CONFIG, RARITY_ORDER_ASC, getNextRarity, getEquipmentUpgradeCost,
   type EquipmentSlot, type Rarity,
 } from '@/types/game';
-
-const UPGRADE_COST = 10;
 
 // Objet "représentatif" d'un groupe slot+rareté pour l'affichage (icône/nom) :
 // le générique s'il existe, sinon le premier objet personnalisé du groupe.
@@ -32,11 +30,12 @@ export function EquipmentUpgradePage() {
     }
   }
   const totalItems = groups.reduce((sum, g) => sum + g.qty, 0);
-  const upgradableGroups = groups.filter(g => g.qty >= UPGRADE_COST).length;
+  const upgradableGroups = groups.filter(g => g.qty >= getEquipmentUpgradeCost(g.rarity)).length;
 
   const selectedGroup = selected ? groups.find(g => g.slot === selected.slot && g.rarity === selected.rarity) : null;
   const qty = selectedGroup?.qty ?? 0;
-  const maxUpgrades = Math.floor(qty / UPGRADE_COST);
+  const upgradeCost = selected ? getEquipmentUpgradeCost(selected.rarity) : 0;
+  const maxUpgrades = upgradeCost > 0 ? Math.floor(qty / upgradeCost) : 0;
   const currentItem = selected ? representativeItem(selected.slot, selected.rarity) : null;
   const nextRarity = selected ? getNextRarity(selected.rarity) : null;
   const nextItem = selected && nextRarity ? representativeItem(selected.slot, nextRarity) : null;
@@ -88,7 +87,7 @@ export function EquipmentUpgradePage() {
               <span className="companion-section__decor" />
               Fusion d’équipement
             </div>
-            <div className="companion-toast">{UPGRADE_COST} objets d’une rareté → 1 objet de la rareté suivante</div>
+            <div className="companion-toast">Fusionne des objets d’une rareté (10 à 6 selon la rareté) pour en obtenir 1 de la rareté suivante</div>
           </div>
 
           <div className="companion-split">
@@ -98,6 +97,8 @@ export function EquipmentUpgradePage() {
                 const cfg = RARITY_CONFIG[g.rarity];
                 const item = representativeItem(g.slot, g.rarity);
                 const isSelected = selected?.slot === g.slot && selected?.rarity === g.rarity;
+                const groupCost = getEquipmentUpgradeCost(g.rarity);
+                const groupUpgrades = Math.floor(g.qty / groupCost);
                 return (
                   <button
                     key={`${g.slot}_${g.rarity}`}
@@ -117,7 +118,7 @@ export function EquipmentUpgradePage() {
                             {EQUIPMENT_SLOT_LABELS[g.slot]} — {cfg.label}
                           </div>
                           <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-muted)' }}>
-                            {Math.floor(g.qty / UPGRADE_COST)} fusion{Math.floor(g.qty / UPGRADE_COST) !== 1 ? 's' : ''} possible{Math.floor(g.qty / UPGRADE_COST) !== 1 ? 's' : ''}
+                            {groupUpgrades} fusion{groupUpgrades !== 1 ? 's' : ''} possible{groupUpgrades !== 1 ? 's' : ''}
                           </div>
                         </div>
                       </div>
@@ -175,7 +176,7 @@ export function EquipmentUpgradePage() {
                   {nextRarity && isUnlocked && (
                     <>
                       <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)' }}>
-                        {UPGRADE_COST} objets par fusion — {maxUpgrades} fusion{maxUpgrades !== 1 ? 's' : ''} possible{maxUpgrades !== 1 ? 's' : ''}
+                        {upgradeCost} objets par fusion — {maxUpgrades} fusion{maxUpgrades !== 1 ? 's' : ''} possible{maxUpgrades !== 1 ? 's' : ''}
                       </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         <button

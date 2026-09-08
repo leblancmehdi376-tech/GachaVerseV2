@@ -53,6 +53,14 @@ export function getPrevRarity(r: Rarity): Rarity | null {
   return i > 0 ? RARITY_ORDER_ASC[i - 1] : null;
 }
 
+// Coût de fusion (nombre d'objets de rareté `r` requis pour en obtenir 1 de
+// la rareté suivante) : décroît de 1 par palier de rareté à partir de 10
+// (C→U coûte 10, U→R coûte 9, ...), plancher à 6 (à partir de M→S).
+export function getEquipmentUpgradeCost(r: Rarity): number {
+  const i = RARITY_ORDER_ASC.indexOf(r);
+  return Math.max(6, 10 - i);
+}
+
 // ── Forme d'évolution d'un personnage ─────────────────────────────────────
 export interface EvoForm {
   formId:      string;
