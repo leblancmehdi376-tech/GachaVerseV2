@@ -36,7 +36,7 @@ import { migrateAnomalies } from '@/lib/game/anomalies';
 // pour tous les fichiers qui importent ces symboles.
 export type { Quest, OfflineGain, ActiveUlt, ActiveExpedition } from './gameStore.types';
 export {
-  getGoldChestCost, getGoldChestMultiplier, getPalierPassGems, bumpPalierBossQuests, bumpEventBossQuests,
+  getGoldChestCost, getGoldChestMultiplier, getGoldGainMultiplier, getPalierPassGems, bumpPalierBossQuests, bumpEventBossQuests,
   GOLD_CHEST_COST_BASE, GOLD_CHEST_COST_GROWTH, GOLD_CHEST_MULT_GROWTH,
   MOB_GEM_DROP_CHANCE, FARM_EQUIP_DROP_RATE,
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,

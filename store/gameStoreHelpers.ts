@@ -297,21 +297,49 @@ type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[]
 type PrestigeReadState = { prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number };
 type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[] };
 
+export interface GoldGainMultiplierInputs {
+  goldUpgradeLevel: number;
+  activeTitle: string;
+  ultActiveUlts: ActiveUlt[];
+  goldBoostEndsAt: number;
+  prestigeBonusLevels: PrestigeBonusLevels;
+  prestigeRankRecoveryLevel: number;
+  ownedAnomalies: Anomaly[];
+}
+
+// Multiplicateur TOTAL appliqué aux golds gagnés (coffre d'or × titre × ult
+// actif × boost temporaire boutique × passif prestige × anomalies).
+// Source de vérité UNIQUE : resolveEnemyDeath (gain réel au kill),
+// getGoldMultiplier (characterSlice, ré-utilisé par UpgradesPage et le calcul
+// de gain du Jackpot) et l'affichage "butin" de TeamBar doivent TOUS passer
+// par cette fonction — avant son introduction chacun ne recalculait qu'un
+// sous-ensemble des boosts (ex: TeamBar n'affichait que le bonus du coffre,
+// sans prestige/anomalie/ult/boost), ce qui sous-affichait/sous-payait l'or réel.
+export function getGoldGainMultiplier(inputs: GoldGainMultiplierInputs): BigNum {
+  const chestMult    = getGoldChestMultiplier(inputs.goldUpgradeLevel ?? 0); // BigNum (non-plafonné, suit maxPalierReached)
+  const titleMult    = getTitleGoldMultiplier(inputs.activeTitle);
+  const ultCoinMult  = getActiveCoinMultiplier(inputs.ultActiveUlts);
+  const boostGoldMult   = Date.now() < inputs.goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
+  const prestigeCoinMult = getPrestigeBonuses(inputs.prestigeBonusLevels, inputs.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
+  const anomalyGoldMult = calcAnomalyBonuses(inputs.ownedAnomalies ?? []).goldGainMult;
+  return bnMulScalar(chestMult, titleMult * ultCoinMult * boostGoldMult * prestigeCoinMult * anomalyGoldMult);
+}
+
 export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameState & QuestState> {
   // Garde-fou : ne résout la mort que si currentEnemy.currentHp <= 0 a bien été
   // appliqué par l'appelant (voir tickDps/activateCharacterUltimate,
   // qui fusionnent { currentHp: newHp } avant d'appeler cette fonction).
   if (!bnIsZero(state.currentEnemy.currentHp)) return {};
 
-  // Multiplicateurs de coins (or + ult + boost BossCrown)
-  const chestMult    = getGoldChestMultiplier((state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0); // BigNum (non-plafonné, suit maxPalierReached)
-  const titleMult    = getTitleGoldMultiplier(state.activeTitle);
-  const ultCoinMult  = getActiveCoinMultiplier(state.ultActiveUlts);
-  const goldBoostEndsAt = (state as {goldBoostEndsAt?:number}).goldBoostEndsAt ?? 0;
-  const boostGoldMult   = Date.now() < goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
-  const prestigeCoinMult = getPrestigeBonuses(state.prestigeBonusLevels, state.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
-  const anomalyGoldMult = calcAnomalyBonuses(state.ownedAnomalies ?? []).goldGainMult;
-  const goldMult = bnMulScalar(chestMult, titleMult * ultCoinMult * boostGoldMult * prestigeCoinMult * anomalyGoldMult);
+  const goldMult = getGoldGainMultiplier({
+    goldUpgradeLevel: (state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0,
+    activeTitle: state.activeTitle,
+    ultActiveUlts: state.ultActiveUlts,
+    goldBoostEndsAt: (state as {goldBoostEndsAt?:number}).goldBoostEndsAt ?? 0,
+    prestigeBonusLevels: state.prestigeBonusLevels,
+    prestigeRankRecoveryLevel: state.prestigeRankRecoveryLevel,
+    ownedAnomalies: state.ownedAnomalies,
+  });
   const baseCoins   = bnMul(state.currentEnemy.pixelCoinsReward, goldMult);
   const coins = bnAdd(state.pixelCoins, baseCoins);
 

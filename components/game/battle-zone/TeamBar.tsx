@@ -1,5 +1,4 @@
 'use client';
-import { getGoldChestMultiplier } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { bnFromNumber, bnGt, bnMul, type BigNum } from '@/lib/game/bignum';
@@ -10,18 +9,21 @@ const ONE = bnFromNumber(1);
 
 // ── Barre basse : compagnons, synergies, butin, DPS d'équipe et actions boss ──
 export function TeamBar({
-  equippedTeam, currentEnemy, goldUpgradeLevel, dps, dpsUltMult,
+  equippedTeam, currentEnemy, goldMult, dps, dpsUltMult,
   bossActive, bossAvoided, wave, retreatFromBoss, challengeBoss,
 }: {
-  equippedTeam: (string | null)[]; currentEnemy: Enemy; goldUpgradeLevel: number;
+  equippedTeam: (string | null)[]; currentEnemy: Enemy; goldMult: BigNum;
   dps: BigNum; dpsUltMult: number;
   bossActive: boolean; bossAvoided: boolean; wave: number;
   retreatFromBoss: () => void; challengeBoss: () => void;
 }) {
   const syns = computeActiveSynergies(equippedTeam);
-  const chestMult = getGoldChestMultiplier(goldUpgradeLevel ?? 0);
-  const hasChestBonus = bnGt(chestMult, ONE);
-  const withChest = hasChestBonus ? bnMul(currentEnemy.pixelCoinsReward, chestMult) : null;
+  // `goldMult` regroupe TOUS les boosts d'or (coffre, titre, ult, boost
+  // boutique, prestige, anomalies — voir getGoldGainMultiplier), pour que ce
+  // "vrai" montant entre parenthèses corresponde à ce qui sera réellement
+  // crédité au kill (voir resolveEnemyDeath), pas seulement le bonus du coffre.
+  const hasGoldBonus = bnGt(goldMult, ONE);
+  const realGold = hasGoldBonus ? bnMul(currentEnemy.pixelCoinsReward, goldMult) : null;
 
   return (
     <div style={{ position:'relative', zIndex:3, background:'linear-gradient(0deg,rgba(165, 165, 165, 0),rgba(5,4,15,0.3))', borderTop:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
@@ -105,7 +107,7 @@ export function TeamBar({
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
             <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
               +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
-              {withChest && <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(withChest)})</span>}
+              {realGold && <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
             </div>
             {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
             <div style={{ fontFamily:'var(--f-ui)', fontSize:11.4, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>

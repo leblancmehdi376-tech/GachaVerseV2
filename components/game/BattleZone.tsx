@@ -19,7 +19,7 @@ interface Dmg { id: number; x: number; y: number; val: BigNum; }
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function BattleZone() {
-  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, getEventDpsMult, goldUpgradeLevel } = useGameStore();
+  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, getEventDpsMult, getGoldMultiplier } = useGameStore();
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
   // maxPalierReached, qui ne redescend jamais et sert au classement) — c'est
   // ce qui doit borner le mode farm / voyage, sinon un joueur qui vient de
@@ -30,6 +30,7 @@ export function BattleZone() {
   const ultActiveUlts = useGameStore(s => s.ultActiveUlts);
   const dpsUltMult  = ultActiveUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
   const dps = getTotalDps(); // inclut déjà dpsMultiplier/selfDpsMultiplier (calculé dans gameStore)
+  const goldMult = getGoldMultiplier(); // TOUS les boosts d'or (coffre, titre, ult, boost, prestige, anomalies)
   const enemyAffinity = getAffinityForId(currentEnemy.name);
   const cfg = getPalierConfig(palier);
   const isFarming = palier < runPeakPalier; // voyage sur un palier déjà validé CETTE run
@@ -125,7 +126,7 @@ export function BattleZone() {
       <TeamBar
         equippedTeam={equippedTeam}
         currentEnemy={currentEnemy}
-        goldUpgradeLevel={goldUpgradeLevel}
+        goldMult={goldMult}
         dps={dps}
         dpsUltMult={dpsUltMult}
         bossActive={bossActive}

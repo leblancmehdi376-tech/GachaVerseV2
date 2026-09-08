@@ -8,11 +8,10 @@ import { computeEquippedMultiplier } from '@/lib/game/items';
 import { computeActiveSynergies, calcDpsWithSynergies } from '@/lib/game/synergies';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
-import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
-import { getGoldChestMultiplier, getGoldChestCost, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
+import { getGoldChestCost, getGoldGainMultiplier, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnMulScalar, type BigNum } from '@/lib/game/bignum';
 
@@ -35,11 +34,16 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
   },
 
   getGoldMultiplier: () => {
-    const level = get().goldUpgradeLevel ?? 0;
-    const chestMult = getGoldChestMultiplier(level);
-    const titleMult = getTitleGoldMultiplier(get().activeTitle);
-    const anomalyGoldMult = calcAnomalyBonuses(get().ownedAnomalies).goldGainMult;
-    return bnMulScalar(chestMult, titleMult * anomalyGoldMult);
+    const s = get();
+    return getGoldGainMultiplier({
+      goldUpgradeLevel: s.goldUpgradeLevel ?? 0,
+      activeTitle: s.activeTitle,
+      ultActiveUlts: s.ultActiveUlts,
+      goldBoostEndsAt: s.goldBoostEndsAt,
+      prestigeBonusLevels: s.prestigeBonusLevels,
+      prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel,
+      ownedAnomalies: s.ownedAnomalies,
+    });
   },
 
   getGoldUpgradeCost: () => {
