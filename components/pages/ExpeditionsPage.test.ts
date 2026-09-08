@@ -49,8 +49,14 @@ describe('tabOf', () => {
     expect(tabOf(equip!)).toBe('equipment');
   });
 
-  it("classe en 'forge' toute expédition restante (ni spéciale, ni déblocage d'équipement)", () => {
-    const forge = EXPEDITION_DEFS.find(d => !d.isSpecialItem && !d.unlocksEquipRarity && !d.unlocksEquipDropRarity);
+  it("classe en 'gems' toute expédition à récompense en gemmes (dropGems)", () => {
+    const gems = EXPEDITION_DEFS.find(d => !d.isSpecialItem && !d.unlocksEquipRarity && !d.unlocksEquipDropRarity && d.rewards.dropGems);
+    expect(gems).toBeDefined();
+    expect(tabOf(gems!)).toBe('gems');
+  });
+
+  it("classe en 'forge' toute expédition restante (ni spéciale, ni déblocage d'équipement, ni gemmes)", () => {
+    const forge = EXPEDITION_DEFS.find(d => !d.isSpecialItem && !d.unlocksEquipRarity && !d.unlocksEquipDropRarity && !d.rewards.dropGems);
     expect(forge).toBeDefined();
     expect(tabOf(forge!)).toBe('forge');
   });

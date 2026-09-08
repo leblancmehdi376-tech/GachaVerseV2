@@ -404,14 +404,17 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
 }
 
 /* ── Main page ──────────────────────────────────────────────────────────── */
-// Catégorisation à 3 onglets : spécial (drapeau dédié) > équipement (ateliers/
-// chasses) > forge (tout le reste par défaut — items de craft, farm palier,
-// expéditions génériques sans drop).
+// Catégorisation à 4 onglets : spécial (drapeau dédié) > équipement (ateliers/
+// chasses) > gemmes (récompense en gemmes via dropGems, ex: Subnautica/Mines)
+// > forge (tout le reste par défaut — items de craft, farm palier, expéditions
+// génériques sans drop).
 const isEquipUnlock = (d: ExpeditionDef) => !!d.unlocksEquipRarity || !!d.unlocksEquipDropRarity;
-export type ExpTab = 'forge' | 'equipment' | 'special';
+const isGemExpedition = (d: ExpeditionDef) => !!d.rewards.dropGems;
+export type ExpTab = 'forge' | 'equipment' | 'gems' | 'special';
 export function tabOf(d: ExpeditionDef): ExpTab {
   if (d.isSpecialItem) return 'special';
   if (isEquipUnlock(d)) return 'equipment';
+  if (isGemExpedition(d)) return 'gems';
   return 'forge';
 }
 
@@ -499,6 +502,7 @@ export function ExpeditionsPage() {
           {[
             { k:'forge'     as const, label:'⚒️ ITEM DE FORGE'    },
             { k:'equipment' as const, label:'🛠️ ATELIER ÉQUIPEMENT' },
+            { k:'gems'      as const, label:'💎 EXPÉDITIONS DE GEMMES' },
             { k:'special'   as const, label:'🔷 OBJETS SPÉCIAUX'  },
           ].map(f => (
             <button key={f.k} onClick={() => setFilter(f.k)}

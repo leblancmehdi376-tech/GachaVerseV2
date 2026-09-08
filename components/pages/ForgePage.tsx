@@ -36,7 +36,7 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
     >
       <span style={{ fontSize:18.5 }}>{type === 'drop' ? (PALIER_DROPS.find(d => d.id === id)?.icon ?? '📦') : '👤'}</span>
       <div style={{ flex:1 }}>
-        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color: ok ? 'var(--text)' : 'var(--text-dim)' }}>{label}</div>
+        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color: ok ? 'var(--text)' : 'var(--text-dim)' }}>{label} × {quantity}</div>
         {type === 'drop' && (
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>
             {PALIER_DROPS.find(d => d.id === id)?.description}
