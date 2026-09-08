@@ -13,6 +13,9 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
   const [phase, setPhase]         = useState<'portal' | 'cards' | 'summary'>('portal');
   const [autoFlip, setAutoFlip]   = useState(false);
   const [allFlipped, setAllFlipped] = useState(false);
+  // Skip demandé par le joueur : accélère le flip des cartes sans jamais
+  // couper court aux écrans brouillard Primordial/Transcendant en cours.
+  const [skipRequested, setSkipRequested] = useState(false);
 
   // File d'attente des écrans "brouillard" Primordial/Transcendant : une seule
   // instance à l'écran à la fois, les cartes en attente patientent leur tour.
@@ -62,15 +65,30 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
   }).length;
   useEffect(() => {
     if (!autoFlip) return;
-    // Délai total = dernière carte + animation flip + écrans brouillard éventuels
-    const lastDelay = (totalCards - 1) * 120 + 900 + teasedCount * REVEAL_TEASER_MS;
+    // Délai total = dernière carte + animation flip + écrans brouillard éventuels.
+    // En mode skip, le décalage entre cartes est supprimé mais pas le temps
+    // des écrans brouillard, qui restent joués en entier.
+    const stagger = skipRequested ? 0 : (totalCards - 1) * 120;
+    const lastDelay = stagger + 900 + teasedCount * REVEAL_TEASER_MS;
     const t = setTimeout(() => setAllFlipped(true), lastDelay);
     return () => clearTimeout(t);
-  }, [autoFlip, totalCards, teasedCount]);
+  }, [autoFlip, totalCards, teasedCount, skipRequested]);
+
+  // Une fois le skip demandé, dès que tout est retourné (brouillards compris)
+  // on enchaîne automatiquement sur le résumé.
+  useEffect(() => {
+    if (skipRequested && allFlipped) setPhase('summary');
+  }, [skipRequested, allFlipped]);
+
+  const handleSkipToSummary = useCallback(() => {
+    if (allFlipped) { setPhase('summary'); return; }
+    setSkipRequested(true);
+    setAutoFlip(true);
+  }, [allFlipped]);
 
   return (
     <div
-      onClick={(e) => { if (e.currentTarget === e.target) onClose(); }}
+      onClick={(e) => { if (phase === 'summary' && e.currentTarget === e.target) onClose(); }}
       style={{
         position:'fixed', inset:0, zIndex:9999,
         background:'rgba(2,1,10,0.96)',
@@ -130,7 +148,7 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
                       index={i}
                       total={results.length}
                       autoFlip={autoFlip}
-                      delay={i * 120}
+                      delay={skipRequested ? 0 : i * 120}
                       preReveal={isTeased ? () => requestReveal(i, res) : undefined}
                     />
                   );
@@ -150,20 +168,16 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
                   padding:'11px 28px', cursor:'pointer',
                 }}>✦ RÉVÉLER TOUT</button>
             )}
-            {allFlipped && (
-              <button onClick={() => setPhase('summary')}
-                className="btn-primary"
-                style={{ padding:'11px 28px', fontSize:13.4, letterSpacing:1 }}>
-                VOIR LE RÉSUMÉ →
-              </button>
-            )}
-            <button onClick={onClose}
+            <button onClick={handleSkipToSummary}
+              disabled={skipRequested && !allFlipped}
+              className="btn-primary"
               style={{
-                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13.4,
-                color:'rgba(255,255,255,0.35)', background:'rgba(255,255,255,0.04)',
-                border:'1px solid rgba(255,255,255,0.1)', borderRadius:8,
-                padding:'11px 24px', cursor:'pointer',
-              }}>FERMER ✕</button>
+                padding:'11px 28px', fontSize:13.4, letterSpacing:1,
+                opacity: skipRequested && !allFlipped ? 0.6 : 1,
+                cursor: skipRequested && !allFlipped ? 'default' : 'pointer',
+              }}>
+              {skipRequested && !allFlipped ? 'RÉSUMÉ EN PRÉPARATION…' : 'VOIR LE RÉSUMÉ →'}
+            </button>
           </div>
         </div>
       )}
