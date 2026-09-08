@@ -389,7 +389,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   {
     id:'mine_gemme_abyssale', name:'Mine de Gemme Abyssale', icon:'💎', universe:'Mine',
     description:'Plonge au cœur des abysses de la mine de gemmes, et envoie tes compagnons te ramener le plus beau trésor possible.',
-    duration: 8*H, slots:4, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(9)),
+    duration: 8*H, slots:4, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(4)),
     rewards:{ coinsMin:200_000, coinsMax:600_000, dropChance:0.5, dropQuantity:1, dropGems:true, dropGemsAmount:16 },
   },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────
