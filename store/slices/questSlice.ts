@@ -11,22 +11,49 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
   // dans les 3 tableaux (jour/semaine/événement) et incrémente celle trouvée.
   // Appelable depuis n'importe où dans le store, ou depuis un autre store
   // (ex: useGameStore.getState().bumpQuestProgress('w_expedition')).
+  // Renvoie le même tableau (référence inchangée) quand la quête ciblée n'est
+  // trouvée dans aucun des 3 tableaux — sinon set() réalloue quests/
+  // weeklyQuests/eventQuests à CHAQUE appel, ce qui force tout composant
+  // souscrit au store entier (ex: GameLayout) à re-render même quand rien ne
+  // change. Sous spam d'une action qui bump une quête à chaque clic (ex:
+  // amélioration de perso), ça peut cascader jusqu'au "Maximum update depth
+  // exceeded" de React.
   bumpQuestProgress: (id, by = 1) => set(state => {
-    const bump = (arr: typeof state.quests) => arr.map(q => q.id === id && !q.done ? { ...q, current: Math.min(q.current + by, q.target) } : q);
-    return {
-      quests: bump(state.quests),
-      weeklyQuests: bump(state.weeklyQuests ?? []),
-      eventQuests: bump(state.eventQuests ?? []),
+    const bump = (arr: typeof state.quests) => {
+      let changed = false;
+      const next = arr.map(q => {
+        if (q.id !== id || q.done) return q;
+        const current = Math.min(q.current + by, q.target);
+        if (current === q.current) return q;
+        changed = true;
+        return { ...q, current };
+      });
+      return changed ? next : arr;
     };
+    const quests       = bump(state.quests);
+    const weeklyQuests = bump(state.weeklyQuests ?? []);
+    const eventQuests  = bump(state.eventQuests ?? []);
+    if (quests === state.quests && weeklyQuests === (state.weeklyQuests ?? []) && eventQuests === (state.eventQuests ?? [])) return {};
+    return { quests, weeklyQuests, eventQuests };
   }),
   // Fixe directement la progression (pour les quêtes "atteindre X", pas "cumuler +1").
   setQuestProgress: (id, value) => set(state => {
-    const setVal = (arr: typeof state.quests) => arr.map(q => q.id === id && !q.done ? { ...q, current: Math.min(Math.max(q.current, value), q.target) } : q);
-    return {
-      quests: setVal(state.quests),
-      weeklyQuests: setVal(state.weeklyQuests ?? []),
-      eventQuests: setVal(state.eventQuests ?? []),
+    const setVal = (arr: typeof state.quests) => {
+      let changed = false;
+      const next = arr.map(q => {
+        if (q.id !== id || q.done) return q;
+        const current = Math.min(Math.max(q.current, value), q.target);
+        if (current === q.current) return q;
+        changed = true;
+        return { ...q, current };
+      });
+      return changed ? next : arr;
     };
+    const quests       = setVal(state.quests);
+    const weeklyQuests = setVal(state.weeklyQuests ?? []);
+    const eventQuests  = setVal(state.eventQuests ?? []);
+    if (quests === state.quests && weeklyQuests === (state.weeklyQuests ?? []) && eventQuests === (state.eventQuests ?? [])) return {};
+    return { quests, weeklyQuests, eventQuests };
   }),
   claimQuest: (id) => set(s => {
     const q = s.quests.find(q => q.id === id);

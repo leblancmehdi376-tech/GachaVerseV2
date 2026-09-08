@@ -1,5 +1,6 @@
 'use client';
 import { useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { bnToNumber } from '@/lib/game/bignum';
 import { CHARACTER_POOL } from '@/lib/game/characters';
@@ -30,7 +31,20 @@ export function useAchievementTrackers() {
     collection: col, equippedTeam, totalKills, totalQuestsCompleted, totalUpgradesPerformed,
     totalGachaPulls, totalBossKills, totalBossCrownsEarned, totalVoidOrbsEarned,
     pixelCoins, nekoGems, maxPalierReached,
-  } = useGameStore();
+  } = useGameStore(useShallow(s => ({
+    collection: s.collection,
+    equippedTeam: s.equippedTeam,
+    totalKills: s.totalKills,
+    totalQuestsCompleted: s.totalQuestsCompleted,
+    totalUpgradesPerformed: s.totalUpgradesPerformed,
+    totalGachaPulls: s.totalGachaPulls,
+    totalBossKills: s.totalBossKills,
+    totalBossCrownsEarned: s.totalBossCrownsEarned,
+    totalVoidOrbsEarned: s.totalVoidOrbsEarned,
+    pixelCoins: s.pixelCoins,
+    nekoGems: s.nekoGems,
+    maxPalierReached: s.maxPalierReached,
+  })));
   const prestigeLevel = useGameStore(s => s.prestigeLevel);
   const unlockedTitlesCount = useGameStore(s => s.unlockedTitles.length);
   const compadexCharactersSeen = useGameStore(s => s.compadexCharactersSeen);

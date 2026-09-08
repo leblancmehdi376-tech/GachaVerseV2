@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import type { BigNum } from '@/lib/game/bignum';
 
@@ -7,7 +8,10 @@ import type { BigNum } from '@/lib/game/bignum';
 // le store (et non par une surveillance du palier, qui se déclenchait à tort
 // au rechargement de la sauvegarde). Extrait de GameLayout.tsx.
 export function useBossVictoryWatcher() {
-  const { lastBossVictory, clearBossVictory } = useGameStore();
+  const { lastBossVictory, clearBossVictory } = useGameStore(useShallow(s => ({
+    lastBossVictory: s.lastBossVictory,
+    clearBossVictory: s.clearBossVictory,
+  })));
   const [victory, setVictory] = useState<{ palier: number; gems: number; coins: BigNum } | null>(null);
 
   useEffect(() => {

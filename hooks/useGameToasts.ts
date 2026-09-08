@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { toast } from '@/hooks/useToast';
 
@@ -7,7 +8,13 @@ import { toast } from '@/hooks/useToast';
 // aussi le nombre de quêtes réclamables (utilisé pour les badges de nav).
 // Extrait de GameLayout.tsx.
 export function useGameToasts(): number {
-  const { lastEquipmentDrop, setLastEquipmentDrop, quests, weeklyQuests, eventQuests } = useGameStore();
+  const { lastEquipmentDrop, setLastEquipmentDrop, quests, weeklyQuests, eventQuests } = useGameStore(useShallow(s => ({
+    lastEquipmentDrop: s.lastEquipmentDrop,
+    setLastEquipmentDrop: s.setLastEquipmentDrop,
+    quests: s.quests,
+    weeklyQuests: s.weeklyQuests,
+    eventQuests: s.eventQuests,
+  })));
   const countClaimable = (list: typeof quests) => (list ?? []).filter(q => q.current >= q.target && !q.done).length;
   const claimable = countClaimable(quests) + countClaimable(weeklyQuests) + countClaimable(eventQuests);
 

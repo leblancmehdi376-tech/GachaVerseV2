@@ -30,6 +30,14 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
     const next    = Math.max(prev, value);
     const done    = next >= achiev.target;
 
+    // Sans ce garde-fou, chaque appel réalloue achievementProgress/
+    // achievementUnlocked même quand rien ne change — un des trackers (voir
+    // useAchievementTrackers) rappelle setProgress à chaque tick/action, donc
+    // ça force GameLayout (souscrit au store entier) à re-render en boucle,
+    // jusqu'à dépasser la limite de nested updates de React ("Maximum update
+    // depth exceeded") sous spam de clics.
+    if (next === prev && (!done || already)) return;
+
     set(s => {
       const patch: Partial<GameStore> = {
         achievementProgress: { ...s.achievementProgress, [id]: next },

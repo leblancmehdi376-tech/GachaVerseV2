@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, getGoldChestCost, getGoldChestMultiplier } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { levelUpCost, evoCost, canEvolve, calcCharDps, evoStoneCost } from '@/lib/game/formulas';
@@ -55,7 +56,13 @@ function LevelBar({ level, color }: { level: number; color: string }) {
 // maxPalierReached, qui ne redescend jamais) — pas de plafond fixe, il
 // grandit avec la progression du joueur dans le run en cours.
 function GoldUpgradeCard() {
-  const { goldUpgradeLevel, upgradeGold, pixelCoins, getGoldMultiplier, getRunPeakPalier } = useGameStore();
+  const { goldUpgradeLevel, upgradeGold, pixelCoins, getGoldMultiplier, getRunPeakPalier } = useGameStore(useShallow(s => ({
+    goldUpgradeLevel: s.goldUpgradeLevel,
+    upgradeGold: s.upgradeGold,
+    pixelCoins: s.pixelCoins,
+    getGoldMultiplier: s.getGoldMultiplier,
+    getRunPeakPalier: s.getRunPeakPalier,
+  })));
   const level      = goldUpgradeLevel ?? 0;
   const maxLevel   = getRunPeakPalier();
   const mult       = getGoldMultiplier();
@@ -98,7 +105,15 @@ function GoldUpgradeCard() {
 
 // ── Carte personnage avec PP ──────────────────────────────────────────────
 function CharCard({ templateId }: { templateId: string }) {
-  const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory, focusExpedition, expeditionDropInventory: dropInventory } = useGameStore();
+  const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory, focusExpedition, expeditionDropInventory: dropInventory } = useGameStore(useShallow(s => ({
+    collection: s.collection,
+    pixelCoins: s.pixelCoins,
+    levelUpCharacter: s.levelUpCharacter,
+    evolveCharacter: s.evolveCharacter,
+    inventory: s.inventory,
+    focusExpedition: s.focusExpedition,
+    expeditionDropInventory: s.expeditionDropInventory,
+  })));
   const owned = collection[templateId];
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom partagés entre éditions)
   const tpl   = getCharacterById(pureId);
@@ -211,7 +226,20 @@ function CharCard({ templateId }: { templateId: string }) {
 
 // ── PAGE ──────────────────────────────────────────────────────────────────
 export function UpgradesPage() {
-  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters, inventory, sellItem } = useGameStore();
+  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters, inventory, sellItem } = useGameStore(useShallow(s => ({
+    pixelCoins: s.pixelCoins,
+    nekoGems: s.nekoGems,
+    getTotalDps: s.getTotalDps,
+    collection: s.collection,
+    equippedTeam: s.equippedTeam,
+    collectionFilter: s.collectionFilter,
+    collectionUniverse: s.collectionUniverse,
+    collectionAffinity: s.collectionAffinity,
+    collectionSort: s.collectionSort,
+    setCollectionFilters: s.setCollectionFilters,
+    inventory: s.inventory,
+    sellItem: s.sellItem,
+  })));
   const equippedSet = new Set(equippedTeam.filter((id): id is string => !!id));
   const ownedItems = Object.entries(inventory).filter(([id, qty]) => qty > 0 && !ITEM_DEFS[id]?.isCoin);
   const ownedIds = Object.keys(collection).sort((a, b) => {

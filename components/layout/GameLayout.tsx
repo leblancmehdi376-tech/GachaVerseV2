@@ -25,6 +25,7 @@ import { MinePage } from '@/components/pages/MinePage';
 import { AnomaliePage } from '@/components/pages/AnomaliePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { UltAnimation } from '@/components/game/UltAnimation';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { getCompadexProgress } from '@/lib/game/compadex';
 import { useAuth } from '@/hooks/useAuth';
@@ -123,7 +124,19 @@ export function GameLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
-  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId, dailyRewardClaimedToday, compadexCharactersSeen, compadexEquipmentSeen } = useGameStore();
+  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId, dailyRewardClaimedToday, compadexCharactersSeen, compadexEquipmentSeen } = useGameStore(useShallow(s => ({
+    pixelCoins: s.pixelCoins,
+    nekoGems: s.nekoGems,
+    palier: s.palier,
+    wave: s.wave,
+    maxPalierReached: s.maxPalierReached,
+    quests: s.quests,
+    username: s.username,
+    focusedExpeditionId: s.focusedExpeditionId,
+    dailyRewardClaimedToday: s.dailyRewardClaimedToday,
+    compadexCharactersSeen: s.compadexCharactersSeen,
+    compadexEquipmentSeen: s.compadexEquipmentSeen,
+  })));
   const { count: compadexCount, total: compadexTotal } = getCompadexProgress(compadexCharactersSeen, compadexEquipmentSeen);
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
   const { forceSave, loaded: cloudLoaded, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
