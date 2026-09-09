@@ -3,7 +3,7 @@ import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
 
 export function CardBackImg({ rarity }: { rarity?: Rarity }) {
-  const { src, failed, onError } = useFallbackImage(buildImageCandidates('/sprites/cards/card_back'));
+  const { src, failed, onError } = useFallbackImage(buildImageCandidates('/sprites/ui/card_back'));
   const cfg = rarity ? RARITY_CONFIG[rarity] : null;
   if (failed || !src) return (
     <div style={{

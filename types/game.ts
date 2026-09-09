@@ -40,6 +40,33 @@ export const RARITY_CONFIG: Record<Rarity, {
   T:  { label:'Transcendant',color:'#e879f9', glow:'#d946ef', dpsMultiplier:1.033, },
 };
 
+// Cadres illustrés par rareté (public/sprites/frameworks) — prototype de
+// superposition (cadre séparé du portrait) testé dans le Compadex, en attendant
+// de retirer le cadre déjà cuit dans les images de carte existantes.
+//
+// Ces images sont chargées via une URL fixe (pas via useFallbackImage), donc
+// aucun cache JS ne les couvre : quand le contenu d'un fichier change sans
+// que son nom change, seul le cache HTTP/disque du navigateur entre en jeu.
+// Incrémenter FRAMEWORK_ASSET_VERSION change l'URL (?v=N) et force tout le
+// monde à retélécharger les cadres après un remplacement d'asset.
+const FRAMEWORK_ASSET_VERSION = 2;
+function frameSrc(file: string): string {
+  return `/sprites/frameworks/${file}?v=${FRAMEWORK_ASSET_VERSION}`;
+}
+
+export const RARITY_FRAME_SRC: Record<Rarity, string> = {
+  C:  frameSrc('Commun_card.webp'),
+  U:  frameSrc('Uncommun_card.webp'),
+  R:  frameSrc('Rare_card.webp'),
+  E:  frameSrc('Epic_card.webp'),
+  L:  frameSrc('Legendary-card.webp'),
+  M:  frameSrc('Mythique_card.webp'),
+  S:  frameSrc('Stelaire_card.webp'),
+  CO: frameSrc('Cosmique_card.webp'),
+  P:  frameSrc('Primordial_card.webp'),
+  T:  frameSrc('Transcendant_card.webp'),
+};
+
 // Ordre croissant C→T, dérivé de RARITY_CONFIG (déjà ordonné dans ce sens).
 export const RARITY_ORDER_ASC = Object.keys(RARITY_CONFIG) as Rarity[];
 

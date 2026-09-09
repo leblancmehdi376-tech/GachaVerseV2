@@ -167,8 +167,6 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ]),
   ce('link_midona', 'Link & Midona', 'CO', 80, 'The Legend of Zelda', [
     f('link_midona_base', 'Link & Midona',                     'link_midona'),
-    f('link_midona_evo1', 'Link Loup & Midona',                'link_midona'),
-    f('link_midona_evo2', 'Link & Midona — Princesse Twili',   'link_midona'),
   ]),
   ce('jinwoo', 'Sung Jin Woo', 'S', 71, 'Solo Leveling', (() => {
     const items = ['elixir_vie', 'manteau_ombre', 'beru'];
@@ -204,14 +202,12 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('limule_base', 'Limule',            'limule'),
     f('limule_evo1', 'Limule Évoluée',    'limule'),
     f('limule_evo2', 'Limule Ancestrale', 'limule'),
-    f('limule_evo3', 'Limule Divine',     'limule'),
   ]),
 
   // ── TRANSCENDANT ─────────────────────────────────────────────────────────
   ce('nekoz', 'NekoZ', 'T', 102, 'Chill&Cool', [
     f('nekoz_base', 'NekoZ',             'nekoz'),
     f('nekoz_evo1', 'NekoZ — Mode Divin','nekoz'),
-    f('nekoz_evo2', 'NekoZ — Transcendance Totale','nekoz'),
   ]),
 
 
@@ -297,7 +293,6 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   c('panda_tekken',      'Panda',                'E', 43,  'Tekken'),
   ce('margith', 'Margith', 'E', 39, 'Elden Ring', [
     f('margith_base',    'Margith',              'margith'),
-    f('margith_p2',      'Margith P2',           'margith'),
   ]),
 
   // ── LÉGENDAIRES V2 ──────────────────────────────────────────────────────
@@ -447,7 +442,6 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ]),
   ce('atsushi',           'Atsushi',              'S', 73, 'Bungou Stray Dogs', [
     f('atsushi_base', 'Atsushi', 'atsushi'),
-    f('atsushi_evo1', 'Atsushi — Bête', 'atsushi'),
   ]),
   ce('mao_mao_ap', 'Mao Mao', 'S', 72, "Les Carnets de l'Apothicaire", [
     f('mao_mao_ap_base', 'Mao Mao',             'mao_mao_ap'),
@@ -520,7 +514,6 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ce('jin_tekken', 'Jin Kazama', 'CO', 77, 'Tekken', [
     f('jin_tekken_base', 'Jin Kazama',           'jin_tekken'),
     f('jin_tekken_evil', 'Jin — Evil',           'jin_tekken'),
-    f('jin_tekken_devil', 'Devil Jin',           'jin_tekken'),
   ]),
   ce('zorua', 'Zorua', 'CO', 80, 'Pokémon', [
     f('zorua_base',      'Zorua',                'zorua'),
@@ -563,12 +556,10 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('eren_base',       'Eren',                 'eren'),
     f('eren_adult',      'Eren Adulte',          'eren'),
     f('eren_assaillant', 'Titan Assaillant',     'eren'),
-    f('eren_originel',   'Titan Originel',       'eren'),
   ]),
   ce('rayquaza', 'Rayquaza', 'P', 88, 'Pokémon', [
     f('rayquaza_base',      'Rayquaza',                    'rayquaza'),
     f('rayquaza_mega',      'Méga Rayquaza',               'rayquaza'),
-    f('rayquaza_ascension', 'Rayquaza — Ascension Céleste','rayquaza'),
   ]),
   ce('ouchuu', 'Ouchuu', 'P', 93, "Chill&Cool", [
     f('ouchuu_base',     'Ouchuu',               'ouchuu'),
@@ -579,7 +570,6 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ce('qin_shi_huang', 'Qin Shi Huang', 'T', 101, 'Valkyrie Apocalypse', [
     f('qin_shi_base',    'Qin Shi Huang',        'qin_shi_huang'),
     f('qin_shi_roi',     'Roi de Chine',         'qin_shi_huang'),
-    f('qin_shi_immortel','Empereur Immortel',    'qin_shi_huang'),
   ]),
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -612,7 +602,6 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('shanks_base',      'Shanks le Roux',      'shanks'),
     f('shanks_conqueror', 'Haki du Conquérant',  'shanks'),
     f('shanks_god',       'Dieu du Haki',        'shanks'),
-    f('shanks_pirateking','Roi des Pirates',     'shanks'),
   ]),
 ];
 

@@ -32,7 +32,13 @@ interface UseFallbackImageResult {
 // toujours identique. Un seul cache pour toute la session (et au-delà, via
 // localStorage) suffit : ce qui est absent aujourd'hui ne réapparaît pas
 // tant qu'un vrai déploiement n'ajoute pas le fichier.
-const RESOLUTION_CACHE_KEY = 'gachaverse_image_fallback_cache_v1';
+//
+// Le cache n'avance que vers l'avant (onError) : il ne revérifie jamais un
+// candidat plus prioritaire ajouté après coup (ex: art new_cards_processed
+// posé pour un perso qui avait déjà une image legacy). Incrémenter le
+// suffixe de version ci-dessous invalide le cache de tout le monde après un
+// gros ajout/remplacement d'assets.
+const RESOLUTION_CACHE_KEY = 'gachaverse_image_fallback_cache_v3';
 const resolutionCache = new Map<string, number>();
 let cacheLoaded = false;
 

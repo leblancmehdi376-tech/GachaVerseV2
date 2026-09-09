@@ -19,7 +19,7 @@ export function RarityBadge({ rarity, size = 'sm' }: { rarity: Rarity; size?: 'x
 
 export function RankStars({ rank }: { rank: number }) {
   return (
-    <div style={{ display: 'flex', gap: '2px' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '2px' }}>
       {Array.from({ length: 7 }, (_, i) => (
         <span key={i} style={{
           fontSize: '12px', lineHeight: 1,

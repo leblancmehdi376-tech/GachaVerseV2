@@ -80,14 +80,14 @@ const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => v
       <div className={`collection-card locked${seen ? ' compadex-seen' : ''}`} onClick={onClick} style={{ cursor:'pointer' }}>
         <div className="collection-card__body">
           <div style={{ position:'relative' }}>
-            <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={72} height={98} />
+            <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={72} height={98} frameOverlay />
             {!seen && <div className="collection-lock">🔒</div>}
           </div>
           <div className="collection-card__name">{tpl.name}</div>
           <RarityBadge rarity={tpl.rarity} />
           {seen
-            ? <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color:'var(--text-muted)', marginTop:'2px' }}>🕓 Déjà obtenu</div>
-            : tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'2px' }}>{tpl.universe}</div>}
+            ? <div className="collection-card__series">🕓 Déjà obtenu</div>
+            : tpl.universe && <div className="collection-card__series">{tpl.universe}</div>}
         </div>
       </div>
     );
@@ -97,7 +97,7 @@ const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => v
   return (
     <div className="collection-card owned" onClick={onClick} style={{ ['--accent' as string]: cfg2.color, cursor:'pointer' } as CSSProperties}>
       <div className="collection-card__body">
-        <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={72} height={98} />
+        <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={72} height={98} frameOverlay />
         <div className="collection-card__name">{tpl.name}</div>
         {owned.edition && owned.edition !== 'base' && (
           <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'12px', letterSpacing:0.5, color:ed.color, background:`${ed.color}18`, border:`1px solid ${ed.color}55`, borderRadius:999, padding:'1px 8px', marginTop:2 }}>
@@ -106,7 +106,7 @@ const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => v
         )}
         <RankStars rank={owned.rank} />
         <div className="collection-card__dps">{formatNumber(dps)}/s</div>
-        {tpl.universe && <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginTop:'1px' }}>{tpl.universe}</div>}
+        {tpl.universe && <div className="collection-card__series">{tpl.universe}</div>}
         {ult && (
           <div className="collection-card__ult">
             <div className="collection-card__ult-name">{ult.name}</div>
@@ -139,7 +139,7 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 
         <div style={{ flex:1, overflowY:'auto', padding:'18px 20px', display:'flex', flexDirection:'column', gap:14 }}>
           <div style={{ display:'flex', justifyContent:'center' }}>
-            <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm ?? 0} name={owned ? getCharFormName(tpl, owned.currentForm) : tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={100} height={136} />
+            <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm ?? 0} name={owned ? getCharFormName(tpl, owned.currentForm) : tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={100} height={136} frameOverlay />
           </div>
 
           <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'center' }}>
