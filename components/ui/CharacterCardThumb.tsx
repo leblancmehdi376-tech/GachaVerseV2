@@ -159,7 +159,7 @@ export function CharacterCardThumb({
   );
 
   // Nom placé dans le bandeau du cadre.
-  const NAME_IDEAL_CHARS = 7;
+  const NAME_IDEAL_CHARS = 10;
   const NAME_MIN_SCALE = 0.62;
 
   const nameScale = Math.min(
@@ -171,9 +171,9 @@ export function CharacterCardThumb({
     <div
       style={{
         position: 'absolute',
-        left: '19%',
-        right: '19%',
-        bottom: '6.5%',
+        left: '15%',
+        right: '15%',
+        bottom: '7.5%',
         height: '11%',
         display: 'flex',
         alignItems: 'center',
