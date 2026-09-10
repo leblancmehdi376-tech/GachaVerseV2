@@ -142,7 +142,7 @@ function CharCard({ templateId }: { templateId: string }) {
       <div style={{ display:'flex', gap:12, alignItems:'flex-start', paddingLeft:8 }}>
         {/* Carte perso */}
         <div style={{ position:'relative', flexShrink:0 }}>
-          <CharacterCardThumb templateId={pureId} formIndex={owned.currentForm} name={name} rarity={tpl.rarity} edition={owned.edition} width={64} height={88} frameOverlay />
+          <CharacterCardThumb templateId={pureId} formIndex={owned.currentForm} name={name} rarity={tpl.rarity} edition={owned.edition} width={70} height={97} frameOverlay />
           {tpl.forms && tpl.forms.length > 1 && (
             <div style={{ position:'absolute', bottom:-5, right:-5, zIndex:30, background:cfg.color, borderRadius:'50%', width:18, height:18, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, border:'2px solid var(--bg-deep)', fontWeight:700, color:'#000' }}>{owned.currentForm+1}</div>
           )}
