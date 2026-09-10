@@ -209,6 +209,11 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('nekoz_base', 'NekoZ',             'nekoz'),
     f('nekoz_evo1', 'NekoZ — Mode Divin','nekoz'),
   ]),
+  ce('niyunishi', 'Niyunishi', 'T', 103, 'Nos Animaux', [
+    f('niyunishi_base', 'Niyunishi',                     'niyunishi'),
+    f('niyunishi_evo1', 'Niyunishi — Regard Ancien',     'niyunishi'),
+    f('niyunishi_evo2', 'Niyunishi — Esprit de la Forêt','niyunishi'),
+  ]),
 
 
   // ══════════════════════════════════════════════════════════════════════════
