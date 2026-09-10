@@ -9,11 +9,15 @@ Traite les nouveaux artworks de public/sprites/new_cards_raw/ (déjà nommés
 Les fichiers ne suivant pas la convention de nommage sont ignorés (pool de
 sources brutes non triées, encore en attente de traitement manuel).
 
-Usage: python3 scripts/process_new_cards.py
+Usage: python3 scripts/process_new_cards.py [base_name ...]
+  Sans argument : traite tous les fichiers de new_cards_raw/ suivant la
+  convention. Avec un ou plusieurs "base_name" (ex: Loki_ValkyrieApocalypse_Evo1),
+  ne (re)traite que ceux-là.
 """
 
 import os
 import re
+import sys
 from pathlib import Path
 
 from PIL import Image
@@ -33,11 +37,23 @@ X_CENTER_OVERRIDES = {
     'Claudio_Tekken_Evo0': 0.53,
     'Claudio_Tekken_Evo1': 0.58,
     'DVa_Overwatch_Evo0': 0.63,
+    # Planche manga : le perso occupe la partie droite du cadre, du texte
+    # de titre prend toute la partie gauche.
+    'Arthur_FireForce_Evo1': 0.85,
+    # Photo : le chien est à droite, un panneau texte "IGLOO PRISONNIER"
+    # occupe la partie gauche du cadre.
+    'Igloo_NosAnimaux_Evo0': 0.65,
 }
 
 # Quand il faut rogner en hauteur (image plus étroite que la cible), on
 # privilégie le haut de l'image (visage) plutôt qu'un centrage strict.
 VERTICAL_BIAS = 0.35  # 0.5 = centré ; <0.5 = garde davantage le haut
+
+# Override par perso du biais vertical par défaut, pour les sources où le
+# sujet est encore plus haut dans le cadre (ex: portrait très allongé).
+VERTICAL_BIAS_OVERRIDES = {
+    'Loki_ValkyrieApocalypse_Evo1': 0.12,
+}
 
 
 def crop_to_ratio(img: Image.Image, base: str) -> Image.Image:
@@ -58,7 +74,8 @@ def crop_to_ratio(img: Image.Image, base: str) -> Image.Image:
         # Image trop haute/étroite : on rogne en hauteur.
         new_h = round(w / TARGET_RATIO)
         excess = h - new_h
-        y0 = round(excess * VERTICAL_BIAS)
+        vertical_bias = VERTICAL_BIAS_OVERRIDES.get(base, VERTICAL_BIAS)
+        y0 = round(excess * vertical_bias)
         y0 = max(0, min(y0, h - new_h))
         return img.crop((0, y0, w, y0 + new_h))
 
@@ -66,6 +83,7 @@ def crop_to_ratio(img: Image.Image, base: str) -> Image.Image:
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     files = sorted(os.listdir(RAW_DIR))
+    only = set(sys.argv[1:])
 
     processed = 0
     skipped = 0
@@ -75,6 +93,8 @@ def main():
         if not m:
             continue
         base = m.group(1)
+        if only and base not in only:
+            continue
         out_path = OUT_DIR / f'{base}.webp'
 
         try:
