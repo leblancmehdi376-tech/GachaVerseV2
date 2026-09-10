@@ -80,7 +80,7 @@ const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => v
       <div className={`collection-card locked${seen ? ' compadex-seen' : ''}`} onClick={onClick} style={{ cursor:'pointer' }}>
         <div className="collection-card__body">
           <div style={{ position:'relative' }}>
-            <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={150} height={204} frameOverlay />
+            <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={143} height={194} frameOverlay />
             {!seen && <div className="collection-lock">🔒</div>}
           </div>
           <div className="collection-card__name">{tpl.name}</div>
@@ -97,7 +97,7 @@ const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => v
   return (
     <div className="collection-card owned" onClick={onClick} style={{ ['--accent' as string]: cfg2.color, cursor:'pointer' } as CSSProperties}>
       <div className="collection-card__body">
-        <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={150} height={204} frameOverlay />
+        <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={143} height={194} frameOverlay />
         <div className="collection-card__name">{tpl.name}</div>
         {owned.edition && owned.edition !== 'base' && (
           <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'12px', letterSpacing:0.5, color:ed.color, background:`${ed.color}18`, border:`1px solid ${ed.color}55`, borderRadius:999, padding:'1px 8px', marginTop:2 }}>
@@ -139,7 +139,7 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 
         <div style={{ flex:1, overflowY:'auto', padding:'18px 20px', display:'flex', flexDirection:'column', gap:14 }}>
           <div style={{ display:'flex', justifyContent:'center' }}>
-            <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm ?? 0} name={owned ? getCharFormName(tpl, owned.currentForm) : tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={210} height={286} frameOverlay />
+            <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm ?? 0} name={owned ? getCharFormName(tpl, owned.currentForm) : tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={200} height={272} frameOverlay />
           </div>
 
           <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'center' }}>
@@ -389,7 +389,7 @@ export function CollectionPage() {
               return (
                 <div key={item.id} className="panel" style={{ padding:'14px', borderColor:`${item.color}33`, opacity: seen ? 1 : 0.6 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
-                    <div style={{ width:44, height:44, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20.6px', flexShrink:0 }}>{item.icon}</div>
+                    <div style={{ width:53, height:53, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24.7px', flexShrink:0 }}>{item.icon}</div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
