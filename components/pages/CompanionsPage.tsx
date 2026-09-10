@@ -215,8 +215,8 @@ function TeamSlotCard({
             name={getCharFormName(tpl, owned.currentForm)}
             rarity={tpl.rarity}
             edition={owned.edition}
-            width={64}
-            height={88}
+            width={77}
+            height={106}
             frameOverlay
           />
           {hasEquippedItems(owned) && <EquippedBadge position="top-right" />}
@@ -273,8 +273,8 @@ function SelectedCharacterHero({
           name={getCharFormName(tpl, owned.currentForm)}
           rarity={tpl.rarity}
           edition={owned.edition}
-          width={74}
-          height={100}
+          width={89}
+          height={120}
           frameOverlay
         />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -456,8 +456,8 @@ function CollectionCard({
           name={getCharFormName(tpl, owned.currentForm)}
           rarity={tpl.rarity}
           edition={owned.edition}
-          width={56}
-          height={78}
+          width={67}
+          height={94}
           frameOverlay
         />
         {hasEquippedItems(owned) && <EquippedBadge position="bottom-left" />}
