@@ -97,7 +97,7 @@ export function BattleZone() {
         <div style={{ position:'relative' }}>
           {/* Ombre/halo au sol — ancre le sprite dans l'arène au lieu de le laisser "flotter" */}
           <div style={{ position:'absolute', left:'50%', bottom: currentEnemy.isBoss?'0%':'3%', transform:'translate(-50%,0)',
-            width: currentEnemy.isBoss?'230px':'160px', height: currentEnemy.isBoss?'42px':'26px', borderRadius:'50%',
+            width: currentEnemy.isBoss?'242px':'168px', height: currentEnemy.isBoss?'44px':'27px', borderRadius:'50%',
             background: currentEnemy.isBoss
               ? 'radial-gradient(ellipse,rgba(239,68,68,0.5) 0%,rgba(124,58,237,0.22) 50%,transparent 78%)'
               : `radial-gradient(ellipse,${cfg.accentColor}4d 0%,transparent 78%)`,
@@ -106,10 +106,10 @@ export function BattleZone() {
             style={{ position:'relative', zIndex:1, transform:'scaleX(-1)', pointerEvents:'none',
               filter:currentEnemy.isBoss?'drop-shadow(0 0 28px rgba(239,68,68,0.85)) drop-shadow(0 0 60px rgba(239,68,68,0.3)) drop-shadow(0 12px 24px rgba(0,0,0,0.95))':`drop-shadow(0 0 16px ${cfg.accentColor}77) drop-shadow(0 10px 20px rgba(0,0,0,0.9))` }}>
             <PixelSprite src={currentEnemy.spritePath} alt={currentEnemy.name}
-              size={currentEnemy.isBoss?280:220} rarity={currentEnemy.isBoss?'L':'C'}
+              size={currentEnemy.isBoss?294:231} rarity={currentEnemy.isBoss?'L':'C'}
               style={ currentEnemy.isBoss
-                ? { height:'clamp(180px, 40vh, 300px)', width:'auto', maxWidth:'min(85vw, 360px)', maxHeight:'clamp(180px, 40vh, 300px)' }
-                : { height:'clamp(150px, 32vh, 240px)', width:'auto', maxWidth:'min(78vw, 300px)', maxHeight:'clamp(150px, 32vh, 240px)' }
+                ? { height:'clamp(189px, 42vh, 315px)', width:'auto', maxWidth:'min(89.25vw, 378px)', maxHeight:'clamp(189px, 42vh, 315px)' }
+                : { height:'clamp(158px, 33.6vh, 252px)', width:'auto', maxWidth:'min(81.9vw, 315px)', maxHeight:'clamp(158px, 33.6vh, 252px)' }
               } />
           </div>
         </div>
