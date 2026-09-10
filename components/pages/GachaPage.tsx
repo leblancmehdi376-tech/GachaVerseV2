@@ -216,7 +216,7 @@ export function GachaPage() {
                     const rarLocked = maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier;
                     return (
                       <div key={tpl.id} style={{ background:owned?`${cfg.color}0d`:'rgba(255,255,255,0.02)', border:`1px solid ${owned?cfg.color+'55':'var(--border)'}`, borderRadius:8, padding:'10px 6px', display:'flex', flexDirection:'column', alignItems:'center', gap:5, opacity: rarLocked ? 0.3 : owned ? 1 : 0.55 }}>
-                        <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm??0} name={tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={48} height={66} />
+                        <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm??0} name={tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={48} height={66} frameOverlay />
                         <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-sub)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
                         <RarityBadge rarity={tpl.rarity} size="xs" />
                         {owned && <RankStars rank={owned.rank} />}

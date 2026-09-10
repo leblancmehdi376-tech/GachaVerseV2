@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, RARITY_FRAME_RATIO } from '@/types/game';
 import { getCharacterById } from '@/lib/game/characters';
-import { RarityBadge } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { CardBackImg } from './CardBackImg';
 import { RarityBurst } from './RarityBurst';
@@ -49,9 +48,9 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
     return () => clearTimeout(t);
   }, [autoFlip, delay, doFlip]);
 
-  // Ratio réel des cartes (306:517, très allongé) — évite le rognage/décentrage
-  // qu'on aurait avec une boîte aux proportions différentes.
-  const CARD_RATIO = 306 / 517;
+  // Ratio du cadre illustré de cette rareté — évite tout décalage entre le
+  // cadre (CharacterCardThumb, frameOverlay) et la boîte qui le contient.
+  const CARD_RATIO = RARITY_FRAME_RATIO[tpl?.rarity ?? 'C'];
   const h = total === 1 ? 310 : total <= 5 ? 220 : 155;
   const w = Math.round(h * CARD_RATIO);
 
@@ -137,6 +136,7 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
                 rarity={tpl.rarity}
                 edition={res.edition}
                 width={w} height={h}
+                frameOverlay
                 style={{ border:'none', boxShadow:'none', borderRadius:0, objectFit:'contain' }}
               />
               {/* Overlay lumière haute rareté */}
@@ -148,24 +148,21 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
                   pointerEvents:'none',
                 }} />
               )}
-              {/* Info bas de carte */}
-              {revealed && (
+              {/* Badge "nouveau" — le nom et la rareté sont déjà portés par le
+                  bandeau/l'iconographie du cadre illustré (frameOverlay), pas
+                  de doublon ici. Placé en haut pour ne pas empiéter sur le
+                  bandeau nom du cadre, en bas de carte. */}
+              {revealed && res.isNew && (
                 <div style={{
-                  position:'absolute', bottom:0, left:0, right:0,
-                  padding:'18px 8px 10px',
-                  background:'linear-gradient(0deg,rgba(0,0,0,0.94) 0%,transparent 100%)',
-                  display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+                  position:'absolute', top:6, left:0, right:0,
+                  display:'flex', justifyContent:'center',
                   animation:'gvFadeUp 0.35s ease',
+                  zIndex: 12,
+                  pointerEvents:'none',
                 }}>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:Math.max(10, 14 - total * 0.3), color:'white', textAlign:'center', lineHeight:1.2 }}>
-                    {tpl.name}
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'#4ade80', fontWeight:800, letterSpacing:1, textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}>
+                    ✦ NOUVEAU
                   </span>
-                  <RarityBadge rarity={tpl.rarity} size="xs" />
-                  {res.isNew && (
-                    <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:800, letterSpacing:1, marginTop:1 }}>
-                      ✦ NOUVEAU
-                    </span>
-                  )}
                 </div>
               )}
             </>

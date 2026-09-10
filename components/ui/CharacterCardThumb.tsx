@@ -1,26 +1,11 @@
 'use client';
 
-import { Rarity, RARITY_CONFIG, RARITY_FRAME_SRC, CardEdition } from '@/types/game';
+import { Rarity, RARITY_CONFIG, RARITY_FRAME_SRC, RARITY_FRAME_RATIO, CardEdition } from '@/types/game';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
 import { getCharacterById } from '@/lib/game/characters';
 import { getCardBaseName } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { EDITION_CONFIG } from '@/lib/game/editions';
-
-// Ratio largeur/hauteur EXACT de chaque fichier de public/sprites/frameworks.
-// Le cadre est la référence : la boîte d'affichage reprend exactement son ratio.
-const RARITY_FRAME_RATIO: Record<Rarity, number> = {
-  C: 286 / 461,
-  U: 284 / 461,
-  R: 287 / 461,
-  E: 286 / 461,
-  L: 286 / 461,
-  M: 287 / 452,
-  S: 287 / 451,
-  CO: 287 / 454,
-  P: 286 / 453,
-  T: 290 / 452,
-};
 
 interface Props {
   templateId: string;
@@ -321,13 +306,15 @@ export function CharacterCardThumb({
         }}
       />
 
-      {/* Badge d'édition */}
+      {/* Badge d'édition — zIndex au-dessus du cadre (10/11) ET des overlays
+          externes posés par les pages appelantes (LV/rang, badge "NEW", etc.),
+          qui utilisent le même palier (30) pour rester visibles par-dessus. */}
       <div
         style={{
           position: 'absolute',
           top: -6,
           right: -6,
-          zIndex: 20,
+          zIndex: 30,
           width: Math.max(
             16,
             Math.round(width * 0.22)

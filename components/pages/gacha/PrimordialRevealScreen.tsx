@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, RARITY_FRAME_RATIO } from '@/types/game';
 import { getCharacterById } from '@/lib/game/characters';
-import { RarityBadge } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { REVEAL_TEASER_MS, FLIP_DELAY_MS, getCharacterQuote, getCharacterSoundPath } from '@/lib/game/gachaReveal';
 import { CardBackImg } from './CardBackImg';
@@ -39,8 +38,9 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
     };
   }, [res.templateId, onDone]);
 
-  // Même ratio que les cartes du tirage (306:517).
-  const CARD_RATIO = 306 / 517;
+  // Ratio du cadre illustré de cette rareté (P/T) — évite tout décalage
+  // entre le cadre (CharacterCardThumb, frameOverlay) et sa boîte.
+  const CARD_RATIO = RARITY_FRAME_RATIO[rarity];
   const h = 300;
   const w = Math.round(h * CARD_RATIO);
 
@@ -111,23 +111,24 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
                   <CharacterCardThumb
                     templateId={res.templateId} name={tpl.name} rarity={tpl.rarity} edition={res.edition}
                     width={w} height={h}
+                    frameOverlay
                     style={{ border:'none', boxShadow:'none', borderRadius:0, objectFit:'contain' }}
                   />
-                  {revealed && (
+                  {/* Badge "nouveau" — le nom et la rareté sont déjà portés par
+                      le bandeau/l'iconographie du cadre illustré (frameOverlay),
+                      pas de doublon ici. Placé en haut pour ne pas empiéter sur
+                      le bandeau nom du cadre, en bas de carte. */}
+                  {revealed && res.isNew && (
                     <div style={{
-                      position:'absolute', bottom:0, left:0, right:0,
-                      padding:'18px 10px 12px',
-                      background:'linear-gradient(0deg,rgba(0,0,0,0.94) 0%,transparent 100%)',
-                      display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+                      position:'absolute', top:6, left:0, right:0,
+                      display:'flex', justifyContent:'center',
                       animation:'gvFadeUp 0.35s ease',
+                      zIndex: 12,
+                      pointerEvents:'none',
                     }}>
-                      <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:15, color:'white', textAlign:'center' }}>{tpl.name}</span>
-                      <RarityBadge rarity={tpl.rarity} size="xs" />
-                      {res.isNew && (
-                        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:800, letterSpacing:1, marginTop:1 }}>
-                          ✦ NOUVEAU
-                        </span>
-                      )}
+                      <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:800, letterSpacing:1, textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}>
+                        ✦ NOUVEAU
+                      </span>
                     </div>
                   )}
                 </>

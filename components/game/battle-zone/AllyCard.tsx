@@ -19,7 +19,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
   // Slot vide
   if (!tpl || !owned) return (
     <div onClick={onManage} style={{ width:'100%', display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer', opacity:0.5 }}>
-      <div style={{ width:'100%', aspectRatio:'306 / 517', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
+      <div style={{ width:'100%', aspectRatio:'287 / 458', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
         <span style={{ fontSize:22.7, color:'rgba(255,255,255,0.2)' }}>+</span>
         <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.2)', fontWeight:600, letterSpacing:1 }}>VIDE</span>
       </div>
@@ -52,15 +52,17 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
       transition: 'box-shadow 0.2s, border-color 0.2s',
       paddingTop: 8,
     }}>
-      {/* Illustration (le nom est déjà sur la carte) — cliquable pour l'ult, survol = compétence */}
+      {/* Illustration + cadre illustré par rareté — la hauteur suit le ratio
+          exact du cadre (RARITY_FRAME_RATIO), pas de aspectRatio fixe ici pour
+          éviter tout décalage entre ce wrapper et la boîte de CharacterCardThumb. */}
       <SkillTooltip ult={ult}>
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '306 / 517', cursor: ready ? 'pointer' : 'default' }}
+        <div style={{ position: 'relative', width: '100%', cursor: ready ? 'pointer' : 'default' }}
           onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}>
           <CharacterCardThumb templateId={pureId} formIndex={formIdx} name={name} rarity={tpl.rarity} edition={owned.edition}
-            width={88} height={149} style={{ border: 'none', boxShadow: 'none', borderRadius: 0, objectFit: 'contain', width: '100%', height: '100%' }} />
+            width={88} height={149} frameOverlay style={{ width: '100%' }} />
 
           {/* Niveau + rang — flotte légèrement au-dessus de l'illustration */}
-          <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(0,0,0,0.4)', border: `1px solid ${rc.color}55`, borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}>
+          <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', zIndex: 30, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(0,0,0,0.4)', border: `1px solid ${rc.color}55`, borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}>
             <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.3 }}>LV{owned.level}</span>
             {owned.rank > 0 && <>
               <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.15)' }} />

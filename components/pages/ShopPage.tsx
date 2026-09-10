@@ -21,7 +21,7 @@ export function isCharacterOwned(collection: Record<string, unknown>, templateId
 
 function NewBadge() {
   return (
-    <span style={{ position:'absolute', top:-6, right:-6, background:'#4ade80', color:'#052e12', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'10px', letterSpacing:'0.3px', padding:'2px 6px', borderRadius:'999px', boxShadow:'0 0 8px rgba(74,222,128,0.6)', zIndex:1 }}>
+    <span style={{ position:'absolute', top:-6, right:-6, background:'#4ade80', color:'#052e12', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'10px', letterSpacing:'0.3px', padding:'2px 6px', borderRadius:'999px', boxShadow:'0 0 8px rgba(74,222,128,0.6)', zIndex:30 }}>
       NEW
     </span>
   );
@@ -109,7 +109,7 @@ export function ShopPage() {
           if (!tpl) return null;
           return (
             <div style={{ background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:'10px', padding:'14px 16px', display:'flex', alignItems:'center', gap:'14px' }}>
-              <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} edition={starterResult.edition} width={56} height={78} />
+              <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} edition={starterResult.edition} width={56} height={78} frameOverlay />
               <div>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#4ade80', marginBottom:'4px' }}>Personnage obtenu !</div>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'15.5px', color:'white', marginBottom:'4px' }}>{tpl.name}</div>
@@ -292,7 +292,7 @@ export function ShopPage() {
               return (
                 <div key={id} style={{ background:bought?'rgba(74,222,128,0.05)':`${cfg.color}0c`, border:`1px solid ${bought?'rgba(74,222,128,0.3)':cfg.color+'55'}`, borderRadius:'12px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'8px' }}>
                   <div style={{ position:'relative' }}>
-                    <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
+                    <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} frameOverlay />
                     {isNew && <NewBadge />}
                   </div>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', textAlign:'center' }}>{tpl.name}</span>
@@ -343,7 +343,7 @@ export function ShopPage() {
               return (
                 <div key={boss.id} style={{ background:`${cfg.color}0c`, border:`1px solid ${cfg.color}55`, borderRadius:'12px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'8px' }}>
                   <div style={{ position:'relative' }}>
-                    <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} />
+                    <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={64} height={88} frameOverlay />
                     {isNew && <NewBadge />}
                   </div>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', textAlign:'center' }}>{tpl.name}</span>

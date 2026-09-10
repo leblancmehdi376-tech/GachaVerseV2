@@ -67,6 +67,24 @@ export const RARITY_FRAME_SRC: Record<Rarity, string> = {
   T:  frameSrc('Transcendant_card.webp'),
 };
 
+// Ratio largeur/hauteur EXACT de chaque fichier de public/sprites/frameworks
+// (recalculer après tout recadrage des fichiers). Le cadre est la référence :
+// toute boîte affichant un cadre (CharacterCardThumb, mais aussi les écrans
+// de reveal qui précalculent leurs propres dimensions) doit reprendre ce
+// ratio pour éviter un décalage entre le cadre et le portrait sous-jacent.
+export const RARITY_FRAME_RATIO: Record<Rarity, number> = {
+  C: 286 / 461,
+  U: 284 / 461,
+  R: 287 / 461,
+  E: 286 / 461,
+  L: 286 / 461,
+  M: 287 / 452,
+  S: 287 / 451,
+  CO: 287 / 454,
+  P: 286 / 453,
+  T: 290 / 452,
+};
+
 // Ordre croissant C→T, dérivé de RARITY_CONFIG (déjà ordonné dans ce sens).
 export const RARITY_ORDER_ASC = Object.keys(RARITY_CONFIG) as Rarity[];
 

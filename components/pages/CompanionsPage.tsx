@@ -70,7 +70,7 @@ function EquippedBadge({ position }: { position: 'top-right' | 'bottom-left' }) 
   const posStyle = position === 'top-right' ? { top: 8, right: 8 } : { bottom: 8, left: 8 };
   return (
     <Tooltip content={<span style={{ fontWeight: 700 }}>Équipements équipés</span>}>
-      <div style={{ position: 'absolute', ...posStyle, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 12.4, zIndex: 6 }}>
+      <div style={{ position: 'absolute', ...posStyle, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 12.4, zIndex: 30 }}>
         ⚔️
       </div>
     </Tooltip>
@@ -217,6 +217,7 @@ function TeamSlotCard({
             edition={owned.edition}
             width={64}
             height={88}
+            frameOverlay
           />
           {hasEquippedItems(owned) && <EquippedBadge position="top-right" />}
           <div style={{ textAlign: 'center' }}>
@@ -274,6 +275,7 @@ function SelectedCharacterHero({
           edition={owned.edition}
           width={74}
           height={100}
+          frameOverlay
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 18.5, color: '#fff', lineHeight: 1.15, marginBottom: 8 }}>{getCharFormName(tpl, owned.currentForm)}</div>
@@ -456,6 +458,7 @@ function CollectionCard({
           edition={owned.edition}
           width={56}
           height={78}
+          frameOverlay
         />
         {hasEquippedItems(owned) && <EquippedBadge position="bottom-left" />}
         <div style={{ flex: 1, minWidth: 0 }}>
