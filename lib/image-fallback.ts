@@ -38,7 +38,7 @@ interface UseFallbackImageResult {
 // posé pour un perso qui avait déjà une image legacy). Incrémenter le
 // suffixe de version ci-dessous invalide le cache de tout le monde après un
 // gros ajout/remplacement d'assets.
-const RESOLUTION_CACHE_KEY = 'gachaverse_image_fallback_cache_v3';
+const RESOLUTION_CACHE_KEY = 'gachaverse_image_fallback_cache_v2.5';
 const resolutionCache = new Map<string, number>();
 let cacheLoaded = false;
 
