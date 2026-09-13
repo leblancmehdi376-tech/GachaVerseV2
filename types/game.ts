@@ -168,7 +168,7 @@ export interface Enemy {
 }
 
 export interface GameState {
-  pixelCoins: BigNum; nekoGems: number; totalClicks: number;
+  pixelCoins: BigNum; nekoGems: number;
   totalKills: number; totalQuestsCompleted: number; totalUpgradesPerformed: number; totalGachaPulls: number; totalBossKills: number; totalGemsSpent: number;
   // Cumuls à vie (jamais décrémentés, contrairement au solde dépensable) —
   // utilisés par les succès "au total"/"accumule X" (crowns_50, orbs_30).

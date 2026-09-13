@@ -12,6 +12,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '14/09/2026',
+    title: 'Nettoyage de l\'onglet Options',
+    changes: [
+      "Le suivi du nombre de clics totaux, qui n'était plus utilisé nulle part, a été entièrement retiré (il n'apparaissait déjà plus dans l'onglet Options).",
+    ],
+  },
+  {
+    date: '14/09/2026',
     title: 'Meilleure lisibilité des cartes compagnons',
     changes: [
       "Sur les très grands écrans, les informations (niveau, rang, ulti, base, type, DPS) des cartes compagnons de l'écran d'accueil s'affichent désormais à droite de l'illustration plutôt qu'en dessous, pour une lecture plus claire.",

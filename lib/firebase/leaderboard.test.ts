@@ -54,7 +54,7 @@ describe('updatePlayerScore — synchro username entre saves/{uid} et users/{uid
   });
 
   it('n\'écrit PAS users/{uid} quand la mise à jour ne concerne pas le pseudo (ex: progression courante)', async () => {
-    await updatePlayerScore('uid1', { palier: 7, wave: 2, totalClicks: 100 });
+    await updatePlayerScore('uid1', { palier: 7, wave: 2 });
 
     expect(setDocMock).toHaveBeenCalledTimes(1); // saves toujours mis à jour
     expect(updateDocMock).not.toHaveBeenCalled(); // pas de renommage -> pas de synchro identité

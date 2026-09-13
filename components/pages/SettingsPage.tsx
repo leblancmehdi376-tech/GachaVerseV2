@@ -11,7 +11,7 @@ import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
-  const { resetGame, pixelCoins, nekoGems, totalClicks, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore();
+  const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore();
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
@@ -53,7 +53,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
       // aurait fini par recevoir le nouveau pseudo (au prochain autosave,
       // jusqu'à 10min plus tard), laissant la fiche admin définitivement
       // périmée puisque rien d'autre ne l'aurait jamais resynchronisée.
-      await updatePlayerScore(user.uid, { username: finalName, palier, maxPalierReached, wave, totalClicks, pixelCoins, totalDps: getTotalDps() });
+      await updatePlayerScore(user.uid, { username: finalName, palier, maxPalierReached, wave, pixelCoins, totalDps: getTotalDps() });
       setNameFeedback('Pseudo enregistré.');
     } catch {
       setNameFeedback('Erreur réseau, réessaie.');
@@ -144,7 +144,6 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const saveData = {
     'Pixel-Coins':        formatNumber(pixelCoins),
     'Neko-Gemmes':        formatNumber(nekoGems),
-    'Clics totaux':       formatNumber(totalClicks),
     'Palier actuel':      String(palier),
     'Vague actuelle':     String(wave),
     'Palier max atteint': String(maxPalierReached),

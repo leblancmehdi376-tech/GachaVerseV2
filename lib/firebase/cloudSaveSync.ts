@@ -26,7 +26,6 @@ export function getSerializableState() {
     nekoGems:           s.nekoGems,
     totalGemsSpent:     s.totalGemsSpent ?? 0,
     totalGachaPulls:    s.totalGachaPulls ?? 0,
-    totalClicks:        s.totalClicks,
     totalKills:             s.totalKills ?? 0,
     totalBossKills:         s.totalBossKills ?? 0,
     totalQuestsCompleted:   s.totalQuestsCompleted ?? 0,

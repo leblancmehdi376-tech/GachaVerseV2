@@ -46,7 +46,7 @@ export {
 } from './gameStoreHelpers';
 
 const makeInitial = () => ({
-  pixelCoins: BN_ZERO, nekoGems: 10, totalClicks: 0,
+  pixelCoins: BN_ZERO, nekoGems: 10,
   totalKills: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0, totalGachaPulls: 0, totalBossKills: 0, totalGemsSpent: 0,
   totalBossCrownsEarned: 0, totalVoidOrbsEarned: 0,
   prestigeStatBaselines: { totalKills: 0, totalGachaPulls: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0 },
@@ -293,7 +293,7 @@ export const useGameStore = create<GameStore>()(
         return merged;
       },
       partialize: (s) => ({
-        pixelCoins:s.pixelCoins, nekoGems:s.nekoGems, totalClicks:s.totalClicks,
+        pixelCoins:s.pixelCoins, nekoGems:s.nekoGems,
         totalKills:s.totalKills ?? 0, totalQuestsCompleted:s.totalQuestsCompleted ?? 0, totalUpgradesPerformed:s.totalUpgradesPerformed ?? 0, totalGachaPulls:s.totalGachaPulls ?? 0, totalBossKills:s.totalBossKills ?? 0, totalGemsSpent:s.totalGemsSpent ?? 0,
         wave:s.wave, palier:s.palier, maxPalierReached:s.maxPalierReached, runPeakPalier:s.runPeakPalier ?? null,
         currentEnemy:s.currentEnemy,

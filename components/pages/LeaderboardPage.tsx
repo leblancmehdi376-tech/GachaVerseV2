@@ -27,7 +27,7 @@ export function getRankDisplay(idx: number): string {
 
 export function LeaderboardPage() {
   const { user } = useAuth();
-  const { username, palier, maxPalierReached, wave, totalClicks, pixelCoins, setUsername, getTotalDps } = useGameStore();
+  const { username, palier, maxPalierReached, wave, pixelCoins, setUsername, getTotalDps } = useGameStore();
 
   const [loading,   setLoading]   = useState(true);
   const [entries,   setEntries]   = useState<LeaderboardEntry[]>([]);
@@ -84,7 +84,7 @@ export function LeaderboardPage() {
     setSaving(true);
     setUsername(final);
     try {
-      await updatePlayerScore(user.uid, { username: final, palier, maxPalierReached, wave, totalClicks, pixelCoins, totalDps: getTotalDps() });
+      await updatePlayerScore(user.uid, { username: final, palier, maxPalierReached, wave, pixelCoins, totalDps: getTotalDps() });
       lastSaveNameAtRef.current = Date.now();
       setFeedback({ ok:true, msg:'Pseudo enregistré !' });
       await loadEntries(); // refresh immédiat pour voir le nouveau pseudo

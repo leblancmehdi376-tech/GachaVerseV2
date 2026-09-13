@@ -10,7 +10,6 @@ export interface LeaderboardEntry {
   palier: number;
   maxPalierReached: number;
   wave: number;
-  totalClicks: number;
   pixelCoins: BigNum;
   score: number;
   totalDps: BigNum;
@@ -38,7 +37,6 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       // Compat anciens documents sans maxPalierReached : retombe sur palier.
       const maxPalierReached = typeof data.maxPalierReached === 'number' ? data.maxPalierReached : palier;
       const wave        = typeof data.wave        === 'number' ? data.wave        : 0;
-      const totalClicks = typeof data.totalClicks === 'number' ? data.totalClicks : 0;
       const pixelCoins  = coerceBigNum(data.pixelCoins); // number (anciennes saves) ou BigNum — coerceBigNum accepte les deux
       const score       = typeof data.score       === 'number' ? data.score       : palier * 100 + wave;
       const totalDps    = coerceBigNum(data.totalDps);
@@ -49,7 +47,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       return {
         uid: docSnap.id,
         username: typeof data.username === 'string' && data.username.trim() ? data.username : 'Joueur',
-        palier, maxPalierReached, wave, totalClicks, pixelCoins, score, totalDps, prestigeLevel, activeTitle,
+        palier, maxPalierReached, wave, pixelCoins, score, totalDps, prestigeLevel, activeTitle,
       };
     });
 
@@ -76,7 +74,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
 }
 
 export async function updatePlayerScore(userId: string, data: Partial<{
-  username: string; palier: number; maxPalierReached: number; wave: number; pixelCoins: BigNum; totalClicks: number; totalDps: BigNum;
+  username: string; palier: number; maxPalierReached: number; wave: number; pixelCoins: BigNum; totalDps: BigNum;
 }>) {
   if (!db) return;
   try {
