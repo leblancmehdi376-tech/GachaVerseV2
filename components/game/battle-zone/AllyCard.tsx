@@ -16,10 +16,18 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
   const tpl   = getCharacterById(pureId);
   const owned = collection[templateId];
 
-  // Slot vide
+  // Slot vide — largeur alignée sur .ally-card-illu pour garder la même
+  // hauteur que les cartes occupées (sinon le placeholder s'étirait sur
+  // toute la largeur élargie du slot en affichage large, donnant une case
+  // bien plus haute que ses voisines remplies).
   if (!tpl || !owned) return (
     <div onClick={onManage} style={{ width:'100%', display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer', opacity:0.5 }}>
-      <div style={{ width:'100%', aspectRatio:'287 / 458', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
+      <style>{`
+        @media (min-width: 1800px) {
+          .ally-card-empty-illu { width: 84px !important; }
+        }
+      `}</style>
+      <div className="ally-card-empty-illu" style={{ width:'100%', aspectRatio:'287 / 458', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
         <span style={{ fontSize:22.7, color:'rgba(255,255,255,0.2)' }}>+</span>
         <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.2)', fontWeight:600, letterSpacing:1 }}>VIDE</span>
       </div>
@@ -44,7 +52,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
   const finalCol = strong ? '#4ade80' : weak ? '#f87171' : 'var(--green)';
 
   return (
-    <div style={{
+    <div className="ally-card-root" style={{
       width: '100%', borderRadius: 7, overflow: 'hidden', display: 'flex', flexDirection: 'column',
       background: 'linear-gradient(180deg, rgba(20,14,40,0.96), rgba(10,8,20,0.96))',
       border: `1.5px solid ${isActive ? '#c084fc' : ready ? '#fbbf24aa' : rc.color + '55'}`,
@@ -52,17 +60,33 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
       transition: 'box-shadow 0.2s, border-color 0.2s',
       paddingTop: 8,
     }}>
+      {/* À partir de 1800px, les infos (+ le badge LV/rang) passent à droite
+          de l'illustration (meilleure lisibilité) ; en dessous, on garde
+          l'empilement vertical d'origine. */}
+      <style>{`
+        .ally-card-badge-inline { display: none; }
+        @media (min-width: 1800px) {
+          .ally-card-root { flex-direction: row !important; }
+          .ally-card-illu { width: 84px !important; flex-shrink: 0; }
+          .ally-card-info { flex: 1; border-top: none !important; border-left: 1px solid rgba(255,255,255,0.08); justify-content: center !important; }
+          .ally-card-badge-float { display: none !important; }
+          .ally-card-badge-inline { display: inline-flex !important; }
+        }
+      `}</style>
+
       {/* Illustration + cadre illustré par rareté — la hauteur suit le ratio
           exact du cadre (RARITY_FRAME_RATIO), pas de aspectRatio fixe ici pour
           éviter tout décalage entre ce wrapper et la boîte de CharacterCardThumb. */}
       <SkillTooltip ult={ult}>
-        <div style={{ position: 'relative', width: '100%', cursor: ready ? 'pointer' : 'default' }}
+        <div className="ally-card-illu" style={{ position: 'relative', width: '100%', cursor: ready ? 'pointer' : 'default' }}
           onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}>
           <CharacterCardThumb templateId={pureId} formIndex={formIdx} name={name} rarity={tpl.rarity} edition={owned.edition}
             width={88} height={149} frameOverlay style={{ width: '100%' }} />
 
-          {/* Niveau + rang — flotte légèrement au-dessus de l'illustration */}
-          <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', zIndex: 30, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(0,0,0,0.4)', border: `1px solid ${rc.color}55`, borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}>
+          {/* Niveau + rang — flotte au-dessus de l'illustration en dessous de
+              1800px ; masqué au-delà (repris par .ally-card-badge-inline,
+              placé dans le bloc d'infos à droite). */}
+          <div className="ally-card-badge-float" style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', zIndex: 30, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(0,0,0,0.4)', border: `1px solid ${rc.color}55`, borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}>
             <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.3 }}>LV{owned.level}</span>
             {owned.rank > 0 && <>
               <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.15)' }} />
@@ -76,8 +100,18 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
           (au lieu d'un badge en overlay sur l'illustration, qui se lisait mal
           une fois superposé à l'art) pour laisser assez de place aux valeurs
           formatées (ex: "447.00T") sans qu'elles se chevauchent, la carte
-          faisant seulement 88px de large. */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '5px 7px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22` }}>
+          faisant seulement 88px de large. Passe à droite de l'illustration
+          au-delà de 1800px via .ally-card-info. */}
+      <div className="ally-card-info" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '5px 7px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22` }}>
+        {/* Niveau + rang — repris ici pour l'affichage large (voir
+            .ally-card-badge-float, masqué au-delà de 1800px). */}
+        <div className="ally-card-badge-inline" style={{ alignItems: 'center', gap: 5, marginBottom: 2 }}>
+          <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.3 }}>LV{owned.level}</span>
+          {owned.rank > 0 && <>
+            <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.15)' }} />
+            <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: '#fbbf24', letterSpacing: 0.3 }}>★{owned.rank}</span>
+          </>}
+        </div>
         <div onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 4px', marginBottom: 2, borderRadius: 4, cursor: ready ? 'pointer' : 'default',
             background: ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',

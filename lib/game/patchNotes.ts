@@ -12,6 +12,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '14/09/2026',
+    title: 'Meilleure lisibilité des cartes compagnons',
+    changes: [
+      "Sur les très grands écrans, les informations (niveau, rang, ulti, base, type, DPS) des cartes compagnons de l'écran d'accueil s'affichent désormais à droite de l'illustration plutôt qu'en dessous, pour une lecture plus claire.",
+      "En dessous de cette largeur, l'affichage reste inchangé.",
+    ],
+  },
+  {
+    date: '14/09/2026',
     title: 'Correctif : quêtes de boss encore intitulées « événement »',
     changes: [
       "Les quêtes « Vaincre des boss d'événement » restées bloquées sous leur ancien nom depuis le passage aux Raids sont maintenant bien renommées en « Vaincre des boss de raid », sans perte de progression.",

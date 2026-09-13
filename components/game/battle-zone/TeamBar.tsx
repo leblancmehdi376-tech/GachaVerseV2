@@ -64,13 +64,18 @@ export function TeamBar({
             //center text
             alignSelf:'center',
           }}>COMPAGNONS</span>
+          <style>{`
+            @media (min-width: 1800px) {
+              .team-companion-slot { width: 200px !important; }
+            }
+          `}</style>
           <div style={{
             display:'flex',
             gap:10,
             alignItems:'flex-start',
           }}>
             {equippedTeam.map((tid, i) => (
-              <div key={i} style={{ position:'relative', width:88, flexShrink:0 }}>
+              <div key={i} className="team-companion-slot" style={{ position:'relative', width:88, flexShrink:0 }}>
                 <AllyCard templateId={tid ?? ''} onManage={() => {}} />
               </div>
             ))}
