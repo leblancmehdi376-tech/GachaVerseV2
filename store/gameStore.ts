@@ -15,7 +15,7 @@ import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels } from '@/lib/game/prestige';
 import type { GameStore } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
-import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest } from './gameStoreHelpers';
+import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest, migrateLegacyRaidQuestIds } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
 import { createCharacterSlice } from './slices/characterSlice';
 import { createEquipmentSlice } from './slices/equipmentSlice';
@@ -261,6 +261,14 @@ export const useGameStore = create<GameStore>()(
         // retombe sur un tirage à la volée à CHAQUE lecture (donc à chaque
         // render) au lieu d'un type stable jusqu'au claim de l'expédition.
         merged.expeditionDefAffinities = backfillDefAffinities(merged.expeditionDefAffinities ?? {});
+        // Migration ponctuelle Événement -> Raid (voir migrateLegacyRaidQuestIds) :
+        // rattrape immédiatement les quêtes déjà tirées sous l'ancien id/label
+        // "boss d'événement", tourne à CHAQUE réhydratation comme les autres
+        // backfills de ce bloc.
+        const legacyQuestFix = migrateLegacyRaidQuestIds(merged.quests ?? [], merged.weeklyQuests ?? [], merged.raidQuests ?? []);
+        merged.quests = legacyQuestFix.quests;
+        merged.weeklyQuests = legacyQuestFix.weeklyQuests;
+        merged.raidQuests = legacyQuestFix.raidQuests;
         // Migration des anomalies possédées dont la `value` persistée ne
         // correspond plus au barème actuel (rework d'échelle, voir
         // migrateAnomalies) — tourne à CHAQUE réhydratation, pas juste lors

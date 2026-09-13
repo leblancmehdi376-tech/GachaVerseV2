@@ -4,6 +4,8 @@ import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
 import { logger } from '@/lib/logger';
 import { BN_ZERO, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
+import { migrateLegacyRaidQuestIds } from '@/store/gameStoreHelpers';
+import type { Quest } from '@/store/gameStore.types';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 
 // Logique pure/orchestration de la synchro cloud (indépendante de React) —
@@ -240,6 +242,21 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   // antérieure au rework d'échelle doit être migrée ici aussi.
   if (Array.isArray(data.ownedAnomalies)) {
     data.ownedAnomalies = migrateAnomalies(data.ownedAnomalies as Anomaly[]);
+  }
+
+  // Même migration Événement -> Raid que côté local (voir gameStore.ts::merge
+  // et migrateLegacyRaidQuestIds) — ce chemin cloud n'y passe pas non plus
+  // (setState direct ci-dessous), donc une save cloud écrite avant le
+  // renommage doit être rattrapée ici aussi.
+  if (Array.isArray(data.quests) || Array.isArray(data.weeklyQuests) || Array.isArray(data.raidQuests)) {
+    const fixed = migrateLegacyRaidQuestIds(
+      (data.quests as Quest[] | undefined) ?? [],
+      (data.weeklyQuests as Quest[] | undefined) ?? [],
+      (data.raidQuests as Quest[] | undefined) ?? [],
+    );
+    if (Array.isArray(data.quests)) data.quests = fixed.quests;
+    if (Array.isArray(data.weeklyQuests)) data.weeklyQuests = fixed.weeklyQuests;
+    if (Array.isArray(data.raidQuests)) data.raidQuests = fixed.raidQuests;
   }
 
   useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);

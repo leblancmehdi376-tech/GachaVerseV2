@@ -154,6 +154,39 @@ export const RAID_QUESTS: Omit<Quest,'current'|'done'>[] = [
   { id:'e_boss_raid_200', label:"Vaincre 200 boss de raid",         icon:'💀', target:200, reward:400, rewardType:'gems', type:'raid' },
 ];
 
+// Migration ponctuelle Événement -> Raid (voir commit "Renomme Evenements en
+// Raids") : les quêtes "boss d'événement" déjà tirées/persistées AVANT ce
+// renommage gardent leur ancien id/label indéfiniment — les journalières/
+// hebdo ne se corrigent qu'au prochain reset (rollQuestDef ne les re-tire pas
+// avant), et la quête de raid ('e_boss_event_200') ne se corrige JAMAIS
+// (permanente, jamais re-tirée). Appelée à chaque réhydratation (locale ET
+// cloud, voir gameStore.ts::merge et cloudSaveSync.ts::applyRemoteState) pour
+// rattraper immédiatement les parties en cours, sans toucher current/done.
+const LEGACY_RAID_QUEST_ID_MAP: Record<string, string> = {
+  d_boss_event: 'd_boss_raid',
+  w_boss_event: 'w_boss_raid',
+  e_boss_event_200: 'e_boss_raid_200',
+};
+
+export function migrateLegacyRaidQuestIds(
+  quests: Quest[], weeklyQuests: Quest[], raidQuests: Quest[]
+): { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] } {
+  const relabelFromDefs = (arr: Quest[], defs: QuestDef[]) => arr.map(q => {
+    const newId = LEGACY_RAID_QUEST_ID_MAP[q.id];
+    const def = newId ? defs.find(d => d.id === newId) : undefined;
+    return def ? { ...q, id: newId, label: def.label(q.target) } : q;
+  });
+  return {
+    quests: relabelFromDefs(quests, DAILY_QUEST_DEFS),
+    weeklyQuests: relabelFromDefs(weeklyQuests, WEEKLY_QUEST_DEFS),
+    raidQuests: raidQuests.map(q => {
+      const newId = LEGACY_RAID_QUEST_ID_MAP[q.id];
+      const def = newId ? RAID_QUESTS.find(d => d.id === newId) : undefined;
+      return def ? { ...q, id: newId, label: def.label } : q;
+    }),
+  };
+}
+
 // Coût et multiplicateur du Coffre d'Or — partagés entre upgradeGold() et resolveEnemyDeath()
 // Chaque palier atteint débloque un niveau de coffre achetable (niveau max
 // achetable = maxPalierReached) ; le multiplicateur et le coût sont désormais
