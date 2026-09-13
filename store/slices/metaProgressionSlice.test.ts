@@ -31,11 +31,11 @@ function setPrestigeableRunState() {
     unlockedEquipDropRarities: ['C', 'R'],
     equippedTeam: ['jinwoo', null, null, null],
     inventory: { coin_jinwoo: 250, coin_arthur_leywin: 10 },
-    // Pièces d'événement déjà achetées plusieurs fois cette run — leur coût
+    // Pièces de raid déjà achetées plusieurs fois cette run — leur coût
     // ×1.1^achats doit retomber au prix de base après le prestige, sinon le
     // joueur se retrouve avec un coût gonflé alors que ses pièces (inventory
     // ci-dessus) sont retombées à 0.
-    eventCharacterPurchases: { shadow_monarch: 4, arthur_leywin: 1 },
+    raidCharacterPurchases: { shadow_monarch: 4, arthur_leywin: 1 },
     goldUpgradeLevel: 6,
     bossActive: true,
     bossTimeLeft: 12,
@@ -65,17 +65,17 @@ describe('doPrestige — resets', () => {
 
     const state = useGameStore.getState();
     expect(state.prestigeLevel).toBe(0);
-    expect(state.eventCharacterPurchases).toEqual({ shadow_monarch: 4, arthur_leywin: 1 });
+    expect(state.raidCharacterPurchases).toEqual({ shadow_monarch: 4, arthur_leywin: 1 });
     expect(state.collection).toEqual({ jinwoo: expect.any(Object) });
   });
 
-  it("réinitialise le coût des personnages d'événement en même temps que les pièces", async () => {
+  it("réinitialise le coût des personnages de raid en même temps que les pièces", async () => {
     setPrestigeableRunState();
 
     await useGameStore.getState().doPrestige();
 
     const state = useGameStore.getState();
-    expect(state.eventCharacterPurchases).toEqual({});
+    expect(state.raidCharacterPurchases).toEqual({});
     expect(state.inventory).toEqual({});
   });
 

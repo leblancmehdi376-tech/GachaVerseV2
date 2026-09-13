@@ -82,7 +82,7 @@ describe('getGoldGainMultiplier — source unique du multiplicateur d\'or', () =
 
 describe('resolveEnemyDeath — le gain réel de golds au kill utilise TOUS les boosts', () => {
   function makeState(overrides: Partial<GameState> = {}): GameState & {
-    quests: []; weeklyQuests: []; eventQuests: [];
+    quests: []; weeklyQuests: []; raidQuests: [];
     prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number;
     activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[];
   } {
@@ -91,7 +91,7 @@ describe('resolveEnemyDeath — le gain réel de golds au kill utilise TOUS les 
       currentEnemy: { ...enemy, currentHp: bnFromNumber(0) },
       pixelCoins: bnFromNumber(0),
       nekoGems: 0,
-      quests: [], weeklyQuests: [], eventQuests: [],
+      quests: [], weeklyQuests: [], raidQuests: [],
       prestigeBonusLevels: initialBonusLevels(),
       prestigeRankRecoveryLevel: 0,
       activeTitle: '',
@@ -108,7 +108,7 @@ describe('resolveEnemyDeath — le gain réel de golds au kill utilise TOUS les 
       equipmentInventory: {},
       ...overrides,
     } as unknown as GameState & {
-      quests: []; weeklyQuests: []; eventQuests: [];
+      quests: []; weeklyQuests: []; raidQuests: [];
       prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number;
       activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[];
     };

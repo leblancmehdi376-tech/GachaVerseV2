@@ -114,7 +114,7 @@ export interface EvoForm {
   dpsFormMult: number; // toujours = position de la forme (1, 2, 3...), fixé par ce() — jamais un réglage par personnage
   description: string;
   // Objets d'évolution requis (consommés, 1 exemplaire chacun) pour débloquer
-  // cette forme — cumulatif d'un perso de boss d'événement à l'autre : la
+  // cette forme — cumulatif d'un perso de boss de raid à l'autre : la
   // forme N requiert les N premiers objets d'évolution du perso (voir ce()
   // dans lib/game/characters.ts, qui construit ces listes automatiquement).
   requiredItemIds?: string[];
@@ -131,7 +131,7 @@ export interface CharacterTemplate {
   universe?:   string;
   forms?:      EvoForm[];
   isHero?:     boolean;
-  // Perso de boss d'événement : les objets d'évolution dédiés (requiredItemIds,
+  // Perso de boss de raid : les objets d'évolution dédiés (requiredItemIds,
   // achetés en Boutique avec les pièces du boss) suffisent seuls à faire évoluer —
   // pas besoin de farmer des Pierres d'Évolution en plus.
   noEvoStones?: boolean;

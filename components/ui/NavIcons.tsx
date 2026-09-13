@@ -241,7 +241,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   gacha:        IconDiamond,
   shop:         IconShop,
   quests:       IconScroll,
-  events:       IconStar,
+  raids:        IconStar,
   achievements: IconAchievement,
   expeditions:  IconFoldedMap,
   forge:        IconForge,

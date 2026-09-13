@@ -24,7 +24,7 @@ import { BigNum } from '@/lib/game/bignum';
 export interface Quest {
   id: string; label: string; icon: string;
   target: number; current: number; reward: number; rewardType: 'gems'|'coins'; done: boolean;
-  type: 'daily' | 'weekly' | 'event';
+  type: 'daily' | 'weekly' | 'raid';
 }
 
 export interface OfflineGain {
@@ -119,10 +119,10 @@ export interface GachaState {
   collectionUniverse: string | 'all';
   collectionAffinity: string;
   collectionSort: string;
-  // Boutique — achat d'un perso d'événement contre ses pièces (voir lib/game/eventBoss.ts)
-  // Nombre d'achats déjà effectués par boss : le prix (getEventCharacterCost)
+  // Boutique — achat d'un perso de raid contre ses pièces (voir lib/game/raidBoss.ts)
+  // Nombre d'achats déjà effectués par boss : le prix (getRaidCharacterCost)
   // augmente de 10% à chaque achat.
-  eventCharacterPurchases: Record<string, number>;
+  raidCharacterPurchases: Record<string, number>;
 }
 export interface GachaActions {
   setCollectionFilters: (patch: { filter?: string; universe?: string | 'all'; affinity?: string; sort?: string }) => void;
@@ -133,7 +133,7 @@ export interface GachaActions {
   pullMulti100: () => { templateId: string; edition: CardEdition }[] | null;
   addToCollection: (id: string) => CardEdition;
   grantMaxedCharacter: (templateId: string, edition?: CardEdition) => void;
-  buyEventCharacter: (bossId: string) => boolean;
+  buyRaidCharacter: (bossId: string) => boolean;
 }
 export type GachaSlice = GachaState & GachaActions;
 
@@ -172,13 +172,13 @@ export interface ShopActions {
 }
 export type ShopSlice = ShopState & ShopActions;
 
-// ─── Quêtes journalières / hebdomadaires / événement ───────────────────────
+// ─── Quêtes journalières / hebdomadaires / raid ───────────────────────
 export interface QuestState {
   quests: Quest[];
   questsDayKey: string;
   weeklyQuests: Quest[];
   weeklyQuestsDayKey: string;
-  eventQuests: Quest[];
+  raidQuests: Quest[];
 }
 export interface QuestActions {
   bumpQuestProgress: (id: string, by?: number) => void;
@@ -187,8 +187,8 @@ export interface QuestActions {
   ensureDailyQuests: () => void;
   ensureWeeklyQuests: () => void;
   claimWeeklyQuest: (id: string) => void;
-  claimEventQuest: (id: string) => void;
-  bumpEventQuest: (id: string, by?: number) => void;
+  claimRaidQuest: (id: string) => void;
+  bumpRaidQuest: (id: string, by?: number) => void;
 }
 export type QuestSlice = QuestState & QuestActions;
 
@@ -402,15 +402,15 @@ export type GameStore = GameState
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;
     resetGame: () => void;
-    // Combat de boss d'événement en cours (voir components/pages/event/EventBattle.tsx) —
+    // Combat de boss de raid en cours (voir components/pages/raid/RaidBattle.tsx) —
     // conservé en mémoire (hors partialize, pas de persistance disque/cloud) pour
-    // survivre à un changement d'onglet de l'appli (EventPage démonte/remonte
-    // EventBattle à chaque fois) sans perdre la progression déjà faite.
-    eventBossFight: EventBossFightState | null;
-    setEventBossFight: (fight: EventBossFightState | null) => void;
+    // survivre à un changement d'onglet de l'appli (RaidPage démonte/remonte
+    // RaidBattle à chaque fois) sans perdre la progression déjà faite.
+    raidBossFight: RaidBossFightState | null;
+    setRaidBossFight: (fight: RaidBossFightState | null) => void;
   };
 
-export interface EventBossFightState {
+export interface RaidBossFightState {
   bossId: string;
   hp: BigNum;
   maxHp: BigNum;

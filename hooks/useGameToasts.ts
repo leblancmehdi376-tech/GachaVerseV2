@@ -8,15 +8,15 @@ import { toast } from '@/hooks/useToast';
 // aussi le nombre de quêtes réclamables (utilisé pour les badges de nav).
 // Extrait de GameLayout.tsx.
 export function useGameToasts(): number {
-  const { lastEquipmentDrop, setLastEquipmentDrop, quests, weeklyQuests, eventQuests } = useGameStore(useShallow(s => ({
+  const { lastEquipmentDrop, setLastEquipmentDrop, quests, weeklyQuests, raidQuests } = useGameStore(useShallow(s => ({
     lastEquipmentDrop: s.lastEquipmentDrop,
     setLastEquipmentDrop: s.setLastEquipmentDrop,
     quests: s.quests,
     weeklyQuests: s.weeklyQuests,
-    eventQuests: s.eventQuests,
+    raidQuests: s.raidQuests,
   })));
   const countClaimable = (list: typeof quests) => (list ?? []).filter(q => q.current >= q.target && !q.done).length;
-  const claimable = countClaimable(quests) + countClaimable(weeklyQuests) + countClaimable(eventQuests);
+  const claimable = countClaimable(quests) + countClaimable(weeklyQuests) + countClaimable(raidQuests);
 
   // Watch equipment drops → toast
   useEffect(() => {

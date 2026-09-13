@@ -39,7 +39,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
           {[
             'Équipements (fusion + inventaire)', 'Pixel-Coins → 0',
             'Collection : rang, forme et niveau de chaque carte',
-            'Pièces perso d\'événement', 'Objets de la Forge', 'Niveau héros → 1', 'Palier → 1',
+            'Pièces perso de raid', 'Objets de la Forge', 'Niveau héros → 1', 'Palier → 1',
           ].map(item => (
             <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(248,113,113,0.8)', marginBottom:3 }}>• {item}</div>
           ))}

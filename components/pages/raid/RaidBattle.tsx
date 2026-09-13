@@ -1,30 +1,30 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { useGameStore, bumpEventBossQuests } from '@/store/gameStore';
-import { EVENT_BOSSES, rollEventDrop, getEventBossMaxHp, DropResult } from '@/lib/game/eventBoss';
+import { useGameStore, bumpRaidBossQuests } from '@/store/gameStore';
+import { RAID_BOSSES, rollRaidDrop, getRaidBossMaxHp, DropResult } from '@/lib/game/raidBoss';
 import { getItemDef } from '@/lib/game/items';
 import { Affinity, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { calculateEquippedTeamDps } from '@/lib/game/dpsCalculation';
 import { formatNumber } from '@/lib/game/format';
 import { requestUrgentSave } from '@/lib/firebase/cloudSaveSync';
-import { MAX_EVENT_COMPANIONS, Dmg, rollBossAffinity, computeDurationMult } from './eventBattleHelpers';
+import { MAX_RAID_COMPANIONS, Dmg, rollBossAffinity, computeDurationMult } from './raidBattleHelpers';
 import { CompanionSelector } from './CompanionSelector';
-import { EventBg, BossSprite } from './EventSprites';
+import { RaidBg, BossSprite } from './RaidSprites';
 import { DropPopup } from './DropPopup';
 import { bnDivRatio, bnIsZero, bnMulScalar, bnSub, type BigNum } from '@/lib/game/bignum';
 
-export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
-  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setEventBossFight } = useGameStore();
+export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
+  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setRaidBossFight } = useGameStore();
 
-  const boss = useMemo(() => EVENT_BOSSES.find(b => b.id === bossId) ?? EVENT_BOSSES[0], [bossId]);
+  const boss = useMemo(() => RAID_BOSSES.find(b => b.id === bossId) ?? RAID_BOSSES[0], [bossId]);
   const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection), [equippedTeam, collection]);
 
   // Combat déjà en cours pour CE boss (ex: retour depuis un autre onglet de
-  // l'appli — voir eventBossFight dans le store) : on reprend sa progression
+  // l'appli — voir raidBossFight dans le store) : on reprend sa progression
   // au lieu de repartir à 100% de vie. N'est lu qu'au montage (composant
   // toujours (dé)monté à chaque changement de boss, jamais juste re-rendu
-  // avec un nouveau bossId — voir EventPage.tsx).
-  const savedFight = useGameStore.getState().eventBossFight;
+  // avec un nouveau bossId — voir RaidPage.tsx).
+  const savedFight = useGameStore.getState().raidBossFight;
   const resumable = savedFight && savedFight.bossId === bossId ? savedFight : null;
 
   // Type du boss : tiré au hasard à chaque nouveau lancement (entrée + chaque
@@ -35,24 +35,23 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   const durationMult = useMemo(() => computeDurationMult(companionIds, bossAffinity), [companionIds, bossAffinity]);
   const toggleCompanion = (id: string) => setCompanionIds(prev =>
     prev.includes(id) ? prev.filter(x => x !== id)
-      : prev.length < MAX_EVENT_COMPANIONS ? [...prev, id]
+      : prev.length < MAX_RAID_COMPANIONS ? [...prev, id]
       : prev
   );
 
-  const [maxHp, setMaxHp] = useState<BigNum>(() => resumable?.maxHp ?? getEventBossMaxHp(boss, totalEquippedDps, durationMult));
+  const [maxHp, setMaxHp] = useState<BigNum>(() => resumable?.maxHp ?? getRaidBossMaxHp(boss, totalEquippedDps, durationMult));
   const [hp, setHp] = useState<BigNum>(() => resumable?.hp ?? maxHp);
   const [dmgs, setDmgs] = useState<Dmg[]>([]);
   const [drops, setDrops] = useState<DropResult[] | null>(null);
   const [dead, setDead] = useState(() => resumable?.dead ?? false);
   const [kills, setKills] = useState(() => resumable?.kills ?? 0);
-  const now = Date.now();
 
-  // Sauvegarde continue dans le store (voir eventBossFight) : permet de
+  // Sauvegarde continue dans le store (voir raidBossFight) : permet de
   // reprendre le combat là où il en était après un changement d'onglet de
-  // l'appli, EventBattle étant démonté/remonté à chaque fois par EventPage.
+  // l'appli, RaidBattle étant démonté/remonté à chaque fois par RaidPage.
   useEffect(() => {
-    setEventBossFight({ bossId: boss.id, bossAffinity, companionIds, maxHp, hp, dead, kills });
-  }, [setEventBossFight, boss.id, bossAffinity, companionIds, maxHp, hp, dead, kills]);
+    setRaidBossFight({ bossId: boss.id, bossAffinity, companionIds, maxHp, hp, dead, kills });
+  }, [setRaidBossFight, boss.id, bossAffinity, companionIds, maxHp, hp, dead, kills]);
 
   // DPS d'équipe ou compagnons modifiés en cours de combat : le PV max
   // change (la durée visée change) mais la progression déjà faite doit
@@ -60,7 +59,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   // que de reset le combat à 100%.
   useEffect(() => {
     if (dead) return;
-    const freshMax = getEventBossMaxHp(boss, totalEquippedDps, durationMult);
+    const freshMax = getRaidBossMaxHp(boss, totalEquippedDps, durationMult);
     const ratio = bnIsZero(maxHp) ? 1 : Math.min(1, Math.max(0, bnDivRatio(hp, maxHp)));
     setMaxHp(freshMax);
     setHp(bnMulScalar(freshMax, ratio));
@@ -91,15 +90,15 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   useEffect(() => {
     if (bnIsZero(hp) && !dead) {
       setDead(true);
-      const results = rollEventDrop(boss.id, useGameStore.getState().unlockedTitles);
+      const results = rollRaidDrop(boss.id, useGameStore.getState().unlockedTitles);
       const gemsGained  = results.filter(r => r.type === 'gems').reduce((s, r) => s + (r.qty ?? 0), 0);
       const crownsGained = results.filter(r => r.type === 'bossCrowns').reduce((s, r) => s + (r.qty ?? 0), 0);
       useGameStore.setState(s => {
-        const questUpdate = bumpEventBossQuests(s.quests, s.weeklyQuests, s.eventQuests);
+        const questUpdate = bumpRaidBossQuests(s.quests, s.weeklyQuests, s.raidQuests);
         return {
           quests: questUpdate.quests,
           weeklyQuests: questUpdate.weeklyQuests,
-          eventQuests: questUpdate.eventQuests,
+          raidQuests: questUpdate.raidQuests,
           totalBossKills: s.totalBossKills + 1,
           nekoGems: s.nekoGems + gemsGained,
           bossCrowns: s.bossCrowns + crownsGained,
@@ -111,9 +110,9 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
         if (r.type === 'title' && r.id) useGameStore.getState().unlockTitle(r.id);
       }
       setTimeout(() => setDrops(results), 800);
-      // Événement majeur : sauvegarde immédiate pour ne jamais perdre la
+      // Raid majeur : sauvegarde immédiate pour ne jamais perdre la
       // récompense d'un boss d'event (pas d'attente du prochain cycle périodique).
-      requestUrgentSave('event_boss');
+      requestUrgentSave('raid_boss');
     }
   }, [hp, dead, addItem, boss]);
 
@@ -123,7 +122,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
     // prochain rendu, donc on ne peut pas relire durationMult ici).
     const nextAffinity = rollBossAffinity();
     setBossAffinity(nextAffinity);
-    const freshMax = getEventBossMaxHp(boss, totalEquippedDps, computeDurationMult(companionIds, nextAffinity));
+    const freshMax = getRaidBossMaxHp(boss, totalEquippedDps, computeDurationMult(companionIds, nextAffinity));
     setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null); setKills(k => k + 1);
   };
 
@@ -131,14 +130,14 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
   const hpColor = hpPct > 50 ? '#c084fc' : hpPct > 20 ? '#f87171' : '#ff4040';
 
   return (
-    <div className="boss-event" style={{
+    <div className="boss-raid" style={{
       height:'100%',
       overflow:'hidden',
       position:'relative',
       display:'flex',
       flexDirection:'column'
     }}>
-      <EventBg boss={boss} />
+      <RaidBg boss={boss} />
 
       {drops && (
         <DropPopup
@@ -202,7 +201,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
             e.currentTarget.style.color='rgba(255,255,255,0.7)';
           }}
         >
-          ← <span className="desktop-only">ÉVÉNEMENTS</span>
+          ← <span className="desktop-only">RAIDS</span>
         </button>
 
         {/* Infos boss */}
@@ -228,7 +227,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
                 height:6,
                 minWidth:6,
                 borderRadius:'50%',
-                background:boss.availableUntil > now ? '#4ade80' : '#f87171',
+                background:'#4ade80',
                 animation:'pulse 2s infinite'
               }}
             />
@@ -320,7 +319,7 @@ export function EventBattle({ bossId, onBack }: { bossId: string; onBack: () => 
           }}
         >
           🤝 <span className="desktop-only">COMPAGNONS </span>
-          ({companionIds.length}/{MAX_EVENT_COMPANIONS})
+          ({companionIds.length}/{MAX_RAID_COMPANIONS})
         </button>
 
         {/* Stats */}

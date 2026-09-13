@@ -44,7 +44,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     if (bnIsZero(dmg)) return;
     set(s => {
       const newHp = bnSub(s.currentEnemy.currentHp, dmg);
-      if (bnIsZero(newHp)) return resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], eventQuests: s.eventQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp } });
+      if (bnIsZero(newHp)) return resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], raidQuests: s.raidQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp } });
       return { currentEnemy: { ...s.currentEnemy, currentHp: newHp } };
     });
   },

@@ -29,7 +29,7 @@ function f(formId: string, name: string, id: string, requiredItemIds?: string[])
   return { formId, name, spritePath: sprite, description: name, requiredItemIds };
 }
 
-// Perso de boss d'événement : la forme N requiert les N premiers objets
+// Perso de boss de raid : la forme N requiert les N premiers objets
 // d'évolution du perso (ex: [a,b,c] -> forme1:[a], forme2:[a,b], forme3:[a,b,c]).
 function cumulative(items: string[], stage: number): string[] {
   return items.slice(0, stage);
@@ -621,12 +621,12 @@ export function getCharacterById(id: string): CharacterTemplate | undefined {
   return CHARACTER_BY_ID.get(id);
 }
 
-// Personnages obtenables UNIQUEMENT via la Forge ou les Boss d'Événement —
+// Personnages obtenables UNIQUEMENT via la Forge ou les Boss de Raid —
 // ne doivent jamais apparaître au gacha, sinon leur exclusivité n'a plus de sens.
 export const GACHA_EXCLUDED_IDS = new Set([
   // Récompenses de recettes de Forge (lib/game/expeditions.ts)
   'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks',
-  // Drops de boss d'événement (lib/game/eventBoss.ts)
+  // Drops de boss de raid (lib/game/raidBoss.ts)
   'jinwoo', 'arthur_leywin', 'cid_kagenou',
 ]);
 

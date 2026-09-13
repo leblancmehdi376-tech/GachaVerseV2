@@ -1,14 +1,14 @@
-// Helpers purs (sans JSX) pour le combat de boss d'événement — extraits de
-// EventPage.tsx pour séparer la logique des composants.
+// Helpers purs (sans JSX) pour le combat de boss de raid — extraits de
+// RaidPage.tsx pour séparer la logique des composants.
 import { Affinity, AFFINITY_ORDER, affinityMatchupKind, getAffinityForId } from '@/lib/game/affinities';
 import { getItemDef } from '@/lib/game/items';
-import { DropResult } from '@/lib/game/eventBoss';
+import { DropResult } from '@/lib/game/raidBoss';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
 import type { BigNum } from '@/lib/game/bignum';
 
 // ── Compagnons d'event : jusqu'à 3 alliés hors équipe/expédition qui
 // influencent la durée du combat selon leur type vs celui (aléatoire) du boss.
-export const MAX_EVENT_COMPANIONS = 3;
+export const MAX_RAID_COMPANIONS = 3;
 export const COMPANION_DURATION_STEP = 0.10; // ±10% par compagnon fort/faible
 
 export interface Dmg { id: number; x: number; y: number; val: BigNum; crit: boolean; }
@@ -34,7 +34,7 @@ export function describeDrop(drop: DropResult): { icon: string; title: string; s
     return {
       icon: item?.icon ?? '📦',
       title: item?.isCoin ? `+${qty} ${item.name}` : (item?.name ?? drop.id),
-      sub: item?.isCoin ? "Monnaie d'événement" : "Objet d'évolution",
+      sub: item?.isCoin ? "Monnaie de raid" : "Objet d'évolution",
       color: item?.color ?? '#c084fc',
     };
   }

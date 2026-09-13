@@ -16,8 +16,8 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
 
   setActiveTitle: (title) => set({ activeTitle: title }),
 
-  // Octroi direct d'un titre hors succès (ex: drop rare de boss d'event —
-  // voir EVENT_TITLES dans lib/game/titles.ts).
+  // Octroi direct d'un titre hors succès (ex: drop rare de boss de raid —
+  // voir RAID_TITLES dans lib/game/titles.ts).
   unlockTitle: (title) => set(s =>
     s.unlockedTitles.includes(title) ? s : { unlockedTitles: [...s.unlockedTitles, title] }
   ),

@@ -17,7 +17,7 @@ const INTENTIONALLY_TRANSIENT_FIELDS = new Set([
   'suppressToasts',      // flag UI temporaire (pendant une restauration d'état)
   'lastEquipmentDrop',   // déclencheur de toast one-shot
   'focusedExpeditionId', // signal de navigation Forge → Expéditions, pas une donnée de progression
-  // (eventCharacterPurchases retiré de cette liste : maintenant synchronisé,
+  // (raidCharacterPurchases retiré de cette liste : maintenant synchronisé,
   // voir partialize dans gameStore.ts et getSerializableState ci-dessus)
   'eventDpsMult',        // buff temporaire d'événement aléatoire (courte durée, faible enjeu)
   'eventDpsMultEndsAt',
@@ -32,7 +32,7 @@ const INTENTIONALLY_TRANSIENT_FIELDS = new Set([
   'ultCooldowns',        // idem (persisté local uniquement, jamais envoyé à Firestore)
   'ultActiveUlts',       // jamais persisté du tout (ni local ni cloud) — expire au reload
   'ultAnimating',        // idem
-  'eventBossFight',      // combat de boss d'event en cours, en mémoire seulement (survit à un
+  'raidBossFight',      // combat de boss d'event en cours, en mémoire seulement (survit à un
                           // changement d'onglet de l'appli, pas à un refresh) — voir gameStore.types.ts
 ]);
 

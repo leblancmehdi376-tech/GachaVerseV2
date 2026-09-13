@@ -1,5 +1,5 @@
 ﻿// ── Objets d'évolution ─────────────────────────────────────────────────
-// Items obtenus via les boss d'événement, stockés dans l'inventaire du
+// Items obtenus via les boss de raid, stockés dans l'inventaire du
 // joueur (gameStore.inventory), et consommés pour débloquer certaines
 // évolutions spéciales (voir EvoForm.requiredItemIds dans characters.ts).
 
@@ -12,7 +12,7 @@ export interface ItemDef {
   icon: string;
   color: string;
   sellGems: number; // Gemmes obtenues au recyclage
-  isCoin?: boolean; // Monnaie d'événement (échangée en Boutique) — exclue du recyclage générique
+  isCoin?: boolean; // Monnaie de raid (échangée en Boutique) — exclue du recyclage générique
 }
 
 export const ITEM_DEFS: Record<string, ItemDef> = {
@@ -62,10 +62,10 @@ export const ITEM_DEFS: Record<string, ItemDef> = {
     sellGems: 250,
   },
 
-  // ── Pièces de personnage d'événement ────────────────────────────────────
-  // Accumulées en combattant le boss d'événement correspondant, échangées
+  // ── Pièces de personnage de raid ────────────────────────────────────
+  // Accumulées en combattant le boss de raid correspondant, échangées
   // contre le personnage exclusif dans la Boutique (voir ShopPage.tsx et
-  // gameStore.buyEventCharacter).
+  // gameStore.buyRaidCharacter).
   coin_jinwoo: {
     id: 'coin_jinwoo', name: 'Pièce — Monarque des Ombres', icon: '🪙', color: '#c084fc',
     description: "Échangeable en Boutique contre Sung Jin Woo.",

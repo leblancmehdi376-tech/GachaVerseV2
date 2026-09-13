@@ -12,7 +12,7 @@ import {
   EQUIPMENT_CHESTS, getRerollShopCost,
 } from '@/lib/game/shop';
 import { getEquipmentDef, getItemDef } from '@/lib/game/items';
-import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
+import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
 import { makeInstanceKey } from '@/lib/game/editions';
 
 export function isCharacterOwned(collection: Record<string, unknown>, templateId: string): boolean {
@@ -50,8 +50,8 @@ export function ShopPage() {
     dpsBoostEndsAt, goldBoostEndsAt, isDpsBoostActive, isGoldBoostActive,
     buyDpsBoost, buyGoldBoost, buyGemsWithCrowns, buyGoldWithGems,
     dailyShop, ensureDailyShop, buyShopCharacter, rerollDailyShop, buyGemsWithOrbs, buyEquipmentChest,
-    starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyEventCharacter,
-    eventCharacterPurchases,
+    starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyRaidCharacter,
+    raidCharacterPurchases,
   } = useGameStore();
   const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useGameStore();
 
@@ -321,23 +321,23 @@ export function ShopPage() {
           </div>
         </div>
 
-        {/* ══ PERSONNAGES D'ÉVÉNEMENT ═════════════════════════════════════ */}
+        {/* ══ PERSONNAGES DE RAID ═════════════════════════════════════ */}
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'14px' }}>
             <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:'2px', boxShadow:'0 0 8px #fbbf24' }} />
-            <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>PERSONNAGES D&apos;ÉVÉNEMENT</span>
+            <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>PERSONNAGES DE RAID</span>
           </div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', marginBottom:'14px' }}>
-            Échange les pièces gagnées en combattant les boss d&apos;événement contre leur personnage exclusif.
+            Échange les pièces gagnées en combattant les boss de raid contre leur personnage exclusif.
           </div>
           <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
-            {EVENT_BOSSES.map(boss => {
+            {RAID_BOSSES.map(boss => {
               const tpl = getCharacterById(boss.characterId);
               if (!tpl) return null;
               const cfg   = RARITY_CONFIG[tpl.rarity];
               const coin  = getItemDef(boss.coinItemId);
               const owned = inventory[boss.coinItemId] ?? 0;
-              const cost  = getEventCharacterCost(boss, eventCharacterPurchases[boss.id] ?? 0);
+              const cost  = getRaidCharacterCost(boss, raidCharacterPurchases[boss.id] ?? 0);
               const canBuy = owned >= cost;
               const isNew = !isCharacterOwned(collection, tpl.id);
               return (
@@ -351,7 +351,7 @@ export function ShopPage() {
                   <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12.4px', color: canBuy?'#fbbf24':'var(--text-muted)' }}>
                     {coin?.icon ?? '🪙'} {formatNumber(owned)} / {formatNumber(cost)}
                   </span>
-                  <button onClick={() => buyEventCharacter(boss.id)} disabled={!canBuy}
+                  <button onClick={() => buyRaidCharacter(boss.id)} disabled={!canBuy}
                     style={{ width:'100%', padding:'8px', background:canBuy?'rgba(251,191,36,0.18)':'rgba(255,255,255,0.03)', border:`1px solid ${canBuy?'#fbbf2466':'var(--border)'}`, borderRadius:'7px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:canBuy?'#fbbf24':'var(--text-muted)', cursor:canBuy?'pointer':'not-allowed' }}>
                     ACHETER
                   </button>

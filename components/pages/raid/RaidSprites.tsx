@@ -1,8 +1,8 @@
 'use client';
-import { EventBossDef } from '@/lib/game/eventBoss';
+import { RaidBossDef } from '@/lib/game/raidBoss';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
 
-export function EventBg({ boss }: { boss: EventBossDef }) {
+export function RaidBg({ boss }: { boss: RaidBossDef }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(boss.bgImagePath));
   if (failed || !src) return <div style={{ position:'absolute', inset:0, background: boss.bgGradient }} />;
   return (
@@ -15,7 +15,7 @@ export function EventBg({ boss }: { boss: EventBossDef }) {
   );
 }
 
-export function BossSprite({ boss, deadStyle }: { boss: EventBossDef; deadStyle: boolean }) {
+export function BossSprite({ boss, deadStyle }: { boss: RaidBossDef; deadStyle: boolean }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(stripKnownExtension(boss.spritePath)));
   if (failed || !src) return (
     <div style={{ width:336, height:448, background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>

@@ -15,7 +15,7 @@ import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels } from '@/lib/game/prestige';
 import type { GameStore } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
-import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, EVENT_QUESTS, rollQuestDefs, rollCoinHoursQuest } from './gameStoreHelpers';
+import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
 import { createCharacterSlice } from './slices/characterSlice';
 import { createEquipmentSlice } from './slices/equipmentSlice';
@@ -36,7 +36,7 @@ import { migrateAnomalies } from '@/lib/game/anomalies';
 // pour tous les fichiers qui importent ces symboles.
 export type { Quest, OfflineGain, ActiveUlt, ActiveExpedition } from './gameStore.types';
 export {
-  getGoldChestCost, getGoldChestMultiplier, getGoldGainMultiplier, getPalierPassGems, bumpPalierBossQuests, bumpEventBossQuests,
+  getGoldChestCost, getGoldChestMultiplier, getGoldGainMultiplier, getPalierPassGems, bumpPalierBossQuests, bumpRaidBossQuests,
   GOLD_CHEST_COST_BASE, GOLD_CHEST_COST_GROWTH, GOLD_CHEST_MULT_GROWTH,
   MOB_GEM_DROP_CHANCE, FARM_EQUIP_DROP_RATE,
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
@@ -67,7 +67,7 @@ const makeInitial = () => ({
   questsDayKey: getTodayDayKey(),
   weeklyQuests: rollQuestDefs(WEEKLY_QUEST_DEFS).map(q => ({ ...q, current: 0, done: false })),
   weeklyQuestsDayKey: getThisWeekKey(),
-  eventQuests: EVENT_QUESTS.map(q => ({ ...q, current: 0, done: false })),
+  raidQuests: RAID_QUESTS.map(q => ({ ...q, current: 0, done: false })),
   // Flag to temporarily suppress toasts/notifications during state restore
   suppressToasts: false,
   bossCrowns: 0, voidOrbs: 0,
@@ -77,7 +77,7 @@ const makeInitial = () => ({
   lastEquipmentDrop: null,
   focusedExpeditionId: null,
   bankedRanks: {} as Record<string, number>,
-  eventCharacterPurchases: {} as Record<string, number>,
+  raidCharacterPurchases: {} as Record<string, number>,
   historicalMaxRank: {} as Record<string, number>,
   unlockedEquipRarities: ['C'] as Rarity[],
   unlockedEquipDropRarities: ['C'] as Rarity[],
@@ -128,8 +128,8 @@ const makeInitial = () => ({
   anomalyTokens: 0,
   ownedAnomalies: [] as GameStore['ownedAnomalies'],
   anomalySlots: 1,
-  // ── Combat de boss d'événement en cours (jamais persisté, voir GameStore) ──
-  eventBossFight: null as GameStore['eventBossFight'],
+  // ── Combat de boss de raid en cours (jamais persisté, voir GameStore) ──
+  raidBossFight: null as GameStore['raidBossFight'],
 });
 
 // ─── Migration depuis les 4 anciens stores Zustand séparés ─────────────────
@@ -209,7 +209,7 @@ export const useGameStore = create<GameStore>()(
         set(makeInitial());
       },
 
-      setEventBossFight: (fight) => set({ eventBossFight: fight }),
+      setRaidBossFight: (fight) => set({ raidBossFight: fight }),
     }),
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
@@ -293,7 +293,7 @@ export const useGameStore = create<GameStore>()(
         bossActive:s.bossActive, bossTimeLeft:s.bossTimeLeft,
         quests:s.quests, questsDayKey:s.questsDayKey,
         weeklyQuests:s.weeklyQuests, weeklyQuestsDayKey:s.weeklyQuestsDayKey,
-        eventQuests:s.eventQuests,
+        raidQuests:s.raidQuests,
         bossCrowns:s.bossCrowns, voidOrbs:s.voidOrbs,
         totalBossCrownsEarned:s.totalBossCrownsEarned ?? 0, totalVoidOrbsEarned:s.totalVoidOrbsEarned ?? 0,
         prestigeStatBaselines:s.prestigeStatBaselines ?? { totalKills: 0, totalGachaPulls: 0, totalQuestsCompleted: 0, totalUpgradesPerformed: 0 },
@@ -304,11 +304,11 @@ export const useGameStore = create<GameStore>()(
         championInventory:s.championInventory ?? {},
         bankedRanks:s.bankedRanks ?? {},
         historicalMaxRank:s.historicalMaxRank ?? {},
-        // Nombre d'achats déjà effectués par boss d'événement (prix +10% par
-        // achat, voir getEventCharacterCost) — jamais synchronisé avant ce
+        // Nombre d'achats déjà effectués par boss de raid (prix +10% par
+        // achat, voir getRaidCharacterCost) — jamais synchronisé avant ce
         // correctif : un refresh/reconnexion faisait revenir le prix à son
         // tarif de départ (bug mineur, favorable au joueur).
-        eventCharacterPurchases:s.eventCharacterPurchases ?? {},
+        raidCharacterPurchases:s.raidCharacterPurchases ?? {},
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         dailyRewardDayKey:s.dailyRewardDayKey, dailyRewardCurrentDay:s.dailyRewardCurrentDay,

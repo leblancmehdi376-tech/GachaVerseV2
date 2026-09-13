@@ -10,7 +10,7 @@ import { GachaPage } from '@/components/pages/GachaPage';
 import { QuestsPage } from '@/components/pages/QuestsPage';
 import { ShopPage } from '@/components/pages/ShopPage';
 import { CollectionPage } from '@/components/pages/CollectionPage';
-import { EventPage } from '@/components/pages/EventPage';
+import { RaidPage } from '@/components/pages/RaidPage';
 import { SettingsPage } from '@/components/pages/SettingsPage';
 import { LeaderboardPage } from '@/components/pages/LeaderboardPage';
 import { MarketplacePage } from '@/components/pages/MarketplacePage';
@@ -43,6 +43,8 @@ import { getPalierConfig } from '@/lib/game/paliers';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { WelcomeBackModal } from '@/components/game/WelcomeBackModal';
 import { DailyRewardsModal } from '@/components/game/DailyRewardsModal';
+import { PatchNotesModal } from '@/components/layout/PatchNotesModal';
+import { PATCH_NOTES } from '@/lib/game/patchNotes';
 
 import { NAV_ICONS } from '@/components/ui/NavIcons';
 import { ToastContainer } from '@/components/ui/ToastContainer';
@@ -52,7 +54,7 @@ import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
 import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
 import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'events' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -77,7 +79,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
     { id:'achievements', label:'SUCCÈS',          accent:'#fbbf24'            },
   ]},
   { title:'ACTIVITÉS', items: [
-    { id:'events',       label:'ÉVÉNEMENTS',      accent:'#fbbf24'            },
+    { id:'raids',        label:'RAIDS',           accent:'#fbbf24'            },
     { id:'expeditions',  label:'EXPÉDITIONS',     accent:'#fb923c'            },
   ]},
   { title:'ÉCONOMIE', items: [
@@ -110,6 +112,8 @@ export function GameLayout() {
   const [page,          setPage]          = useState<Page>('home');
   const [showAuth,      setShowAuth]      = useState(false);
   const [showDailyRewards, setShowDailyRewards] = useState(false);
+  const [showPatchNotes, setShowPatchNotes] = useState(false);
+  const latestPatchNote = PATCH_NOTES[0];
   const [splashDone,    setSplashDone]    = useState(false);
   const isMobile = useIsMobile();
   // Palier intermédiaire (desktop resserré) : la barre du haut (logo + avatar
@@ -410,20 +414,23 @@ export function GameLayout() {
 
           <div style={{ flex:1 }} />
 
-          {/* Événement — flexShrink:0 : ce bloc a overflow:hidden (pour clipper le
+          {/* Patch Notes — flexShrink:0 : ce bloc a overflow:hidden (pour clipper le
               cercle décoratif), ce qui retire sa protection de taille minimale en
               flexbox. Sans flexShrink:0, quand le contenu de la sidebar dépasse la
               hauteur dispo, ce bloc se fait écraser (quelques px) par l'algorithme
               de shrink au lieu de garder sa taille et de laisser le scroll (aside,
               overflowY:auto) le révéler entièrement — d'où le bug "scroll ne va
-              pas jusqu'au bout de l'info événement". */}
-          <div style={{ flexShrink:0, background:'linear-gradient(160deg,#150a28,#1e0e38)', border:'1px solid var(--border-glow)', borderRadius:'12px', padding:'14px', marginTop:'8px', position:'relative', overflow:'hidden', boxShadow:'0 0 20px rgba(124,58,237,0.08), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+              pas jusqu'au bout de l'info patch notes". */}
+          <div onClick={() => setShowPatchNotes(true)}
+            style={{ flexShrink:0, cursor:'pointer', background:'linear-gradient(160deg,#150a28,#1e0e38)', border:'1px solid var(--border-glow)', borderRadius:'12px', padding:'14px', marginTop:'8px', position:'relative', overflow:'hidden', boxShadow:'0 0 20px rgba(124,58,237,0.08), inset 0 1px 0 rgba(255,255,255,0.04)', transition:'filter 0.15s' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.15)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
             <div style={{ position:'absolute', top:'-15px', right:'-15px', width:'80px', height:'80px', background:'radial-gradient(circle,rgba(168,85,247,0.16),transparent)', borderRadius:'50%' }} />
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>★ ÉVÉNEMENT</div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:'12.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>BOSS DES OMBRES</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>Vaincs le boss de chaque palier pour des récompenses exclusives</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>📋 PATCH NOTES</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:'12.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>{latestPatchNote.title}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>Découvre les dernières nouveautés du jeu</div>
             <div style={{ marginTop:'8px', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', display:'flex', alignItems:'center', gap:'5px' }}>
-              <span>⏰</span><span>Permanent</span>
+              <span>🕒</span><span>{latestPatchNote.date}</span>
             </div>
           </div>
         </aside>
@@ -462,7 +469,7 @@ export function GameLayout() {
                   {page === 'gacha'      && <GachaPage />}
                   {page === 'shop'       && <ShopPage />}
                   {page === 'quests'     && <QuestsPage />}
-                  {page === 'events'     && <EventPage />}
+                  {page === 'raids'      && <RaidPage />}
                   {page === 'settings'     && <SettingsPage onForceSave={forceSave} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} />}
                   {page === 'leaderboard'  && <LeaderboardPage />}
                   {page === 'marketplace'  && <MarketplacePage />}
@@ -484,6 +491,7 @@ export function GameLayout() {
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showDailyRewards && <DailyRewardsModal onClose={() => setShowDailyRewards(false)} />}
+      {showPatchNotes && <PatchNotesModal onClose={() => setShowPatchNotes(false)} />}
       {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={claimOfflineGain} />}
       <UltAnimation />
     </div>

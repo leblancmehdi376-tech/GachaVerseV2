@@ -5,7 +5,7 @@ import { defaultEquippedItems } from '@/types/game';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/gacha';
 import { getCharacterById } from '@/lib/game/characters';
 import { rollCardEdition, makeInstanceKey } from '@/lib/game/editions';
-import { EVENT_BOSSES, getEventCharacterCost } from '@/lib/game/eventBoss';
+import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { broadcastLocalState, requestUrgentSave, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, GachaActions } from '../gameStore.types';
@@ -110,7 +110,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
       const ex2 = state.collection[instanceKey];
       const equippedItems = ex2?.equippedItems ?? defaultEquippedItems();
       // Bonus de Prestige "Mémoire des Rangs" — même traitement pour TOUS
-      // les persos (shiny/forge/event compris, plus de banque illimitée
+      // les persos (shiny/forge/raid compris, plus de banque illimitée
       // spéciale pour eux) : récupère jusqu'au pic historique atteint dans
       // une vie précédente (historicalMaxRank), plafonné par le niveau du
       // bonus acheté. Jamais consommé : reste disponible pour toutes les
@@ -143,16 +143,16 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     return edition;
   },
 
-  buyEventCharacter: (bossId) => {
-    const boss = EVENT_BOSSES.find(b => b.id === bossId);
+  buyRaidCharacter: (bossId) => {
+    const boss = RAID_BOSSES.find(b => b.id === bossId);
     if (!boss) return false;
-    const purchases = get().eventCharacterPurchases[bossId] ?? 0;
-    const cost = getEventCharacterCost(boss, purchases);
+    const purchases = get().raidCharacterPurchases[bossId] ?? 0;
+    const cost = getRaidCharacterCost(boss, purchases);
     const owned = get().inventory[boss.coinItemId] ?? 0;
     if (owned < cost) return false;
     set(state => ({
       inventory: { ...state.inventory, [boss.coinItemId]: owned - cost },
-      eventCharacterPurchases: { ...state.eventCharacterPurchases, [bossId]: purchases + 1 },
+      raidCharacterPurchases: { ...state.raidCharacterPurchases, [bossId]: purchases + 1 },
     }));
     get().addToCollection(boss.characterId);
     return true;

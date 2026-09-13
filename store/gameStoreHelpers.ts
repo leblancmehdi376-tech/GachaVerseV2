@@ -76,8 +76,8 @@ export const DAILY_QUEST_DEFS: QuestDef[] = [
   { id:'d_upgrade', icon:'⬆', rewardType:'gems', type:'daily',
     label: n => `Améliorer tes personnages ${n} fois`,
     variants: [{ target:100, reward:15 }] },
-  { id:'d_boss_event', icon:'👹', rewardType:'gems', type:'daily',
-    label: n => `Vaincre ${n} boss d'événement`,
+  { id:'d_boss_raid', icon:'👹', rewardType:'gems', type:'daily',
+    label: n => `Vaincre ${n} boss de raid`,
     variants: [{ target:5, reward:20 }, { target:10, reward:35 }] },
   { id:'d_boss_palier', icon:'👑', rewardType:'gems', type:'daily',
     label: n => `Vaincre ${n} boss de palier`,
@@ -121,8 +121,8 @@ export const WEEKLY_QUEST_DEFS: QuestDef[] = [
   { id:'w_upgrade', icon:'⬆', rewardType:'gems', type:'weekly',
     label: n => `Améliorer tes personnages ${n} fois`,
     variants: [{ target:1000, reward:60 }, { target:1500, reward:85 }, { target:2000, reward:110 }] },
-  { id:'w_boss_event', icon:'👹', rewardType:'gems', type:'weekly',
-    label: n => `Vaincre ${n} boss d'événement`,
+  { id:'w_boss_raid', icon:'👹', rewardType:'gems', type:'weekly',
+    label: n => `Vaincre ${n} boss de raid`,
     variants: [{ target:30, reward:90 }, { target:40, reward:120 }, { target:50, reward:150 }] },
   { id:'w_boss_palier', icon:'👑', rewardType:'gems', type:'weekly',
     label: n => `Vaincre ${n} boss de palier`,
@@ -144,14 +144,14 @@ export function rollQuestDefs(defs: QuestDef[]): Omit<Quest,'current'|'done'>[] 
   return defs.map(rollQuestDef);
 }
 
-// ── Quêtes d'événement (permanentes jusqu'à complétion, valeurs fixes) ────
-export const EVENT_QUESTS: Omit<Quest,'current'|'done'>[] = [
-  { id:'e_forge_1',        label:'Forger ton premier personnage',        icon:'⚗',  target:1,   reward:200, rewardType:'gems', type:'event' },
-  { id:'e_expedition_10',  label:'Terminer 10 expéditions',              icon:'🧭', target:10,  reward:200, rewardType:'gems', type:'event' },
-  { id:'e_palier_20',      label:'Atteindre le palier 20',               icon:'🌌', target:20,  reward:300, rewardType:'gems', type:'event' },
-  { id:'e_prestige_1',     label:'Prestiger 1 fois',                     icon:'⭐', target:1,   reward:400, rewardType:'gems', type:'event' },
-  { id:'e_collection_100', label:'Obtenir 100 personnages différents',   icon:'📚', target:100, reward:350, rewardType:'gems', type:'event' },
-  { id:'e_boss_event_200', label:"Vaincre 200 boss d'événement",         icon:'💀', target:200, reward:400, rewardType:'gems', type:'event' },
+// ── Quêtes de raid (permanentes jusqu'à complétion, valeurs fixes) ────
+export const RAID_QUESTS: Omit<Quest,'current'|'done'>[] = [
+  { id:'e_forge_1',        label:'Forger ton premier personnage',        icon:'⚗',  target:1,   reward:200, rewardType:'gems', type:'raid' },
+  { id:'e_expedition_10',  label:'Terminer 10 expéditions',              icon:'🧭', target:10,  reward:200, rewardType:'gems', type:'raid' },
+  { id:'e_palier_20',      label:'Atteindre le palier 20',               icon:'🌌', target:20,  reward:300, rewardType:'gems', type:'raid' },
+  { id:'e_prestige_1',     label:'Prestiger 1 fois',                     icon:'⭐', target:1,   reward:400, rewardType:'gems', type:'raid' },
+  { id:'e_collection_100', label:'Obtenir 100 personnages différents',   icon:'📚', target:100, reward:350, rewardType:'gems', type:'raid' },
+  { id:'e_boss_raid_200', label:"Vaincre 200 boss de raid",         icon:'💀', target:200, reward:400, rewardType:'gems', type:'raid' },
 ];
 
 // Coût et multiplicateur du Coffre d'Or — partagés entre upgradeGold() et resolveEnemyDeath()
@@ -258,7 +258,7 @@ export async function requestUrgentSaveAndWait(reason: string): Promise<boolean>
 
 // Incrémente les quêtes "vaincre X boss DE PALIER" (jour/semaine) à chaque
 // mort de boss de palier, progression ou re-farm. Ne concerne PAS les boss
-// d'événement, comptés à part par bumpEventBossQuests ci-dessous.
+// de raid, comptés à part par bumpRaidBossQuests ci-dessous.
 export function bumpPalierBossQuests(
   quests: Quest[],
   weeklyQuests: Quest[]
@@ -269,17 +269,17 @@ export function bumpPalierBossQuests(
   };
 }
 
-// Incrémente les quêtes "vaincre X boss D'ÉVÉNEMENT" (jour/semaine/événement)
-// à chaque mort d'un boss d'event (voir EventBattle.tsx, seul appelant).
-export function bumpEventBossQuests(
+// Incrémente les quêtes "vaincre X boss DE RAID" (jour/semaine/raid)
+// à chaque mort d'un boss d'event (voir RaidBattle.tsx, seul appelant).
+export function bumpRaidBossQuests(
   quests: Quest[],
   weeklyQuests: Quest[],
-  eventQuests: Quest[]
-): { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] } {
+  raidQuests: Quest[]
+): { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] } {
   return {
-    quests: quests.map(q => q.id === 'd_boss_event' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
-    weeklyQuests: weeklyQuests.map(q => q.id === 'w_boss_event' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
-    eventQuests: eventQuests.map(q => q.id === 'e_boss_event_200' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
+    quests: quests.map(q => q.id === 'd_boss_raid' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
+    weeklyQuests: weeklyQuests.map(q => q.id === 'w_boss_raid' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
+    raidQuests: raidQuests.map(q => q.id === 'e_boss_raid_200' && !q.done ? { ...q, current: Math.min(q.current + 1, q.target) } : q),
   };
 }
 
@@ -293,7 +293,7 @@ export function bumpCoinQuests(quests: Quest[], amount: number): Quest[] {
   return quests.map(q => q.id === 'd_coins_hours' && !q.done ? { ...q, current: Math.min(q.current + amount, q.target) } : q);
 }
 
-type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] };
+type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] };
 type PrestigeReadState = { prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number };
 type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[] };
 
@@ -359,7 +359,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
   // ne s'en sert que pour comparer à un plafond de quête fixe (Math.min) — le
   // résultat reste correct même saturé (voir bnToNumber dans lib/game/bignum.ts).
   const questsAfterCoins = bumpCoinQuests(quests, bnToNumber(baseCoins));
-  const eventQuests = state.eventQuests ?? [];
+  const raidQuests = state.raidQuests ?? [];
   const bossCrownsBefore = (state as {bossCrowns?:number}).bossCrowns ?? 0;
   if (state.currentEnemy.isBoss) {
     const next = state.palier + 1;
@@ -393,13 +393,13 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     // "Atteindre le palier X" : on fixe la progression au palier réellement
     // atteint (pas un simple +1), et seulement lors d'une vraie progression.
     const finalEventQuests = isNewProgress
-      ? eventQuests.map(q =>
+      ? raidQuests.map(q =>
           q.id === 'e_palier_20' && !q.done
             ? { ...q, current: Math.min(Math.max(q.current, next), q.target) } : q
         )
-      : eventQuests;
+      : raidQuests;
     const newRunPeak = Math.max(runPeakPalierOf(state), next);
-    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, eventQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1 } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; eventQuests: Quest[] }>;
+    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, raidQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1 } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] }>;
   }
   const nw = state.wave + 1;
   const runPeak = runPeakPalierOf(state);
@@ -408,9 +408,9 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     // évité → boucle sur vague 1, le boss ne se déclenche jamais.
     const isFarming = state.palier < runPeak;
     if (isFarming || state.bossAvoided) {
-      return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, eventQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1 };
+      return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1 };
     }
-    return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, eventQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1 };
+    return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1 };
   }
   const equipDrop = getEquipmentDrop(
     state.unlockedEquipDropRarities ?? ['C'],
@@ -424,7 +424,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     nekoGems:gems,
     quests:questsAfterCoins,
     weeklyQuests,
-    eventQuests,
+    raidQuests,
     wave:nw,
     ultUsedThisFight:[], currentEnemy:generateEnemy(nw,state.palier,runPeak),
     equipmentInventory:newEquipmentInventory,

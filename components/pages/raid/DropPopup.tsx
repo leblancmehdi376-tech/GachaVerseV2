@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
-import { DropResult } from '@/lib/game/eventBoss';
-import { describeDrop } from './eventBattleHelpers';
+import { DropResult } from '@/lib/game/raidBoss';
+import { describeDrop } from './raidBattleHelpers';
 
 export function DropPopup({ drops, onClose }: { drops: DropResult[]; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 5000); return () => clearTimeout(t); }, [onClose]);

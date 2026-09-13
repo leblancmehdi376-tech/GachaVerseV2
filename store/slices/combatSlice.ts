@@ -90,7 +90,7 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     set(state => {
       const newHp = bnSub(state.currentEnemy.currentHp, finalDps);
       const withCoins = !bnIsZero(bonusCoins) ? { pixelCoins: bnAdd(state.pixelCoins, bonusCoins) } : {};
-      if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], eventQuests: state.eventQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
+      if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], raidQuests: state.raidQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
       return { ...withCoins, currentEnemy: { ...state.currentEnemy, currentHp: newHp } };
     });
   },
@@ -141,7 +141,7 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
       set(s => {
         const withCoins = !bnIsZero(instantCoins) ? { pixelCoins: bnAdd(s.pixelCoins, instantCoins) } : {};
         const newHp = bnSub(s.currentEnemy.currentHp, instantDmg);
-        if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], eventQuests: s.eventQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp }, ...withCoins }) };
+        if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], raidQuests: s.raidQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp }, ...withCoins }) };
         return { ...withCoins, currentEnemy: { ...s.currentEnemy, currentHp: newHp } };
       });
     }

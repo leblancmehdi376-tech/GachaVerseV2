@@ -4,7 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 
-type Tab = 'daily' | 'weekly' | 'event';
+type Tab = 'daily' | 'weekly' | 'raid';
 
 type QuestItem = {
   id: string; icon: string; label: string;
@@ -104,7 +104,7 @@ export function QuestsPage() {
   const {
     quests, claimQuest,
     weeklyQuests, claimWeeklyQuest,
-    eventQuests, claimEventQuest,
+    raidQuests, claimRaidQuest,
   } = useGameStore();
 
   // Le reset quotidien/hebdomadaire (ensureDailyQuests/ensureWeeklyQuests) est géré une
@@ -114,12 +114,12 @@ export function QuestsPage() {
 
   const dailyDone   = (quests       ?? []).filter(q => q.done).length;
   const weeklyDone  = (weeklyQuests ?? []).filter(q => q.done).length;
-  const eventDone   = (eventQuests  ?? []).filter(q => q.done).length;
+  const raidDone   = (raidQuests  ?? []).filter(q => q.done).length;
 
   const TAB_DATA: { id: Tab; label: string; color: string; count: string; totalCount: number; doneCount: number }[] = [
     { id:'daily',  label:'JOURNALIÈRES', color:'#34d399', count:`${dailyDone}/${(quests??[]).length}`,       totalCount:(quests??[]).length,       doneCount:dailyDone  },
     { id:'weekly', label:'HEBDOMADAIRES',color:'#60a5fa', count:`${weeklyDone}/${(weeklyQuests??[]).length}`,totalCount:(weeklyQuests??[]).length,  doneCount:weeklyDone },
-    { id:'event',  label:'ÉVÉNEMENTS',   color:'#e879f9', count:`${eventDone}/${(eventQuests??[]).length}`,  totalCount:(eventQuests??[]).length,   doneCount:eventDone  },
+    { id:'raid',   label:'RAIDS',   color:'#e879f9', count:`${raidDone}/${(raidQuests??[]).length}`,  totalCount:(raidQuests??[]).length,   doneCount:raidDone  },
   ];
 
   return (
@@ -127,7 +127,7 @@ export function QuestsPage() {
 
         {/* Header */}
         <SectionHeader
-          eyebrow={`${dailyDone + weeklyDone + eventDone} / ${(quests?.length??0) + (weeklyQuests?.length??0) + (eventQuests?.length??0)} complétées`}
+          eyebrow={`${dailyDone + weeklyDone + raidDone} / ${(quests?.length??0) + (weeklyQuests?.length??0) + (raidQuests?.length??0)} complétées`}
           title="QUÊTES"
           accent="#34d399"
           right={
@@ -189,14 +189,14 @@ export function QuestsPage() {
           </div>
         )}
 
-        {/* ── ÉVÉNEMENTS ── */}
-        {tab === 'event' && (
+        {/* ── RAIDS ── */}
+        {tab === 'raid' && (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700, letterSpacing:1 }}>
               Quêtes permanentes — <strong style={{ color:'#e879f9' }}>disponibles jusqu'à complétion</strong>
             </div>
-            {(eventQuests ?? []).map((q: QuestItem) => (
-              <QuestCard key={q.id} q={q} onClaim={claimEventQuest} />
+            {(raidQuests ?? []).map((q: QuestItem) => (
+              <QuestCard key={q.id} q={q} onClaim={claimRaidQuest} />
             ))}
           </div>
         )}

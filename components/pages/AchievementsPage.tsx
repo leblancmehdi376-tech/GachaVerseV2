@@ -4,7 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { ACHIEVEMENTS, CATEGORY_LABELS, AchievCategory } from '@/lib/game/achievements';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
-import { TITLE_GOLD_BONUS_PCT, EVENT_TITLES } from '@/lib/game/titles';
+import { TITLE_GOLD_BONUS_PCT, RAID_TITLES } from '@/lib/game/titles';
 import { DAILY_REWARD_TITLES } from '@/lib/game/dailyRewards';
 
 const CATEGORIES: (AchievCategory | 'all')[] = ['all', 'combat', 'progression', 'collection', 'gacha', 'social'];
@@ -270,10 +270,10 @@ export function AchievementsPage() {
               })}
             </div>
 
-            {/* ── Titres d'événement — drop rare de boss d'event, pas de succès associé ── */}
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:2, marginTop:'8px' }}>TITRES D&apos;ÉVÉNEMENT</div>
+            {/* ── Titres de raid — drop rare de boss de raid, pas de succès associé ── */}
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:2, marginTop:'8px' }}>TITRES DE RAID</div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:'10px' }}>
-              {Object.values(EVENT_TITLES).map(titleStr => {
+              {Object.values(RAID_TITLES).map(titleStr => {
                 const isUnlk   = unlockedTitles.includes(titleStr);
                 const isActive = activeTitle === titleStr;
                 return (
@@ -297,7 +297,7 @@ export function AchievementsPage() {
                       « {titleStr} »
                     </div>
                     <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>
-                      Drop rare (1%) sur un boss d&apos;événement
+                      Drop rare (1%) sur un boss de raid
                     </div>
                     <div style={{ marginTop:'6px', fontFamily:'var(--f-num)', fontSize:'12px', fontWeight:800, color: isUnlk ? 'var(--gold-hi)' : 'var(--text-muted)' }}>
                       🪙 +{TITLE_GOLD_BONUS_PCT[titleStr] ?? 0}% d&apos;or

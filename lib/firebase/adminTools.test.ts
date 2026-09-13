@@ -30,7 +30,7 @@ vi.mock('./config', () => ({ db: {} }));
 
 // Mock PARTIEL (importOriginal) : adminTools.ts importe indirectement
 // beaucoup d'autres exports de ces modules via @/store/gameStoreHelpers
-// (EVENT_QUESTS -> lib/game/shop.ts -> CHEST_RARITY_RATES, etc.) — un mock
+// (RAID_QUESTS -> lib/game/shop.ts -> CHEST_RARITY_RATES, etc.) — un mock
 // complet casserait cette chaîne d'imports pour des exports qu'on ne teste
 // même pas ici.
 vi.mock('@/lib/game/characters', async (importOriginal) => {

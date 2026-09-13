@@ -70,7 +70,7 @@ export interface DailyRewardTitle {
 
 // Titres distribués par le calendrier de connexion (jours 7 et 28 actuellement)
 // — utilisé par l'onglet "Titres" pour les lister, en plus des titres liés aux
-// succès et aux événements (ces titres-là ne sont rattachés à aucun succès).
+// succès et aux raids (ces titres-là ne sont rattachés à aucun succès).
 export const DAILY_REWARD_TITLES: DailyRewardTitle[] = DAILY_REWARDS.flatMap(d =>
   d.items
     .filter((i): i is DailyRewardItem & { title: string } => i.kind === 'title' && !!i.title)

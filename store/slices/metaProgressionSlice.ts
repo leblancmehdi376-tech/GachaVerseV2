@@ -182,9 +182,9 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     // Succès "de run" (kills, dps, coins, pulls, amélios, collection,
     // quêtes, rang 7★) remis à zéro — voir lib/game/achievements.ts.
     get().resetPrestigeAchievements();
-    // Quête d'événement "Prestiger 1 fois" — les quêtes ne sont PAS remises à
+    // Quête de raid "Prestiger 1 fois" — les quêtes ne sont PAS remises à
     // zéro par le set() ci-dessous (voir commentaire "Conservé" plus haut).
-    get().bumpEventQuest('e_prestige_1', 1);
+    get().bumpRaidQuest('e_prestige_1', 1);
 
     set({
       // ── Reset ──
@@ -197,7 +197,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       historicalMaxRank: newHistoricalMaxRank,
       equippedTeam: [null, null, null, null],
       inventory: {},
-      eventCharacterPurchases: {},
+      raidCharacterPurchases: {},
       goldUpgradeLevel: 0,
       hero: { level: 1, currentForm: 0, xp: 0 },
       wave: 1,

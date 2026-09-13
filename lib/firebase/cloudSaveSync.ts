@@ -44,7 +44,7 @@ export function getSerializableState() {
     questsDayKey:       s.questsDayKey,
     weeklyQuests:       s.weeklyQuests,
     weeklyQuestsDayKey: s.weeklyQuestsDayKey,
-    eventQuests:        s.eventQuests,
+    raidQuests:        s.raidQuests,
     bossCrowns:         s.bossCrowns,
     voidOrbs:           s.voidOrbs,
     totalBossCrownsEarned: s.totalBossCrownsEarned ?? 0,
@@ -55,11 +55,11 @@ export function getSerializableState() {
     championInventory:  s.championInventory ?? {},
     bankedRanks:         s.bankedRanks ?? {},
     historicalMaxRank:   s.historicalMaxRank ?? {},
-    // Nombre d'achats déjà effectués par boss d'événement (prix +10% par
-    // achat, voir getEventCharacterCost) — jamais synchronisé avant ce
+    // Nombre d'achats déjà effectués par boss de raid (prix +10% par
+    // achat, voir getRaidCharacterCost) — jamais synchronisé avant ce
     // correctif : un refresh/reconnexion faisait revenir le prix à son
     // tarif de départ (bug mineur, favorable au joueur).
-    eventCharacterPurchases: s.eventCharacterPurchases ?? {},
+    raidCharacterPurchases: s.raidCharacterPurchases ?? {},
     // Fusion/drop d'équipement débloqués par rareté (via expéditions) — vraie
     // progression, jamais synchronisée avant ce correctif : revenait à ['C']
     // sur tout nouvel appareil, rebloquant équipement et expéditions déjà acquis.

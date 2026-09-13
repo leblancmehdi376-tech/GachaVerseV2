@@ -3,7 +3,7 @@ import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
 import { Affinity, AFFINITY_CONFIG, affinityMatchupKind, getAffinityForId } from '@/lib/game/affinities';
-import { MAX_EVENT_COMPANIONS } from './eventBattleHelpers';
+import { MAX_RAID_COMPANIONS } from './raidBattleHelpers';
 
 export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }: {
   bossAffinity: Affinity;
@@ -23,7 +23,7 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
       <div className="panel" style={{ width:'100%', maxWidth:640, maxHeight:'80vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:'var(--purple-glow)', letterSpacing:2 }}>🤝 Compagnons ({selected.length}/{MAX_EVENT_COMPANIONS})</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:'var(--purple-glow)', letterSpacing:2 }}>🤝 Compagnons ({selected.length}/{MAX_RAID_COMPANIONS})</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:2, display:'flex', alignItems:'center', gap:6 }}>
               Boss : <span style={{ color:AFFINITY_CONFIG[bossAffinity].color, fontWeight:700 }}>{AFFINITY_CONFIG[bossAffinity].icon} {AFFINITY_CONFIG[bossAffinity].label}</span>
               — un type fort réduit le combat de 10%, un type faible l&apos;allonge de 10%
@@ -37,7 +37,7 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
             const onExpedition = isCharOnExpedition(tpl.id);
             const inTeam = equippedPure.includes(tpl.id);
             const isSelected = selected.includes(tpl.id);
-            const disabled = onExpedition || inTeam || (!isSelected && selected.length >= MAX_EVENT_COMPANIONS);
+            const disabled = onExpedition || inTeam || (!isSelected && selected.length >= MAX_RAID_COMPANIONS);
             const affinity = getAffinityForId(tpl.id);
             const cfg = AFFINITY_CONFIG[affinity];
             const kind = affinityMatchupKind(affinity, bossAffinity);
