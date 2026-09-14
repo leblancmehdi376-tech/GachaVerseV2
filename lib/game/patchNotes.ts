@@ -12,6 +12,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '14/09/2026',
+    title: 'Affichage du multiplicateur de type arrondi',
+    changes: [
+      "Le multiplicateur de type affiché sur les cartes compagnons de l'écran d'accueil est désormais limité à deux chiffres après la virgule.",
+    ],
+  },
+  {
+    date: '14/09/2026',
     title: 'Nettoyage de l\'onglet Options',
     changes: [
       "Le suivi du nombre de clics totaux, qui n'était plus utilisé nulle part, a été entièrement retiré (il n'apparaissait déjà plus dans l'onglet Options).",

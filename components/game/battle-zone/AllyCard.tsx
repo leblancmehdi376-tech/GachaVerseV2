@@ -48,7 +48,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
   const { base, typeMult, final } = getCharDpsBreakdown(templateId);
   const strong = typeMult > 1, weak = typeMult < 1;
   const multCol = strong ? '#4ade80' : weak ? '#f87171' : 'rgba(255,255,255,0.5)';
-  const multTxt = typeMult === 1 ? 'OK' : `×${typeMult}`;
+  const multTxt = typeMult === 1 ? 'OK' : `×${typeMult.toFixed(2)}`;
   const finalCol = strong ? '#4ade80' : weak ? '#f87171' : 'var(--green)';
 
   return (
