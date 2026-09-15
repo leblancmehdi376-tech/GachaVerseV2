@@ -126,11 +126,15 @@ export function useCloudSave(userId: string | null) {
     return unsub;
   }, [userId]);
 
-  // localStorage toutes les 30s — indépendant du quota Firebase
+  // localStorage toutes les 30s — indépendant du quota Firebase. Sauté tant
+  // que l'onglet est masqué : `savedAt` doit rester au dernier instant où le
+  // joueur était VRAIMENT présent, sinon il ne resterait plus assez de temps
+  // écoulé à créditer par checkOfflineGain au retour sur l'onglet (voir
+  // useOfflineGainCheck et le onHide ci-dessous).
   useEffect(() => {
     if (!userId) return;
     const id = setInterval(() => {
-      if (!loadedRef.current) return;
+      if (!loadedRef.current || document.visibilityState === 'hidden') return;
       refreshLocalSavedAt();
     }, LOCAL_INTERVAL_MS);
     return () => clearInterval(id);
@@ -146,12 +150,15 @@ export function useCloudSave(userId: string | null) {
     return () => clearInterval(id);
   }, [userId]);
 
-  // Save à la fermeture / mise en arrière-plan
+  // Save à la fermeture / mise en arrière-plan — NE rafraîchit PAS `savedAt`
+  // (contrairement à avant) : le timestamp doit rester figé au dernier
+  // instant actif pour que le temps passé onglet masqué soit rattrapable via
+  // checkOfflineGain au retour (voir useOfflineGainCheck), exactement comme
+  // une vraie fermeture de l'app.
   useEffect(() => {
     if (!userId) return;
     const onHide = () => {
       if (document.visibilityState === 'hidden' && loadedRef.current) {
-        refreshLocalSavedAt();                       // immédiat, pas de quota
         saveToFirebase(userId, 'visibility'); // tentative Firebase (peut échouer si quota)
       }
     };

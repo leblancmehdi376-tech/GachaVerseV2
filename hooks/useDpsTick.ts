@@ -11,6 +11,11 @@ export function useDpsTick() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      // Onglet masqué : on ne fait AUCUN tick (plutôt qu'un tick au ralenti
+      // dû au throttling navigateur) — le temps passé caché est rattrapé
+      // d'un coup au retour via checkOfflineGain (voir useOfflineGainCheck),
+      // qui applique le même quota/rendement AFK que la fermeture de l'app.
+      if (document.visibilityState === 'hidden') return;
       tickDps();
       if (bossActive) tickBossTimer();
       tickUlt();

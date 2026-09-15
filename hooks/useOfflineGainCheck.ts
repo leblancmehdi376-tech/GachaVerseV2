@@ -30,6 +30,23 @@ export function useOfflineGainCheck(hasHydrated: boolean, cloudLoaded: boolean) 
     useGameStore.getState().applyMineOfflineProduction();
   }, [hasHydrated, cloudLoaded]);
 
+  // Retour sur l'onglet après un changement d'onglet/mise en arrière-plan :
+  // le tick est mis en pause tant que l'onglet est masqué (voir useDpsTick)
+  // et `savedAt` n'est plus rafraîchi pendant ce temps (voir useCloudSave) —
+  // donc le même calcul qu'au chargement de la page rattrape correctement
+  // le temps passé caché, avec le même quota/rendement AFK.
+  useEffect(() => {
+    if (!hasHydrated || !cloudLoaded) return;
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      const g = useGameStore.getState().checkOfflineGain();
+      if (g) setOfflineGain(g);
+      useGameStore.getState().applyMineOfflineProduction();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [hasHydrated, cloudLoaded]);
+
   const claimOfflineGain = () => {
     if (offlineGain) useGameStore.getState().claimOfflineEarnings(offlineGain);
     setOfflineGain(null);

@@ -11,6 +11,14 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '15/09/2026',
+    title: 'Rattrapage AFK en changeant d\'onglet',
+    changes: [
+      "Le combat se met désormais en pause quand l'onglet est en arrière-plan (au lieu d'avancer au ralenti de façon incohérente) : plus de perte de temps de boss injuste si tu changes d'onglet en plein combat.",
+      "Le temps passé sur un autre onglet est maintenant crédité comme du temps AFK : la popup de gains hors-ligne s'affiche aussi en revenant sur l'onglet, pas seulement en rouvrant le jeu.",
+    ],
+  },
+  {
     date: '14/09/2026',
     title: 'Affichage du multiplicateur de type arrondi',
     changes: [
