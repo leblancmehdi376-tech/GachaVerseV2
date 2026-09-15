@@ -12,6 +12,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '15/09/2026',
+    title: 'Visuels des ennemis du Royaume des Animaux',
+    changes: [
+      "Igloo, Twix, Maurice, Horus et Brume affichent maintenant leur visage au palier 30 au lieu d'un simple pictogramme (Osiris, les Deux Isis, le Gardien Ancestral, l'Ombre Sacrée et Capuchon restent à illustrer).",
+    ],
+  },
+  {
+    date: '15/09/2026',
     title: 'Rattrapage AFK en changeant d\'onglet',
     changes: [
       "Le combat se met désormais en pause quand l'onglet est en arrière-plan (au lieu d'avancer au ralenti de façon incohérente) : plus de perte de temps de boss injuste si tu changes d'onglet en plein combat.",

@@ -414,9 +414,11 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
     { name:'Crocodile',          sprite: sp(29,'crocodile'),     isBoss:true, hpMult:10 },
   ],
   // ── PALIER 30 : Nos Animaux — Le Royaume des Animaux ─────────────────────
-  // ⚠️ Sprites manquants : le dossier public/sprites/enemies/palier30/ n'existe
-  // pas du tout — les 10 ennemis de ce palier affichent un placeholder tant
-  // qu'aucune image n'a été ajoutée.
+  // ⚠️ Sprites partiellement manquants : igloo/twix/maurice/horus/brume ont
+  // été dupliqués depuis leurs cartes compagnon (Nos Animaux, Evo0). Osiris,
+  // Isis, Gardien Ancestral, Ombre Sacrée et Capuchon n'ont pas de compagnon
+  // correspondant — ils affichent un placeholder tant qu'aucune image dédiée
+  // n'a été ajoutée.
   30: [
     { name:'Igloo',              sprite: sp(30,'igloo')                               },
     { name:'Twix',               sprite: sp(30,'twix'),          hpMult:1.15           },
