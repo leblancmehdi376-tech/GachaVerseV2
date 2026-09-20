@@ -282,11 +282,9 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
       }
     }
 
-    // Perso déjà possédé ?
-    if (recipe.reward.type === 'character' && recipe.reward.characterId) {
-      const alreadyOwned = !!gs.collection[recipe.reward.characterId];
-      if (alreadyOwned) missing.push('Personnage déjà obtenu');
-    }
+    // Les recettes de personnage restent forgeables même une fois obtenues :
+    // reforger consomme à nouveau les ingrédients et donne un doublon
+    // (géré comme n'importe quel doublon par addToCollection).
 
     return { ok: missing.length === 0, missing };
   },

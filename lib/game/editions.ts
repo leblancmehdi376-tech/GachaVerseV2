@@ -46,6 +46,13 @@ export function makeInstanceKey(templateId: string, edition: CardEdition): strin
   return edition === 'base' ? templateId : `${templateId}::${edition}`;
 }
 
+// Un perso est "possédé" dès qu'une de ses éditions (Base/Or/Diamant) est en
+// collection — utilisé partout où l'édition précise importe peu (ex: recette
+// de forge à obtention unique, qu'elle ait tiré Base, Or ou Diamant).
+export function isTemplateOwned(collection: Record<string, { templateId: string }>, templateId: string): boolean {
+  return Object.values(collection).some(c => c.templateId === templateId);
+}
+
 export function parseInstanceKey(key: string): { templateId: string; edition: CardEdition } {
   const i = key.indexOf('::');
   if (i === -1) return { templateId: key, edition: 'base' };

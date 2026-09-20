@@ -5,6 +5,7 @@ import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe, EXPEDITION_DEFS } from '@/lib
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { getEquipmentDef, getSpecialWeaponGroup, SPECIAL_WEAPON_FUSION_COST, SPECIAL_WEAPON_FUSION_RARITIES } from '@/lib/game/items';
+import { isTemplateOwned } from '@/lib/game/editions';
 
 function IngredientRow({ type, id, quantity, label }: { type: string; id: string; quantity: number; label: string }) {
   const { expeditionDropInventory: dropInventory, collection, championInventory, focusExpedition } = useGameStore();
@@ -74,7 +75,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
   const locked = getRunPeakPalier() < recipe.palierRequired;
   const { ok } = canCraft(recipe.id);
   const alreadyOwned = recipe.reward.type === 'character' && recipe.reward.characterId
-    ? !!collection[recipe.reward.characterId] : false;
+    ? isTemplateOwned(collection, recipe.reward.characterId) : false;
 
   const rewardTpl = recipe.reward.characterId ? CHARACTER_POOL.find(c => c.id === recipe.reward.characterId) : null;
   const rewardCfg = rewardTpl ? RARITY_CONFIG[rewardTpl.rarity] : null;
@@ -118,13 +119,11 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
 
         {/* Statut rapide */}
         <div style={{ marginTop:10, display:'flex', alignItems:'center', gap:8 }}>
-          {alreadyOwned
-            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#4ade80', fontWeight:700 }}>✅ Déjà forgé</div>
-            : locked
-              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>🔒 Palier {recipe.palierRequired} requis</div>
-              : ok
-                ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', fontWeight:700, animation:'ultraPulse 1.5s ease-in-out infinite' }}>✦ PRÊT À FORGER</div>
-                : <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700 }}>⚗ {recipe.ingredients.length} ingrédients requis</div>
+          {locked
+            ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>🔒 Palier {recipe.palierRequired} requis</div>
+            : ok
+              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', fontWeight:700, animation:'ultraPulse 1.5s ease-in-out infinite' }}>✦ PRÊT À FORGER{alreadyOwned ? ' (doublon)' : ''}</div>
+              : <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700 }}>⚗ {recipe.ingredients.length} ingrédients requis{alreadyOwned ? ' (doublon)' : ''}</div>
           }
         </div>
       </div>
@@ -148,7 +147,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
           </div>
 
           {/* Comment obtenir */}
-          {!ok && !alreadyOwned && !locked && (
+          {!ok && !locked && (
             <div style={{ background:'rgba(147,51,234,0.06)', border:'1px solid rgba(147,51,234,0.2)', borderRadius:8, padding:'10px 14px' }}>
               <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--purple-glow)', letterSpacing:1, marginBottom:6 }}>
                 💡 COMMENT OBTENIR LES INGRÉDIENTS
@@ -175,7 +174,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
           )}
 
           {/* Bouton craft */}
-          {!alreadyOwned && !locked && (
+          {!locked && (
             <button
               onClick={() => craftRecipe(recipe.id)}
               disabled={!ok}

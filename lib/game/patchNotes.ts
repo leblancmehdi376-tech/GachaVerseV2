@@ -11,6 +11,13 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '20/09/2026',
+    title: 'Forge : les personnages de fusion sont reforgeables',
+    changes: [
+      "Les recettes de personnage (Végéto, Gogeta, Aizen Transcendant, Yoriichi, Chara, Shanks, Brunhilde...) restent désormais forgeables après la première obtention : reforger consomme à nouveau les ingrédients et donne un doublon du personnage.",
+    ],
+  },
+  {
     date: '15/09/2026',
     title: 'Visuels des ennemis du Royaume des Animaux',
     changes: [
