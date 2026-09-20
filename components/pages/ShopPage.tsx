@@ -58,6 +58,7 @@ export function ShopPage() {
   const [, setTick] = useState(0);
   const [chestResult, setChestResult] = useState<{ itemId: string; tier: string } | null>(null);
   const [starterResult, setStarterResult] = useState<{ templateId: string; edition: CardEdition } | null>(null);
+  const [showRerollConfirm, setShowRerollConfirm] = useState(false);
   useEffect(() => {
     ensureDailyShop();
     const id = setInterval(() => setTick(t => t + 1), 1000);
@@ -272,13 +273,41 @@ export function ShopPage() {
           {(() => {
             const rerollCost = getRerollShopCost();
             const canReroll = voidOrbs >= rerollCost;
+            const hasUnclaimedNewCard = dailyShop.characterIds.some(
+              id => !dailyShop.purchased.includes(id) && !isCharacterOwned(collection, id)
+            );
+            const handleRerollClick = () => {
+              if (hasUnclaimedNewCard) setShowRerollConfirm(true);
+              else rerollDailyShop();
+            };
             return (
-              <button onClick={rerollDailyShop} disabled={!canReroll}
+              <button onClick={handleRerollClick} disabled={!canReroll}
                 style={{ width:'100%', marginBottom:'14px', padding:'10px', background:canReroll?'rgba(192,132,252,0.14)':'rgba(255,255,255,0.03)', border:`1px solid ${canReroll?'#c084fc66':'var(--border)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canReroll?'#c084fc':'var(--text-muted)', cursor:canReroll?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px' }}>
                 🎲 REROLL LA BOUTIQUE · 🔮 {rerollCost}
               </button>
             );
           })()}
+
+          {showRerollConfirm && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setShowRerollConfirm(false)}>
+              <div onClick={e => e.stopPropagation()} style={{ background:'#1a0d2e', border:'1px solid rgba(192,132,252,0.4)', borderRadius:'14px', padding:'22px 24px', maxWidth:'340px', width:'90%', boxShadow:'0 0 30px rgba(168,85,247,0.35)' }}>
+                <div style={{ fontFamily:'var(--f-title)', fontSize:'15.5px', fontWeight:700, color:'#e9d5ff', marginBottom:'10px' }}>⚠️ Personnage inédit en boutique</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:'13.4px', color:'rgba(255,255,255,0.75)', marginBottom:'18px', lineHeight:1.5 }}>
+                  La boutique du jour contient un personnage que tu ne possèdes pas encore. Reroll la boutique risque de le faire disparaître. Confirmer ?
+                </div>
+                <div style={{ display:'flex', gap:'10px' }}>
+                  <button onClick={() => setShowRerollConfirm(false)}
+                    style={{ flex:1, padding:'10px', background:'rgba(255,255,255,0.06)', border:'1px solid var(--border)', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', cursor:'pointer' }}>
+                    Annuler
+                  </button>
+                  <button onClick={() => { rerollDailyShop(); setShowRerollConfirm(false); }}
+                    style={{ flex:1, padding:'10px', background:'rgba(192,132,252,0.22)', border:'1px solid #c084fc66', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#c084fc', cursor:'pointer' }}>
+                    Reroll quand même
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
             {dailyShop.characterIds.map(id => {
