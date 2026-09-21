@@ -11,6 +11,13 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '21/09/2026',
+    title: 'Correctif : annonces manquantes dans "Mes annonces"',
+    changes: [
+      "Corrigé un bug de l'Hôtel de Ville où une annonce fraîchement publiée pouvait ne pas apparaître dans l'onglet \"Mes annonces\" si tu avais déjà publié beaucoup d'annonces par le passé.",
+    ],
+  },
+  {
     date: '20/09/2026',
     title: 'Confirmation avant reroll de la boutique du jour',
     changes: [
