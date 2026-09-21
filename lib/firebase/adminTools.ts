@@ -1,7 +1,7 @@
 import { doc, getDoc, updateDoc, deleteField, FieldPath } from 'firebase/firestore';
 import { db } from './config';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
-import { makeInstanceKey, CardEdition } from '@/lib/game/editions';
+import { makeInstanceKey, parseInstanceKey, CardEdition } from '@/lib/game/editions';
 import { getItemDef, getEquipmentDef } from '@/lib/game/items';
 import { generateEnemy } from '@/lib/game/enemies';
 import { getPalierConfig } from '@/lib/game/paliers';
@@ -431,6 +431,28 @@ export async function addPlayerItem(uid: string, itemId: string, qty: number): P
     logger.error('[AdminTools] addPlayerItem:', e);
     return { ok: false, error: 'Erreur lors de l\'écriture' };
   }
+}
+
+// ── Hôtel de Ville (marketplace) ────────────────────────────────────────────
+// Utilisé quand un admin retire une annonce de la modération (voir
+// adminCancelListing dans marketplace.ts) : l'item n'a jamais quitté la base
+// (il a juste été soustrait de l'inventaire du vendeur à la mise en vente),
+// donc il faut le lui recréditer directement sur sa save cloud, comme s'il
+// avait annulé l'annonce lui-même. Pour un personnage, seuls templateId et
+// edition sont connus (niveau/rang perdus dès la mise en vente, cf.
+// ChampionInventoryPage.handleSell) — recréé au niveau/rang de base, comme le
+// ferait un achat classique.
+export async function restoreListingItemToSeller(listing: {
+  sellerId: string; type: 'item' | 'equipment' | 'character'; itemId: string; quantity: number;
+}): Promise<boolean> {
+  if (listing.type === 'item') {
+    return (await addPlayerItem(listing.sellerId, listing.itemId, listing.quantity)).ok;
+  }
+  if (listing.type === 'equipment') {
+    return (await addPlayerEquipment(listing.sellerId, listing.itemId, listing.quantity)).ok;
+  }
+  const { templateId, edition } = parseInstanceKey(listing.itemId);
+  return (await addPlayerCharacter(listing.sellerId, templateId, edition, 1, 1)).ok;
 }
 
 /** Ajoute une quantité d'un équipement ("drop", EQUIPMENT_DEFS) au stock non-équipé d'un joueur. */

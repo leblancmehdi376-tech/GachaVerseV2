@@ -112,6 +112,40 @@ export async function cancelAllActiveListings(sellerId: string): Promise<number>
   } catch (e) { logger.error('[Marketplace] cancelAllActiveListings:', e); return 0; }
 }
 
+// Récupère TOUTES les annonces (tous statuts confondus) — utilisé uniquement
+// par le panel admin (Hôtel de Ville) pour la modération, contrairement à
+// getActiveListings qui filtre sur status=='active' pour le marché joueur.
+export async function getAllListingsAdmin(max = 500): Promise<MarketplaceListing[]> {
+  if (!db) return [];
+  try {
+    const snap = await getDocs(query(collection(db, 'marketplace'), limit(max)));
+    return snap.docs
+      .map(d => ({ id: d.id, ...d.data() } as MarketplaceListing))
+      .sort((a, b) => b.createdAt - a.createdAt);
+  } catch (e) { logger.error('[Marketplace] getAllListingsAdmin:', e); return []; }
+}
+
+// Annule une annonce active peu importe son vendeur — modération admin.
+// Contrairement à cancelListing (réservé au propriétaire), ne vérifie pas
+// sellerId. L'appelant (panel admin) est responsable de restituer l'item au
+// vendeur ensuite, voir restoreListingItemToSeller dans adminTools.ts.
+export async function adminCancelListing(listingId: string): Promise<MarketplaceListing | null> {
+  if (!db) return null;
+  try {
+    const ref = doc(db, 'marketplace', listingId);
+    let listing: MarketplaceListing | null = null;
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error('Annonce introuvable');
+      const data = snap.data() as Omit<MarketplaceListing, 'id'>;
+      if (data.status !== 'active') throw new Error('Déjà fermé');
+      listing = { id: listingId, ...data };
+      tx.update(ref, { status: 'cancelled' });
+    });
+    return listing;
+  } catch (e) { logger.error('[Marketplace] adminCancelListing:', e); return null; }
+}
+
 export async function claimSaleReward(listingId: string, sellerId: string): Promise<boolean> {
   if (!db) return false;
   try {

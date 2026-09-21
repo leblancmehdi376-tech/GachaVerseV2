@@ -7,6 +7,7 @@ import { PlayerSaveSummary } from '@/lib/firebase/adminTools';
 import { checkIsAdmin } from '@/lib/admin';
 import { RequestsTab } from '@/components/pages/admin/RequestsTab';
 import { PlayersTab } from '@/components/pages/admin/PlayersTab';
+import { MarketplaceTab } from '@/components/pages/admin/MarketplaceTab';
 
 // Cache module-level (hors composant) : survit à un démontage/remontage de
 // la page dans la même session (ex: navigation vers un autre onglet puis
@@ -36,7 +37,7 @@ export default function AdminPage() {
   }, []);
   const [busy, setBusy]           = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [showTab, setShowTab] = useState<'requests'|'players'>('players');
+  const [showTab, setShowTab] = useState<'requests'|'players'|'marketplace'>('players');
 
   // ── Rattrapage des pseudos désynchronisés (voir scripts/sync_usernames.js,
   // dont ceci est l'équivalent utilisable directement depuis le panel) ──────
@@ -172,6 +173,9 @@ export default function AdminPage() {
           <button onClick={() => setShowTab('requests')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             Demandes {pending.length > 0 ? `(${pending.length})` : ''}
           </button>
+          <button onClick={() => setShowTab('marketplace')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='marketplace' ? 'rgba(249,115,22,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(249,115,22,0.14)', color: '#f97316', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+            🏛️ Hôtel de Ville
+          </button>
 
           <button onClick={handleCheckUsernames} disabled={checkingUsernames} title="Détecte les comptes renommés en jeu dont la fiche admin (users/{uid}) n'a jamais été resynchronisée — voir scripts/sync_usernames.js" style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 8, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', cursor: checkingUsernames ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
             {checkingUsernames ? 'Vérification…' : '🔍 Vérifier les pseudos'}
@@ -225,6 +229,8 @@ export default function AdminPage() {
         {showTab === 'requests' && (
           <RequestsTab pending={pending} approvedList={approvedList} busy={busy} onApprove={handleApprove} />
         )}
+
+        {showTab === 'marketplace' && <MarketplaceTab />}
       </div>
     </div>
   );
