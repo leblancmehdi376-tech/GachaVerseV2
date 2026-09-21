@@ -12,6 +12,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '21/09/2026',
+    title: 'Amélioration des drops de raid',
+    changes: [
+      "Augmenté le taux de drop des objets d'évolution des boss de raid : l'objet à 1% passe à 1,4% et l'objet à 0,8% passe à 0,95%.",
+      "Légèrement réduit le taux de drop de gemmes en contrepartie, pour garder un total de 100% de chances de récompense par combat.",
+    ],
+  },
+  {
+    date: '21/09/2026',
     title: 'Correctif : annonces manquantes dans "Mes annonces"',
     changes: [
       "Corrigé un bug de l'Hôtel de Ville où une annonce fraîchement publiée pouvait ne pas apparaître dans l'onglet \"Mes annonces\" si tu avais déjà publié beaucoup d'annonces par le passé.",

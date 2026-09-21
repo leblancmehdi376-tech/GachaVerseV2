@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useGameStore, bumpRaidBossQuests } from '@/store/gameStore';
-import { RAID_BOSSES, rollRaidDrop, getRaidBossMaxHp, DropResult } from '@/lib/game/raidBoss';
+import { RAID_BOSSES, rollRaidDrop, getRaidBossMaxHp, getEffectiveDropTable, DropResult } from '@/lib/game/raidBoss';
 import { getItemDef } from '@/lib/game/items';
 import { Affinity, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { calculateEquippedTeamDps } from '@/lib/game/dpsCalculation';
@@ -596,24 +596,12 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
             flexWrap:'wrap'
           }}
         >
-          {boss.dropTable
-            .filter(e =>
-              e.result.type !== 'nothing' &&
-              !(
-                e.result.type === 'title' &&
-                e.result.id &&
-                unlockedTitles.includes(e.result.id)
-              )
-            )
-            .map((entry, i, pool) => {
-
-              const totalWeight = pool.reduce(
-                (s, x) => s + x.weight,
-                0
-              );
+          {getEffectiveDropTable(boss, unlockedTitles)
+            .filter(e => e.result.type !== 'nothing')
+            .map((entry, i) => {
 
               const rate =
-                `${Math.round(entry.weight / totalWeight * 1000) / 10}%`;
+                `${entry.weight.toFixed(2)}%`;
 
               const r = entry.result;
 

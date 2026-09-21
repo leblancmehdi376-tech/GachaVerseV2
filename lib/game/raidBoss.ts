@@ -30,12 +30,12 @@ export interface DropResult {
 // TOUJOURS le lot principal ET des pièces en même temps (voir rollRaidDrop).
 function buildRaidDropTable(evoItems: [string, string, string]): DropEntry[] {
   return [
-    { weight: 50.0, coinQty: 1, result: { type: 'gems', qty: 12 } },
+    { weight: 49.45, coinQty: 1, result: { type: 'gems', qty: 12 } },
     { weight: 24.3, coinQty: 2, result: { type: 'gems', qty: 25 } },
     { weight: 13.4, coinQty: 2, result: { type: 'gems', qty: 40 } },
     { weight: 10.0, coinQty: 2, result: { type: 'bossCrowns', qty: 3 } },
-    { weight: 1.0,  coinQty: 3, result: { type: 'item', id: evoItems[0], qty: 1 } },
-    { weight: 0.8,  coinQty: 3, result: { type: 'item', id: evoItems[1], qty: 1 } },
+    { weight: 1.4,  coinQty: 3, result: { type: 'item', id: evoItems[0], qty: 1 } },
+    { weight: 0.95, coinQty: 3, result: { type: 'item', id: evoItems[1], qty: 1 } },
     { weight: 0.5,  coinQty: 3, result: { type: 'item', id: evoItems[2], qty: 1 } },
   ];
 }
@@ -109,17 +109,37 @@ export interface DropEntry {
   result: DropResult;
 }
 
+// Table de drop "effective" pour un joueur donné : si le titre du boss est
+// encore à débloquer, son poids nominal (1.0 = 1% pile) est prélevé
+// uniquement sur les gemmes (les 3 entrées gemmes sont réduites au prorata),
+// pour ne pas diluer les objets d'évolution / couronnes. Si le titre est
+// déjà obtenu, il disparaît de la table et les gemmes retrouvent leur poids
+// plein — items et couronnes restent inchangés dans les deux cas.
+export function getEffectiveDropTable(boss: RaidBossDef, unlockedTitles: string[] = []): DropEntry[] {
+  const titleEntry = boss.dropTable.find(e => e.result.type === 'title');
+  const titleUnlocked = !!(titleEntry?.result.id && unlockedTitles.includes(titleEntry.result.id));
+  const base = boss.dropTable.filter(e => e.result.type !== 'title');
+  if (!titleEntry || titleUnlocked) return base;
+
+  const gemsBaseTotal = base
+    .filter(e => e.result.type === 'gems')
+    .reduce((s, e) => s + e.weight, 0);
+  const scale = (gemsBaseTotal - titleEntry.weight) / gemsBaseTotal;
+
+  return [
+    ...base.map(e => e.result.type === 'gems' ? { ...e, weight: e.weight * scale } : e),
+    titleEntry,
+  ];
+}
+
 // Retourne le lot principal ET les pièces de personnage gagnées en même
 // temps (deux résultats simultanés à chaque kill, voir buildRaidDropTable).
-// unlockedTitles : titres déjà obtenus — leur entrée est retirée de la table
-// (chaque titre n'est droppable qu'une seule fois, puis disparaît des drops
-// possibles ; les autres poids se répartissent naturellement sur le reste).
+// unlockedTitles : titres déjà obtenus — voir getEffectiveDropTable ci-dessus
+// pour la façon dont leur poids est redistribué.
 export function rollRaidDrop(bossId: string, unlockedTitles: string[] = []): DropResult[] {
   const boss = RAID_BOSSES.find(b => b.id === bossId);
   if (!boss) return [{ type: 'nothing' }];
-  const pool = boss.dropTable.filter(e =>
-    !(e.result.type === 'title' && e.result.id && unlockedTitles.includes(e.result.id))
-  );
+  const pool = getEffectiveDropTable(boss, unlockedTitles);
   const totalWeight = pool.reduce((s, e) => s + e.weight, 0);
   let roll = Math.random() * totalWeight;
   for (const entry of pool) {
