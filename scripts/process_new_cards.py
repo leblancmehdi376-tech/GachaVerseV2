@@ -4,7 +4,10 @@ Traite les nouveaux artworks de public/sprites/new_cards_raw/ (déjà nommés
 "Nom_Univers_EvoN.ext" par convention, voir lib/game/cardAssets.ts) :
   1. conversion en WebP
   2. recadrage centré au ratio des cartes déjà traitées (300x480, soit 0.625)
-  3. écriture dans public/sprites/new_cards_processed/
+  3. recadrage supplémentaire en 300xFRAME_H (garde le haut, voir FRAME_H
+     ci-dessous) pour ne garder que la portion visible une fois le cadre de
+     rareté posé dessus
+  4. écriture dans public/sprites/new_cards_processed/
 
 Les fichiers ne suivant pas la convention de nommage sont ignorés (pool de
 sources brutes non triées, encore en attente de traitement manuel).
@@ -27,6 +30,19 @@ OUT_DIR = Path('public/sprites/new_cards_processed')
 TARGET_W, TARGET_H = 300, 480
 TARGET_RATIO = TARGET_W / TARGET_H
 NAME_RE = re.compile(r'^([A-Za-z0-9]+_[A-Za-z0-9]+_Evo[0-9]+)\.[A-Za-z]+$')
+
+# Le fichier final écrit dans OUT_DIR est recadré à 300xFRAME_H (garde le
+# haut) après le recadrage 300x480 ci-dessus : une fois le cadre de rareté
+# (CharacterCardThumb, frameOverlay) posé dessus, son bandeau de nom masque
+# en permanence le dernier quart de l'image, quelle que soit la rareté
+# (mesuré sur le canal alpha des fichiers de public/sprites/frameworks — le
+# bas de la fenêtre visible varie entre 72.9% et 76.5% de la hauteur selon
+# la rareté). Recadrer à la source évite de gaspiller de la résolution sur
+# une zone qui ne s'affiche jamais, et CharacterCardThumb cale son portrait
+# sur cette même hauteur (portraitHeightPct) pour rester cohérent. Si tu
+# retouches ce nombre, applique aussi le même recadrage aux fichiers déjà
+# traités dans OUT_DIR (voir historique git pour le script utilisé).
+FRAME_H = 355
 
 # Décalage horizontal du centre de recadrage (0.0 = bord gauche, 1.0 = bord
 # droit) pour les sources où le sujet n'est pas centré — déterminé par
@@ -101,9 +117,10 @@ def main():
             img = Image.open(RAW_DIR / fname).convert('RGBA')
             cropped = crop_to_ratio(img, base)
             resized = cropped.resize((TARGET_W, TARGET_H), Image.LANCZOS)
-            resized.save(out_path, 'WEBP', quality=82, method=6)
+            final = resized.crop((0, 0, TARGET_W, FRAME_H))
+            final.save(out_path, 'WEBP', quality=82, method=6)
             processed += 1
-            print(f'  ✅ {fname:55s} -> {out_path.name}  ({img.size[0]}x{img.size[1]} -> {TARGET_W}x{TARGET_H})')
+            print(f'  ✅ {fname:55s} -> {out_path.name}  ({img.size[0]}x{img.size[1]} -> {TARGET_W}x{FRAME_H})')
         except Exception as e:
             skipped += 1
             print(f'  ❌ {fname}: {e}')

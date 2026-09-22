@@ -38,6 +38,21 @@ export function CharacterCardThumb({
   const isShiny = edition !== 'base';
   const frameSrc = frameOverlay ? RARITY_FRAME_SRC[rarity] : null;
 
+  // Les fichiers de public/sprites/new_cards_processed sont recadrés en
+  // 300x355 (voir FRAME_H dans scripts/process_new_cards.py) : ils ne couvrent plus que la
+  // portion haute qui reste visible une fois le cadre de rareté posé dessus
+  // (son bandeau de nom masque en permanence le dernier quart de l'image
+  // d'origine, quelle que soit la rareté — mesuré sur le canal alpha des
+  // fichiers de public/sprites/frameworks). Quand un cadre est affiché, le
+  // portrait ne doit donc plus remplir 100% de la boîte du haut vers le bas
+  // (ça forcerait `cover` à rogner les côtés pour compenser le nouveau ratio
+  // 300:355) mais seulement la fraction de hauteur correspondant à cette
+  // fenêtre visible, callée en haut.
+  const PORTRAIT_CROP_RATIO = 300 / 355;
+  const portraitHeightPct = frameSrc
+    ? Math.min(100, (RARITY_FRAME_RATIO[rarity] / PORTRAIT_CROP_RATIO) * 100)
+    : 100;
+
   // Abonnement au store anti-spoil pour re-render si nécessaire.
   useSpoilerStore(s => s.protectedUniverses);
 
@@ -70,13 +85,19 @@ export function CharacterCardThumb({
     ? `2px solid ${ed.color}`
     : undefined;
 
-  // Le contenu remplit exactement la boîte définie par le cadre.
+  // Le contenu remplit la largeur de la boîte définie par le cadre, mais
+  // seulement sur la hauteur réellement visible (voir portraitHeightPct
+  // ci-dessus) — callé en haut (`top:0`) pour correspondre à la fenêtre du
+  // cadre. Sans `frameSrc` (avatar joueur, sélecteur d'avatar), le contenu
+  // continue de remplir 100% de la boîte comme avant.
   const frameFillStyle: React.CSSProperties | null = frameSrc
     ? {
         position: 'absolute',
-        inset: 0,
+        top: 0,
+        left: 0,
+        right: 0,
         width: '100%',
-        height: '100%',
+        height: `${portraitHeightPct}%`,
         margin: 0,
         padding: 0,
       }
