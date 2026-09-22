@@ -51,6 +51,8 @@ export interface CombatActions {
   tickBossTimer: () => void;
   activateCharacterUltimate: (templateId: string, formIndex: number) => void;
   spendPixelCoins: (n: BigNum) => boolean;
+  /** Debug localhost uniquement : tue instantanément l'ennemi courant. */
+  debugKillEnemy: () => void;
 }
 export type CombatSlice = CombatState & CombatActions;
 

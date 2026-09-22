@@ -155,4 +155,14 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     set(s => ({ pixelCoins: bnSub(s.pixelCoins, cost) }));
     return true;
   },
+
+  // Debug localhost uniquement (voir bouton dans EnemyHud) : tue l'ennemi courant.
+  debugKillEnemy: () => {
+    set(state => resolveEnemyDeath({
+      ...state,
+      weeklyQuests: state.weeklyQuests ?? [],
+      raidQuests: state.raidQuests ?? [],
+      currentEnemy: { ...state.currentEnemy, currentHp: BN_ZERO },
+    }));
+  },
 });

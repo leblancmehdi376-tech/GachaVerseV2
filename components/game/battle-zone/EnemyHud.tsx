@@ -9,12 +9,14 @@ import type { Enemy } from '@/types/game';
 // ── HUD ennemi : timer boss, en-tête palier/étage, nom + affinité, barre de vie ──
 export function EnemyHud({
   currentEnemy, cfg, wave, isFarming, runPeakPalier, bossActive, bossTimeLeft, bossWarn,
-  enemyAffinity, eventDpsMult, hp, onOpenTravel, onReturnToPeak,
+  enemyAffinity, eventDpsMult, hp, onOpenTravel, onReturnToPeak, onDebugKill,
 }: {
   currentEnemy: Enemy; cfg: PalierConfig; wave: number; isFarming: boolean; runPeakPalier: number;
   bossActive: boolean; bossTimeLeft: number; bossWarn: boolean;
   enemyAffinity: Affinity; eventDpsMult: number; hp: number;
   onOpenTravel: () => void; onReturnToPeak: () => void;
+  /** Debug localhost uniquement : bouton "tuer le mob". Absent en prod. */
+  onDebugKill?: () => void;
 }) {
   return (
     <>
@@ -102,9 +104,25 @@ export function EnemyHud({
             );
           })()}
         </div>
-        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4, gap:8 }}>
           <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.35)', letterSpacing:1 }}>HP</span>
-          <span style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'rgba(255,255,255,0.75)' }}>{formatNumber(currentEnemy.currentHp)} / {formatNumber(currentEnemy.maxHp)}</span>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'rgba(255,255,255,0.75)' }}>{formatNumber(currentEnemy.currentHp)} / {formatNumber(currentEnemy.maxHp)}</span>
+            {onDebugKill && (
+              <button
+                onClick={e => { e.stopPropagation(); onDebugKill(); }}
+                title="[DEV] Tuer le mob instantanément (localhost uniquement)"
+                style={{
+                  display:'inline-flex', alignItems:'center', gap:4,
+                  background:'rgba(239,68,68,0.18)', border:'1px solid #ef4444',
+                  borderRadius:6, padding:'2px 8px', cursor:'pointer',
+                }}
+              >
+                <span style={{ fontSize:11 }}>☠</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:10.5, color:'#f87171', letterSpacing:0.5 }}>KILL</span>
+              </button>
+            )}
+          </div>
         </div>
         <div style={{ height:8, background:'rgba(0,0,0,0.5)', borderRadius:10, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)', marginBottom:6 }}>
           <div style={{ height:'100%', width:`${hp}%`, transition:'width 0.15s ease', borderRadius:10,

@@ -19,7 +19,13 @@ interface Dmg { id: number; x: number; y: number; val: BigNum; }
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function BattleZone() {
-  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, getEventDpsMult, getGoldMultiplier } = useGameStore();
+  const { currentEnemy, equippedTeam, getTotalDps, retreatFromBoss, challengeBoss, travelToPalier, wave, palier, maxPalierReached, runPeakPalier: runPeakPalierRaw, bossActive, bossAvoided, bossTimeLeft, getEventDpsMult, getGoldMultiplier, debugKillEnemy } = useGameStore();
+  // [DEV] Bouton "tuer le mob" affiché uniquement en local, jamais en prod.
+  const isLocalDev = typeof window !== 'undefined' && (
+    process.env.NODE_ENV === 'development' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname.startsWith('127.')
+  );
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (contrairement à
   // maxPalierReached, qui ne redescend jamais et sert au classement) — c'est
   // ce qui doit borner le mode farm / voyage, sinon un joueur qui vient de
@@ -86,6 +92,7 @@ export function BattleZone() {
         hp={hp}
         onOpenTravel={() => setShowTravel(true)}
         onReturnToPeak={() => travelToPalier(runPeakPalier)}
+        onDebugKill={isLocalDev ? debugKillEnemy : undefined}
       />
 
       {/* Barre des effets actifs */}
