@@ -12,6 +12,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '22/09/2026',
+    title: 'Correctif de transparence sur les visuels du palier 33',
+    changes: [
+      "Corrigé la transparence de plusieurs visuels d'ennemis du palier 33 (fond visible autour des personnages).",
+    ],
+  },
+  {
+    date: '22/09/2026',
     title: "Protection des équipements spéciaux lors de la fusion",
     changes: [
       "Page Équipement : la fusion consomme désormais en priorité les équipements génériques avant de piocher dans les équipements spéciaux (liés à un personnage précis).",
