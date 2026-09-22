@@ -150,6 +150,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🧸',
     thresholds: [
       [2, 22],
+      [4, 36, 5],
     ],
   }),
 
@@ -175,6 +176,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🥔',
     thresholds: [
       [2, 22],
+      [3, 40],
     ],
   }),
 
@@ -199,6 +201,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🟩',
     thresholds: [
       [2, 22],
+      [4, 38, 6],
     ],
   }),
 
@@ -249,6 +252,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🗡',
     thresholds: [
       [2, 15],
+      [4, 35, 5],
     ],
   }),
 
@@ -260,7 +264,8 @@ export const SYNERGIES: SynergyDef[] = [
     glow: '#7c3aed',
     icon: '🔔',
     thresholds: [
-      [2, 14],
+      [2, 19],
+      [4, 34, 5],
     ],
   }),
 
@@ -285,7 +290,8 @@ export const SYNERGIES: SynergyDef[] = [
     glow: '#6366f1',
     icon: '🎪',
     thresholds: [
-      [2, 15],
+      [2, 20],
+      [4, 38, 6],
     ],
   }),
 
@@ -297,7 +303,8 @@ export const SYNERGIES: SynergyDef[] = [
     glow: '#0284c7',
     icon: '🗾',
     thresholds: [
-      [2, 15],
+      [2, 21],
+      [4, 35, 5],
     ],
   }),
 
@@ -310,6 +317,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '📖',
     thresholds: [
       [2, 19],
+      [3, 38],
     ],
   }),
 
@@ -322,6 +330,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🛡',
     thresholds: [
       [2, 17],
+      [4, 38, 6],
     ],
   }),
 
@@ -334,18 +343,6 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '😎',
     thresholds: [
       [2, 35, 20],
-    ],
-  }),
-
-  synergy({
-    id: 'sao_kirito',
-    universe: 'Sword Art Online',
-    label: 'SAO',
-    color: '#67e8f9',
-    glow: '#0284c7',
-    icon: '🗾',
-    thresholds: [
-      [2, 21],
     ],
   }),
 
@@ -410,6 +407,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🕵',
     thresholds: [
       [2, 19],
+      [4, 36, 5],
     ],
   }),
 
@@ -422,6 +420,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '⚡',
     thresholds: [
       [2, 23],
+      [4, 40, 6],
     ],
   }),
 
@@ -434,6 +433,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🗡',
     thresholds: [
       [2, 24],
+      [4, 42, 6],
     ],
   }),
 
@@ -446,6 +446,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🐛',
     thresholds: [
       [2, 21],
+      [4, 38, 6],
     ],
   }),
 
@@ -458,6 +459,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🪚',
     thresholds: [
       [2, 22],
+      [4, 38, 6],
     ],
   }),
 
@@ -470,6 +472,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🗡',
     thresholds: [
       [2, 23],
+      [3, 42],
     ],
   }),
 
@@ -495,6 +498,7 @@ export const SYNERGIES: SynergyDef[] = [
     icon: '🧪',
     thresholds: [
       [2, 25],
+      [4, 42, 6],
     ],
   }),
 

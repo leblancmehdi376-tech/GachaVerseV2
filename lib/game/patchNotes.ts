@@ -12,6 +12,15 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '22/09/2026',
+    title: 'Rééquilibrage des synergies d\'équipe',
+    changes: [
+      "Corrigé un bug qui faisait coexister deux bonus différents pour la synergie Sword Art Online : elle est désormais unifiée (+21% à 2 personnages, +35% et +5% global à 4).",
+      "Ajout d'un palier supplémentaire (3 ou 4 personnages) aux synergies Minecraft, Zelda, R.E.P.O, Digital Circus, Overwatch, Attaque des Titans, Les Carnets de l'Apothicaire, Valkyrie Apocalypse, Spy x Family, Hollow Knight, Chainsaw Man, Elden Ring, Brotato et Bungou Stray Dogs, pour récompenser les équipes qui rassemblent plus de personnages d'un même univers.",
+      "Légèrement augmenté le bonus de base des synergies R.E.P.O (+14% → +19%) et Digital Circus (+15% → +20%), qui étaient nettement en retrait par rapport aux autres univers.",
+    ],
+  },
+  {
+    date: '22/09/2026',
     title: 'Icônes de synergie manquantes ajoutées',
     changes: [
       "Ajout des icônes manquantes pour les synergies League of Legends, Demon Slayer, Cuphead, Nos Animaux, Spy x Family, Valkyrie Apocalypse, Attaque des Titans, Hollow Knight, Chainsaw Man, Elden Ring, Tekken, Les Carnets de l'Apothicaire, Undertale, Five Nights At Freddy's, Fire Force et Fullmetal Alchemist Brotherhood (elles s'affichaient auparavant en image cassée dans la barre d'équipe et la page Compagnons).",
