@@ -18,6 +18,14 @@ import { BN_ZERO, bnAdd, bnMulScalar, type BigNum } from '@/lib/game/bignum';
 export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlice> = (set, get) => ({
   setUsername: (name) => set({ username: name.trim().slice(0, 20) }),
 
+  setSelectedAvatarChampionId: (templateId) => {
+    if (templateId !== null) {
+      const owned = Object.keys(get().collection).some(k => parseInstanceKey(k).templateId === templateId);
+      if (!owned) return;
+    }
+    set({ selectedAvatarChampionId: templateId });
+  },
+
   upgradeGold: () => {
     const level = get().goldUpgradeLevel ?? 0;
     const maxLevel = runPeakPalierOf(get());

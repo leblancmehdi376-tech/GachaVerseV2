@@ -9,6 +9,7 @@ import { CHARACTER_POOL } from '@/lib/game/characters';
 import { formatSyncStatus, type CloudSyncStatus } from '@/lib/firebase/cloudSaveSync';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
+import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
   const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore();
@@ -162,7 +163,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
           </div>
           <div style={{ display:'grid', gap:'12px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-              <div style={{ width:44, height:44, background:'linear-gradient(135deg,#3b0764,#6d28d9)', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22.7px', border:'1px solid var(--purple-dim)' }}>🐱</div>
+              <PlayerAvatar size={44} />
               <div>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.5px', color:'var(--text)' }}>{username || 'NEKOZ'}</div>
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginTop:'2px' }}>{user ? user.email : 'Sans compte'}</div>

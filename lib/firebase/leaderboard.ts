@@ -3,6 +3,7 @@ import { db } from './config';
 import { logger } from '../logger';
 import { logFirestoreOp } from './telemetry';
 import { bnCompare, coerceBigNum, type BigNum } from '@/lib/game/bignum';
+import { parseInstanceKey } from '@/lib/game/editions';
 
 export interface LeaderboardEntry {
   uid: string;
@@ -15,6 +16,12 @@ export interface LeaderboardEntry {
   totalDps: BigNum;
   prestigeLevel: number;
   activeTitle: string;
+  // Avatar (voir components/layout/AvatarVisual.tsx) — déjà présents dans le
+  // même document `saves/{uid}` que le reste de cette liste (selectedAvatarChampionId
+  // via getSerializableState, collection déjà lue plus bas) : aucune lecture
+  // Firestore supplémentaire, juste des champs en plus extraits du même doc.
+  selectedAvatarChampionId: string | null;
+  avatarFormIndex: number;
 }
 
 export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEntry[]> {
@@ -44,10 +51,21 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
       // Déjà présent dans le doc `saves/{uid}` lu ci-dessus (synchronisé par
       // getSerializableState toutes les 10min) — aucune lecture supplémentaire.
       const activeTitle = typeof data.activeTitle === 'string' ? data.activeTitle : '';
+      const selectedAvatarChampionId = typeof data.selectedAvatarChampionId === 'string' ? data.selectedAvatarChampionId : null;
+      // Forme/évolution actuelle du champion avatar — dérivée de `collection`
+      // (déjà rapatriée dans le même doc, jamais lue séparément) pour afficher
+      // la bonne illustration de carte.
+      let avatarFormIndex = 0;
+      if (selectedAvatarChampionId && data.collection && typeof data.collection === 'object') {
+        const ownedEntry = Object.entries(data.collection as Record<string, { currentForm?: number }>)
+          .find(([k]) => parseInstanceKey(k).templateId === selectedAvatarChampionId);
+        avatarFormIndex = ownedEntry?.[1]?.currentForm ?? 0;
+      }
       return {
         uid: docSnap.id,
         username: typeof data.username === 'string' && data.username.trim() ? data.username : 'Joueur',
         palier, maxPalierReached, wave, pixelCoins, score, totalDps, prestigeLevel, activeTitle,
+        selectedAvatarChampionId, avatarFormIndex,
       };
     });
 

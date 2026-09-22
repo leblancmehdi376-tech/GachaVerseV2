@@ -208,6 +208,10 @@ export interface GameState {
   bossAvoided: boolean;
   ultUsedThisFight: string[];
   username: string;
+  // Champion choisi comme avatar (header + profil) — templateId de
+  // CHARACTER_POOL, ou null pour retomber sur l'initiale du pseudo. Doit
+  // rester possédé (voir getOwnedChars) sans quoi l'UI retombe sur le fallback.
+  selectedAvatarChampionId: string | null;
   equipmentInventory: Record<string, number>;
   championInventory:  Record<string, number>; // doublons 7★ en attente
   lastEquipmentDrop: string | null;

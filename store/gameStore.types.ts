@@ -61,6 +61,7 @@ export type CombatSlice = CombatState & CombatActions;
 // dans GameState — cette slice n'ajoute que des actions)
 export interface CharacterSlice {
   setUsername: (name: string) => void;
+  setSelectedAvatarChampionId: (templateId: string | null) => void;
   levelUpHero: () => void;
   evolveHero: () => void;
   upgradeGold: () => void;

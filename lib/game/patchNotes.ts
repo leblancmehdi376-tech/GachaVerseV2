@@ -11,6 +11,16 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '23/09/2026',
+    title: 'Avatar personnalisable',
+    changes: [
+      "Tu peux désormais choisir l'avatar affiché en haut du jeu, sur ta page Profil et dans l'onglet Options parmi tes personnages débloqués (section \"Avatar\" de la page Profil) — l'avatar utilise la vraie illustration de la carte du personnage.",
+      "L'avatar arbore une bordure/lueur qui évolue selon le palier max que tu as atteint (bronze, argent, or, diamant, prisme), et se met à pulser une fois un grand nombre de succès débloqués.",
+      "L'avatar (header, Profil, Options) est désormais toujours identique partout dans le jeu.",
+      "Le classement affiche maintenant l'avatar de chaque joueur à côté de son pseudo.",
+    ],
+  },
+  {
     date: '22/09/2026',
     title: 'Rééquilibrage des synergies d\'équipe',
     changes: [

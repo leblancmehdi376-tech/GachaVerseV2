@@ -75,6 +75,7 @@ export function getSerializableState() {
     dailyRewardClaimedToday: s.dailyRewardClaimedToday,
     dailyRewardClaimedDays:  s.dailyRewardClaimedDays ?? [],
     username:           s.username,
+    selectedAvatarChampionId: s.selectedAvatarChampionId ?? null,
     offlineMultLevel:   s.offlineMultLevel,
     offlineCapLevel:    s.offlineCapLevel,
     lastOfflineGain:    s.lastOfflineGain,

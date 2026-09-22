@@ -11,6 +11,8 @@ import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { PageScroll } from '@/components/ui/Page';
 import { bnGt, type BigNum } from '@/lib/game/bignum';
+import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
+import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 
 const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
@@ -42,6 +44,7 @@ export function ProfilePage() {
     username, pixelCoins, nekoGems, palier, maxPalierReached,
     bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps,
     activeTitle, unlockedCount, unlockedTitles,
+    selectedAvatarChampionId, setSelectedAvatarChampionId,
   } = store;
 
   const cfg = getPalierConfig(palier);
@@ -86,18 +89,8 @@ export function ProfilePage() {
           {/* BG décoration */}
           <div style={{ position:'absolute', top:'-40px', right:'-40px', width:'200px', height:'200px', background:'radial-gradient(circle,rgba(147,51,234,0.1),transparent)', borderRadius:'50%', pointerEvents:'none' }} />
 
-          {/* Avatar */}
-          <div style={{
-            width:80, height:80, flexShrink:0,
-            background:'linear-gradient(135deg,#3b0f91,#6d28d9)',
-            borderRadius:'16px',
-            border:'2px solid var(--border-glow)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontFamily:'var(--f-title)', fontSize:'28.8px', fontWeight:900, color:'#e2d9ff',
-            boxShadow:'0 0 28px rgba(109,40,217,0.35)',
-          }}>
-            {username.charAt(0).toUpperCase()}
-          </div>
+          {/* Avatar — voir components/layout/PlayerAvatar.tsx, partagé avec le header */}
+          <PlayerAvatar size={80} />
 
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:'var(--f-title)', fontSize:'24.7px', fontWeight:900, color:'var(--text)', letterSpacing:'2px', marginBottom:'4px' }}>
@@ -127,6 +120,47 @@ export function ProfilePage() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Sélecteur d'avatar — l'aura (bordure/lueur) reflète le palier max
+            atteint et le nombre de succès débloqués, voir PlayerAvatar. */}
+        <div className="panel" style={{ padding:'18px 20px' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'14px' }}>AVATAR</div>
+          <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
+            <button onClick={() => setSelectedAvatarChampionId(null)} title="Initiale du pseudo"
+              style={{
+                width:52, height:52, borderRadius:'10px', cursor:'pointer',
+                background:'linear-gradient(135deg,#3b0764,#6d28d9)',
+                border: selectedAvatarChampionId === null ? '2px solid var(--purple-glow)' : '1px solid var(--border)',
+                boxShadow: selectedAvatarChampionId === null ? '0 0 10px rgba(147,51,234,0.5)' : 'none',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontFamily:'var(--f-title)', fontWeight:900, fontSize:'20.6px', color:'#e2d9ff',
+              }}>
+              {username.charAt(0).toUpperCase()}
+            </button>
+            {ownedChars.map(tpl => {
+              const cfg = RARITY_CONFIG[tpl.rarity];
+              const selected = selectedAvatarChampionId === tpl.id;
+              const ownedEntry = Object.entries(collection).find(([k]) => parseInstanceKey(k).templateId === tpl.id);
+              const currentForm = ownedEntry?.[1]?.currentForm ?? 0;
+              return (
+                <button key={tpl.id} onClick={() => setSelectedAvatarChampionId(tpl.id)} title={`${tpl.name} (${cfg.label})`}
+                  style={{
+                    width:52, height:52, borderRadius:'10px', cursor:'pointer', overflow:'hidden', padding:0,
+                    border: selected ? `2px solid ${cfg.color}` : `1px solid ${cfg.color}44`,
+                    boxShadow: selected ? `0 0 10px ${cfg.glow}` : 'none',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                  }}>
+                  <CharacterCardThumb templateId={tpl.id} formIndex={currentForm} name={tpl.name} rarity={tpl.rarity} width={52} height={52} />
+                </button>
+              );
+            })}
+          </div>
+          {ownedChars.length === 0 && (
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-muted)', marginTop:'10px' }}>
+              Débloque des personnages pour pouvoir les utiliser comme avatar.
+            </div>
+          )}
         </div>
 
         {/* Grid de stats */}

@@ -63,6 +63,7 @@ const makeInitial = () => ({
   lastSaved: Date.now(),
   lastBossVictory: null as GameStore['lastBossVictory'],
   username: 'NEKOZ',
+  selectedAvatarChampionId: null as string | null,
   quests: [...rollQuestDefs(DAILY_QUEST_DEFS), rollCoinHoursQuest(0)].map(q => ({ ...q, current: 0, done: false })),
   questsDayKey: getTodayDayKey(),
   weeklyQuests: rollQuestDefs(WEEKLY_QUEST_DEFS).map(q => ({ ...q, current: 0, done: false })),
@@ -322,6 +323,7 @@ export const useGameStore = create<GameStore>()(
         dailyRewardDayKey:s.dailyRewardDayKey, dailyRewardCurrentDay:s.dailyRewardCurrentDay,
         dailyRewardClaimedToday:s.dailyRewardClaimedToday, dailyRewardClaimedDays:s.dailyRewardClaimedDays ?? [],
         username:s.username,
+        selectedAvatarChampionId:s.selectedAvatarChampionId ?? null,
         offlineMultLevel:s.offlineMultLevel, offlineCapLevel:s.offlineCapLevel, lastOfflineGain:s.lastOfflineGain,
         // savedAt DOIT être persisté ici : c'est ce qui permet à loadAndApply
         // (useCloudSave) de savoir que cet état local rechargé est déjà à jour.

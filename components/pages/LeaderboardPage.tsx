@@ -5,6 +5,8 @@ import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { getTopLeaderboard, updatePlayerScore, LeaderboardEntry } from '@/lib/firebase/leaderboard';
 import { PageScroll } from '@/components/ui/Page';
+import { AvatarVisual } from '@/components/layout/AvatarVisual';
+import { getCharacterById } from '@/lib/game/characters';
 
 // Chaque appel à getTopLeaderboard coûte ~100 lectures Firestore — sans
 // cooldown, spammer le bouton "Actualiser" spammerait autant d'appels à
@@ -212,16 +214,32 @@ export function LeaderboardPage() {
                     <div className="leaderboard-rank" style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize: idx < 3 ? '20px' : '14px', color:getRankColor(idx), textAlign:'center' }}>
                       {getRankDisplay(idx)}
                     </div>
-                    {/* Pseudo + titre équipé */}
-                    <div className="leaderboard-name" style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0, overflow:'hidden' }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                        {entry.username}{isMe && ' (toi)'}
-                      </div>
-                      {entry.activeTitle && (
-                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'10.5px', color:'#fbbf24', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                          👑 « {entry.activeTitle} »
+                    {/* Avatar + pseudo + titre équipé — pas d'overflow:hidden ici : ça
+                        rognerait le glow de l'avatar à ras de sa boîte (effet "carré"),
+                        l'ellipsis du pseudo/titre est déjà géré par les divs internes. */}
+                    <div className="leaderboard-name" style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
+                      {(() => {
+                        const tpl = entry.selectedAvatarChampionId ? getCharacterById(entry.selectedAvatarChampionId) : null;
+                        return (
+                          <AvatarVisual
+                            size={32}
+                            champion={tpl ? { templateId: tpl.id, formIndex: entry.avatarFormIndex, name: tpl.name, rarity: tpl.rarity } : null}
+                            fallbackLetter={entry.username.charAt(0).toUpperCase()}
+                            maxPalierReached={entry.maxPalierReached}
+                            tooltip={tpl?.name ?? entry.username}
+                          />
+                        );
+                      })()}
+                      <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0, overflow:'hidden' }}>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {entry.username}{isMe && ' (toi)'}
                         </div>
-                      )}
+                        {entry.activeTitle && (
+                          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'10.5px', color:'#fbbf24', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                            👑 « {entry.activeTitle} »
+                          </div>
+                        )}
+                      </div>
                     </div>
                     {/* Stats — regroupées dans un wrapper pour pouvoir passer en
                         ligne complète sous le pseudo sur mobile (voir <style>

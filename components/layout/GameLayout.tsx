@@ -24,6 +24,7 @@ import { PrestigePage } from '@/components/pages/PrestigePage';
 import { MinePage } from '@/components/pages/MinePage';
 import { AnomaliePage } from '@/components/pages/AnomaliePage';
 import { AuthModal } from '@/components/layout/AuthModal';
+import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
 import { UltAnimation } from '@/components/game/UltAnimation';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
@@ -261,8 +262,7 @@ export function GameLayout() {
             boxShadow: user ? 'none' : '0 0 16px rgba(168,85,247,0.4)' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.15)'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
-          <div style={{ position:'relative', width:36, height:36, flexShrink:0 }} title={formatSyncStatus(syncStatus, lastSyncedAt).label}>
-            <div style={{ width:36, height:36, background:'linear-gradient(135deg,#3b0764,#6d28d9)', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18.5px', border:'1px solid var(--purple-dim)', boxShadow:'0 0 12px rgba(109,40,217,0.35)' }}>🐱</div>
+          <PlayerAvatar size={36} tooltip={formatSyncStatus(syncStatus, lastSyncedAt).label}>
             {/* Badge de synchro cloud — confirme d'un coup d'œil si CET appareil
                 est bien à jour avec le cloud, sans avoir à ouvrir la console. */}
             <div style={{ position:'absolute', bottom:-2, right:-2, width:11, height:11, borderRadius:'50%',
@@ -270,7 +270,7 @@ export function GameLayout() {
               border:'2px solid var(--bg-dark)',
               boxShadow: syncStatus === 'synced' ? '0 0 6px rgba(74,222,128,0.7)' : 'none',
               transition:'background 0.3s' }} />
-          </div>
+          </PlayerAvatar>
           {!isMobile && <div style={{ textAlign:'left' }}>
             {user ? (<>
               <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
