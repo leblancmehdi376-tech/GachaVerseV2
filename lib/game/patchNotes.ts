@@ -11,6 +11,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '22/09/2026',
+    title: "Protection des équipements spéciaux lors de la fusion",
+    changes: [
+      "Page Équipement : la fusion consomme désormais en priorité les équipements génériques avant de piocher dans les équipements spéciaux (liés à un personnage précis).",
+      "Un avertissement s'affiche si le stock sélectionné pour la fusion contient des équipements spéciaux, pour éviter de les fusionner par erreur.",
+      "Le nombre d'équipements spéciaux est maintenant affiché à côté de chaque groupe d'équipement et de la rareté actuellement sélectionnée.",
+    ],
+  },
+  {
     date: '21/09/2026',
     title: 'Amélioration des drops de raid',
     changes: [

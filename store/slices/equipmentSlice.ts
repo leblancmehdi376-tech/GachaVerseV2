@@ -50,10 +50,15 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
     const output = pickEquipmentUpgradeOutput(slot, nextRarity);
     if (!output) return { ok: false, reason: 'Aucun objet disponible à cette rareté' };
 
+    // Consomme en priorité les objets génériques (non spéciaux) avant de
+    // piocher dans les objets spéciaux (bonusFor), pour éviter de fusionner
+    // par erreur un objet lié à un personnage tant qu'il reste du générique.
+    const consumeOrder = [...fodderGroup].sort((a, b) => Number(!!a.bonusFor) - Number(!!b.bonusFor));
+
     set(s => {
       let toConsume = cost;
       const newInv = { ...s.equipmentInventory };
-      for (const item of fodderGroup) {
+      for (const item of consumeOrder) {
         if (toConsume <= 0) break;
         const have = newInv[item.id] ?? 0;
         const take = Math.min(have, toConsume);

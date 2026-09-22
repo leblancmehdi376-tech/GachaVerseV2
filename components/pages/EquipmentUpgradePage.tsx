@@ -14,7 +14,12 @@ export function representativeItem(slot: EquipmentSlot, rarity: Rarity): Equipme
   return group.find(item => !item.bonusFor) ?? group[0] ?? null;
 }
 
-interface GroupInfo { slot: EquipmentSlot; rarity: Rarity; qty: number }
+interface GroupInfo { slot: EquipmentSlot; rarity: Rarity; qty: number; specialQty: number }
+
+// Accord de "spécial" : singulier si 1 seul, "spéciaux" au pluriel.
+function specialLabel(n: number): string {
+  return n > 1 ? 'spéciaux' : 'spécial';
+}
 
 export function EquipmentUpgradePage() {
   const { equipmentInventory, unlockedEquipRarities, upgradeEquipment } = useGameStore();
@@ -24,9 +29,10 @@ export function EquipmentUpgradePage() {
   const groups: GroupInfo[] = [];
   for (const slot of EQUIPMENT_SLOTS) {
     for (const rarity of RARITY_ORDER_ASC) {
-      const ids = getEquipmentGroup(slot, rarity).map(item => item.id);
-      const qty = ids.reduce((sum, id) => sum + (equipmentInventory[id] ?? 0), 0);
-      if (qty > 0) groups.push({ slot, rarity, qty });
+      const items = getEquipmentGroup(slot, rarity);
+      const qty = items.reduce((sum, item) => sum + (equipmentInventory[item.id] ?? 0), 0);
+      const specialQty = items.filter(item => !!item.bonusFor).reduce((sum, item) => sum + (equipmentInventory[item.id] ?? 0), 0);
+      if (qty > 0) groups.push({ slot, rarity, qty, specialQty });
     }
   }
   const totalItems = groups.reduce((sum, g) => sum + g.qty, 0);
@@ -34,6 +40,7 @@ export function EquipmentUpgradePage() {
 
   const selectedGroup = selected ? groups.find(g => g.slot === selected.slot && g.rarity === selected.rarity) : null;
   const qty = selectedGroup?.qty ?? 0;
+  const specialQty = selectedGroup?.specialQty ?? 0;
   const upgradeCost = selected ? getEquipmentUpgradeCost(selected.rarity) : 0;
   const maxUpgrades = upgradeCost > 0 ? Math.floor(qty / upgradeCost) : 0;
   const currentItem = selected ? representativeItem(selected.slot, selected.rarity) : null;
@@ -114,8 +121,13 @@ export function EquipmentUpgradePage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ fontSize: 22.7 }}>{item?.icon ?? '❔'}</div>
                         <div>
-                          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: cfg.color }}>
+                          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: cfg.color, display: 'flex', alignItems: 'center', gap: 6 }}>
                             {EQUIPMENT_SLOT_LABELS[g.slot]} — {cfg.label}
+                            {g.specialQty > 0 && (
+                              <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11, fontWeight: 700, color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 9999, padding: '1px 7px' }}>
+                                ⚠️ {g.specialQty} {specialLabel(g.specialQty)}
+                              </span>
+                            )}
                           </div>
                           <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-muted)' }}>
                             {groupUpgrades} fusion{groupUpgrades !== 1 ? 's' : ''} possible{groupUpgrades !== 1 ? 's' : ''}
@@ -148,7 +160,10 @@ export function EquipmentUpgradePage() {
                         <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: RARITY_CONFIG[selected.rarity].color }}>
                           {EQUIPMENT_SLOT_LABELS[selected.slot]} — {RARITY_CONFIG[selected.rarity].label}
                         </div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)' }}>×{qty} possédé{qty > 1 ? 's' : ''}</div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)' }}>
+                          ×{qty} possédé{qty > 1 ? 's' : ''}
+                          {specialQty > 0 && <span style={{ color: '#fbbf24', fontWeight: 700 }}> · {specialQty} {specialLabel(specialQty)}</span>}
+                        </div>
                       </div>
                     </div>
                     <div style={{ fontSize: 26.8 }}>→</div>
@@ -171,6 +186,11 @@ export function EquipmentUpgradePage() {
                   {nextRarity && !isUnlocked && (
                     <div className="companion-toast">
                       🔒 Termine l’expédition « Atelier — Rareté {RARITY_CONFIG[nextRarity].label} » (onglet Expéditions) pour débloquer cette fusion.
+                    </div>
+                  )}
+                  {nextRarity && isUnlocked && specialQty > 0 && (
+                    <div className="companion-toast" style={{ color: '#fbbf24' }}>
+                      ⚠️ Ce stock contient {specialQty} objet{specialQty !== 1 ? 's' : ''} {specialLabel(specialQty)} (lié{specialQty !== 1 ? 's' : ''} à un personnage). Les objets génériques sont consommés en priorité par la fusion, mais les spéciaux peuvent l’être si le stock générique ne suffit pas.
                     </div>
                   )}
                   {nextRarity && isUnlocked && (
