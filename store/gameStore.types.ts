@@ -27,6 +27,19 @@ export interface Quest {
   type: 'daily' | 'weekly' | 'raid';
 }
 
+// ─── Historique de solde (pour le graphe admin coins/gemmes) ───────────────
+// Un point par sauvegarde Firestore (périodique ~10min, ou urgente) — voir
+// recordCurrencySnapshot dans gameStore.ts et son appel dans saveToFirebase
+// (lib/firebase/cloudSaveSync.ts) : le point est pris juste avant l'écriture
+// déjà prévue, donc inclus dans le MÊME setDoc, sans lecture/écriture Firestore
+// supplémentaire. Le solde (pas le delta) est stocké : le delta gagné/dépensé
+// entre deux points est recalculé à l'affichage (voir CurrencyHistoryChart).
+export interface CurrencySnapshot {
+  t: number;      // Date.now() au moment du snapshot
+  coins: BigNum;  // solde de pixelCoins à cet instant
+  gems: number;   // solde de nekoGems à cet instant
+}
+
 export interface OfflineGain {
   coins: BigNum;       // coins crédités (dérivé de pixelCoinsReward, non-plafonné)
   gems: number;        // gemmes crédités (drops de mobs normaux uniquement)
@@ -405,6 +418,11 @@ export type GameStore = GameState
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;
     resetGame: () => void;
+    // Historique de solde pour le graphe admin (voir CurrencySnapshot) —
+    // ring buffer borné, alimenté uniquement au moment d'une sauvegarde
+    // Firestore déjà prévue (voir son commentaire).
+    currencyHistory: CurrencySnapshot[];
+    recordCurrencySnapshot: () => void;
     // Combat de boss de raid en cours (voir components/pages/raid/RaidBattle.tsx) —
     // conservé en mémoire (hors partialize, pas de persistance disque/cloud) pour
     // survivre à un changement d'onglet de l'appli (RaidPage démonte/remonte

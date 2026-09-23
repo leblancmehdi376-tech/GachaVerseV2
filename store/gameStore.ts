@@ -13,7 +13,7 @@ import { generateEnemy } from '@/lib/game/enemies';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels } from '@/lib/game/prestige';
-import type { GameStore } from './gameStore.types';
+import type { GameStore, CurrencySnapshot } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
 import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest, migrateLegacyRaidQuestIds } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
@@ -131,6 +131,8 @@ const makeInitial = () => ({
   anomalySlots: 1,
   // ── Combat de boss de raid en cours (jamais persisté, voir GameStore) ──
   raidBossFight: null as GameStore['raidBossFight'],
+  // ── Historique de solde (graphe admin, voir CurrencySnapshot) ──
+  currencyHistory: [] as CurrencySnapshot[],
 });
 
 // ─── Migration depuis les 4 anciens stores Zustand séparés ─────────────────
@@ -143,6 +145,17 @@ const makeInitial = () => ({
 // servir lui-même d'indicateur "déjà migré"). Les anciennes clés ne sont PAS
 // supprimées après lecture (coût disque négligeable, évite un point de
 // défaillance supplémentaire sur un chemin critique pour la rétention).
+// ─── Historique de solde (graphe admin) ────────────────────────────────────
+// Un point par sauvegarde Firestore réelle (voir recordCurrencySnapshot
+// ci-dessous, appelé depuis saveToFirebase) : cadence naturelle ~10min
+// (périodique), jamais plus rapprochée que CURRENCY_SNAPSHOT_MIN_GAP_MS même
+// en cas de rafale de sauvegardes urgentes (throttlées à 15s par ailleurs,
+// voir requestUrgentSave). MAX_CURRENCY_SNAPSHOTS borne la taille du ring
+// buffer (~3-4 jours de jeu actif à cette cadence), négligeable dans le doc
+// Firestore existant.
+const CURRENCY_SNAPSHOT_MIN_GAP_MS = 5 * 60_000;
+const MAX_CURRENCY_SNAPSHOTS = 500;
+
 const LEGACY_MERGE_MARKER = 'nekoz-stores-merge-v1';
 let didMigrateLegacyStoresThisLoad = false;
 
@@ -211,6 +224,20 @@ export const useGameStore = create<GameStore>()(
       },
 
       setRaidBossFight: (fight) => set({ raidBossFight: fight }),
+
+      // Appelée juste avant chaque sauvegarde Firestore réelle (voir
+      // saveToFirebase dans lib/firebase/cloudSaveSync.ts) — jamais sur un
+      // minuteur dédié, pour que ce nouveau champ ne coûte ni lecture ni
+      // écriture Firestore supplémentaire (il ne fait que grossir le payload
+      // d'une écriture qui aurait eu lieu de toute façon).
+      recordCurrencySnapshot: () => set((state) => {
+        const history = state.currencyHistory;
+        const last = history[history.length - 1];
+        const t = Date.now();
+        if (last && t - last.t < CURRENCY_SNAPSHOT_MIN_GAP_MS) return {};
+        const next = [...history, { t, coins: state.pixelCoins, gems: state.nekoGems }];
+        return { currencyHistory: next.length > MAX_CURRENCY_SNAPSHOTS ? next.slice(next.length - MAX_CURRENCY_SNAPSHOTS) : next };
+      }),
     }),
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
@@ -354,6 +381,10 @@ export const useGameStore = create<GameStore>()(
         anomalyTokens:s.anomalyTokens ?? 0, ownedAnomalies:s.ownedAnomalies ?? [], anomalySlots:s.anomalySlots ?? 1,
         // Compadex — jamais reset au Prestige (même traitement qu'historicalMaxRank).
         compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
+        // Historique de solde (graphe admin) — persisté localement comme le
+        // reste (gratuit, middleware persist), et synchronisé cloud via
+        // getSerializableState (voir son commentaire dans cloudSaveSync.ts).
+        currencyHistory:s.currencyHistory ?? [],
       }),
     }
   )

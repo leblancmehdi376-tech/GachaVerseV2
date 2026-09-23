@@ -9,6 +9,7 @@ import { RAID_QUESTS } from '@/store/gameStoreHelpers';
 import { Rarity, RARITY_ORDER_ASC } from '@/types/game';
 import { logger } from '../logger';
 import { coerceBigNum, type BigNum } from '@/lib/game/bignum';
+import type { CurrencySnapshot } from '@/store/gameStore.types';
 
 export interface PlayerSaveSummary {
   pixelCoins: BigNum;
@@ -21,6 +22,13 @@ export interface PlayerSaveSummary {
   maxPalierReached: number;
   runPeakPalier: number | null;
   lastSaved: number | null;
+  // Historique de solde pour le graphe admin (voir CurrencySnapshot) — déjà
+  // présent dans le même doc `saves/{uid}` que le reste de ce résumé, donc
+  // aucune lecture Firestore supplémentaire pour l'exposer ici. Optionnel :
+  // seul getPlayerDetail (vue détail d'un joueur) le peuple — le résumé léger
+  // de la liste des joueurs (summarizePlayerSave, accessRequests.ts) ne
+  // l'inclut pas, personne n'en ayant besoin avant d'ouvrir cette vue détail.
+  currencyHistory?: CurrencySnapshot[];
 }
 
 // Résumé léger d'un personnage possédé, pour l'affichage dans l'outil admin.
@@ -138,6 +146,13 @@ export async function getPlayerDetail(uid: string): Promise<PlayerDetail> {
       maxPalierReached: d.maxPalierReached ?? 1,
       runPeakPalier:    d.runPeakPalier ?? null,
       lastSaved:        d.lastSaved ?? null,
+      currencyHistory:  Array.isArray(d.currencyHistory)
+        ? (d.currencyHistory as Array<{ t?: number; coins?: unknown; gems?: number }>).map(e => ({
+            t: typeof e.t === 'number' ? e.t : 0,
+            coins: coerceBigNum(e.coins),
+            gems: typeof e.gems === 'number' ? e.gems : 0,
+          }))
+        : [],
     };
     return {
       save,

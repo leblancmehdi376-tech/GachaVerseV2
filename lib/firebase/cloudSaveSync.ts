@@ -116,6 +116,10 @@ export function getSerializableState() {
     // doit donc être synchronisé pour survivre à un changement d'appareil.
     compadexCharactersSeen: s.compadexCharactersSeen ?? {},
     compadexEquipmentSeen:  s.compadexEquipmentSeen ?? {},
+    // Historique de solde (graphe admin) — voir recordCurrencySnapshot,
+    // appelé juste avant dans saveToFirebase : ce champ ne fait donc que
+    // grossir un payload déjà écrit, sans lecture/écriture Firestore en plus.
+    currencyHistory:    s.currencyHistory ?? [],
     savedAt:            correctedNow(),
   };
 }
@@ -506,6 +510,11 @@ export async function saveToFirebase(userId: string, reason = 'unknown'): Promis
     return false;
   }
   try {
+    // Prend un point d'historique coins/gemmes juste avant la sérialisation —
+    // voir recordCurrencySnapshot (store/gameStore.ts) et le commentaire sur
+    // currencyHistory dans getSerializableState : ce point rejoint le MÊME
+    // setDoc que celui déjà déclenché ici, sans lecture/écriture en plus.
+    useGameStore.getState().recordCurrencySnapshot();
     const s    = useGameStore.getState();
     const data = getSerializableState();
 

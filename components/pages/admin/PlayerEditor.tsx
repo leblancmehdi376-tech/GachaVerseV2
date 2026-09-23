@@ -10,6 +10,7 @@ import { CHARACTER_POOL, getCharacterById } from '@/lib/game/characters';
 import { ITEM_DEFS, EQUIPMENT_DEFS } from '@/lib/game/items';
 import { RARITY_CONFIG } from '@/types/game';
 import { bnFromNumber, bnToNumber } from '@/lib/game/bignum';
+import { CurrencyHistoryChart } from './CurrencyHistoryChart';
 
 // Listes proposables à l'ajout (les héros ne vivent pas dans `collection`,
 // donc exclus) — calculées une fois, réutilisées pour les suggestions d'id
@@ -268,6 +269,18 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
       </div>
       <div style={{ color: '#22d3ee', fontSize: 12.4, fontWeight: 700, marginBottom: 16 }}>
         ✦ Total d&apos;invocations (gacha) : {playerSave.totalGachaPulls.toLocaleString('fr-FR')}
+      </div>
+
+      {/* ── Historique coins/gemmes ──────────────────────────────
+          Alimenté sans coût Firestore additionnel (voir CurrencyHistoryChart
+          et le commentaire sur CurrencySnapshot) : le champ voyage dans le
+          même doc `saves/{uid}` déjà lu par getPlayerDetail ci-dessus. */}
+      <div style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        {detailLoading ? (
+          <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Chargement de l&apos;historique…</div>
+        ) : (
+          <CurrencyHistoryChart history={playerSave.currencyHistory ?? []} />
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
