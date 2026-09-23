@@ -15,6 +15,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     title: 'Meilleur cadrage des illustrations de personnages',
     changes: [
       "Les illustrations de carte sont mieux recadrées : le personnage occupe désormais mieux la fenêtre visible du cadre de rareté, sans zone gaspillée sous le bandeau du nom.",
+      "Recadrage retouché à la main pour une centaine de personnages dont le cadrage automatique n'était pas optimal (tête ou corps mal positionné dans l'image).",
     ],
   },
   {

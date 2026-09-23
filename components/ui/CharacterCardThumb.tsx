@@ -3,7 +3,7 @@
 import { Rarity, RARITY_CONFIG, RARITY_FRAME_SRC, RARITY_FRAME_RATIO, CardEdition } from '@/types/game';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
 import { getCharacterById } from '@/lib/game/characters';
-import { getCardBaseName } from '@/lib/game/cardAssets';
+import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 
@@ -71,7 +71,7 @@ export function CharacterCardThumb({
     ...(cardBaseName
       ? buildImageCandidates(
           `/sprites/new_cards_processed/${cardBaseName}`
-        )
+        ).map(c => `${c}?v=${NEW_CARDS_ASSET_VERSION}`)
       : []),
     ...(cardBaseName
       ? buildImageCandidates(`/sprites/cards/${cardBaseName}`)
