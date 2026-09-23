@@ -51,6 +51,11 @@ export function ProfilePage() {
 
   const ownedChars = useMemo(() => getOwnedChars(collection), [collection]);
 
+  const avatarPickerChars = useMemo(() => {
+    const rarityRank = RARITY_ORDER.slice().reverse();
+    return ownedChars.slice().sort((a, b) => rarityRank.indexOf(a.rarity) - rarityRank.indexOf(b.rarity));
+  }, [ownedChars]);
+
   const totalDps = getTotalDps();
 
   const rarityBreakdown = useMemo(() => computeRarityBreakdown(ownedChars), [ownedChars]);
@@ -138,7 +143,7 @@ export function ProfilePage() {
               }}>
               {username.charAt(0).toUpperCase()}
             </button>
-            {ownedChars.map(tpl => {
+            {avatarPickerChars.map(tpl => {
               const cfg = RARITY_CONFIG[tpl.rarity];
               const selected = selectedAvatarChampionId === tpl.id;
               const ownedEntry = Object.entries(collection).find(([k]) => parseInstanceKey(k).templateId === tpl.id);

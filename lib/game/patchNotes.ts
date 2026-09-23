@@ -12,6 +12,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '23/09/2026',
+    title: 'Tri des avatars par rareté',
+    changes: [
+      "Dans le sélecteur d'avatar de la page Profil, tes personnages débloqués sont désormais triés de la rareté la plus élevée à la plus faible.",
+    ],
+  },
+  {
+    date: '23/09/2026',
     title: 'Meilleur cadrage des illustrations de personnages',
     changes: [
       "Les illustrations de carte sont mieux recadrées : le personnage occupe désormais mieux la fenêtre visible du cadre de rareté, sans zone gaspillée sous le bandeau du nom.",
