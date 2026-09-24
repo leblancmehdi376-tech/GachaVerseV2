@@ -3,13 +3,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { auth } from '@/lib/firebase/config';
 import { formatNumber } from '@/lib/game/format';
-import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 import {
   MarketplaceListing, ListingCurrency, ListingType,
   getAllListingsAdmin, adminCancelListing, buyListing,
 } from '@/lib/firebase/marketplace';
 import { restoreListingItemToSeller } from '@/lib/firebase/adminTools';
-import { getListingLabel, getListingIcon, canAffordListing } from '@/components/pages/MarketplacePage';
+import { getListingLabel, getListingIcon } from '@/components/pages/MarketplacePage';
 
 const CURRENCY_ICON: Record<ListingCurrency, string> = { gems: '💎', coins: '🪙', crowns: '👑' };
 const TYPE_LABEL: Record<ListingType, string> = { item: 'Item', equipment: 'Équipement', character: 'Personnage' };
@@ -67,26 +66,18 @@ export function MarketplaceTab() {
     });
   }, [listings, search, statusFilter, typeFilter]);
 
-  // ── Admin achète l'annonce (avec son propre compte/monnaie) ─────────────
+  // ── Admin achète l'annonce (gratuit, sans débit du compte admin) ────────
   const handleBuy = async (l: MarketplaceListing) => {
     if (!user) return;
-    if (!canAffordListing(l.currency, l.price, store)) {
-      showMsg(false, `Solde admin insuffisant (${CURRENCY_ICON[l.currency]})`);
-      return;
-    }
     setBusy(l.id);
     const result = await buyListing(l.id, user.uid, store.username || 'Admin');
     if (!result) { showMsg(false, 'Achat impossible (déjà vendu ?)'); setBusy(null); load(); return; }
-
-    if (l.currency === 'gems')        useGameStore.setState(s => ({ nekoGems: s.nekoGems - l.price }));
-    else if (l.currency === 'crowns') useGameStore.setState(s => ({ bossCrowns: s.bossCrowns - l.price }));
-    else store.spendPixelCoins(bnFromNumber(l.price));
 
     if (l.type === 'item')      store.addItem(l.itemId, l.quantity);
     else if (l.type === 'equipment') store.addEquipment(l.itemId, 1);
     else store.addToCollection(l.itemId);
 
-    showMsg(true, `${getListingLabel(l)} acheté avec le compte admin !`);
+    showMsg(true, `${getListingLabel(l)} récupéré gratuitement sur le compte admin !`);
     setListings(list => list.map(x => x.id === l.id ? { ...x, status: 'sold', soldTo: user.uid, soldToName: store.username || 'Admin', soldAt: Date.now() } : x));
     setBusy(null);
   };
@@ -108,7 +99,7 @@ export function MarketplaceTab() {
     <>
       <h2 style={{ color: '#f97316', fontSize: 15.5, fontWeight: 800, marginBottom: 4 }}>🏛️ Hôtel de Ville</h2>
       <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.4, marginBottom: 14, lineHeight: 1.5 }}>
-        Toutes les annonces du marketplace. « Acheter » utilise le compte admin connecté ; « Retirer » annule l'annonce et restitue l'item au vendeur.
+        Toutes les annonces du marketplace. « Acheter » récupère l'item gratuitement (aucune monnaie débitée) ; « Retirer » annule l'annonce et restitue l'item au vendeur.
       </p>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -202,7 +193,7 @@ export function MarketplaceTab() {
               </span>
               {l.status === 'active' ? (
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => handleBuy(l)} disabled={busy === l.id} title="Acheter avec le compte admin connecté" style={{ padding: '7px 12px', borderRadius: 6, cursor: busy === l.id ? 'default' : 'pointer', fontSize: 11.5, fontWeight: 700, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', whiteSpace: 'nowrap' }}>
+                  <button onClick={() => handleBuy(l)} disabled={busy === l.id} title="Récupérer gratuitement sur le compte admin (aucune monnaie débitée)" style={{ padding: '7px 12px', borderRadius: 6, cursor: busy === l.id ? 'default' : 'pointer', fontSize: 11.5, fontWeight: 700, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', whiteSpace: 'nowrap' }}>
                     🛒 Acheter
                   </button>
                   <button onClick={() => handleRemove(l)} disabled={busy === l.id} title="Annuler l'annonce et restituer l'item au vendeur" style={{ padding: '7px 12px', borderRadius: 6, cursor: busy === l.id ? 'default' : 'pointer', fontSize: 11.5, fontWeight: 700, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', whiteSpace: 'nowrap' }}>
