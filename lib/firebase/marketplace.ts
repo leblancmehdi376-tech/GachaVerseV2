@@ -49,19 +49,29 @@ export async function getActiveListings(max = 100): Promise<MarketplaceListing[]
   } catch (e) { logger.error('[Marketplace] getActiveListings:', e); return []; }
 }
 
-// Séparé en 2 requêtes : les annonces actives sont toujours toutes récupérées
-// (jamais tronquées), seul l'historique vendu/annulé est plafonné. Avant ce
+// Séparé en 3 requêtes : les annonces actives et les ventes pas encore
+// encaissées sont toujours toutes récupérées (jamais tronquées), seul le
+// reste de l'historique (vendu+encaissé / annulé) est plafonné. Avant ce
 // correctif, une seule requête limit(50) sans orderBy pouvait couper avant le
 // tri côté client et faire "disparaître" une annonce fraîchement publiée dès
-// que le joueur dépassait 50 annonces au total (actives + closes).
+// que le joueur dépassait 50 annonces au total (actives + closes) — un
+// vendeur pouvait alors perdre de vue une vente conclue (et l'argent dû)
+// sans même la voir apparaître comme "Vendu".
 export async function getMyListings(sellerId: string): Promise<MarketplaceListing[]> {
   if (!db) return [];
   try {
-    const [activeSnap, historySnap] = await Promise.all([
+    const [activeSnap, unclaimedSoldSnap, historySnap] = await Promise.all([
       getDocs(query(collection(db, 'marketplace'), where('sellerId', '==', sellerId), where('status', '==', 'active'))),
+      getDocs(query(collection(db, 'marketplace'), where('sellerId', '==', sellerId), where('status', '==', 'sold'), where('claimed', '==', false))),
       getDocs(query(collection(db, 'marketplace'), where('sellerId', '==', sellerId), where('status', 'in', ['sold', 'cancelled']), limit(50))),
     ]);
-    return [...activeSnap.docs, ...historySnap.docs]
+    const seen = new Set<string>();
+    const docs = [...activeSnap.docs, ...unclaimedSoldSnap.docs, ...historySnap.docs].filter(d => {
+      if (seen.has(d.id)) return false;
+      seen.add(d.id);
+      return true;
+    });
+    return docs
       .map(d => ({ id: d.id, ...d.data() } as MarketplaceListing))
       .sort((a, b) => b.createdAt - a.createdAt);
   } catch (e) { logger.error('[Marketplace] getMyListings:', e); return []; }
@@ -79,7 +89,7 @@ export async function buyListing(listingId: string, buyerId: string, buyerName: 
       if (data.status !== 'active')       throw new Error('Déjà vendu');
       if (data.sellerId === buyerId)       throw new Error('Propre annonce');
       listing = { id: listingId, ...data };
-      tx.update(listingRef, { status: 'sold', soldTo: buyerId, soldToName: buyerName, soldAt: Date.now() });
+      tx.update(listingRef, { status: 'sold', soldTo: buyerId, soldToName: buyerName, soldAt: Date.now(), claimed: false });
     });
     return listing;
   } catch (e) { logger.error('[Marketplace] buyListing:', e); return null; }
