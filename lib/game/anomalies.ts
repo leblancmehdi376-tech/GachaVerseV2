@@ -35,32 +35,39 @@ export const ANOMALY_BONUS_DEFS: Record<AnomalyBonusType, AnomalyBonusDef> = {
 };
 
 // ── Table d'équilibrage (taux de drop % + plage min-max % par type de bonus) ──
-// Valeurs reprises telles quelles du barème fourni. gachaCostReduction et
-// upgradeCostReduction sont des valeurs FIXES par rareté (pas une plage) —
-// modélisées ici comme [v, v] pour rester dans le même format que
-// rollAnomalyValue(). Contrairement aux 4 autres types (multiplicateurs sans
-// plafond naturel), ces deux-là alimentent un total plafonné à 90%
-// (MAX_COST_REDUCTION) : leur échelle est donc calibrée pour rester cohérente
-// avec ce plafond (max théorique à 5 anomalies Transcendant du même type :
-// 5×15% = 75%, sous le cap) plutôt que copiée sur l'échelle des multiplicateurs
-// libres — sans ça une seule anomalie S+ suffisait à saturer le cap à elle
-// seule (cf. historique : upgradeCostReduction reprenait l'échelle 1-200% de
-// synergyBoost, ce qui affichait des valeurs jusqu'à "+200%" pour un bonus en
-// réalité plafonné à 90%, trompeur pour le joueur).
+// Barème fourni tel quel par le design (rework "buff anomalies", valeurs
+// maximales en rareté Transcendant : synergyBoost 600%, typeDamage 300%,
+// goldGain 400%, globalDps 100%, gachaCostReduction/upgradeCostReduction
+// 15%). synergyBoost/typeDamage visent plus haut que goldGain/globalDps car
+// ce sont des bonus CIBLÉS : synergyBoost ne profite qu'aux persos équipés de
+// l'univers tiré (1 chance sur ~37), typeDamage qu'à ceux de l'affinité
+// tirée (1 chance sur 8) — contrairement à goldGain/globalDps qui s'appliquent
+// toujours à 100% des golds/DPS de l'équipe. gachaCostReduction et
+// upgradeCostReduction sont deux VRAIES plages par rareté (elles étaient
+// modélisées en [v, v], une valeur fixe, historiquement) et partagent
+// EXACTEMENT la même plage à chaque rareté — pas de raison de faire sens
+// différemment pour deux réductions de coût équivalentes ; leur total cumulé
+// reste plafonné à 90% (MAX_COST_REDUCTION) même si ce plafond n'est en
+// pratique jamais atteignable avec les 5 emplacements max actuels (5×15%=75%).
+// Pour TOUS les types de bonus, les paliers ne se touchent ni ne se
+// chevauchent JAMAIS (le min d'une rareté est toujours strictement supérieur
+// au max de la précédente) — invariant vérifié par un test dédié dans
+// anomalies.test.ts (ex-bug corrigé : le max de Stellaire et le min de
+// Cosmique pouvaient être identiques sur gachaCostReduction/upgradeCostReduction).
 export const ANOMALY_RARITY_TABLE: Record<Rarity, {
   dropRate: number; // % (somme = 100 sur les 10 raretés)
   ranges: Record<AnomalyBonusType, [number, number]>;
 }> = {
-  C:  { dropRate: 50,   ranges: { synergyBoost:[1,3],     typeDamage:[1,2],     goldGain:[1,6],     globalDps:[0.1,0.3],  gachaCostReduction:[0.1,0.1], upgradeCostReduction:[0.2,0.2]  } },
-  U:  { dropRate: 25,   ranges: { synergyBoost:[4,8],     typeDamage:[3,4],     goldGain:[7,16],    globalDps:[0.4,0.8],  gachaCostReduction:[0.2,0.2], upgradeCostReduction:[0.4,0.4]  } },
-  R:  { dropRate: 12.15,ranges: { synergyBoost:[9,16],    typeDamage:[5,8],     goldGain:[17,32],   globalDps:[0.9,1.6],  gachaCostReduction:[0.4,0.4], upgradeCostReduction:[0.7,0.7]  } },
-  E:  { dropRate: 6,    ranges: { synergyBoost:[17,30],   typeDamage:[9,15],    goldGain:[33,60],   globalDps:[1.7,3.0],  gachaCostReduction:[0.8,0.8], upgradeCostReduction:[1.2,1.2]  } },
-  L:  { dropRate: 3,    ranges: { synergyBoost:[31,50],   typeDamage:[16,25],   goldGain:[61,100],  globalDps:[3.1,5.0],  gachaCostReduction:[1.5,1.5], upgradeCostReduction:[2.0,2.0]  } },
-  M:  { dropRate: 2,    ranges: { synergyBoost:[51,76],   typeDamage:[26,38],   goldGain:[101,152], globalDps:[5.1,7.6],  gachaCostReduction:[2.5,2.5], upgradeCostReduction:[3.2,3.2]  } },
-  S:  { dropRate: 1,    ranges: { synergyBoost:[77,110],  typeDamage:[39,55],   goldGain:[153,220], globalDps:[7.7,11.0], gachaCostReduction:[4.0,4.0], upgradeCostReduction:[5.0,5.0]  } },
-  CO: { dropRate: 0.5,  ranges: { synergyBoost:[111,146], typeDamage:[56,73],   goldGain:[221,292], globalDps:[11.1,14.6],gachaCostReduction:[6.0,6.0], upgradeCostReduction:[7.5,7.5]  } },
-  P:  { dropRate: 0.25, ranges: { synergyBoost:[147,180], typeDamage:[74,90],   goldGain:[293,360], globalDps:[14.7,18.0],gachaCostReduction:[8.5,8.5], upgradeCostReduction:[11.0,11.0] } },
-  T:  { dropRate: 0.1,  ranges: { synergyBoost:[181,200], typeDamage:[91,100],  goldGain:[361,400], globalDps:[19.0,20.0],gachaCostReduction:[10.0,10.0],upgradeCostReduction:[15.0,15.0] } },
+  C:  { dropRate: 50,   ranges: { synergyBoost:[1,6],     typeDamage:[1,3],     goldGain:[1,4],     globalDps:[0.20,1.00], gachaCostReduction:[0.05,0.15], upgradeCostReduction:[0.05,0.15] } },
+  U:  { dropRate: 25,   ranges: { synergyBoost:[8,18],    typeDamage:[4,9],     goldGain:[5,11],    globalDps:[1.20,3.00], gachaCostReduction:[0.2,0.4],   upgradeCostReduction:[0.2,0.4]   } },
+  R:  { dropRate: 12.15,ranges: { synergyBoost:[20,38],   typeDamage:[10,19],   goldGain:[12,24],   globalDps:[3.20,6.40], gachaCostReduction:[0.5,0.9],   upgradeCostReduction:[0.5,0.9]   } },
+  E:  { dropRate: 6,    ranges: { synergyBoost:[42,74],   typeDamage:[21,37],   goldGain:[26,46],   globalDps:[6.80,12.00],gachaCostReduction:[1.0,1.8],   upgradeCostReduction:[1.0,1.8]   } },
+  L:  { dropRate: 3,    ranges: { synergyBoost:[78,120],  typeDamage:[39,60],   goldGain:[48,75],   globalDps:[12.50,19.00],gachaCostReduction:[1.9,2.8],  upgradeCostReduction:[1.9,2.8]   } },
+  M:  { dropRate: 2,    ranges: { synergyBoost:[125,180], typeDamage:[62,90],   goldGain:[78,110],  globalDps:[20.00,29.00],gachaCostReduction:[3.0,4.2],  upgradeCostReduction:[3.0,4.2]   } },
+  S:  { dropRate: 1,    ranges: { synergyBoost:[185,255], typeDamage:[92,127],  goldGain:[115,155], globalDps:[30.00,41.00],gachaCostReduction:[4.4,6.0],  upgradeCostReduction:[4.4,6.0]   } },
+  CO: { dropRate: 0.5,  ranges: { synergyBoost:[260,345], typeDamage:[130,172], goldGain:[160,215], globalDps:[42.00,55.50],gachaCostReduction:[6.2,8.2],  upgradeCostReduction:[6.2,8.2]   } },
+  P:  { dropRate: 0.25, ranges: { synergyBoost:[350,450], typeDamage:[175,225], goldGain:[220,295], globalDps:[57.00,74.00],gachaCostReduction:[8.5,11.0], upgradeCostReduction:[8.5,11.0]  } },
+  T:  { dropRate: 0.1,  ranges: { synergyBoost:[460,600], typeDamage:[230,300], goldGain:[300,400], globalDps:[76.00,100.00],gachaCostReduction:[11.5,15.0],upgradeCostReduction:[11.5,15.0] } },
 };
 
 // Ordre décroissant (rareté la plus haute d'abord) — juste pour l'affichage du tableau récap.

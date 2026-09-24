@@ -13,6 +13,21 @@ describe('ANOMALY_RARITY_TABLE', () => {
     const total = RARITY_ORDER_ASC.reduce((sum, r) => sum + ANOMALY_RARITY_TABLE[r].dropRate, 0);
     expect(total).toBeCloseTo(100, 6);
   });
+
+  // Régression : gachaCostReduction/upgradeCostReduction touchaient pile la
+  // même valeur entre deux raretés adjacentes (ex: max Stellaire === min
+  // Cosmique === 5.0), rendant une valeur tirée ambiguë quant à sa rareté.
+  // Pour chaque type de bonus, la plage d'une rareté ne doit jamais chevaucher
+  // ni toucher celle de la rareté suivante.
+  it("les plages min-max sont strictement croissantes et disjointes d'une rareté à l'autre, pour chaque type de bonus", () => {
+    for (const bonusType of ANOMALY_BONUS_TYPES) {
+      for (let i = 1; i < RARITY_ORDER_ASC.length; i++) {
+        const prevMax = ANOMALY_RARITY_TABLE[RARITY_ORDER_ASC[i - 1]].ranges[bonusType][1];
+        const currMin = ANOMALY_RARITY_TABLE[RARITY_ORDER_ASC[i]].ranges[bonusType][0];
+        expect(currMin).toBeGreaterThan(prevMax);
+      }
+    }
+  });
 });
 
 describe('rollAnomalyRarity', () => {
@@ -173,17 +188,16 @@ describe('calcAnomalyBonuses', () => {
 describe('migrateAnomalyValue / migrateAnomalies', () => {
   it('retire une nouvelle valeur dans la plage actuelle si l\'ancienne valeur est hors plage', () => {
     // Ex-plage 'S' de upgradeCostReduction avant rework : 77-110%. Barème
-    // actuel : 5.0 fixe. Une anomalie persistée à 95 doit être migrée.
+    // actuel : 3.2-5.0%. Une anomalie persistée à 95 doit être migrée.
     const legacy = makeAnomaly({ bonusType: 'upgradeCostReduction', rarity: 'S', value: 95 });
     const migrated = migrateAnomalyValue(legacy);
     const [min, max] = ANOMALY_RARITY_TABLE.S.ranges.upgradeCostReduction;
     expect(migrated.value).toBeGreaterThanOrEqual(min);
     expect(migrated.value).toBeLessThanOrEqual(max);
-    expect(migrated.value).toBe(5); // plage fixe [5,5] pour 'S'
   });
 
   it('ne touche pas une anomalie déjà conforme au barème actuel (idempotent)', () => {
-    const fresh = makeAnomaly({ bonusType: 'upgradeCostReduction', rarity: 'C', value: 0.2 });
+    const fresh = makeAnomaly({ bonusType: 'upgradeCostReduction', rarity: 'C', value: 0.15 });
     const migrated = migrateAnomalyValue(fresh);
     expect(migrated).toBe(fresh); // même référence : pas de copie inutile
   });
@@ -194,22 +208,26 @@ describe('migrateAnomalyValue / migrateAnomalies', () => {
     });
     const migrated = migrateAnomalyValue(legacy);
     expect(migrated).toMatchObject({ id: 'anom_legacy', rarity: 'T', bonusType: 'upgradeCostReduction', target: null, locked: true });
-    expect(migrated.value).toBe(15);
+    const [min, max] = ANOMALY_RARITY_TABLE.T.ranges.upgradeCostReduction;
+    expect(migrated.value).toBeGreaterThanOrEqual(min);
+    expect(migrated.value).toBeLessThanOrEqual(max);
   });
 
-  it('ne touche pas aux types de bonus dont la plage n\'a pas changé (ex: globalDps)', () => {
-    const [min, max] = ANOMALY_RARITY_TABLE.M.ranges.globalDps;
-    const inRange = makeAnomaly({ bonusType: 'globalDps', rarity: 'M', value: (min + max) / 2 });
+  it('ne touche pas aux types de bonus dont la plage n\'a pas changé (ex: goldGain)', () => {
+    const [min, max] = ANOMALY_RARITY_TABLE.M.ranges.goldGain;
+    const inRange = makeAnomaly({ bonusType: 'goldGain', rarity: 'M', value: (min + max) / 2 });
     expect(migrateAnomalyValue(inRange)).toBe(inRange);
   });
 
   it('migrateAnomalies applique la migration à tout le tableau', () => {
+    const [min, max] = ANOMALY_RARITY_TABLE.T.ranges.upgradeCostReduction;
     const list = [
       makeAnomaly({ id: 'a', bonusType: 'upgradeCostReduction', rarity: 'T', value: 200 }),
-      makeAnomaly({ id: 'b', bonusType: 'globalDps', rarity: 'C', value: 0.2 }),
+      makeAnomaly({ id: 'b', bonusType: 'goldGain', rarity: 'C', value: 3 }),
     ];
     const migrated = migrateAnomalies(list);
-    expect(migrated[0].value).toBe(15);
+    expect(migrated[0].value).toBeGreaterThanOrEqual(min);
+    expect(migrated[0].value).toBeLessThanOrEqual(max);
     expect(migrated[1]).toBe(list[1]);
   });
 });

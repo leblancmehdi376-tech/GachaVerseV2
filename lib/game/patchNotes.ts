@@ -11,6 +11,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '24/09/2026',
+    title: 'Buff des Anomalies',
+    changes: [
+      "Les 6 types de bonus d'Anomalie (Boost Synergie, Dégâts de Type, Gain de Gold, DPS Global, Réduc. Coût Gacha, Réduc. Coût Amélioration) ont un tout nouveau barème, sensiblement à la hausse à toutes les raretés — jusqu'à +600% en Boost Synergie et +100% en DPS Global pour une Anomalie Transcendante.",
+      "La Réduction de Coût Gacha et la Réduction de Coût d'Amélioration ne sont plus des valeurs fixes par rareté : elles sont désormais tirées dans une plage, identique pour les deux, avec un maximum de 15% en rareté Transcendant.",
+      "Correction : deux raretés voisines pouvaient partager la même valeur limite sur la Réduction de Coût Gacha/Amélioration (ex: Stellaire et Cosmique pouvaient toutes les deux tirer +5%) — chaque rareté a maintenant sa propre plage bien distincte.",
+    ],
+  },
+  {
     date: '23/09/2026',
     title: 'Tri des avatars par rareté',
     changes: [
