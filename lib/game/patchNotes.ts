@@ -11,6 +11,13 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '25/09/2026',
+    title: 'Popup « Boss majeur atteint » refermable',
+    changes: [
+      "Le message « Boss majeur atteint » qui s'affiche quand un événement est interrompu par un boss peut désormais être fermé d'un simple clic.",
+    ],
+  },
+  {
     date: '24/09/2026',
     title: 'Correction : ventes disparaissant de l\'Hôtel de Ville',
     changes: [
