@@ -11,7 +11,7 @@ import { SkillTooltip } from '@/components/ui/SkillTooltip';
 // ── Carte alliée style gacha ──────────────────────────────────────────────
 export function AllyCard({ templateId, onManage }: { templateId: string; onManage: () => void }) {
   const { collection, activateCharacterUltimate, getCharDpsBreakdown } = useGameStore();
-  const { ultCooldowns: cooldowns, ultActiveUlts: activeUlts } = useGameStore();
+  const { ultCooldowns: cooldowns, ultActiveUlts: activeUlts, ultQueue } = useGameStore();
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom/ulti partagés entre éditions)
   const tpl   = getCharacterById(pureId);
   const owned = collection[templateId];
@@ -37,6 +37,10 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
   const cd       = cooldowns[templateId] ?? 0;
   const ready    = cd === 0;
   const isActive = activeUlts.some(a => a.templateId === templateId);
+  // Position dans la file des ultis stackés (1 = le prochain), 0 = pas en file.
+  const queuePos = ultQueue.findIndex(q => q.templateId === templateId) + 1;
+  const queued   = queuePos > 0;
+  const clickable = ready || queued; // re-cliquer un ulti en file l'annule
   const mins     = Math.floor(cd / 60);
   const secs     = cd % 60;
   const ultLabel = `${mins}:${String(secs).padStart(2,'0')}`;
@@ -55,7 +59,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
     <div className="ally-card-root" style={{
       width: '100%', borderRadius: 7, overflow: 'hidden', display: 'flex', flexDirection: 'column',
       background: 'linear-gradient(180deg, rgba(20,14,40,0.96), rgba(10,8,20,0.96))',
-      border: `1.5px solid ${isActive ? '#c084fc' : ready ? '#fbbf24aa' : rc.color + '55'}`,
+      border: `1.5px solid ${isActive ? '#c084fc' : queued ? '#60a5fa' : ready ? '#fbbf24aa' : rc.color + '55'}`,
       boxShadow: isActive ? '0 0 14px #c084fc77' : ready ? `0 0 10px ${rc.glow}44` : '0 3px 12px rgba(0,0,0,0.5)',
       transition: 'box-shadow 0.2s, border-color 0.2s',
       paddingTop: 8,
@@ -78,8 +82,8 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
           exact du cadre (RARITY_FRAME_RATIO), pas de aspectRatio fixe ici pour
           éviter tout décalage entre ce wrapper et la boîte de CharacterCardThumb. */}
       <SkillTooltip ult={ult}>
-        <div className="ally-card-illu" style={{ position: 'relative', width: '100%', cursor: ready ? 'pointer' : 'default' }}
-          onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}>
+        <div className="ally-card-illu" style={{ position: 'relative', width: '100%', cursor: clickable ? 'pointer' : 'default' }}
+          onClick={() => clickable && activateCharacterUltimate(templateId, formIdx)}>
           <CharacterCardThumb templateId={pureId} formIndex={formIdx} name={name} rarity={tpl.rarity} edition={owned.edition}
             width={88} height={149} frameOverlay style={{ width: '100%' }} />
 
@@ -112,13 +116,14 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
             <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: '#fbbf24', letterSpacing: 0.3 }}>★{owned.rank}</span>
           </>}
         </div>
-        <div onClick={() => ready && activateCharacterUltimate(templateId, formIdx)}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 4px', marginBottom: 2, borderRadius: 4, cursor: ready ? 'pointer' : 'default',
-            background: ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',
-            border: ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)' }}>
-          {!ready && <span style={{ fontSize: 12 }}>⏳</span>}
-          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12, color: ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
-            {ready ? 'ULTI PRÊT' : ultLabel}
+        <div onClick={() => clickable && activateCharacterUltimate(templateId, formIdx)}
+          title={queued ? "En file d'attente — cliquer pour annuler" : undefined}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 4px', marginBottom: 2, borderRadius: 4, cursor: clickable ? 'pointer' : 'default',
+            background: queued ? 'rgba(59,130,246,0.35)' : ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',
+            border: queued ? '1px solid #60a5fa' : ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)' }}>
+          {!ready && !queued && <span style={{ fontSize: 12 }}>⏳</span>}
+          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12, color: queued ? '#bfdbfe' : ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
+            {queued ? `EN FILE #${queuePos}` : ready ? 'ULTI PRÊT' : ultLabel}
           </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4 }}>

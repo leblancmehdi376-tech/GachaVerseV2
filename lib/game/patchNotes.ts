@@ -11,6 +11,16 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '26/09/2026',
+    title: 'Enchaînement des ultis',
+    changes: [
+      "Activer un ulti pendant qu'un autre est déjà en cours ne l'annule plus : il est mis en file d'attente et se lance automatiquement dès que le précédent se termine.",
+      "Plusieurs ultis peuvent être stackés à la suite ; leur position dans la file s'affiche sur la carte du compagnon (« EN FILE #1 », « EN FILE #2 »…).",
+      "Le cooldown d'un ulti en file ne démarre qu'au moment où il se lance réellement.",
+      "Cliquer à nouveau sur un ulti en file le retire de la file d'attente.",
+    ],
+  },
+  {
     date: '25/09/2026',
     title: 'Popup « Boss majeur atteint » refermable',
     changes: [

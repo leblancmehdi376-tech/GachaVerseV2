@@ -17,6 +17,8 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
     const eff = def.effect;
 
     // ── 1 SEULE ULT ACTIVE À LA FOIS : on annule l'ult en cours ──────────
+    // (filet de sécurité : activateCharacterUltimate met en file d'attente
+    // tout ulti lancé pendant qu'un autre est actif, voir combatSlice.ts)
     if (get().ultActiveUlts[0]) {
       set({ ultActiveUlts: [] });
     }
@@ -24,6 +26,7 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
     set(() => ({ ultAnimating: templateId }));
     setTimeout(() => set(() => ({ ultAnimating: null })), def.animDuration);
 
+    const endsAt = now + def.duration * 1000;
     set(s => {
       const newCooldowns = { ...s.ultCooldowns, [templateId]: def.cooldown };
       const others = (equippedTeam ?? []).filter((id): id is string => !!id && id !== templateId);
@@ -42,24 +45,31 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
 
       return {
         ultCooldowns: newCooldowns,
-        ultActiveUlts: [{ templateId, formIndex, endsAt: now + def.duration * 1000, effect: eff }],
+        ultActiveUlts: [{ templateId, formIndex, endsAt, effect: eff }],
       };
     });
 
+    // Fin de l'ulti : on retire CETTE activation (endsAt, pas seulement
+    // templateId) puis on enchaîne sur le prochain ulti stacké.
     setTimeout(() => {
       set(s => ({
-        ultActiveUlts: s.ultActiveUlts.filter(a => a.templateId !== templateId),
+        ultActiveUlts: s.ultActiveUlts.filter(a => !(a.templateId === templateId && a.endsAt === endsAt)),
       }));
+      get().launchNextQueuedUlt();
     }, def.duration * 1000);
   },
 
-  tickUlt: () => set(s => {
-    const newCds: Record<string, number> = {};
-    for (const [id, cd] of Object.entries(s.ultCooldowns)) newCds[id] = Math.max(0, cd - 1);
-    const now = Date.now();
-    const ultActiveUlts = s.ultActiveUlts.filter(a => a.endsAt > now);
-    return { ultCooldowns: newCds, ultActiveUlts };
-  }),
+  tickUlt: () => {
+    set(s => {
+      const newCds: Record<string, number> = {};
+      for (const [id, cd] of Object.entries(s.ultCooldowns)) newCds[id] = Math.max(0, cd - 1);
+      const now = Date.now();
+      const ultActiveUlts = s.ultActiveUlts.filter(a => a.endsAt > now);
+      return { ultCooldowns: newCds, ultActiveUlts };
+    });
+    // Filet si le setTimeout de fin d'ulti a été retardé (onglet throttlé…).
+    get().launchNextQueuedUlt();
+  },
 
   getDpsMultiplierFor: (templateId) => {
     let mult = 1;

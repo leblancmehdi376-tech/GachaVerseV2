@@ -32,6 +32,7 @@ const INTENTIONALLY_TRANSIENT_FIELDS = new Set([
   'ultCooldowns',        // idem (persisté local uniquement, jamais envoyé à Firestore)
   'ultActiveUlts',       // jamais persisté du tout (ni local ni cloud) — expire au reload
   'ultAnimating',        // idem
+  'ultQueue',            // idem (file d'ultis stackés, expire au reload)
   'raidBossFight',      // combat de boss d'event en cours, en mémoire seulement (survit à un
                           // changement d'onglet de l'appli, pas à un refresh) — voir gameStore.types.ts
 ]);

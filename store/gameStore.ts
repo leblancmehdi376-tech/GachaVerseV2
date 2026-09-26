@@ -109,9 +109,10 @@ const makeInitial = () => ({
   prestigeTokens: 0,
   prestigeBonusLevels: initialBonusLevels(),
   prestigeRankRecoveryLevel: 0,
-  // ── Ultimes (activeUlts/animating jamais persistés — expirent au reload) ──
+  // ── Ultimes (activeUlts/queue/animating jamais persistés — expirent au reload) ──
   ultCooldowns: {} as Record<string, number>,
   ultActiveUlts: [] as GameStore['ultActiveUlts'],
+  ultQueue: [] as GameStore['ultQueue'],
   ultAnimating: null as string | null,
   // ── Expéditions et craft/forge ──
   expeditionActive: [] as GameStore['expeditionActive'],
@@ -361,7 +362,7 @@ export const useGameStore = create<GameStore>()(
         savedAt:s.savedAt,
         // Champs migrés depuis les 4 anciens stores (voir migrateLegacyStoresOnce
         // ci-dessus) — persistés localement dans leurs stores d'origine, donc
-        // persistés ici aussi. ultActiveUlts/ultAnimating restent volontairement
+        // persistés ici aussi. ultActiveUlts/ultQueue/ultAnimating restent volontairement
         // HORS partialize (n'étaient déjà pas persistés avant cette fusion —
         // expirent au reload). achievementProgress/achievementUnlocked SONT
         // persistés localement ici (comme avant), mais restent hors cloud-sync

@@ -62,7 +62,11 @@ export interface CombatActions {
   travelToPalier: (palier: number) => void;
   tickDps: () => void;
   tickBossTimer: () => void;
+  /** Lance l'ulti — ou le met en file d'attente si un ulti est déjà actif
+   *  (re-cliquer un ulti en file le retire de la file). */
   activateCharacterUltimate: (templateId: string, formIndex: number) => void;
+  /** Lance le prochain ulti de la file si plus aucun ulti n'est actif. */
+  launchNextQueuedUlt: () => void;
   spendPixelCoins: (n: BigNum) => boolean;
   /** Debug localhost uniquement : tue instantanément l'ennemi courant. */
   debugKillEnemy: () => void;
@@ -300,9 +304,16 @@ export interface ActiveUlt {
   endsAt:     number;   // timestamp ms
   effect:     UltimateEffect;
 }
+export interface QueuedUlt {
+  templateId: string;
+  formIndex:  number;
+}
 export interface UltimateState {
   ultCooldowns: Record<string, number>;
   ultActiveUlts: ActiveUlt[];
+  /** Ultis stackés, lancés un par un dès que l'ulti actif se termine.
+   *  Leur cooldown ne démarre qu'au lancement effectif. Jamais persisté. */
+  ultQueue: QueuedUlt[];
   ultAnimating: string | null;
 }
 export interface UltimateActions {
