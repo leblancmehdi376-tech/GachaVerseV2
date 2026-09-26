@@ -13,6 +13,7 @@ export const CHARACTER_QUOTES: Record<string, string> = {
   goku:          'I AM THE SUPER SAYEN, SON GOKU',
   limule:        'Je ne suis pas un slime méchant !',
   nekoz:         'Nan, Jpeut pas jouer j’ai la reine de ce monde !',
+  niyunishi:     'Miaou :3',
   brume:         'La brume se lève... Il est temps de disparaître',
   steve:         'Salut a tous, c’est fuze !',
   dva:           'Mode expert activé !',
@@ -30,6 +31,17 @@ export const CHARACTER_QUOTES: Record<string, string> = {
   brunhilde:     'Il est grand temps de montrer aux dieux la terreur qu’inspire l’humanité.',
   chara:         'Greetings. I am',
   shanks:        'Je suis venu... pour mettre fin à cette guerre !',
+  // ── Bannière Vol.2 ────────────────────────────────────────────────────
+  shawn_frost:     'Entends ma rage !!',
+  frieren:         'La magie, c’est imaginer un monde où tout devient possible.',
+  enjin:           'Ce monde n’est pas assez gentil pour donner des informations gratuitement.',
+  garp:            'La justice n’est pas un concept figé. Ce qui importe, c’est la force avec laquelle tu protèges ce qui te tient à cœur.',
+  archer_fate:     'Mon corps est fait d’épées. Le sang est mon acier et le feu est mon cœur.',
+  chiaki_nanami:   'Si ce n’est pas amusant, ce n’est pas du jeu : il ne s’agit pas juste d’être concentré pour gagner ou perdre.',
+  makima:          'Le cinéma, c’est le summum de la culture humaine parce qu’il englobe tout : la peur, l’amour, la mort et la beauté.',
+  maliketh:        'Ô mort, deviens mon épée.',
+  satoru_gojo:     'À travers le ciel et la terre, je suis le seul honoré.',
+  nightmare_grimm: 'Allume la flamme. Laisse le cauchemar consumer ce monde.',
 };
 
 const FALLBACK_QUOTES: Record<'P' | 'T', string[]> = {

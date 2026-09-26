@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { RARITY_CONFIG, RARITY_FRAME_RATIO } from '@/types/game';
 import { getCharacterById } from '@/lib/game/characters';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
@@ -42,11 +42,16 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
     }, 340);
   }, [flipped, flipping, isHigh, preReveal]);
 
+  // Ref vers la dernière version de doFlip : le minuteur du flip auto ne doit
+  // pas repartir de zéro à chaque re-rendu du parent (preReveal change).
+  const doFlipRef = useRef(doFlip);
+  useEffect(() => { doFlipRef.current = doFlip; }, [doFlip]);
+
   useEffect(() => {
     if (!autoFlip) return;
-    const t = setTimeout(doFlip, delay);
+    const t = setTimeout(() => doFlipRef.current(), delay);
     return () => clearTimeout(t);
-  }, [autoFlip, delay, doFlip]);
+  }, [autoFlip, delay]);
 
   // Ratio du cadre illustré de cette rareté — évite tout décalage entre le
   // cadre (CharacterCardThumb, frameOverlay) et la boîte qui le contient.

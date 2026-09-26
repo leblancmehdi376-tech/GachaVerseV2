@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
-import { BANNER_POOL } from '@/lib/game/characters';
-import { getDynamicRates, RARITY_GATES } from '@/lib/game/gacha';
+import { getCharacterById } from '@/lib/game/characters';
+import { getDynamicRates, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, getBanner, type BannerId } from '@/lib/game/gacha';
+import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { formatNumber } from '@/lib/game/format';
@@ -29,6 +30,8 @@ export function GachaPage() {
   const [pulling,     setPulling]     = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [showPool,    setShowPool]    = useState(false);
+  const [bannerId,    setBannerId]    = useState<BannerId>(DEFAULT_BANNER_ID);
+  const banner = getBanner(bannerId);
   // Taux dynamiques calculés pour le palier max atteint DEPUIS LE DERNIER
   // PRESTIGE (pas le lifetime maxPalierReached, qui ne redescend jamais).
   const maxPalierReached = getRunPeakPalier();
@@ -45,7 +48,7 @@ export function GachaPage() {
   const doSingle = () => {
     if (!canS || pulling) return;
     setPulling(true);
-    const res = pullSingle();
+    const res = pullSingle(bannerId);
     if (res) {
       const wasNew = !collection[makeInstanceKey(res.templateId, res.edition)];
       setResults([{ templateId: res.templateId, isNew: wasNew, edition: res.edition }]);
@@ -57,7 +60,7 @@ export function GachaPage() {
   const doMulti = () => {
     if (!canM || pulling) return;
     setPulling(true);
-    const results = pullMulti();
+    const results = pullMulti(bannerId);
     if (results) {
       setResults(results.map(r => ({ templateId: r.templateId, isNew: !collection[makeInstanceKey(r.templateId, r.edition)], edition: r.edition })));
       setShowOverlay(true);
@@ -68,7 +71,7 @@ export function GachaPage() {
   const doMulti100 = () => {
     if (!canM100 || pulling) return;
     setPulling(true);
-    const results = pullMulti100();
+    const results = pullMulti100(bannerId);
     if (results) {
       setResults(results.map(r => ({ templateId: r.templateId, isNew: !collection[makeInstanceKey(r.templateId, r.edition)], edition: r.edition })));
       setShowOverlay(true);
@@ -82,21 +85,50 @@ export function GachaPage() {
     <PageScroll>
       {showOverlay && <GachaRevealOverlay results={results} onClose={handleClose} />}
 
+        {/* Choix de la bannière */}
+        <div style={{ display:'flex', gap:8 }}>
+          {GACHA_BANNERS.map(b => {
+            const active = b.id === bannerId;
+            return (
+              <button key={b.id} onClick={() => setBannerId(b.id)}
+                style={{ flex:1, padding:'10px 14px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:active?'linear-gradient(135deg,#2d0f5e,#4c1d95)':'var(--bg-card)', border:`1px solid ${active?'rgba(168,85,247,0.7)':'var(--border)'}`, boxShadow:active?'0 0 18px rgba(168,85,247,0.25)':'none', display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                <span style={{ fontFamily:'var(--f-title)', fontSize:13.4, fontWeight:900, letterSpacing:1.5, color:active?'white':'var(--text-sub)' }}>{b.title}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:11.4, color:active?'var(--purple-hi)':'var(--text-muted)' }}>{b.subtitle} · {b.pool.length}</span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Bannière */}
         <div style={{
           position:'relative', borderRadius:14, overflow:'hidden',
           border:'1px solid var(--border-glow)',
           boxShadow:'0 0 32px rgba(168,85,247,0.2), 0 8px 32px rgba(0,0,0,0.5)',
         }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/gacha_banner.png" alt="Bannière"
-            style={{ width:'100%', display:'block', imageRendering:'pixelated', maxHeight:220, objectFit:'cover', objectPosition:'center' }} />
+          {banner.featuredIds ? (
+            // Pas d'image dédiée : collage des cartes des personnages vedettes.
+            <div style={{ display:'flex', height:220, background:'#06040f' }}>
+              {banner.featuredIds.map(id => {
+                const tpl = getCharacterById(id);
+                if (!tpl) return null;
+                return (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={id} src={`/sprites/new_cards_processed/${getCardBaseName(tpl, 0)}.webp?v=${NEW_CARDS_ASSET_VERSION}`} alt={tpl.name}
+                    style={{ flex:1, minWidth:0, height:'100%', objectFit:'cover', objectPosition:'center top' }} />
+                );
+              })}
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/gacha_banner.png" alt="Bannière"
+              style={{ width:'100%', display:'block', imageRendering:'pixelated', maxHeight:220, objectFit:'cover', objectPosition:'center' }} />
+          )}
           <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'70%', background:'linear-gradient(0deg,rgba(6,4,15,0.96),transparent)', pointerEvents:'none' }} />
           <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 24px', zIndex:2 }}>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--purple-hi)', letterSpacing:3, marginBottom:4 }}>✦ BANNIÈRE EXCLUSIVE</div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:4, textShadow:'0 0 20px rgba(168,85,247,0.6)' }}>GACHA VERSE VOL.1</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:4, textShadow:'0 0 20px rgba(168,85,247,0.6)' }}>{banner.title}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(255,255,255,0.45)' }}>
-              {BANNER_POOL.length} personnages · 10 raretés · cartes shiny
+              {banner.pool.length} personnages · 10 raretés · cartes shiny
             </div>
           </div>
         </div>
@@ -183,11 +215,12 @@ export function GachaPage() {
 
               {/* Taux par rareté */}
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {(['T','P','CO','S','M','L','E','R','U','C'] as Rarity[]).map(r => {
+                {(['T','P','CO','S','M','L','E','R','U','C'] as Rarity[]).map((r, _, all) => {
                   const cfg2       = RARITY_CONFIG[r];
-                  const gate       = RARITY_GATES[r];
                   const rate       = currentRates[r] ?? 0;
-                  const fillPct    = gate.rateAtMax > 0 ? Math.min(100, (rate / gate.rateAtMax) * 100) : 0;
+                  // Barre relative : la rareté la plus probable remplit la barre, les autres au prorata.
+                  const maxRate    = Math.max(...all.map(x => currentRates[x] ?? 0));
+                  const fillPct    = maxRate > 0 ? Math.min(100, (rate / maxRate) * 100) : 0;
                   const rateTxt    = formatDropRate(rate);
                   return (
                     <div key={r} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', background:'rgba(255,255,255,0.02)', borderRadius:8 }}>
@@ -207,7 +240,7 @@ export function GachaPage() {
               <div style={{ borderTop:'1px solid var(--border)', paddingTop:14 }}>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:10 }}>TOUS LES PERSONNAGES</div>
                 <div className="gacha-pool-grid" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
-                  {BANNER_POOL.map(tpl => {
+                  {banner.pool.map(tpl => {
                     const cfg       = RARITY_CONFIG[tpl.rarity];
                     // Possédé si N'IMPORTE QUELLE édition l'est ; on affiche la meilleure (diamant > or > base).
                     const owned     = collection[makeInstanceKey(tpl.id, 'diamond')]

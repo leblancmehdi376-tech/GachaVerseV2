@@ -11,6 +11,36 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '27/09/2026',
+    title: 'Correctif : animation des cartes Primordiales et Transcendantes',
+    changes: [
+      "L'animation spéciale des cartes Primordiales et Transcendantes est désormais toujours jouée, même si tu cliques sur « Voir le résumé » pendant l'invocation.",
+      "Si tu en obtiens plusieurs dans le même tirage, leurs animations s'enchaînent une par une avant d'afficher le résumé.",
+    ],
+  },
+  {
+    date: '27/09/2026',
+    title: 'Correctif : barres de taux de drop',
+    changes: [
+      "Les barres des taux de drop du Gacha sont désormais proportionnelles aux probabilités : la rareté la plus probable a une barre pleine, les autres s'ajustent par rapport à elle.",
+    ],
+  },
+  {
+    date: '27/09/2026',
+    title: 'Bannière Vol.2 : 214 nouveaux personnages',
+    changes: [
+      "Nouvelle bannière « Gacha Verse Vol.2 » : elle ne contient que les 214 nouveaux personnages. Choisis ta bannière en haut de la page Gacha (même coût et mêmes taux que la Vol.1).",
+      "Les nouveaux personnages peuvent aussi être obtenus sur la bannière Vol.1.",
+      "22 nouveaux univers : Dark Souls 3, Resident Evil, My Hero Academia, Jujutsu Kaisen, Darkest Dungeon, Clair Obscur, Shangri-La Frontier, Inazuma Eleven, Okami, Valorant, Frieren, The Elusive Samurai, Ravenswatch, Mario, Gachiakuta, Hell's Paradise, To Be Hero X, Death Note, Evangelion, JoJo's Bizarre Adventure, Soul Eater et Hunter x Hunter.",
+      "Des renforts pour les univers existants : One Piece, Naruto, Dragon Ball, Bleach, Chainsaw Man, Hollow Knight, Pokémon, et bien d'autres.",
+      "Nouvelles synergies pour tous ces univers, ainsi que pour The Eminence in Shadow, Tbate et Solo Leveling.",
+      "Deux nouveaux Transcendants : Satoru Gojo et Nightmare Grimm.",
+      "Plusieurs nouveaux personnages ont des évolutions (Gohan, Sasuke et Izuku jusqu'à 4 formes).",
+      "Les nouveaux Primordiaux et Transcendants ont leur propre réplique lors de leur invocation, tout comme Niyunishi.",
+      "Kanao Tsuyuri, Les deux Isis et Capuchon n'ont pas encore de visuel : il arrive bientôt.",
+    ],
+  },
+  {
     date: '26/09/2026',
     title: 'Deux nouveaux personnages Chill&Cool',
     changes: [

@@ -1,7 +1,6 @@
 'use client';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { getCharacterById } from '@/lib/game/characters';
-import { REVEAL_TEASER_MS } from '@/lib/game/gachaReveal';
 import { InvocationPortal } from './InvocationPortal';
 import { PrimordialRevealScreen } from './PrimordialRevealScreen';
 import { FlipCard } from './FlipCard';
@@ -12,16 +11,18 @@ import { TEASED_RARITY, type Res } from './gachaTypes';
 export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClose: () => void }) {
   const [phase, setPhase]         = useState<'portal' | 'cards' | 'summary'>('portal');
   const [autoFlip, setAutoFlip]   = useState(false);
-  const [allFlipped, setAllFlipped] = useState(false);
-  // Skip demandé par le joueur : accélère le flip des cartes sans jamais
-  // couper court aux écrans brouillard Primordial/Transcendant en cours.
+  // Résumé demandé par le joueur : accélère le flip des cartes, puis joue un
+  // par un les écrans brouillard Primordial/Transcendant restants avant
+  // d'afficher le résumé.
   const [skipRequested, setSkipRequested] = useState(false);
 
   // File d'attente des écrans "brouillard" Primordial/Transcendant : une seule
   // instance à l'écran à la fois, les cartes en attente patientent leur tour.
+  // Chaque index n'est joué qu'une fois : les demandes suivantes récupèrent
+  // la même promesse (résolue à la fin de l'écran).
   const [activeTeaser, setActiveTeaser] = useState<{ index: number; res: Res } | null>(null);
   const teaserQueueRef  = useRef<{ index: number; res: Res; resolve: () => void }[]>([]);
-  const teasedRef       = useRef<Set<number>>(new Set());
+  const teaserPromisesRef = useRef<Map<number, Promise<void>>>(new Map());
   const activeTeaserRef = useRef<{ index: number; res: Res; resolve: () => void } | null>(null);
 
   const processTeaserQueue = useCallback(() => {
@@ -33,17 +34,19 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
   }, []);
 
   const requestReveal = useCallback((index: number, res: Res) => {
-    if (teasedRef.current.has(index)) return Promise.resolve();
-    return new Promise<void>(resolve => {
+    const existing = teaserPromisesRef.current.get(index);
+    if (existing) return existing;
+    const promise = new Promise<void>(resolve => {
       teaserQueueRef.current.push({ index, res, resolve });
-      processTeaserQueue();
     });
+    teaserPromisesRef.current.set(index, promise);
+    processTeaserQueue();
+    return promise;
   }, [processTeaserQueue]);
 
   const handleTeaserDone = useCallback(() => {
     const current = activeTeaserRef.current;
     if (current) {
-      teasedRef.current.add(current.index);
       activeTeaserRef.current = null;
       current.resolve();
     }
@@ -57,34 +60,26 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
     setTimeout(() => setAutoFlip(true), 300);
   }, []);
 
-  // Quand toutes les cartes sont retournées → montrer résumé
-  const totalCards = results.length;
-  const teasedCount = results.filter(r => {
-    const tpl = getCharacterById(r.templateId);
-    return tpl && TEASED_RARITY.includes(tpl.rarity);
-  }).length;
+  // Remis à true dans l'effet : en mode strict (dev), React démonte puis
+  // remonte les effets, le cleanup ne doit pas laisser le ref à false.
+  const mountedRef = useRef(true);
   useEffect(() => {
-    if (!autoFlip) return;
-    // Délai total = dernière carte + animation flip + écrans brouillard éventuels.
-    // En mode skip, le décalage entre cartes est supprimé mais pas le temps
-    // des écrans brouillard, qui restent joués en entier.
-    const stagger = skipRequested ? 0 : (totalCards - 1) * 120;
-    const lastDelay = stagger + 900 + teasedCount * REVEAL_TEASER_MS;
-    const t = setTimeout(() => setAllFlipped(true), lastDelay);
-    return () => clearTimeout(t);
-  }, [autoFlip, totalCards, teasedCount, skipRequested]);
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
-  // Une fois le skip demandé, dès que tout est retourné (brouillards compris)
-  // on enchaîne automatiquement sur le résumé.
-  useEffect(() => {
-    if (skipRequested && allFlipped) setPhase('summary');
-  }, [skipRequested, allFlipped]);
-
+  // Le résumé n'apparaît qu'une fois TOUS les écrans brouillard joués (à la
+  // suite, jamais en même temps), même si le joueur le demande avant.
   const handleSkipToSummary = useCallback(() => {
-    if (allFlipped) { setPhase('summary'); return; }
+    if (skipRequested) return;
     setSkipRequested(true);
     setAutoFlip(true);
-  }, [allFlipped]);
+    const pending = results.flatMap((res, i) => {
+      const tpl = getCharacterById(res.templateId);
+      return tpl && TEASED_RARITY.includes(tpl.rarity) ? [requestReveal(i, res)] : [];
+    });
+    Promise.all(pending).then(() => { if (mountedRef.current) setPhase('summary'); });
+  }, [skipRequested, results, requestReveal]);
 
   return (
     <div
@@ -110,7 +105,7 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
 
       {/* ── ÉCRAN BROUILLARD (Primordial/Transcendant) ── */}
       {activeTeaser && (
-        <PrimordialRevealScreen res={activeTeaser.res} onDone={handleTeaserDone} />
+        <PrimordialRevealScreen key={activeTeaser.index} res={activeTeaser.res} onDone={handleTeaserDone} />
       )}
 
       {/* ── PHASE : CARTES ── */}
@@ -169,14 +164,14 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
                 }}>✦ RÉVÉLER TOUT</button>
             )}
             <button onClick={handleSkipToSummary}
-              disabled={skipRequested && !allFlipped}
+              disabled={skipRequested}
               className="btn-primary"
               style={{
                 padding:'11px 28px', fontSize:13.4, letterSpacing:1,
-                opacity: skipRequested && !allFlipped ? 0.6 : 1,
-                cursor: skipRequested && !allFlipped ? 'default' : 'pointer',
+                opacity: skipRequested ? 0.6 : 1,
+                cursor: skipRequested ? 'default' : 'pointer',
               }}>
-              {skipRequested && !allFlipped ? 'RÉSUMÉ EN PRÉPARATION…' : 'VOIR LE RÉSUMÉ →'}
+              {skipRequested ? 'RÉSUMÉ EN PRÉPARATION…' : 'VOIR LE RÉSUMÉ →'}
             </button>
           </div>
         </div>

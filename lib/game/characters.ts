@@ -36,6 +36,396 @@ function cumulative(items: string[], stage: number): string[] {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
+// BANNIÈRE VOL.2 — nouveaux personnages, tirables sur leur propre bannière
+// (BANNER_POOL_VOL2) ET sur la bannière Vol.1 (BANNER_POOL, qui contient tout).
+// ══════════════════════════════════════════════════════════════════════════
+export const BANNER_VOL2_CHARACTERS: CharacterTemplate[] = [
+
+  // ── COMMUNS ───────────────────────────────────────────────────────────────
+  c('boo',                       'Boo',                             'C',    7, 'Mario'),
+  c('nurugai',                   'Nurugai',                         'C',    9, "Hell's Paradise"),
+  c('foxy_op',                   'Foxy',                            'C',   12, 'One Piece'),
+  c('henry_legolant',            'Henry Legolant',                  'C',    9, 'Black Clover'),
+  c('sekke_bronzazza',           'Sekke Bronzazza',                 'C',    7, 'Black Clover'),
+  c('anguille_tesla',            'Anguille Tesla',                  'C',    8, 'Subnautica'),
+  c('shinji_fate',               'Shinji',                          'C',    9, 'Fate'),
+  c('aoi_asahina',               'Aoi Asahina',                     'C',    8, 'Danganronpa'),
+  c('klein',                     'Klein',                           'C',   10, 'Sword Art Online'),
+  c('beam',                      'Beam',                            'C',   11, 'Chainsaw Man'),
+  c('kishibe',                   'Kishibe',                         'C',   10, 'Chainsaw Man'),
+  c('hikage',                    'Hikage',                          'C',   13, 'Fire Force'),
+  c('hinata_ff',                 'Hinata',                          'C',   11, 'Fire Force'),
+  c('takehisa_hinawa',           'Takehisa Hinawa',                 'C',   12, 'Fire Force'),
+  c('shao_may',                  'Shao May',                        'C',    8, 'Fullmetal Alchemist Brotherhood'),
+  c('braum',                     'Braum',                           'C',    8, 'League of Legends'),
+  c('jack_eventreur',            "Jack l'Éventreur",                'C',   12, 'Valkyrie Apocalypse'),
+  c('lu_bu',                     'Lü Bu',                           'C',    9, 'Valkyrie Apocalypse'),
+  c('pixis',                     'Pixis',                           'C',    9, 'Attaque des Titans'),
+  c('circus_baby',               'Circus Baby',                     'C',   10, "Five Nights At Freddy's"),
+  c('toriel',                    'Toriel',                          'C',   11, 'Undertale'),
+  c('loup_cramoisi',             'Loup Cramoisi de Radagon',        'C',   13, 'Elden Ring'),
+  c('emboutisseur_moussu',       'Emboutisseur Moussu',             'C',   13, 'Hollow Knight'),
+
+  // ── UNCOMMUNS ─────────────────────────────────────────────────────────────
+  c('champion_gravetender',      'Champion Gravetender',            'U',   23, 'Dark Souls 3'),
+  c('tsuyu_asui',                'Tsuyu Asui',                      'U',   19, 'My Hero Academia'),
+  c('pillarde_dd',               'Pillarde',                        'U',   17, 'Darkest Dungeon'),
+  c('lune',                      'Lune',                            'U',   22, 'Clair Obscur'),
+  c('emul',                      'Emul',                            'U',   19, 'Shangri-La Frontier'),
+  c('zanark',                    'Zanark',                          'U',   20, 'Inazuma Eleven'),
+  c('okikurumi',                 'Okikurumi',                       'U',   21, 'Okami'),
+  c('phoenix_valo',              'Phoenix',                         'U',   18, 'Valorant'),
+  c('toadette',                  'Toadette',                        'U',   20, 'Mario'),
+  c('misa_amane',                'Misa Amane',                      'U',   20, 'Death Note'),
+  c('rei_ayanami',               'Rei Ayanami',                     'U',   22, 'Evangelion'),
+  c('polnareff',                 'Jean-Pierre Polnareff',           'U',   21, "JoJo's Bizarre Adventure"),
+  c('maka_albarn',               'Maka Albarn',                     'U',   23, 'Soul Eater'),
+  c('leolio',                    'Leolio',                          'U',   17, 'Hunter x Hunter'),
+  c('ten_shin_han',              'Ten Shin Han',                    'U',   21, 'Dragon Ball Z'),
+  c('pappag',                    'Pappag',                          'U',   22, 'One Piece'),
+  c('gordon_agrippa',            'Gordon Agrippa',                  'U',   19, 'Black Clover'),
+  c('momo_hinamori',             'Momo Hinamori',                   'U',   22, 'Bleach'),
+  c('peko_pekoyama',             'Peko Pekoyama',                   'U',   23, 'Danganronpa'),
+  c('gangle',                    'Gangle',                          'U',   20, 'Digital Circus'),
+  c('aoi_kanzaki',               'Aoi Kanzaki',                     'U',   22, 'Demon Slayer'),
+  c('shaco',                     'Shaco',                           'U',   22, 'League of Legends'),
+  c('jack_8',                    'Jack-8',                          'U',   17, 'Tekken'),
+  c('leroy_smith',               'Leroy Smith',                     'U',   20, 'Tekken'),
+  c('muffet',                    'Muffet',                          'U',   18, 'Undertale'),
+  c('faux_chevalier',            'Faux Chevalier',                  'U',   21, 'Hollow Knight'),
+
+  // ── RARES ─────────────────────────────────────────────────────────────────
+  c('sherry_birkin',             'Sherry Birkin',                   'R',   28, 'Resident Evil'),
+  c('eijiro_kirishima',          'Eijiro Kirishima',                'R',   30, 'My Hero Academia'),
+  c('aoi_todo',                  'Aoi Todo',                        'R',   33, 'Jujutsu Kaisen'),
+  c('brigand_dd',                'Brigand',                         'R',   32, 'Darkest Dungeon'),
+  c('arthur_pencilgon',          'Arthur Pencilgon',                'R',   29, 'Shangri-La Frontier'),
+  c('xavier_foster',             'Xavier Foster',                   'R',   29, 'Inazuma Eleven'),
+  c('issun',                     'Issun',                           'R',   28, 'Okami'),
+  c('viper',                     'Viper',                           'R',   29, 'Valorant'),
+  c('fern',                      'Fern',                            'R',   27, 'Frieren'),
+  c('kojiro',                    'Kojiro',                          'R',   29, 'The Elusive Samurai'),
+  c('carmilla',                  'Carmilla',                        'R',   31, 'Ravenswatch'),
+  c('yoshi',                     'Yoshi',                           'R',   28, 'Mario'),
+  c('riyo_reaper',               'Riyo Reaper',                     'R',   31, 'Gachiakuta'),
+  c('aza_chobe',                 'Aza Chobe',                       'R',   31, "Hell's Paradise"),
+  c('lucky_cyan',                'Lucky Cyan',                      'R',   30, 'To Be Hero X'),
+  c('ryuk',                      'Ryuk',                            'R',   32, 'Death Note'),
+  c('shinji_ikari',              'Shinji Ikari',                    'R',   29, 'Evangelion'),
+  c('asura_se',                  'Asura',                           'R',   27, 'Soul Eater'),
+  c('kurapika',                  'Kurapika',                        'R',   28, 'Hunter x Hunter'),
+  c('sakura',                    'Sakura',                          'R',   27, 'Naruto'),
+  c('temari',                    'Temari',                          'R',   30, 'Naruto'),
+  c('hexagide',                  'Hexagide',                        'R',   32, 'Pokémon'),
+  c('ryuji_sakamoto',            'Ryuji Sakamoto',                  'R',   30, 'Persona 5'),
+  c('demon_brotato',             'Démon',                           'R',   29, 'Brotato'),
+  c('soei',                      'Soei',                            'R',   29, 'Tensei Slime'),
+  c('golem_de_fer',              'Golem de Fer',                    'R',   29, 'Minecraft'),
+  c('piaf',                      'Piaf',                            'R',   32, 'The Legend of Zelda'),
+  c('akutagawa',                 'Akutagawa',                       'R',   31, 'Bungou Stray Dogs'),
+  c('ritsu',                     'Ritsu',                           'R',   33, 'Fire Force'),
+  c('zeri',                      'Zeri',                            'R',   29, 'League of Legends'),
+  c('kenny',                     'Kenny',                           'R',   33, 'Attaque des Titans'),
+  c('ymir',                      'Ymir',                            'R',   32, 'Attaque des Titans'),
+  c('foxy_fnaf',                 'Foxy',                            'R',   27, "Five Nights At Freddy's"),
+  c('asuka_kazama',              'Asuka Kazama',                    'R',   30, 'Tekken'),
+  c('papyrus',                   'Papyrus',                         'R',   29, 'Undertale'),
+  c('annerose',                  'Annerose Fucianas',               'R',   31, 'The Eminence in Shadow'),
+  c('alice_leywin',              'Alice Leywin',                    'R',   27, 'Tbate'),
+  c('yoo_jin_ho',                'Yoo Jin Ho',                      'R',   28, 'Solo Leveling'),
+
+  // ── ÉPIQUES ───────────────────────────────────────────────────────────────
+  c('danseuse_vallee_boreale',   'La Danseuse de la Vallée Boréale', 'E',   39, 'Dark Souls 3'),
+  c('megumi_fushiguro',          'Megumi Fushiguro',                'E',   41, 'Jujutsu Kaisen'),
+  c('renoir',                    'Renoir',                          'E',   37, 'Clair Obscur'),
+  c('himmel',                    'Himmel',                          'E',   40, 'Frieren'),
+  c('fubuki',                    'Fubuki',                          'E',   39, 'The Elusive Samurai'),
+  c('romeo',                     'Roméo',                           'E',   41, 'Ravenswatch'),
+  c('peach',                     'Peach',                           'E',   40, 'Mario'),
+  c('zanka_nijiku',              'Zanka Nijiku',                    'E',   37, 'Gachiakuta'),
+  c('yuzuriha',                  'Yuzuriha',                        'E',   42, "Hell's Paradise"),
+  c('l_dn',                      'L',                               'E',   37, 'Death Note'),
+  c('maya_ibuki',                'Maya Ibuki',                      'E',   40, 'Evangelion'),
+  c('broly',                     'Broly',                           'E',   37, 'Dragon Ball Z'),
+  c('yamato',                    'Yamato',                          'E',   43, 'One Piece'),
+  c('nico_robin',                'Nico Robin',                      'E',   41, 'One Piece'),
+  c('shikamaru',                 'Shikamaru Nara',                  'E',   38, 'Naruto'),
+  c('vanessa_enoteca',           'Vanessa Enoteca',                 'E',   39, 'Black Clover'),
+  c('orihime_inoue',             'Orihime Inoue',                   'E',   40, 'Bleach'),
+  c('emiya_shirou',              'Emiya Shirou',                    'E',   37, 'Fate'),
+  c('fuyuhiko_kuzuryu',          'Fuyuhiko Kuzuryu',                'E',   41, 'Danganronpa'),
+  c('rosalia',                   'Rosalia',                         'E',   41, 'Sword Art Online'),
+  c('kyoka_izumi',               'Kyôka Izumi',                     'E',   38, 'Bungou Stray Dogs'),
+  c('himeno',                    'Himeno',                          'E',   42, 'Chainsaw Man'),
+  c('damian_desmond',            'Damian Desmond',                  'E',   43, 'Spy x Family'),
+  c('maki_oze',                  'Maki Oze',                        'E',   42, 'Fire Force'),
+  c('armin',                     'Armin',                           'E',   37, 'Attaque des Titans'),
+  c('mangle',                    'Mangle',                          'E',   43, "Five Nights At Freddy's"),
+  c('defenseur_bousier',         'Défenseur Bousier',               'E',   41, 'Hollow Knight'),
+  c('beta_eis',                  'Beta',                            'E',   40, 'The Eminence in Shadow'),
+  c('capuchon',                  'Capuchon',                        'E',   40, 'Nos Animaux'),
+  c('dragon_cuphead',            'Dragon',                          'E',   42, 'Cuphead'),
+
+  // ── LÉGENDAIRES ───────────────────────────────────────────────────────────
+  c('jill_valentine',            'Jill Valentine',                  'L',   51, 'Resident Evil'),
+  c('shoto_todoroki',            'Shoto Todoroki',                  'L',   52, 'My Hero Academia'),
+  c('bouffon_dd',                'Bouffon',                         'L',   49, 'Darkest Dungeon'),
+  c('paolo_bianchi',             'Paolo Bianchi',                   'L',   52, 'Inazuma Eleven'),
+  ce('ushiwaka', 'Ushiwaka', 'L', 49, 'Okami', [
+    f('ushiwaka_base', 'Ushiwaka', 'ushiwaka'),
+    f('ushiwaka_evo1', 'Ushiwaka — Lame Lunaire', 'ushiwaka'),
+  ]),
+  c('fade',                      'Fade',                            'L',   48, 'Valorant'),
+  c('sun_wukong',                'Sun Wukong',                      'L',   48, 'Ravenswatch'),
+  c('mario',                     'Mario',                           'L',   53, 'Mario'),
+  c('nice_tbhx',                 'Nice',                            'L',   52, 'To Be Hero X'),
+  c('jolyne_joestar',            'Jolyne Joestar',                  'L',   52, "JoJo's Bizarre Adventure"),
+  c('death_the_kid',             'Death the Kid',                   'L',   51, 'Soul Eater'),
+  c('kirua_zoldyck',             'Kirua Zoldyck',                   'L',   51, 'Hunter x Hunter'),
+  c('latias',                    'Latias',                          'L',   50, 'Pokémon'),
+  c('lily_lovebraids',           'Lily Lovebraids',                 'L',   47, 'Poppy Playtime'),
+  c('benimaru_ts',               'Benimaru',                        'L',   51, 'Tensei Slime'),
+  c('machaon',                   'Machaon',                         'L',   49, 'The Legend of Zelda'),
+  c('death_gun',                 'Death Gun',                       'L',   50, 'Sword Art Online'),
+  c('shisui_ap',                 'Shisui',                          'L',   48, "Les Carnets de l'Apothicaire"),
+  c('kanao_tsuyuri',             'Kanao Tsuyuri',                   'L',   50, 'Demon Slayer'),
+  c('paul_phoenix',              'Paul Phoenix',                    'L',   49, 'Tekken'),
+  c('sly',                       'Sly',                             'L',   52, 'Hollow Knight'),
+  c('deux_isis',                 'Les deux Isis',                   'L',   50, 'Nos Animaux'),
+  c('tessia_eralith',            'Tessia Eralith',                  'L',   49, 'Tbate'),
+  c('baek_yoon_ho',              'Baek Yoon Ho',                    'L',   49, 'Solo Leveling'),
+
+  // ── MYTHIQUES ─────────────────────────────────────────────────────────────
+  c('sage_de_cristal',           'Sage de Cristal',                 'M',   58, 'Dark Souls 3'),
+  c('ada_wong',                  'Ada Wong',                        'M',   61, 'Resident Evil'),
+  c('medecin_de_peste',          'Médecin de Peste',                'M',   60, 'Darkest Dungeon'),
+  c('sciel',                     'Sciel',                           'M',   63, 'Clair Obscur'),
+  c('psyger_0',                  'Psyger-0',                        'M',   62, 'Shangri-La Frontier'),
+  ce('amaterasu', 'Amaterasu', 'M', 63, 'Okami', [
+    f('amaterasu_base', 'Amaterasu', 'amaterasu'),
+    f('amaterasu_evo1', 'Amaterasu — Shiranui', 'amaterasu'),
+  ]),
+  c('hojo_tokiyuki',             'Hojo Tokiyuki',                   'M',   57, 'The Elusive Samurai'),
+  c('juliette',                  'Juliette',                        'M',   63, 'Ravenswatch'),
+  c('amo_empool',                'Amo Empool',                      'M',   62, 'Gachiakuta'),
+  c('faucheur_tbhx',             'Faucheur',                        'M',   60, 'To Be Hero X'),
+  c('light_yagami',              'Light Yagami',                    'M',   60, 'Death Note'),
+  c('josuke_joestar',            'Josuke Joestar',                  'M',   62, "JoJo's Bizarre Adventure"),
+  c('soul_evans',                'Soul Evans',                      'M',   59, 'Soul Eater'),
+  c('gon_freecss',               'Gon Freecss',                     'M',   60, 'Hunter x Hunter'),
+  c('emolga',                    'Emolga',                          'M',   61, 'Pokémon'),
+  c('doey',                      'Doey',                            'M',   58, 'Poppy Playtime'),
+  c('guy_crimson',               'Guy Crimson',                     'M',   62, 'Tensei Slime'),
+  c('iskandar',                  'Iskandar',                        'M',   62, 'Fate'),
+  c('burns',                     'Burns',                           'M',   60, 'Fire Force'),
+  c('envy',                      'Envy',                            'M',   60, 'Fullmetal Alchemist Brotherhood'),
+  c('amumu',                     'Amumu',                           'M',   62, 'League of Legends'),
+  c('alpha_eis',                 'Alpha',                           'M',   61, 'The Eminence in Shadow'),
+
+  // ── STELLAIRES ────────────────────────────────────────────────────────────
+  c('katsuki_bakugo',            'Katsuki Bakugo',                  'S',   69, 'My Hero Academia'),
+  c('yuta_okkotsu',              'Yuta Okkotsu',                    'S',   67, 'Jujutsu Kaisen'),
+  ce('maelle', 'Maelle', 'S', 71, 'Clair Obscur', [
+    f('maelle_base', 'Maelle', 'maelle'),
+    f('maelle_evo1', 'Maelle — Position Virtuose', 'maelle'),
+    f('maelle_evo2', 'Maelle — Alicia', 'maelle'),
+  ]),
+  ce('axel_blaze', 'Axel Blaze', 'S', 69, 'Inazuma Eleven', [
+    f('axel_blaze_base', 'Axel Blaze', 'axel_blaze'),
+    f('axel_blaze_evo1', 'Axel Blaze — Raimon', 'axel_blaze'),
+    f('axel_blaze_evo2', 'Axel Blaze — Attaquant de Feu Ultime', 'axel_blaze'),
+  ]),
+  ce('jett', 'Jett', 'S', 70, 'Valorant', [
+    f('jett_base', 'Jett', 'jett'),
+    f('jett_evo1', 'Jett — Blade Storm', 'jett'),
+  ]),
+  ce('suwa_yorishige', 'Suwa Yorishige', 'S', 73, 'The Elusive Samurai', [
+    f('suwa_yorishige_base', 'Suwa Yorishige', 'suwa_yorishige'),
+    f('suwa_yorishige_evo1', 'Suwa Yorishige — Divin', 'suwa_yorishige'),
+  ]),
+  c('gabimaru',                  'Gabimaru',                        'S',   69, "Hell's Paradise"),
+  ce('queen_tbhx', 'Queen', 'S', 70, 'To Be Hero X', [
+    f('queen_tbhx_base', 'Queen', 'queen_tbhx'),
+    f('queen_tbhx_evo1', 'Queen — Souveraine Absolue', 'queen_tbhx'),
+  ]),
+  c('dio_brando',                'Dio Brando',                      'S',   67, "JoJo's Bizarre Adventure"),
+  ce('gohan', 'Gohan', 'S', 72, 'Dragon Ball Z', [
+    f('gohan_base', 'Gohan', 'gohan'),
+    f('gohan_evo1', 'Gohan — Super Saiyen 2', 'gohan'),
+    f('gohan_evo2', 'Gohan — Ultime', 'gohan'),
+    f('gohan_evo3', 'Gohan — Beast', 'gohan'),
+  ]),
+  ce('morgana', 'Morgana', 'S', 72, 'Persona 5', [
+    f('morgana_base', 'Morgana', 'morgana'),
+    f('morgana_evo1', 'Morgana — Voleur Fantôme', 'morgana'),
+  ]),
+  ce('nero_bc', 'Nero', 'S', 69, 'Black Clover', [
+    f('nero_bc_base', 'Nero', 'nero_bc'),
+    f('nero_bc_evo1', 'Nero — Forme Humaine', 'nero_bc'),
+  ]),
+  ce('leviathan_tenebreux', 'Léviathan Ténébreux', 'S', 68, 'Subnautica', [
+    f('leviathan_tenebreux_base', 'Léviathan Ténébreux', 'leviathan_tenebreux'),
+    f('leviathan_tenebreux_evo1', 'Léviathan Ténébreux — Abysses', 'leviathan_tenebreux'),
+  ]),
+  ce('kisuke_urahara', 'Kisuke Urahara', 'S', 67, 'Bleach', [
+    f('kisuke_urahara_base', 'Kisuke Urahara', 'kisuke_urahara'),
+    f('kisuke_urahara_evo1', 'Kisuke Urahara — Capitaine', 'kisuke_urahara'),
+    f('kisuke_urahara_evo2', 'Kisuke Urahara — Bankai', 'kisuke_urahara'),
+  ]),
+  c('bella_repo',                'Bella',                           'S',   71, 'R.E.P.O'),
+  ce('bastion', 'Bastion', 'S', 69, 'Overwatch', [
+    f('bastion_base', 'Bastion', 'bastion'),
+    f('bastion_evo1', 'Bastion — Mode Tourelle', 'bastion'),
+  ]),
+  c('ahri',                      'Ahri',                            'S',   69, 'League of Legends'),
+
+  // ── COSMIQUES ─────────────────────────────────────────────────────────────
+  ce('roi_sans_nom', 'Le Roi sans Nom', 'CO', 83, 'Dark Souls 3', [
+    f('roi_sans_nom_base', 'Le Roi sans Nom', 'roi_sans_nom'),
+    f('roi_sans_nom_evo1', 'Le Roi sans Nom — Seigneur des Tempêtes', 'roi_sans_nom'),
+  ]),
+  ce('leon_kennedy', 'Leon S. Kennedy', 'CO', 78, 'Resident Evil', [
+    f('leon_kennedy_base', 'Leon S. Kennedy', 'leon_kennedy'),
+    f('leon_kennedy_evo1', 'Leon S. Kennedy — Agent Vétéran', 'leon_kennedy'),
+  ]),
+  ce('izuku_midoriya', 'Izuku Midoriya', 'CO', 79, 'My Hero Academia', [
+    f('izuku_midoriya_base', 'Izuku Midoriya', 'izuku_midoriya'),
+    f('izuku_midoriya_evo1', 'Izuku Midoriya — Héros', 'izuku_midoriya'),
+    f('izuku_midoriya_evo2', 'Izuku Midoriya — Vigilante', 'izuku_midoriya'),
+    f('izuku_midoriya_evo3', 'Izuku Midoriya — Combat Final', 'izuku_midoriya'),
+  ]),
+  ce('ryomen_sukuna', 'Ryomen Sukuna', 'CO', 82, 'Jujutsu Kaisen', [
+    f('ryomen_sukuna_base', 'Ryomen Sukuna', 'ryomen_sukuna'),
+    f('ryomen_sukuna_evo1', 'Ryomen Sukuna — 10 Doigts', 'ryomen_sukuna'),
+    f('ryomen_sukuna_evo2', 'Ryomen Sukuna — 20 Doigts', 'ryomen_sukuna'),
+  ]),
+  ce('verso', 'Verso', 'CO', 83, 'Clair Obscur', [
+    f('verso_base', 'Verso', 'verso'),
+    f('verso_evo1', 'Verso — Perfection A', 'verso'),
+    f('verso_evo2', 'Verso — Perfection S', 'verso'),
+  ]),
+  ce('sunraku', 'Sunraku', 'CO', 78, 'Shangri-La Frontier', [
+    f('sunraku_base', 'Sunraku', 'sunraku'),
+    f('sunraku_evo1', "Sunraku — Tête d'Oiseau", 'sunraku'),
+    f('sunraku_evo2', 'Sunraku — Lapin Vorpal', 'sunraku'),
+  ]),
+  ce('reyna', 'Reyna', 'CO', 83, 'Valorant', [
+    f('reyna_base', 'Reyna', 'reyna'),
+    f('reyna_evo1', 'Reyna — Empress', 'reyna'),
+  ]),
+  ce('stark', 'Stark', 'CO', 81, 'Frieren', [
+    f('stark_base', 'Stark', 'stark'),
+    f('stark_evo1', 'Stark — Héros de Clearsdorf', 'stark'),
+  ]),
+  ce('rudo_surebrec', 'Rudo Surebrec', 'CO', 82, 'Gachiakuta', [
+    f('rudo_surebrec_base', 'Rudo Surebrec', 'rudo_surebrec'),
+    f('rudo_surebrec_evo1', 'Rudo Surebrec — Nettoyeur', 'rudo_surebrec'),
+  ]),
+  ce('joseph_joestar', 'Joseph Joestar', 'CO', 80, "JoJo's Bizarre Adventure", [
+    f('joseph_joestar_base', 'Joseph Joestar', 'joseph_joestar'),
+    f('joseph_joestar_evo1', 'Joseph Joestar — Hermit Purple', 'joseph_joestar'),
+  ]),
+  ce('kuroro_lucifer', 'Kuroro Lucifer', 'CO', 79, 'Hunter x Hunter', [
+    f('kuroro_lucifer_base', 'Kuroro Lucifer', 'kuroro_lucifer'),
+    f('kuroro_lucifer_evo1', 'Kuroro Lucifer — Maître des Stratagèmes', 'kuroro_lucifer'),
+    f('kuroro_lucifer_evo2', 'Kuroro Lucifer — Orchestre de la Mort', 'kuroro_lucifer'),
+  ]),
+  ce('sasuke', 'Sasuke', 'CO', 78, 'Naruto', [
+    f('sasuke_base', 'Sasuke', 'sasuke'),
+    f('sasuke_evo1', 'Sasuke — Marque Maudite', 'sasuke'),
+    f('sasuke_evo2', 'Sasuke — Mangekyo Sharingan', 'sasuke'),
+    f('sasuke_evo3', 'Sasuke — Rinnegan', 'sasuke'),
+  ]),
+  ce('luminus_valentine', 'Luminus Valentine', 'CO', 83, 'Tensei Slime', [
+    f('luminus_valentine_base', 'Luminus Valentine', 'luminus_valentine'),
+    f('luminus_valentine_evo1', 'Luminus Valentine — Déesse', 'luminus_valentine'),
+    f('luminus_valentine_evo2', 'Luminus Valentine — Roi Démon', 'luminus_valentine'),
+  ]),
+  ce('ender_dragon', 'Ender Dragon', 'CO', 78, 'Minecraft', [
+    f('ender_dragon_base', 'Ender Dragon', 'ender_dragon'),
+    f('ender_dragon_evo1', 'Ender Dragon — Souffle du Néant', 'ender_dragon'),
+  ]),
+  c('junko_enoshima',            'Junko Enoshima',                  'CO',  78, 'Danganronpa'),
+  ce('kinger', 'Kinger', 'CO', 83, 'Digital Circus', [
+    f('kinger_base', 'Kinger', 'kinger'),
+    f('kinger_evo1', 'Kinger — Roi Déchu', 'kinger'),
+  ]),
+  ce('yui_sao', 'Yui', 'CO', 80, 'Sword Art Online', [
+    f('yui_sao_base', 'Yui', 'yui_sao'),
+    f('yui_sao_evo1', 'Yui — Cœur du Système', 'yui_sao'),
+  ]),
+  ce('mori_ogai', 'Mori Ogai', 'CO', 78, 'Bungou Stray Dogs', [
+    f('mori_ogai_base', 'Mori Ogai', 'mori_ogai'),
+    f('mori_ogai_evo1', 'Mori Ogai — Stratège', 'mori_ogai'),
+  ]),
+  c('gyokuyo',                   'Gyokuyô',                         'CO',  78, "Les Carnets de l'Apothicaire"),
+  ce('reze', 'Reze', 'CO', 82, 'Chainsaw Man', [
+    f('reze_base', 'Reze', 'reze'),
+    f('reze_evo1', 'Reze — Démon Bombe', 'reze'),
+  ]),
+  ce('giyu_tomioka', 'Giyu Tomioka', 'CO', 82, 'Demon Slayer', [
+    f('giyu_tomioka_base', 'Giyu Tomioka', 'giyu_tomioka'),
+    f('giyu_tomioka_evo1', "Giyu Tomioka — Souffle de l'Eau", 'giyu_tomioka'),
+    f('giyu_tomioka_evo2', 'Giyu Tomioka — Onzième Mouvement', 'giyu_tomioka'),
+  ]),
+  c('pride',                     'Pride',                           'CO',  79, 'Fullmetal Alchemist Brotherhood'),
+  c('hades_va',                  'Hadès',                           'CO',  82, 'Valkyrie Apocalypse'),
+  ce('puppet', 'Puppet', 'CO', 83, "Five Nights At Freddy's", [
+    f('puppet_base', 'Puppet', 'puppet'),
+    f('puppet_evo1', 'Puppet — Marionnette Vengeresse', 'puppet'),
+  ]),
+
+  // ── PRIMORDIAUX ───────────────────────────────────────────────────────────
+  ce('shawn_frost', 'Shawn Frost', 'P', 89, 'Inazuma Eleven', [
+    f('shawn_frost_base', 'Shawn Frost', 'shawn_frost'),
+    f('shawn_frost_evo1', 'Shawn Frost — Frénésie', 'shawn_frost'),
+    f('shawn_frost_evo2', 'Shawn Frost — Éternel Blizzard', 'shawn_frost'),
+  ]),
+  ce('frieren', 'Frieren', 'P', 87, 'Frieren', [
+    f('frieren_base', 'Frieren', 'frieren'),
+    f('frieren_evo1', 'Frieren — Archiviste des Flammes', 'frieren'),
+  ]),
+  ce('enjin', 'Enjin', 'P', 89, 'Gachiakuta', [
+    f('enjin_base', 'Enjin', 'enjin'),
+    f('enjin_evo1', 'Enjin — Astral', 'enjin'),
+  ]),
+  ce('garp', 'Garp', 'P', 91, 'One Piece', [
+    f('garp_base', 'Garp', 'garp'),
+    f('garp_evo1', 'Garp — Héros de la Marine', 'garp'),
+    f('garp_evo2', 'Garp — Galaxy Impact', 'garp'),
+  ]),
+  ce('archer_fate', 'Archer', 'P', 91, 'Fate', [
+    f('archer_fate_base', 'Archer', 'archer_fate'),
+    f('archer_fate_evo1', 'Archer — Unlimited Blade Works', 'archer_fate'),
+  ]),
+  ce('chiaki_nanami', 'Chiaki Nanami', 'P', 91, 'Danganronpa', [
+    f('chiaki_nanami_base', 'Chiaki Nanami', 'chiaki_nanami'),
+    f('chiaki_nanami_evo1', 'Chiaki Nanami — Gameuse Ultime', 'chiaki_nanami'),
+    f('chiaki_nanami_evo2', 'Chiaki Nanami — Espoir', 'chiaki_nanami'),
+  ]),
+  ce('makima', 'Makima', 'P', 91, 'Chainsaw Man', [
+    f('makima_base', 'Makima', 'makima'),
+    f('makima_evo1', 'Makima — Démon de la Domination', 'makima'),
+    f('makima_evo2', 'Makima — Nayuta', 'makima'),
+  ]),
+  ce('maliketh', 'Maliketh', 'P', 92, 'Elden Ring', [
+    f('maliketh_base', 'Maliketh', 'maliketh'),
+    f('maliketh_evo1', 'Maliketh — Lame Noire', 'maliketh'),
+  ]),
+
+  // ── TRANSCENDANTS ─────────────────────────────────────────────────────────
+  ce('satoru_gojo', 'Satoru Gojo', 'T', 97, 'Jujutsu Kaisen', [
+    f('satoru_gojo_base', 'Satoru Gojo', 'satoru_gojo'),
+    f('satoru_gojo_evo1', 'Satoru Gojo — Infini', 'satoru_gojo'),
+    f('satoru_gojo_evo2', 'Satoru Gojo — Extension du Territoire', 'satoru_gojo'),
+  ]),
+  ce('nightmare_grimm', 'Nightmare Grimm', 'T', 97, 'Hollow Knight', [
+    f('nightmare_grimm_base', 'Nightmare Grimm', 'nightmare_grimm'),
+    f('nightmare_grimm_evo1', 'Nightmare Grimm — Roi du Cauchemar', 'nightmare_grimm'),
+  ]),
+];
+
+// ══════════════════════════════════════════════════════════════════════════
 export const CHARACTER_POOL: CharacterTemplate[] = [
 
   // ── COMMUNS ─────────────────────────────────────────────────────────────
@@ -586,6 +976,9 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('qin_shi_roi',     'Roi de Chine',         'qin_shi_huang'),
   ]),
 
+  // ── BANNIÈRE VOL.2 (voir BANNER_VOL2_CHARACTERS ci-dessus) ─────────────
+  ...BANNER_VOL2_CHARACTERS,
+
   // ══════════════════════════════════════════════════════════════════════════
   // PERSONNAGES CRAFTABLES — Obtenus uniquement via la Forge
   // ══════════════════════════════════════════════════════════════════════════
@@ -621,7 +1014,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
 ];
 
 // Index id → template, construit une seule fois. Évite un scan linéaire sur les
-// ~193 personnages à CHAQUE appel (fonction appelée en boucle : combat chaque
+// ~400 personnages à CHAQUE appel (fonction appelée en boucle : combat chaque
 // seconde, rendu de la collection, synergies, équipe...).
 const CHARACTER_BY_ID: Map<string, CharacterTemplate> = new Map(
   CHARACTER_POOL.map(c => [c.id, c])
@@ -641,6 +1034,10 @@ export const GACHA_EXCLUDED_IDS = new Set([
 ]);
 
 export const BANNER_POOL = CHARACTER_POOL.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id));
+
+// Bannière Vol.2 : uniquement les nouveaux personnages (ils restent aussi
+// tirables sur la bannière Vol.1, dont le pool couvre tout le roster).
+export const BANNER_POOL_VOL2 = BANNER_VOL2_CHARACTERS.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id));
 
 export function getCharFormName(tpl: CharacterTemplate, formIndex: number): string {
   if (!tpl.forms || tpl.forms.length === 0) return tpl.name;

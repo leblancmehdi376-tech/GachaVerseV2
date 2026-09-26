@@ -59,6 +59,24 @@ X_CENTER_OVERRIDES = {
     # Photo : le chien est à droite, un panneau texte "IGLOO PRISONNIER"
     # occupe la partie gauche du cadre.
     'Igloo_NosAnimaux_Evo0': 0.65,
+    # Bannière Vol.2
+    'Lune_ClairObscur_Evo0': 0.60,
+    'AxelBlaze_InazumaEleven_Evo1': 0.42,
+    'Fern_Frieren_Evo0': 0.62,
+    'Kojiro_TheElusiveSamurai_Evo0': 0.62,
+    'LuckyCyan_ToBeHeroX_Evo0': 0.38,
+    'LightYagami_DeathNote_Evo0': 0.66,
+    'L_DeathNote_Evo0': 0.60,
+    'ReiAyanami_Evangelion_Evo0': 0.33,
+    'Pappag_OnePiece_Evo0': 0.20,
+    # Latios et Latias sur la même image : Latias est la rouge, à droite.
+    'Latias_Pokemon_Evo0': 0.80,
+    'EnderDragon_Minecraft_Evo1': 0.30,
+    'Bastion_Overwatch_Evo1': 0.35,
+    'Makima_ChainsawMan_Evo0': 0.42,
+    'Amumu_LeagueofLegends_Evo0': 0.62,
+    'Shaco_LeagueofLegends_Evo0': 0.58,
+    'Jack8_Tekken_Evo0': 0.27,
 }
 
 # Quand il faut rogner en hauteur (image plus étroite que la cible), on
@@ -69,6 +87,10 @@ VERTICAL_BIAS = 0.35  # 0.5 = centré ; <0.5 = garde davantage le haut
 # sujet est encore plus haut dans le cadre (ex: portrait très allongé).
 VERTICAL_BIAS_OVERRIDES = {
     'Loki_ValkyrieApocalypse_Evo1': 0.12,
+    # Sujets tout en bas de portraits très allongés.
+    'IzukuMidoriya_MyHeroAcademia_Evo3': 0.90,
+    'JosephJoestar_JoJosBizarreAdventure_Evo0': 0.85,
+    'Temari_Naruto_Evo0': 0.90,
 }
 
 

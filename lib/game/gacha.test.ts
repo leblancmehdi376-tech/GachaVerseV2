@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getDynamicRates, rollRarity, rollCharacter, rollMulti, rollMulti100, RARITY_GATES } from './gacha';
+import { BANNER_POOL, BANNER_POOL_VOL2 } from './characters';
 import type { Rarity } from '@/types/game';
 
 describe('getDynamicRates', () => {
@@ -60,5 +61,17 @@ describe('rollCharacter / rollMulti / rollMulti100', () => {
 
   it('rollMulti100 retourne exactement 100 tirages', () => {
     expect(rollMulti100(20)).toHaveLength(100);
+  });
+});
+
+describe('bannières', () => {
+  it('la bannière Vol.2 ne tire que des personnages de la Vol.2', () => {
+    const vol2Ids = new Set(BANNER_POOL_VOL2.map(c => c.id));
+    for (const id of rollMulti100(40, 'vol2')) expect(vol2Ids.has(id)).toBe(true);
+  });
+
+  it('les personnages de la Vol.2 sont aussi tirables sur la Vol.1', () => {
+    const vol1Ids = new Set(BANNER_POOL.map(c => c.id));
+    for (const c of BANNER_POOL_VOL2) expect(vol1Ids.has(c.id)).toBe(true);
   });
 });

@@ -2,7 +2,7 @@
 // Extrait de gameStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
 import { defaultEquippedItems } from '@/types/game';
-import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS } from '@/lib/game/gacha';
+import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, DEFAULT_BANNER_ID } from '@/lib/game/gacha';
 import { getCharacterById } from '@/lib/game/characters';
 import { rollCardEdition, makeInstanceKey } from '@/lib/game/editions';
 import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
@@ -38,11 +38,11 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
   },
 
   // ─── Gacha ────────────────────────────────────────────────────────
-  pullSingle: () => {
+  pullSingle: (bannerId = DEFAULT_BANNER_ID) => {
     const cost = get().getGachaCosts().single;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
-    const id = rollCharacter(runPeakPalierOf(get()));
+    const id = rollCharacter(runPeakPalierOf(get()), bannerId);
     const edition = get().addToCollection(id);
     get().bumpQuestProgress('d_gacha', 1);
     get().bumpQuestProgress('w_gacha', 1);
@@ -54,11 +54,11 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     requestUrgentSave('gacha_single');
     return { templateId: id, edition };
   },
-  pullMulti: () => {
+  pullMulti: (bannerId = DEFAULT_BANNER_ID) => {
     const cost = get().getGachaCosts().multi10;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
-    const ids = rollMulti(runPeakPalierOf(get()));
+    const ids = rollMulti(runPeakPalierOf(get()), bannerId);
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);
@@ -70,11 +70,11 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     requestUrgentSave('gacha_multi10');
     return results;
   },
-  pullMulti100: () => {
+  pullMulti100: (bannerId = DEFAULT_BANNER_ID) => {
     const cost = get().getGachaCosts().multi100;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
-    const ids = rollMulti100(runPeakPalierOf(get()));
+    const ids = rollMulti100(runPeakPalierOf(get()), bannerId);
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);

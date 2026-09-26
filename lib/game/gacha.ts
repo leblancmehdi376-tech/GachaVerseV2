@@ -1,7 +1,36 @@
-import { Rarity } from '@/types/game';
-import { BANNER_POOL } from './characters';
+import { CharacterTemplate, Rarity } from '@/types/game';
+import { BANNER_POOL, BANNER_POOL_VOL2 } from './characters';
 
 export const GACHA_COSTS = { single: 10, multi10: 95, multi100: 900 };
+
+// ── Bannières ─────────────────────────────────────────────────────────────
+// Même coût et mêmes taux par rareté partout : seule la liste des
+// personnages tirables change. Vol.1 couvre tout le roster (nouveaux
+// personnages compris), Vol.2 uniquement les personnages de la Bannière Vol.2.
+export type BannerId = 'vol1' | 'vol2';
+
+export interface GachaBanner {
+  id:       BannerId;
+  title:    string;
+  subtitle: string;
+  pool:     CharacterTemplate[];
+  // Personnages mis en avant sur le visuel (Vol.2 n'a pas d'image dédiée).
+  featuredIds?: string[];
+}
+
+export const GACHA_BANNERS: GachaBanner[] = [
+  { id: 'vol1', title: 'GACHA VERSE VOL.1', subtitle: 'Tous les personnages', pool: BANNER_POOL },
+  {
+    id: 'vol2', title: 'GACHA VERSE VOL.2', subtitle: 'Nouveaux personnages uniquement', pool: BANNER_POOL_VOL2,
+    featuredIds: ['satoru_gojo', 'frieren', 'makima', 'nightmare_grimm', 'shawn_frost', 'chiaki_nanami'],
+  },
+];
+
+export const DEFAULT_BANNER_ID: BannerId = 'vol1';
+
+export function getBanner(id: BannerId): GachaBanner {
+  return GACHA_BANNERS.find(b => b.id === id) ?? GACHA_BANNERS[0];
+}
 
 // ── Courbes de taux (déblocage progressif par palier) ─────────────────────
 // Chaque rareté n'est tirable qu'à partir du palier `unlockPalier` (cf. tableau
@@ -77,21 +106,22 @@ export function rollRarity(maxPalier = 1): Rarity {
   return 'C';
 }
 
-export function rollCharacter(maxPalier = 1): string {
+export function rollCharacter(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string {
+  const bannerPool = getBanner(bannerId).pool;
   const rarity = rollRarity(maxPalier);
-  const pool   = BANNER_POOL.filter(c => c.rarity === rarity);
+  const pool   = bannerPool.filter(c => c.rarity === rarity);
   if (pool.length === 0) {
-    const fallback = BANNER_POOL.filter(c => c.rarity === 'R');
+    const fallback = bannerPool.filter(c => c.rarity === 'R');
     return fallback[Math.floor(Math.random() * fallback.length)].id;
   }
   return pool[Math.floor(Math.random() * pool.length)].id;
 }
 
-export function rollMulti(maxPalier = 1): string[] {
-  return Array.from({ length: 10 }, () => rollCharacter(maxPalier));
+export function rollMulti(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string[] {
+  return Array.from({ length: 10 }, () => rollCharacter(maxPalier, bannerId));
 }
 
-export function rollMulti100(maxPalier = 1): string[] {
-  return Array.from({ length: 100 }, () => rollCharacter(maxPalier));
+export function rollMulti100(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string[] {
+  return Array.from({ length: 100 }, () => rollCharacter(maxPalier, bannerId));
 }
 

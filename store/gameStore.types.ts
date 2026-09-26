@@ -14,6 +14,7 @@ import {
   GameState, EquipmentSlot, Rarity,
 } from '@/types/game';
 import { CardEdition } from '@/lib/game/editions';
+import type { BannerId } from '@/lib/game/gacha';
 import { Achievement } from '@/lib/game/achievements';
 import { PrestigeBonusLevels, PrestigeBonusType } from '@/lib/game/prestige';
 import { UltimateEffect } from '@/lib/game/ultimates';
@@ -148,9 +149,9 @@ export interface GachaActions {
   setCollectionFilters: (patch: { filter?: string; universe?: string | 'all'; affinity?: string; sort?: string }) => void;
   // Coûts en gemmes après réduction des anomalies "Réduc. Coût Gacha" (arrondis).
   getGachaCosts: () => { single: number; multi10: number; multi100: number };
-  pullSingle: () => { templateId: string; edition: CardEdition } | null;
-  pullMulti: () => { templateId: string; edition: CardEdition }[] | null;
-  pullMulti100: () => { templateId: string; edition: CardEdition }[] | null;
+  pullSingle: (bannerId?: BannerId) => { templateId: string; edition: CardEdition } | null;
+  pullMulti: (bannerId?: BannerId) => { templateId: string; edition: CardEdition }[] | null;
+  pullMulti100: (bannerId?: BannerId) => { templateId: string; edition: CardEdition }[] | null;
   addToCollection: (id: string) => CardEdition;
   grantMaxedCharacter: (templateId: string, edition?: CardEdition) => void;
   buyRaidCharacter: (bossId: string) => boolean;
