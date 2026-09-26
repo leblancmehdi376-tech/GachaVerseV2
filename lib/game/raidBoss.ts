@@ -94,7 +94,26 @@ export const EMINENCE_SHADOW_BOSS: RaidBossDef = {
   dropTable: [...buildRaidDropTable(['masque_cid', 'epee_slime', 'slime_eminence']), titleDropEntry(RAID_TITLES.eminence_shadow)],
 };
 
-export const RAID_BOSSES: RaidBossDef[] = [SHADOW_MONARCH_BOSS, ARTHUR_LEYWIN_BOSS, EMINENCE_SHADOW_BOSS];
+// Visuels pas encore dessinés : spritePath/bgImagePath pointent vers des
+// fichiers absents, la carte retombe donc sur bgGradient et le combat sur les
+// initiales (voir BossSprite dans RaidSprites.tsx).
+export const ROKOUL_AYRO_BOSS: RaidBossDef = {
+  id:          'rokoul_ayro',
+  name:        'Rokoul & Ayro',
+  subtitle:    'Le duo le plus chill du Chill&Cool',
+  spritePath:  '/sprites/raids/rokoul_ayro.webp',
+  bgImagePath: '/sprites/raids/rokoul_ayro_bg',
+  description: 'Deux compères inséparables, aussi détendus que redoutables. Ne vous fiez pas à leur nonchalance.',
+  bgGradient:  'linear-gradient(180deg,#06202e,#030b12)',
+  accentColor: '#38bdf8',
+  targetSeconds: 420,
+  characterId: 'rokoul_ayro',
+  coinItemId:  'coin_rokoul_ayro',
+  buyCost:     200,
+  dropTable: buildRaidDropTable(['rokoul_item1', 'rokoul_item2', 'rokoul_item3']),
+};
+
+export const RAID_BOSSES: RaidBossDef[] = [SHADOW_MONARCH_BOSS, ARTHUR_LEYWIN_BOSS, EMINENCE_SHADOW_BOSS, ROKOUL_AYRO_BOSS];
 
 // Le prix d'achat du perso de raid augmente de 10% à chaque achat déjà
 // effectué (achats répétables : chaque achat supplémentaire monte le rang du

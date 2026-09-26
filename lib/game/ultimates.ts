@@ -244,6 +244,11 @@ export const ULTIMATE_DEFS: Record<string, UltimateDef> = {
     description:'×2.2 DPS pendant 13s',
     effect:{ dpsMultiplier:2.2 }, animDuration:1950,
   },
+  elfuzzion: {
+    templateId:'elfuzzion', name:'Éclosion', duration:13, cooldown:110,
+    description:'×2.2 DPS pendant 13s',
+    effect:{ dpsMultiplier:2.2 }, animDuration:1950,
+  },
   dazai: {
     templateId:'dazai', name:'No Longer Human', duration:13, cooldown:110,
     description:'×2.2 DPS pendant 13s',
@@ -286,6 +291,11 @@ export const ULTIMATE_DEFS: Record<string, UltimateDef> = {
   },
   cid_kagenou: {
     templateId:'cid_kagenou', name:'I Am Atomic', duration:15, cooldown:110,
+    description:'×2.6 DPS pendant 15s',
+    effect:{ dpsMultiplier:2.6 }, animDuration:2250,
+  },
+  rokoul_ayro: {
+    templateId:'rokoul_ayro', name:'Duo Chill', duration:15, cooldown:110,
     description:'×2.6 DPS pendant 15s',
     effect:{ dpsMultiplier:2.6 }, animDuration:2250,
   },

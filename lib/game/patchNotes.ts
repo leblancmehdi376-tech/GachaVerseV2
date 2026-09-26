@@ -12,6 +12,16 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '26/09/2026',
+    title: 'Deux nouveaux personnages Chill&Cool',
+    changes: [
+      "Nouveau boss de raid : Rokoul & Ayro (Cosmique, Chill&Cool). Ses pièces s'échangent en Boutique contre le personnage, et il fait tomber ses 3 objets d'évolution (Item 1, Item 2, Item 3).",
+      "Nouveau personnage à forger : ElFuZzion (Mythique, Chill&Cool), obtenu contre 6 Œufs de Dragon Primordiaux.",
+      "Nouvelle expédition « S'aventurer dans le monde des Douzes » (1h, débloquée au palier 11) : 75% de chance de ramener un Œuf de Dragon Primordial.",
+      "Les visuels de ces deux personnages arrivent bientôt : leurs initiales sont affichées en attendant.",
+    ],
+  },
+  {
+    date: '26/09/2026',
     title: 'Enchaînement des ultis',
     changes: [
       "Activer un ulti pendant qu'un autre est déjà en cours ne l'annule plus : il est mis en file d'attente et se lance automatiquement dès que le précédent se termine.",

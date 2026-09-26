@@ -61,6 +61,21 @@ export const ITEM_DEFS: Record<string, ItemDef> = {
     description: "Débloque l'évolution finale de Cid Kagenou (L'Éminence des Ombres), en plus du Masque de Cid et de l'Épée de Slime.",
     sellGems: 250,
   },
+  rokoul_item1: {
+    id: 'rokoul_item1', name: 'Item 1', icon: '1️⃣', color: '#7dd3fc',
+    description: "Débloque la 1ère évolution de Rokoul & Ayro — aussi requis (en plus des suivants) pour ses évolutions ultérieures.",
+    sellGems: 100,
+  },
+  rokoul_item2: {
+    id: 'rokoul_item2', name: 'Item 2', icon: '2️⃣', color: '#38bdf8',
+    description: "Débloque la 2ème évolution de Rokoul & Ayro, en plus de l'Item 1 — aussi requis pour l'évolution finale.",
+    sellGems: 100,
+  },
+  rokoul_item3: {
+    id: 'rokoul_item3', name: 'Item 3', icon: '3️⃣', color: '#0ea5e9',
+    description: "Débloque l'évolution finale de Rokoul & Ayro, en plus de l'Item 1 et de l'Item 2.",
+    sellGems: 250,
+  },
 
   // ── Pièces de personnage de raid ────────────────────────────────────
   // Accumulées en combattant le boss de raid correspondant, échangées
@@ -79,6 +94,11 @@ export const ITEM_DEFS: Record<string, ItemDef> = {
   coin_cid_kagenou: {
     id: 'coin_cid_kagenou', name: "Pièce — Éminence de l'Ombre", icon: '🪙', color: '#a78bfa',
     description: "Échangeable en Boutique contre Cid Kagenou.",
+    sellGems: 0, isCoin: true,
+  },
+  coin_rokoul_ayro: {
+    id: 'coin_rokoul_ayro', name: 'Pièce — Rokoul & Ayro', icon: '🪙', color: '#38bdf8',
+    description: "Échangeable en Boutique contre Rokoul & Ayro.",
     sellGems: 0, isCoin: true,
   },
 };

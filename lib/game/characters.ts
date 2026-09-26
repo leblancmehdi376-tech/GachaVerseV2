@@ -187,6 +187,15 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
       f('cid_kagenou_evo3', 'Cid Kagenou — L’Éminence des Ombres', 'cid_kagenou', cumulative(items, 3)),
     ];
   })()),
+  ce('rokoul_ayro', 'Rokoul & Ayro', 'CO', 82, 'Chill&Cool', (() => {
+    const items = ['rokoul_item1', 'rokoul_item2', 'rokoul_item3'];
+    return [
+      f('rokoul_ayro_base', 'Rokoul & Ayro',        'rokoul_ayro'),
+      f('rokoul_ayro_evo1', 'Rokoul & Ayro — Evo 1', 'rokoul_ayro', cumulative(items, 1)),
+      f('rokoul_ayro_evo2', 'Rokoul & Ayro — Evo 2', 'rokoul_ayro', cumulative(items, 2)),
+      f('rokoul_ayro_evo3', 'Rokoul & Ayro — Evo 3', 'rokoul_ayro', cumulative(items, 3)),
+    ];
+  })()),
 
   // ── PRIMORDIAUX ──────────────────────────────────────────────────────────
   ce('goku', 'Goku', 'P', 87, 'Dragon Ball Z', [
@@ -608,6 +617,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('shanks_conqueror', 'Haki du Conquérant',  'shanks'),
     f('shanks_god',       'Dieu du Haki',        'shanks'),
   ]),
+  c('elfuzzion', 'ElFuZzion',                   'M', 62, 'Chill&Cool'),
 ];
 
 // Index id → template, construit une seule fois. Évite un scan linéaire sur les
@@ -625,9 +635,9 @@ export function getCharacterById(id: string): CharacterTemplate | undefined {
 // ne doivent jamais apparaître au gacha, sinon leur exclusivité n'a plus de sens.
 export const GACHA_EXCLUDED_IDS = new Set([
   // Récompenses de recettes de Forge (lib/game/expeditions.ts)
-  'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks',
+  'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks', 'elfuzzion',
   // Drops de boss de raid (lib/game/raidBoss.ts)
-  'jinwoo', 'arthur_leywin', 'cid_kagenou',
+  'jinwoo', 'arthur_leywin', 'cid_kagenou', 'rokoul_ayro',
 ]);
 
 export const BANNER_POOL = CHARACTER_POOL.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id));

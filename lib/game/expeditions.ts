@@ -91,6 +91,7 @@ export const PALIER_DROPS: PalierDrop[] = [
   { id:'bijou_divin',    name:'Bijou Divin',            icon:'⚡', description:'Artefact des dieux de Ragnarök.',                            palier:31, universName:'Valkyrie Apocalypse'  },
   { id:'ame_humaine',    name:'Âme Humaine',            icon:'❤',  description:'L\'une des 7 âmes humaines du monde souterrain.',           palier:38, universName:'Undertale'            },
   { id:'duplication_shards', name:'Éclat de Duplication', icon:'🔮', description:'Permet de dupliquer un objet ou une essence.',           palier:9,  universName:'Tensei Slime'         },
+  { id:'oeuf_dragon_primordial', name:'Œuf de Dragon Primordial', icon:'🥚', description:'Menfin on dirait vachement des œufs de poules quand même.', palier:11, universName:'Monde des Douze' },
   { id:'pierre_evolution', name:'Pierre d\'Évolution',  icon:'🔷', description:'Catalyseur mystique nécessaire pour faire évoluer un personnage vers sa forme suivante.', palier:3, universName:'Mystique' },
 ];
 
@@ -219,6 +220,19 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
       { type:'drop', id:'fruit_demon',  quantity:1,  label:'Fruit du Démon'      },
     ],
     reward: { type:'character', characterId:'shanks', rarity:'T', label:'Shanks le Roux', icon:'⚔' },
+  },
+  // ── Chill&Cool ───────────────────────────────────────────────────────────
+  {
+    id: 'elfuzzion',
+    name: 'ElFuZzion',
+    icon: '🥚',
+    description: 'Fais éclore les Œufs de Dragon Primordiaux pour révéler ElFuZzion.',
+    lore: '"Des dragons primordiaux ? Tu es sûr que ce ne sont pas des poules ?"',
+    palierRequired: RARITY_GATES.M.unlockPalier,
+    ingredients: [
+      { type:'drop', id:'oeuf_dragon_primordial', quantity:6, label:'Œuf de Dragon Primordial' },
+    ],
+    reward: { type:'character', characterId:'elfuzzion', rarity:'M', label:'ElFuZzion', icon:'🥚' },
   },
   // ── Récompense bonus ────────────────────────────────────────────────────
   {
@@ -391,6 +405,15 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     description:'Plonge au cœur des abysses de la mine de gemmes, et envoie tes compagnons te ramener le plus beau trésor possible.',
     duration: 8*H, slots:4, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(4)),
     rewards:{ coinsMin:200_000, coinsMax:600_000, dropChance:0.5, dropQuantity:1, dropGems:true, dropGemsAmount:16 },
+  },
+  // universe:'Monde des Douze' ne correspond à aucun univers de CHARACTER_POOL :
+  // contrainte de TYPE plutôt que de personnage (les seuls persos Chill&Cool
+  // sont hors de portée au palier 11).
+  {
+    id:'monde_des_douze', name:'S\'aventurer dans le monde des Douzes', icon:'🥚', universe:'Monde des Douze',
+    description:'S\'aventurer dans le monde des Douzes, menfin on dirait plutôt une balade dans son jardin.',
+    duration: H, slots:2, palierRequired: RARITY_GATES.M.unlockPalier, minTeamDps: referenceTeamDps('M'),
+    rewards:{ coinsMin:100_000, coinsMax:300_000, gemsMin:1, gemsMax:3, dropId:'oeuf_dragon_primordial', dropChance:0.75, dropQuantity:1 },
   },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────
   {

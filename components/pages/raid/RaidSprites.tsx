@@ -15,11 +15,16 @@ export function RaidBg({ boss }: { boss: RaidBossDef }) {
   );
 }
 
+// Initiales affichées tant que le visuel du boss n'existe pas (ex: "Rokoul & Ayro" -> "RA").
+function bossInitials(name: string): string {
+  return name.split(/[^\p{L}\p{N}]+/u).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
 export function BossSprite({ boss, deadStyle }: { boss: RaidBossDef; deadStyle: boolean }) {
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(stripKnownExtension(boss.spritePath)));
   if (failed || !src) return (
     <div style={{ width:336, height:448, background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <span style={{ fontSize:115.4, filter:'drop-shadow(0 0 20px #c084fc)' }}>👤</span>
+      <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:115.4, color:boss.accentColor, filter:`drop-shadow(0 0 20px ${boss.accentColor})` }}>{bossInitials(boss.name)}</span>
     </div>
   );
   return (
