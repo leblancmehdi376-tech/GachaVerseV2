@@ -21,10 +21,7 @@ function anomalyTokensEarned(before: number, after: number): number {
 
 export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (set, get) => ({
   setCollectionFilters: (patch) => set((state) => ({
-    collectionFilter: patch.filter ?? state.collectionFilter,
-    collectionUniverse: patch.universe ?? state.collectionUniverse,
-    collectionAffinity: patch.affinity ?? state.collectionAffinity,
-    collectionSort: patch.sort ?? state.collectionSort,
+    collectionFilters: { ...state.collectionFilters, ...patch },
   })),
 
   getGachaCosts: () => {

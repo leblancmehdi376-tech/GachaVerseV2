@@ -7,6 +7,7 @@
 // la totalité du store en un seul appel. Voir Phase 2 du refacto pour le
 // détail de ce découpage (gameStoreHelpers.ts et gameStore.types.ts).
 import { create } from 'zustand';
+import { DEFAULT_COLLECTION_FILTERS } from '@/lib/game/collectionFilters';
 import { persist } from 'zustand/middleware';
 import { OwnedCharacter, HeroState, Rarity } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
@@ -86,10 +87,7 @@ const makeInitial = () => ({
   dpsBoostEndsAt: 0, goldBoostEndsAt: 0,
   eventDpsMult: 1, eventDpsMultEndsAt: 0,
   dailyShop: { dayKey: '', characterIds: [] as string[], purchased: [] as string[], rerollCount: 0 },
-  collectionFilter: 'all',
-  collectionUniverse: 'all',
-  collectionAffinity: 'all',
-  collectionSort: 'rarity',
+  collectionFilters: DEFAULT_COLLECTION_FILTERS,
   starterPackClaimed: false,
   dailyRewardDayKey: '',
   dailyRewardCurrentDay: 1,

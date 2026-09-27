@@ -19,6 +19,22 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '28/09/2026',
+    title: 'Nouveaux filtres de collection',
+    changes: [
+      "Les filtres du **Compadex**, des **Compagnons** et des **Améliorations** ont été entièrement redessinés.",
+      "Nouvelle **barre de recherche** : tape le nom d'un personnage ou d'un univers (accents et majuscules ignorés).",
+      "Les filtres actifs s'affichent en **pastilles** à côté de la recherche, et un ✕ les retire en un clic.",
+      "Le bouton **FILTRES** déplie le panneau complet : raretés et types aux couleurs du jeu, types avec leur icône.",
+      "Les **univers** sont maintenant dans un menu déroulant avec recherche, et chacun affiche son **icône de synergie**.",
+      "**Recliquer** sur un filtre actif le retire. Sans filtre, tout est affiché.",
+      "Nouveau **tri** RARETÉ / DPS / NOM avec un bouton **↑↓** pour inverser l'ordre.",
+      "Le filtre **Possédés / Manquants** n'apparaît plus que dans le Compadex, avec le même style que les raretés.",
+      "**Manquants** est maintenant signalé par une **croix rouge ❌** au lieu du cadenas.",
+      "Tes filtres sont gardés quand tu changes de page.",
+    ],
+  },
+  {
     date: '27/09/2026',
     title: 'Forge, expéditions & confort',
     sections: [

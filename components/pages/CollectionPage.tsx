@@ -10,10 +10,10 @@ import { Rarity, RARITY_CONFIG, OwnedCharacter, CardEdition } from '@/types/game
 import { calcCharDps } from '@/lib/game/formulas';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
-import { CollectionFilters, COLLECTION_RARITY_ORDER, CollectionFilterMode, CollectionAffinityMode, CollectionSortMode } from '@/components/ui/CollectionFilters';
+import { CollectionFilters } from '@/components/ui/CollectionFilters';
+import { COLLECTION_RARITY_ORDER, compareCharacters, matchesCharacterFilters, type CollectionFilterState } from '@/lib/game/collectionFilters';
 import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
-import { BN_ZERO, bnCompare } from '@/lib/game/bignum';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
@@ -36,32 +36,14 @@ const ALL_EDITIONS: CardEdition[] = ['base', 'gold', 'diamond'];
 // "Possédés"/"Manquants" filtrent sur le Compadex (déjà obtenu à vie, `seen`),
 // pas sur la possession ACTUELLE — cohérent avec le sens de cette page depuis
 // sa transformation en Compadex.
-export function matchesCompadexFilters(
-  entry: CollectionEntry,
-  filter: CollectionFilterMode,
-  universe: string | 'all',
-  affinity: CollectionAffinityMode,
-): boolean {
-  if (universe !== 'all' && entry.tpl.universe !== universe) return false;
-  const matchesAffinity = affinity === 'all' ? true : getAffinityForId(entry.tpl.id) === affinity;
-  if (filter === 'owned')   return entry.seen && matchesAffinity;
-  if (filter === 'missing') return !entry.seen && matchesAffinity;
-  if (filter !== 'all')     return entry.tpl.rarity === filter && matchesAffinity;
-  return matchesAffinity;
+export function matchesCompadexFilters(entry: CollectionEntry, f: CollectionFilterState): boolean {
+  if (f.status === 'owned' && !entry.seen) return false;
+  if (f.status === 'missing' && entry.seen) return false;
+  return matchesCharacterFilters(entry.tpl, f);
 }
 
-export function compareCompadexEntries(a: CollectionEntry, b: CollectionEntry, sort: CollectionSortMode): number {
-  if (sort === 'rarity') {
-    const ri = RARITY_ORDER.slice().reverse();
-    const diff = ri.indexOf(a.tpl.rarity) - ri.indexOf(b.tpl.rarity);
-    return diff !== 0 ? diff : a.tpl.name.localeCompare(b.tpl.name);
-  }
-  if (sort === 'dps_desc' || sort === 'dps_asc') {
-    const dpsA = a.owned ? calcCharDps(a.tpl, a.owned) : BN_ZERO;
-    const dpsB = b.owned ? calcCharDps(b.tpl, b.owned) : BN_ZERO;
-    return sort === 'dps_desc' ? bnCompare(dpsB, dpsA) : bnCompare(dpsA, dpsB);
-  }
-  return a.tpl.name.localeCompare(b.tpl.name);
+export function compareCompadexEntries(a: CollectionEntry, b: CollectionEntry, f: CollectionFilterState): number {
+  return compareCharacters(a, b, f.sortKey, f.sortReversed);
 }
 
 // Composant au scope module (pas défini dans le corps de CollectionPage) :
@@ -217,17 +199,9 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 };
 
 export function CollectionPage() {
-  const { collection, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore();
+  const { collection, collectionFilters, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore();
   const [view, setView] = useState<'characters' | 'equipment'>('characters');
   const [detailKey, setDetailKey] = useState<string | null>(null);
-  const filter = collectionFilter as CollectionFilterMode;
-  const universe = collectionUniverse as string | 'all';
-  const affinity = collectionAffinity as CollectionAffinityMode;
-  const sort = collectionSort as CollectionSortMode;
-  const setFilter = (next: CollectionFilterMode) => setCollectionFilters({ filter: next });
-  const setUniverse = (next: string | 'all') => setCollectionFilters({ universe: next });
-  const setAffinity = (next: CollectionAffinityMode) => setCollectionFilters({ affinity: next });
-  const setSort = (next: CollectionSortMode) => setCollectionFilters({ sort: next });
 
   // Chaque template possédé ACTUELLEMENT se décline en autant d'entrées que
   // d'éditions réellement en collection ; un template jamais obtenu OU perdu
@@ -257,22 +231,22 @@ export function CollectionPage() {
 
   // ── Filtrage ────────────────────────────────────────────────────────────
   const filtered = useMemo(() =>
-    allEntries.filter(e => matchesCompadexFilters(e, filter, universe, affinity)),
-  [allEntries, filter, universe, affinity]);
+    allEntries.filter(e => matchesCompadexFilters(e, collectionFilters)),
+  [allEntries, collectionFilters]);
 
   // ── Tri ─────────────────────────────────────────────────────────────────
   const sorted = useMemo(() =>
-    [...filtered].sort((a, b) => compareCompadexEntries(a, b, sort)),
-  [filtered, sort]);
+    [...filtered].sort((a, b) => compareCompadexEntries(a, b, collectionFilters)),
+  [filtered, collectionFilters]);
 
   // ── Groupage par rareté (uniquement en mode rarity) ─────────────────────
   const grouped = useMemo(() => {
-    if (sort !== 'rarity') return null;
+    if (collectionFilters.sortKey !== 'rarity') return null;
     const map = new Map<Rarity, CollectionEntry[]>();
     for (const r of RARITY_ORDER) map.set(r, []);
     for (const entry of sorted) map.get(entry.tpl.rarity)!.push(entry);
     return map;
-  }, [sorted, sort]);
+  }, [sorted, collectionFilters.sortKey]);
 
   const equipmentList = useMemo(() =>
     Object.values(EQUIPMENT_DEFS).sort((a, b) => {
@@ -330,17 +304,7 @@ export function CollectionPage() {
         {view === 'characters' ? (
           <>
             {/* ── FILTRES ─────────────────────────────────────────────────── */}
-            <CollectionFilters
-              filter={filter}
-              onFilterChange={setFilter}
-              universe={universe}
-              onUniverseChange={setUniverse}
-              affinity={affinity}
-              onAffinityChange={setAffinity}
-              sort={sort}
-              onSortChange={setSort}
-              universes={UNIVERSES}
-            />
+            <CollectionFilters universes={UNIVERSES} showStatus />
 
             {/* ── RÉSULTATS ────────────────────────────────────────────────── */}
             {sorted.length === 0 && (
@@ -349,9 +313,9 @@ export function CollectionPage() {
               </div>
             )}
 
-            {sort === 'rarity' && grouped ? (
-              // Vue groupée par rareté
-              RARITY_ORDER.slice().reverse().map(r => {
+            {grouped ? (
+              // Vue groupée par rareté (plus rares d'abord, sauf tri inversé)
+              (collectionFilters.sortReversed ? RARITY_ORDER : RARITY_ORDER.slice().reverse()).map(r => {
                 const list = grouped.get(r) ?? [];
                 if (list.length === 0) return null;
                 const cfg2 = RARITY_CONFIG[r];
