@@ -12,6 +12,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: 'Nouveaux visuels : ElFuZzion et Rokoul & Ayro',
+    changes: [
+      "ElFuZzion et Rokoul & Ayro ont enfin leur illustration de carte.",
+      "Le raid Rokoul & Ayro a maintenant son portrait de boss et son décor de fond.",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: '25 nouveaux paliers : 41 à 65',
     changes: [
       "Les paliers 41 à 65 sont désormais de vrais mondes, avec leurs propres ennemis, boss et décors (auparavant, on retombait sur les mondes des paliers 1 à 25).",

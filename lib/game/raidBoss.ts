@@ -94,9 +94,6 @@ export const EMINENCE_SHADOW_BOSS: RaidBossDef = {
   dropTable: [...buildRaidDropTable(['masque_cid', 'epee_slime', 'slime_eminence']), titleDropEntry(RAID_TITLES.eminence_shadow)],
 };
 
-// Visuels pas encore dessinés : spritePath/bgImagePath pointent vers des
-// fichiers absents, la carte retombe donc sur bgGradient et le combat sur les
-// initiales (voir BossSprite dans RaidSprites.tsx).
 export const ROKOUL_AYRO_BOSS: RaidBossDef = {
   id:          'rokoul_ayro',
   name:        'Rokoul & Ayro',
