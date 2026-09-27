@@ -10,6 +10,7 @@
 // à jour pour que resetGame() (qui fait set(makeInitial())) réinitialise bien
 // TOUT l'état d'un coup. Les fichiers slices/*.ts, eux, n'exportent que des
 // actions (aucune valeur par défaut), pour ne jamais diverger de makeInitial().
+import type { CohesionResult } from '@/lib/game/cohesion';
 import {
   GameState, EquipmentSlot, Rarity,
 } from '@/types/game';
@@ -88,6 +89,8 @@ export interface CharacterSlice {
   levelUpCharacter: (templateId: string) => void;
   evolveCharacter: (templateId: string) => void;
   getTotalDps: () => BigNum;
+  // Cohésion d'équipe (combat de l'accueil uniquement) — voir lib/game/cohesion.ts
+  getTeamCohesion: () => CohesionResult;
   getCharDpsBreakdown: (templateId: string) => { base: BigNum; typeMult: number; final: BigNum };
   equipCharacter: (id: string, slot: number) => void;
   unequipCharacter: (slot: number) => void;

@@ -11,6 +11,7 @@ import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
+import { computeCohesion } from '@/lib/game/cohesion';
 import { getGoldChestCost, getGoldGainMultiplier, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnMulScalar, type BigNum } from '@/lib/game/bignum';
@@ -169,7 +170,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const withSyn = bnMulScalar(calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies), anomalySynMult);
     const ultMult = get().getDpsMultiplierFor(templateId);
 
-    const base     = bnMulScalar(withSyn, ultMult * boostMult * prestigeMult * anomalyBonuses.globalDpsMult);
+    const cohesionMult = get().getTeamCohesion().mult;
+    const base     = bnMulScalar(withSyn, ultMult * boostMult * prestigeMult * anomalyBonuses.globalDpsMult * cohesionMult);
     const charAffinity = getAffinityForId(pureId);
     const anomalyTypeMult = 1 + (anomalyBonuses.typeDamageByAffinity[charAffinity] ?? 0);
     const typeMult = getAffinityMultiplier(charAffinity, getAffinityForId(get().currentEnemy?.name ?? '')) * anomalyTypeMult;
@@ -200,7 +202,13 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       const typeMult = getAffinityMultiplier(charAffinity, enemyAffinity) * anomalyTypeMult; // avantage de type + anomalies
       return bnAdd(total, bnMulScalar(withSyn, ultMult * boostMult * typeMult));
     }, BN_ZERO);
-    return bnMulScalar(teamDps, prestigeMult * anomalyBonuses.globalDpsMult);
+    const cohesionMult = get().getTeamCohesion().mult; // combat de l'accueil uniquement (pas raids/expéditions)
+    return bnMulScalar(teamDps, prestigeMult * anomalyBonuses.globalDpsMult * cohesionMult);
+  },
+  // Slot vide (ou perso introuvable) = niveau 0.
+  getTeamCohesion: () => {
+    const { equippedTeam, collection } = get();
+    return computeCohesion(equippedTeam.map(id => (id ? collection[id]?.level ?? 0 : 0)));
   },
   equipCharacter: (id, slot) => {
     const character = get().collection[id];

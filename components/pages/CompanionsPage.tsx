@@ -12,9 +12,10 @@ import { calcCharDps } from '@/lib/game/formulas';
 import { EQUIPMENT_SLOT_LABELS, EQUIPMENT_SLOTS, RARITY_CONFIG, type CharacterTemplate, type EquipmentSlot, type OwnedCharacter } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { getAffinityForId } from '@/lib/game/affinities';
-import { bnCompare, type BigNum } from '@/lib/game/bignum';
+import { bnCompare, bnMulScalar, type BigNum } from '@/lib/game/bignum';
 import { AffinityBadge } from '@/components/ui/AffinityBadge';
 import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
+import { CohesionBadge } from '@/components/ui/CohesionBadge';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { CollectionFilters, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
@@ -179,6 +180,7 @@ function StatsSummary({ ownedCount, equippedCount, totalDps }: { ownedCount: num
         <div key={stat.label} className="companion-stats__card" style={{ borderColor: `${stat.color}22` }}>
           <div className="companion-stats__label">{stat.label}</div>
           <div className="companion-stats__value" style={{ color: stat.color }}>{stat.value}</div>
+          {stat.label === 'DPS total équipe' && <div style={{ marginTop: 4 }}><CohesionBadge /></div>}
         </div>
       ))}
     </div>
@@ -517,6 +519,7 @@ export function CompanionsPage() {
     collectionAffinity,
     collectionSort,
     setCollectionFilters,
+    getTeamCohesion,
   } = useGameStore();
 
   const [selSlot, setSelSlot] = useState<number | null>(null);
@@ -552,7 +555,8 @@ export function CompanionsPage() {
   const activeSynergies = computeActiveSynergies(equippedTeam);
   const selectedSynergy = selectedTpl ? activeSynergies.find(s => s.def.universe === selectedTpl.universe) ?? null : null;
 
-  const totalDps = calculateEquippedTeamDps(equippedTeam, collection);
+  // DPS affiché = DPS de l'accueil hors bonus globaux : on y applique la cohésion d'équipe.
+  const totalDps = bnMulScalar(calculateEquippedTeamDps(equippedTeam, collection), getTeamCohesion().mult);
 
   const selectedDps = selectedTpl && selectedCharacter ? calcCharDps(selectedTpl, selectedCharacter) : 0;
   const selectedEquipMult = selectedCharacter && selectedTpl ? getEquipmentMultiplier(selectedCharacter, selectedTpl) : 1;

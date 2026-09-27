@@ -12,6 +12,19 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: "Nouveau : cohésion d'équipe",
+    changes: [
+      "Le DPS du combat de l'accueil dépend désormais de la cohésion de ton équipe : plus les niveaux de tes 4 compagnons sont proches, plus tu gagnes de DPS (jusqu'à +20 %).",
+      "Tant que l'écart moyen de niveau avec ton compagnon le plus haut reste de 10 niveaux ou moins, tu profites du bonus maximal de +20 %.",
+      "Un gros écart de niveau entre tes compagnons donne un malus (jusqu'à −20 %). Ce malus est très léger en début de partie et devient plus exigeant quand ton équipe monte en niveau.",
+      "Un slot de compagnon vide compte comme un compagnon de niveau 0 : remplis tes 4 slots !",
+      "La cohésion s'affiche sous le DPS d'équipe dans le combat, l'onglet Améliorations et l'onglet Compagnons : un smiley content 😄 en cas de bonus, un smiley rouge de colère 😡 en cas de malus.",
+      "Survole la cohésion pour voir le détail : jauge, niveau le plus haut, écart moyen, écart toléré, slots vides et un conseil pour l'améliorer.",
+      "La cohésion ne s'applique ni aux raids ni aux expéditions.",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: "Correctif : drop d'équipement sur tous les ennemis",
     changes: [
       "Les boss et le dernier ennemi avant la vague 10 peuvent désormais eux aussi faire tomber de l'équipement (auparavant, ils n'en donnaient jamais).",

@@ -14,6 +14,7 @@ import { parseInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId } from '@/lib/game/affinities';
 import { CollectionFilters, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
 import { BN_ZERO, bnCompare, bnGte, bnLt, bnToNumber } from '@/lib/game/bignum';
+import { CohesionBadge } from '@/components/ui/CohesionBadge';
 
 const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
@@ -300,6 +301,7 @@ export function UpgradesPage() {
             <div key={s.label} className="panel" style={{ padding:'16px 18px' }}>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
               <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.7, color:s.color, lineHeight:1.05 }}>{s.val}</div>
+              {s.label === 'DPS' && <div style={{ marginTop:6 }}><CohesionBadge size="md" /></div>}
             </div>
           ))}
         </div>

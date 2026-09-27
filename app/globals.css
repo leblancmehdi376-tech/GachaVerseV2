@@ -728,3 +728,15 @@ html, body {
   .upgrades-stat-grid    { grid-template-columns: 1fr !important; }
   .synergy-all-grid      { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
+
+/* ── Badge de cohésion d'équipe (components/ui/CohesionBadge.tsx) ── */
+@keyframes cohesionAngry {
+  0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 3px rgba(239,68,68,0.7)); }
+  25%      { transform: scale(1.12) rotate(-8deg); filter: drop-shadow(0 0 7px rgba(239,68,68,1)); }
+  75%      { transform: scale(1.12) rotate(8deg); filter: drop-shadow(0 0 7px rgba(239,68,68,1)); }
+}
+.cohesion-badge__emoji { display: inline-block; }
+.cohesion-badge--bad .cohesion-badge__emoji { animation: cohesionAngry 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .cohesion-badge--bad .cohesion-badge__emoji { animation: none; filter: drop-shadow(0 0 5px rgba(239,68,68,0.9)); }
+}

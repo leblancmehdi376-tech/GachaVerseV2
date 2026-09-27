@@ -4,6 +4,7 @@ import { computeActiveSynergies } from '@/lib/game/synergies';
 import { bnFromNumber, bnGt, bnMul, type BigNum } from '@/lib/game/bignum';
 import type { Enemy } from '@/types/game';
 import { AllyCard } from './AllyCard';
+import { CohesionBadge } from '@/components/ui/CohesionBadge';
 
 const ONE = bnFromNumber(1);
 
@@ -124,6 +125,7 @@ export function TeamBar({
             <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
               {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
             </div>
+            <div style={{ marginTop:3 }}><CohesionBadge /></div>
           </div>
         </div>
 
