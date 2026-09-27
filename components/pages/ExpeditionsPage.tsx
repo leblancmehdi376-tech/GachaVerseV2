@@ -219,8 +219,14 @@ function CharSelector({ def, onConfirm, onClose }: {
 
 /* ── Carte expédition active ────────────────────────────────────────────── */
 function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
-  const { claimExpedition, cancelExpedition } = useGameStore();
+  const { claimExpedition, cancelExpedition, debugFinishExpedition } = useGameStore();
   const [, tick] = useState(0);
+  // [DEV] Bouton "finir l'expédition" affiché uniquement en local, jamais en prod.
+  const isLocalDev = typeof window !== 'undefined' && (
+    process.env.NODE_ENV === 'development' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname.startsWith('127.')
+  );
   useEffect(() => { const id = setInterval(() => tick(n => n + 1), 1000); return () => clearInterval(id); }, []);
 
   const def = EXPEDITION_DEFS.find(d => d.id === exp.defId);
@@ -282,6 +288,20 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
             ? <button onClick={() => claimExpedition(exp.id)} className="btn-primary" style={{ padding:'8px 16px', fontSize:12.4 }}>RÉCLAMER</button>
             : <button onClick={() => cancelExpedition(exp.id)} className="btn-secondary" style={{ padding:'6px 12px', fontSize:12, cursor:'pointer' }}>ANNULER</button>
           }
+          {!done && isLocalDev && (
+            <button
+              onClick={() => debugFinishExpedition(exp.id)}
+              title="[DEV] Terminer l'expédition instantanément (localhost uniquement)"
+              style={{
+                display:'inline-flex', alignItems:'center', justifyContent:'center', gap:6,
+                background:'rgba(239,68,68,0.18)', border:'1px solid #ef4444',
+                borderRadius:8, padding:'8px 14px', cursor:'pointer',
+              }}
+            >
+              <span style={{ fontSize:14 }}>⏩</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12.4, color:'#f87171', letterSpacing:0.5 }}>FINIR</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

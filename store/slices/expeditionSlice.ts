@@ -266,6 +266,18 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
     }));
   },
 
+  // Debug localhost uniquement (voir bouton dans ExpeditionsPage) : ramène la
+  // fin de l'expédition à maintenant pour pouvoir la réclamer tout de suite.
+  debugFinishExpedition: (instanceId) => {
+    const now = correctedNow();
+    set(s => ({
+      expeditionActive: s.expeditionActive.map(e =>
+        e.id === instanceId && !e.claimed && e.endTime > now
+          ? { ...e, endTime: now, startTime: Math.min(e.startTime, now - 1) }
+          : e),
+    }));
+  },
+
   canCraft: (recipeId) => {
     const recipe = CRAFT_RECIPES.find(r => r.id === recipeId);
     if (!recipe) return { ok:false, missing:['Recette introuvable'] };

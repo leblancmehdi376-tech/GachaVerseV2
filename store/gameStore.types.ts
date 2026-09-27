@@ -357,6 +357,8 @@ export interface ExpeditionActions {
   startExpedition: (defId: string, characterIds: string[]) => void;
   claimExpedition: (instanceId: string) => void;
   cancelExpedition: (instanceId: string) => void;
+  /** Debug localhost uniquement : termine instantanément une expédition. */
+  debugFinishExpedition: (instanceId: string) => void;
   getDropCount: (dropId: string) => number;
   consumeDrop: (dropId: string, quantity: number) => boolean;
   canCraft: (recipeId: string) => { ok: boolean; missing: string[] };

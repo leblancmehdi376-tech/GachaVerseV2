@@ -113,13 +113,14 @@ export function EnemyHud({
                 onClick={e => { e.stopPropagation(); onDebugKill(); }}
                 title="[DEV] Tuer le mob instantanément (localhost uniquement)"
                 style={{
-                  display:'inline-flex', alignItems:'center', gap:4,
-                  background:'rgba(239,68,68,0.18)', border:'1px solid #ef4444',
-                  borderRadius:6, padding:'2px 8px', cursor:'pointer',
+                  display:'inline-flex', alignItems:'center', gap:6,
+                  background:'rgba(239,68,68,0.22)', border:'1.5px solid #ef4444',
+                  borderRadius:8, padding:'6px 16px', cursor:'pointer',
+                  boxShadow:'0 0 10px rgba(239,68,68,0.35)',
                 }}
               >
-                <span style={{ fontSize:11 }}>☠</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:10.5, color:'#f87171', letterSpacing:0.5 }}>KILL</span>
+                <span style={{ fontSize:16 }}>☠</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, color:'#f87171', letterSpacing:1 }}>KILL</span>
               </button>
             )}
           </div>
