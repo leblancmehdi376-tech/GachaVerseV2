@@ -12,6 +12,25 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: 'Compadex : comptage fiabilisé',
+    changes: [
+      "Le Compadex ne compte plus les personnages ou équipements qui n'existent plus dans le jeu (renommés ou retirés) : les succès « Compadex Complet » et « Compadex Absolu » exigent désormais vraiment tout ce qui existe actuellement.",
+    ],
+  },
+  {
+    date: '27/09/2026',
+    title: 'Benimaru rejoint la Forge',
+    changes: [
+      "Nouveau personnage à forger : Benimaru (Légendaire, Tensei Slime), obtenu contre 30 Cornes de Kijin. Recette débloquée dès le palier 9, bien plus accessible que les recettes Primordiales.",
+      "L'expédition « Esplanade de Tempest » ramène désormais des Cornes de Kijin au lieu des Éclats de Duplication.",
+      "Benimaru (Tensei Slime) n'est plus obtenable dans les bannières : il s'obtient uniquement à la Forge.",
+      "Les Éclats de Duplication sont supprimés (ainsi que leur recette « Invocation Divine ») : ceux que tu possédais ont été convertis en Cornes de Kijin, 1 pour 1.",
+      "Les expéditions sont désormais triées par rareté (de ce qu'elles permettent d'obtenir), de la plus commune à la plus rare.",
+      "Les recettes de la Forge et l'onglet « Mes drops » sont eux aussi triés par rareté du personnage à forger.",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: '31 nouvelles armes spéciales',
     changes: [
       "3 armes Transcendantes : Épée cauchemardesque (Nightmare Grimm), Sixième Œil (Satoru Gojo) et Truite Saumonée (Niyunishi).",

@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useGameStore, ActiveExpedition } from '@/store/gameStore';
-import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasCharacterWhitelist, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasCharacterWhitelist, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty, getExpeditionRarity } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
+import { RARITY_CONFIG, RARITY_ORDER_ASC, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
 import { AFFINITY_CONFIG, getAffinityForId } from '@/lib/game/affinities';
@@ -438,7 +438,9 @@ export function ExpeditionsPage() {
 
   const filtered = EXPEDITION_DEFS
     .filter(d => tabOf(d) === filter)
-    .sort((a, b) => a.minTeamDps - b.minTeamDps || a.duration - b.duration);
+    .sort((a, b) =>
+      RARITY_ORDER_ASC.indexOf(getExpeditionRarity(a)) - RARITY_ORDER_ASC.indexOf(getExpeditionRarity(b))
+      || a.minTeamDps - b.minTeamDps || a.duration - b.duration);
 
   // Arrivée depuis la Forge (clic sur un ingrédient) : bascule sur le bon
   // onglet, scroll jusqu'à la carte et la met en surbrillance quelques secondes.

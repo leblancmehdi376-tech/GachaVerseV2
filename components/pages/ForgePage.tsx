@@ -3,9 +3,20 @@ import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe, EXPEDITION_DEFS } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { RARITY_CONFIG, Rarity } from '@/types/game';
+import { RARITY_CONFIG, RARITY_ORDER_ASC, Rarity } from '@/types/game';
 import { getEquipmentDef, getSpecialWeaponGroup, SPECIAL_WEAPON_FUSION_COST, SPECIAL_WEAPON_FUSION_RARITIES } from '@/lib/game/items';
 import { isTemplateOwned } from '@/lib/game/editions';
+
+// Recettes et drops triés par rareté du personnage forgé (du plus commun au
+// plus rare), puis par palier requis ; un drop sans recette passe en dernier.
+const rarityRank = (r?: Rarity) => (r ? RARITY_ORDER_ASC.indexOf(r) : RARITY_ORDER_ASC.length);
+const SORTED_RECIPES = [...CRAFT_RECIPES].sort((a, b) =>
+  rarityRank(a.reward.rarity) - rarityRank(b.reward.rarity) || a.palierRequired - b.palierRequired);
+const dropRank = (dropId: string) => {
+  const i = SORTED_RECIPES.findIndex(r => r.ingredients.some(ing => ing.type === 'drop' && ing.id === dropId));
+  return i < 0 ? SORTED_RECIPES.length : i;
+};
+const SORTED_DROPS = [...PALIER_DROPS].sort((a, b) => dropRank(a.id) - dropRank(b.id));
 
 function IngredientRow({ type, id, quantity, label }: { type: string; id: string; quantity: number; label: string }) {
   const { expeditionDropInventory: dropInventory, collection, championInventory, focusExpedition } = useGameStore();
@@ -301,7 +312,7 @@ export function ForgePage() {
 
         {tab === 'recipes' ? (
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            {CRAFT_RECIPES.map(r => <RecipeCard key={r.id} recipe={r} />)}
+            {SORTED_RECIPES.map(r => <RecipeCard key={r.id} recipe={r} />)}
           </div>
         ) : tab === 'weapons' ? (
           /* ── Fusion d'armes spéciales ── */
@@ -320,7 +331,7 @@ export function ForgePage() {
               </div>
             ) : (
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:12 }}>
-                {PALIER_DROPS.map(drop => {
+                {SORTED_DROPS.map(drop => {
                   const count = dropInventory[drop.id] ?? 0;
                   if (count === 0) return null;
                   const expDef = EXPEDITION_DEFS.find(x => x.rewards.dropId === drop.id);

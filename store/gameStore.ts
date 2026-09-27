@@ -28,6 +28,7 @@ import { createAchievementSlice } from './slices/achievementSlice';
 import { createPrestigeSlice } from './slices/prestigeSlice';
 import { createUltimateSlice } from './slices/ultimateSlice';
 import { createExpeditionSlice, initialDefAffinities, backfillDefAffinities } from './slices/expeditionSlice';
+import { migrateLegacyDrops } from '@/lib/game/expeditions';
 import { createMineSlice } from './slices/mineSlice';
 import { createAnomalySlice } from './slices/anomalySlice';
 import { migrateAnomalies } from '@/lib/game/anomalies';
@@ -290,6 +291,9 @@ export const useGameStore = create<GameStore>()(
         // retombe sur un tirage à la volée à CHAQUE lecture (donc à chaque
         // render) au lieu d'un type stable jusqu'au claim de l'expédition.
         merged.expeditionDefAffinities = backfillDefAffinities(merged.expeditionDefAffinities ?? {});
+        // Conversion des drops d'expédition retirés du jeu vers leur remplaçant
+        // (voir migrateLegacyDrops), à chaque réhydratation comme les backfills.
+        merged.expeditionDropInventory = migrateLegacyDrops(merged.expeditionDropInventory ?? {});
         // Migration ponctuelle Événement -> Raid (voir migrateLegacyRaidQuestIds) :
         // rattrape immédiatement les quêtes déjà tirées sous l'ancien id/label
         // "boss d'événement", tourne à CHAQUE réhydratation comme les autres

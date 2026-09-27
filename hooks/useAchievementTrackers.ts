@@ -7,6 +7,7 @@ import { CHARACTER_POOL } from '@/lib/game/characters';
 import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { makeInstanceKey } from '@/lib/game/editions';
+import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
 import {
   trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection,
   trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige,
@@ -105,8 +106,8 @@ export function useAchievementTrackers() {
   }, [col, equippedTeam]);
 
   useEffect(() => {
-    const charSeenCount = Object.keys(compadexCharactersSeen).length;
-    const equipSeenCount = Object.keys(compadexEquipmentSeen).length;
+    const charSeenCount = countSeenCharacters(compadexCharactersSeen);
+    const equipSeenCount = countSeenEquipment(compadexEquipmentSeen);
     trackCompadexCharacters(charSeenCount);
     trackCompadexEquipment(equipSeenCount);
     trackCompadexBoth(charSeenCount >= CHARACTER_POOL.length, equipSeenCount >= Object.keys(EQUIPMENT_DEFS).length);

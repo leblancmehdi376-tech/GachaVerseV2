@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  EXPEDITION_DEFS, ExpeditionDef, hasRealUniverse, needsRolledAffinity,
+  EXPEDITION_DEFS, ExpeditionDef, hasRealUniverse, needsRolledAffinity, migrateLegacyDrops, getExpeditionRarity,
   computeDropAttempts, rollExpeditionRewards, getDropTiers,
 } from './expeditions';
 import { CHARACTER_POOL } from './characters';
@@ -233,5 +233,24 @@ describe('getDropTiers', () => {
   it('retourne un tableau vide pour une expédition sans aucun drop (ni item ni gemmes)', () => {
     const def = makeDef({ rewards: { coinsMin: 0, coinsMax: 100 } });
     expect(getDropTiers(def)).toEqual([]);
+  });
+});
+
+describe('migrateLegacyDrops', () => {
+  it('convertit les Éclats de Duplication en Cornes de Kijin (1 pour 1)', () => {
+    expect(migrateLegacyDrops({ duplication_shards: 12, corne_kijin: 3, potala: 5 }))
+      .toEqual({ corne_kijin: 15, potala: 5 });
+  });
+
+  it('laisse un inventaire sans drop retiré inchangé', () => {
+    const inv = { corne_kijin: 3 };
+    expect(migrateLegacyDrops(inv)).toBe(inv);
+  });
+});
+
+describe('getExpeditionRarity', () => {
+  it('prend la rareté du personnage forgé avec le drop', () => {
+    expect(getExpeditionRarity(EXPEDITION_DEFS.find(d => d.id === 'esplanade_tempest')!)).toBe('L');
+    expect(getExpeditionRarity(EXPEDITION_DEFS.find(d => d.id === 'patrol_easblue')!)).toBe('T');
   });
 });

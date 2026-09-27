@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import { BN_ZERO, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
 import { migrateLegacyRaidQuestIds } from '@/store/gameStoreHelpers';
+import { migrateLegacyDrops } from '@/lib/game/expeditions';
 import type { Quest } from '@/store/gameStore.types';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 
@@ -261,6 +262,12 @@ function applyRemoteState(rawData: Record<string, unknown>) {
     if (Array.isArray(data.quests)) data.quests = fixed.quests;
     if (Array.isArray(data.weeklyQuests)) data.weeklyQuests = fixed.weeklyQuests;
     if (Array.isArray(data.raidQuests)) data.raidQuests = fixed.raidQuests;
+  }
+
+  // Même conversion des drops retirés que côté local (voir gameStore.ts::merge
+  // et migrateLegacyDrops).
+  if (data.expeditionDropInventory && typeof data.expeditionDropInventory === 'object') {
+    data.expeditionDropInventory = migrateLegacyDrops(data.expeditionDropInventory as Record<string, number>);
   }
 
   useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);

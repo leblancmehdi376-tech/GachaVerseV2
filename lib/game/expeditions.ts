@@ -101,13 +101,33 @@ export const PALIER_DROPS: PalierDrop[] = [
   { id:'manche_sabre',   name:'Manche de Sabre Nichirin', icon:'🗡️', description:'Poignée forgée pour recevoir une lame Nichirin.',          palier:25, universName:'Demon Slayer'         },
   { id:'bijou_divin',    name:'Bijou Divin',            icon:'⚡', description:'Artefact des dieux de Ragnarök.',                            palier:31, universName:'Valkyrie Apocalypse'  },
   { id:'ame_humaine',    name:'Âme Humaine',            icon:'❤',  description:'L\'une des 7 âmes humaines du monde souterrain.',           palier:38, universName:'Undertale'            },
-  { id:'duplication_shards', name:'Éclat de Duplication', icon:'🔮', description:'Permet de dupliquer un objet ou une essence.',           palier:9,  universName:'Tensei Slime'         },
   { id:'oeuf_dragon_primordial', name:'Œuf de Dragon Primordial', icon:'🥚', description:'Menfin on dirait vachement des œufs de poules quand même.', palier:11, universName:'Monde des Douze' },
+  { id:'corne_kijin',    name:'Corne de Kijin',         icon:'👹', description:'Corne d\'un ogre nommé par Rimuru, encore chaude des flammes noires de Benimaru.', palier:9, universName:'Tensei Slime' },
   { id:'pierre_evolution', name:'Pierre d\'Évolution',  icon:'🔷', description:'Catalyseur mystique nécessaire pour faire évoluer un personnage vers sa forme suivante.', palier:3, universName:'Mystique' },
 ];
 
 export function getPalierDrop(id: string): PalierDrop | undefined {
   return PALIER_DROPS.find(d => d.id === id);
+}
+
+// Drops retirés du jeu, convertis 1 pour 1 dans leur remplaçant au chargement
+// d'une sauvegarde (local ET cloud, voir gameStore.ts::merge et
+// cloudSaveSync.ts) : ex. les Éclats de Duplication de l'Esplanade de Tempest,
+// remplacés par les Cornes de Kijin (recette Benimaru).
+const LEGACY_DROP_REPLACEMENTS: Record<string, string> = {
+  duplication_shards: 'corne_kijin',
+};
+
+export function migrateLegacyDrops(inventory: Record<string, number>): Record<string, number> {
+  if (!Object.keys(LEGACY_DROP_REPLACEMENTS).some(id => id in inventory)) return inventory;
+  const result = { ...inventory };
+  for (const [oldId, newId] of Object.entries(LEGACY_DROP_REPLACEMENTS)) {
+    if (!(oldId in result)) continue;
+    const qty = result[oldId] ?? 0;
+    delete result[oldId];
+    if (qty > 0) result[newId] = (result[newId] ?? 0) + qty;
+  }
+  return result;
 }
 
 // ── Recettes de forge ────────────────────────────────────────────────────
@@ -245,18 +265,20 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     ],
     reward: { type:'character', characterId:'elfuzzion', rarity:'M', label:'ElFuZzion', icon:'🥚' },
   },
-  // ── Récompense bonus ────────────────────────────────────────────────────
+  // ── Tensei Slime ─────────────────────────────────────────────────────────
+  // Recette "accessible" : Légendaire, débloquée dès le palier 9 (au lieu du
+  // palier Primordial des autres recettes de personnage).
   {
-    id: 'gem_bundle',
-    name: 'Invocation Divine',
-    icon: '🌟',
-    description: 'Convertis des fragments interdimensionnels en pierres d\'invocation.',
-    lore: 'Les voyageurs entre dimensions collectent bien des choses...',
-    palierRequired: 5,
+    id: 'benimaru_ts',
+    name: 'Benimaru',
+    icon: '👹',
+    description: 'Rassemble les Cornes de Kijin pour rallier Benimaru, commandant en chef des armées de Tempest.',
+    lore: '"Rimuru-sama, laissez-moi réduire vos ennemis en cendres." — Benimaru',
+    palierRequired: RARITY_GATES.L.unlockPalier,
     ingredients: [
-      { type:'drop', id:'duplication_shards', quantity:10, label:'Éclat de Duplication' },
+      { type:'drop', id:'corne_kijin', quantity:30, label:'Corne de Kijin' },
     ],
-    reward: { type:'gems', amount:50, label:'+50 Neko-Gemmes', icon:'💎' },
+    reward: { type:'character', characterId:'benimaru_ts', rarity:'L', label:'Benimaru', icon:'👹' },
   },
 ];
 
@@ -428,10 +450,10 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────
   {
-    id:'esplanade_tempest', name:'Esplanade de Tempest', icon:'🔮', universe:'Tensei Slime',
-    description:'Sillonne les plaines de Tempest pour récolter des fragments magiques.',
-    duration: 8*H, slots:2, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(9)),
-    rewards:{ coinsMin:600_000, coinsMax:1_500_000, gemsMin:5, gemsMax:14, dropId:'duplication_shards', dropChance:0.65, dropQuantity:3 },
+    id:'esplanade_tempest', name:'Esplanade de Tempest', icon:'👹', universe:'Tensei Slime',
+    description:'Sillonne les plaines de Tempest aux côtés des Kijins pour récupérer leurs cornes.',
+    duration: 8*H, slots:2, palierRequired:9, minTeamDps: referenceTeamDps('L'),
+    rewards:{ coinsMin:600_000, coinsMax:1_500_000, gemsMin:5, gemsMax:14, dropId:'corne_kijin', dropChance:0.65, dropQuantity:3 },
   },
   // ── Longues (12-24h) ────────────────────────────────────────────────────
   {
@@ -488,6 +510,19 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
   ...EQUIP_UNLOCK_EXPEDITIONS,
   ...EQUIP_DROP_UNLOCK_EXPEDITIONS,
 ];
+
+// ── Rareté d'une expédition (tri de l'affichage) ─────────────────────────
+// Rareté de ce que l'expédition sert à obtenir : le personnage forgé avec son
+// drop, la rareté d'équipement débloquée, sinon la rareté typique de son palier.
+export function getExpeditionRarity(def: ExpeditionDef): Rarity {
+  if (def.unlocksEquipRarity) return def.unlocksEquipRarity;
+  if (def.unlocksEquipDropRarity) return def.unlocksEquipDropRarity;
+  if (def.rewards.dropId) {
+    const recipe = CRAFT_RECIPES.find(r => r.ingredients.some(i => i.type === 'drop' && i.id === def.rewards.dropId));
+    if (recipe?.reward.rarity) return recipe.reward.rarity;
+  }
+  return rarityForPalier(def.palierRequired);
+}
 
 // ── Récompenses d'expédition (seule source de vérité pour les formules) ───
 // Bonus de TENTATIVES de drop à rendements décroissants (pas de palier fixe à

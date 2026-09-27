@@ -1028,7 +1028,7 @@ export function getCharacterById(id: string): CharacterTemplate | undefined {
 // ne doivent jamais apparaître au gacha, sinon leur exclusivité n'a plus de sens.
 export const GACHA_EXCLUDED_IDS = new Set([
   // Récompenses de recettes de Forge (lib/game/expeditions.ts)
-  'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks', 'elfuzzion',
+  'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks', 'elfuzzion', 'benimaru_ts',
   // Drops de boss de raid (lib/game/raidBoss.ts)
   'jinwoo', 'arthur_leywin', 'cid_kagenou', 'rokoul_ayro',
 ]);

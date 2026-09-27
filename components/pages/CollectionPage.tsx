@@ -14,6 +14,7 @@ import { CollectionFilters, COLLECTION_RARITY_ORDER, CollectionFilterMode, Colle
 import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { BN_ZERO, bnCompare } from '@/lib/game/bignum';
+import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 
@@ -252,7 +253,7 @@ export function CollectionPage() {
   // (jamais remis à zéro par le Prestige — voir compadexCharactersSeen) —
   // contrairement à l'ancien ratio "possédés", basé sur la collection
   // ACTUELLE (vidée au Prestige).
-  const compadexCharCount = useMemo(() => Object.keys(compadexCharactersSeen).length, [compadexCharactersSeen]);
+  const compadexCharCount = useMemo(() => countSeenCharacters(compadexCharactersSeen), [compadexCharactersSeen]);
 
   // ── Filtrage ────────────────────────────────────────────────────────────
   const filtered = useMemo(() =>
@@ -282,7 +283,7 @@ export function CollectionPage() {
 
   // Compadex équipements : nombre d'ids DÉJÀ obtenus au moins une fois, à vie
   // (jamais remis à zéro par le Prestige — voir compadexEquipmentSeen).
-  const compadexEquipCount = useMemo(() => Object.keys(compadexEquipmentSeen).length, [compadexEquipmentSeen]);
+  const compadexEquipCount = useMemo(() => countSeenEquipment(compadexEquipmentSeen), [compadexEquipmentSeen]);
 
   const charPct  = Math.round((compadexCharCount / CHARACTER_POOL.length) * 100);
   const equipPct = Math.round((compadexEquipCount / equipmentList.length) * 100);
