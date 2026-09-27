@@ -38,7 +38,7 @@ export const GACHA_BANNERS: GachaBanner[] = [
   {
     id: 'vol1', title: 'GACHA VERSE VOL.1', subtitle: 'Tous les personnages', pool: BANNER_POOL,
     featuredIds: ['qin_shi_huang', 'goku', 'gilgamesh', 'rayquaza', 'luffy', 'limule'],
-    featuredForms: { limule: 1 },
+    featuredForms: { limule: 2 },
     theme: { accent: '#a855f7', hi: '#d8b4fe', dark: '#12071f', deep: '#4c1d95', glow: 'rgba(168,85,247,0.35)' },
   },
   {
