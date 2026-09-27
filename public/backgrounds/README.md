@@ -1,20 +1,15 @@
 # 🖼️ Backgrounds des Paliers
 
-Place tes backgrounds pixel-art ici avec ces noms exacts :
-
-| Fichier            | Palier              |
-|--------------------|---------------------|
-| bg_palier_1.png    | Plaine Verdoyante   |
-| bg_palier_2.png    | Désert de Feu       |
-| bg_palier_3.png    | Forêt Maudite       |
-| bg_palier_4.png    | Cité Céleste        |
-| bg_palier_5.png    | Abysses Cosmiques   |
+Un fichier par palier, nommé `bg_palier_<N>.webp` (N = id du palier dans
+`lib/game/paliers.ts`). Actuellement : paliers 1 à 65.
 
 ## Specs recommandées
-- Format : PNG (supporte la transparence)
+- Format : WebP (convertir les PNG/JPG avant de les ajouter — renommer
+  l'extension ne suffit pas, le fichier doit être réellement encodé en WebP)
 - Résolution : 1280×720 ou 1920×1080
-- Style : pixel-art, imageRendering: pixelated activé automatiquement
-- Si le fichier est absent → fallback SVG animé s'affiche automatiquement
+- Si le fichier est absent → fallback sur le dégradé `bgGradient` du palier
+- Au-delà du dernier palier défini dans `PALIERS`, le fond boucle
+  (voir `components/game/battle-zone/PalierBg.tsx`)
 
 ## Tip
 Le jeu applique un overlay sombre sur le bas et le haut de l'image
