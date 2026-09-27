@@ -5,6 +5,7 @@ import { ActiveUltsBar } from '@/components/game/UltAnimation';
 import { PixelSprite } from '@/components/ui/PixelSprite';
 import { formatNumber } from '@/lib/game/format';
 import { getPalierConfig } from '@/lib/game/paliers';
+import { ENEMY_SPRITES_ASSET_VERSION } from '@/lib/game/enemies';
 import { getAffinityForId } from '@/lib/game/affinities';
 import { RandomEventOverlay } from '@/components/game/events/RandomEventOverlay';
 import { BattleParticles } from '@/components/game/BattleParticles';
@@ -112,7 +113,7 @@ export function BattleZone() {
           <div className={currentEnemy.isBoss?'anim-boss':'anim-idle'}
             style={{ position:'relative', zIndex:1, transform:'scaleX(-1)', pointerEvents:'none',
               filter:currentEnemy.isBoss?'drop-shadow(0 0 28px rgba(239,68,68,0.85)) drop-shadow(0 0 60px rgba(239,68,68,0.3)) drop-shadow(0 12px 24px rgba(0,0,0,0.95))':`drop-shadow(0 0 16px ${cfg.accentColor}77) drop-shadow(0 10px 20px rgba(0,0,0,0.9))` }}>
-            <PixelSprite src={currentEnemy.spritePath} alt={currentEnemy.name}
+            <PixelSprite src={currentEnemy.spritePath} alt={currentEnemy.name} assetVersion={ENEMY_SPRITES_ASSET_VERSION}
               size={currentEnemy.isBoss?294:231} rarity={currentEnemy.isBoss?'L':'C'}
               style={ currentEnemy.isBoss
                 ? { height:'clamp(189px, 42vh, 315px)', width:'auto', maxWidth:'min(89.25vw, 378px)', maxHeight:'clamp(189px, 42vh, 315px)' }

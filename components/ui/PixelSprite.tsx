@@ -5,6 +5,7 @@ import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/l
 interface Props {
   src: string; alt: string; size?: number;
   rarity?: Rarity; className?: string; style?: React.CSSProperties;
+  assetVersion?: number;   // ajouté en ?v= pour contourner le cache après remplacement du fichier
 }
 
 function Placeholder({ size, rarity, alt }: { size: number; rarity?: Rarity; alt: string }) {
@@ -27,13 +28,14 @@ function Placeholder({ size, rarity, alt }: { size: number; rarity?: Rarity; alt
   );
 }
 
-export function PixelSprite({ src, alt, size = 64, rarity, className = '', style }: Props) {
+export function PixelSprite({ src, alt, size = 64, rarity, className = '', style, assetVersion }: Props) {
   // GIF/SVG : pas de cascade d'extension (formats déjà explicites et non interchangeables)
   const isGif = src.toLowerCase().endsWith('.gif');
   const isSvg = src.toLowerCase().endsWith('.svg');
   const skipCascade = isGif || isSvg;
 
-  const candidates = skipCascade ? [src] : buildImageCandidates(stripKnownExtension(src));
+  const baseCandidates = skipCascade ? [src] : buildImageCandidates(stripKnownExtension(src));
+  const candidates = assetVersion ? baseCandidates.map(c => `${c}?v=${assetVersion}`) : baseCandidates;
   const { src: resolvedSrc, failed, onError } = useFallbackImage(candidates);
 
   if (failed || !resolvedSrc) return <Placeholder size={size} rarity={rarity} alt={alt} />;

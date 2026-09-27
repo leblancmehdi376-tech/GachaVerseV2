@@ -21,6 +21,11 @@ interface EnemyDef {
   isBoss?: boolean;
 }
 
+// Même mécanisme que NEW_CARDS_ASSET_VERSION (lib/game/cardAssets.ts) : les
+// sprites sont mis en cache 30 jours sous une URL fixe, incrémenter cette
+// version force le retéléchargement après un remplacement de fichiers.
+export const ENEMY_SPRITES_ASSET_VERSION = 2;
+
 function sp(palier: number, id: string): string {
   return `sprites/enemies/palier${palier}/${id}.png`;
 }
