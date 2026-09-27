@@ -8,7 +8,7 @@ import type { CharacterTemplate } from '@/types/game';
 // retélécharger les visuels de carte après un remplacement d'assets — voir
 // FRAMEWORK_ASSET_VERSION dans types/game.ts pour le même mécanisme côté
 // cadres de rareté.
-export const NEW_CARDS_ASSET_VERSION = 4;
+export const NEW_CARDS_ASSET_VERSION = 6;
 
 // Convention de nommage des visuels de carte : "NomDuPerso_Synergie_EvoN"
 // (Synergie = univers du perso, voir lib/game/synergies.ts) — remplace

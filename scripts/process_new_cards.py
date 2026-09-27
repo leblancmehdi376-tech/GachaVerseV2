@@ -23,7 +23,7 @@ import re
 import sys
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageFilter
 
 RAW_DIR = Path('public/sprites/new_cards_raw')
 OUT_DIR = Path('public/sprites/new_cards_processed')
@@ -65,7 +65,7 @@ X_CENTER_OVERRIDES = {
     'Fern_Frieren_Evo0': 0.62,
     'Kojiro_TheElusiveSamurai_Evo0': 0.62,
     'LuckyCyan_ToBeHeroX_Evo0': 0.38,
-    'LightYagami_DeathNote_Evo0': 0.66,
+    'LightYagami_DeathNote_Evo0': 0.76,
     'L_DeathNote_Evo0': 0.60,
     'ReiAyanami_Evangelion_Evo0': 0.33,
     'Pappag_OnePiece_Evo0': 0.20,
@@ -77,6 +77,38 @@ X_CENTER_OVERRIDES = {
     'Amumu_LeagueofLegends_Evo0': 0.62,
     'Shaco_LeagueofLegends_Evo0': 0.58,
     'Jack8_Tekken_Evo0': 0.27,
+    # Recentrages demandés après coup (sujet trop à gauche / à droite).
+    'Garp_OnePiece_Evo0': 0.50,
+    'Frieren_Frieren_Evo0': 0.45,
+    'JosephJoestar_JoJosBizarreAdventure_Evo0': 0.70,
+    'Kinger_DigitalCircus_Evo0': 0.37,
+    'Pride_FullmetalAlchemistBrotherhood_Evo0': 0.43,
+    'Yui_SwordArtOnline_Evo0': 0.42,
+    'Yui_SwordArtOnline_Evo1': 0.47,
+    'Ahri_LeagueofLegends_Evo0': 0.62,
+    'DioBrando_JoJosBizarreAdventure_Evo0': 0.56,
+    'SoulEvans_SoulEater_Evo0': 0.36,
+    'JillValentine_ResidentEvil_Evo0': 0.42,
+    'Shisui_LesCarnetsdelApothicaire_Evo0': 0.43,
+    'Hades_ValkyrieApocalypse_Evo0': 0.55,
+    'Maliketh_EldenRing_Evo1': 0.68,
+}
+
+# Zoom par perso (>1 = fenêtre de recadrage plus petite que la plus grande
+# possible ; <1 = dézoom, le débordement est comblé par un fond flouté) : permet de décaler le sujet sur l'axe qui ne serait sinon pas
+# rogné (ex: remonter un sujet trop bas sur une image paysage), en combinaison
+# avec X_CENTER_OVERRIDES / VERTICAL_BIAS_OVERRIDES.
+ZOOM_OVERRIDES = {
+    'Garp_OnePiece_Evo0': 1.35,
+    'Hades_ValkyrieApocalypse_Evo0': 1.1,
+    'JosephJoestar_JoJosBizarreAdventure_Evo0': 1.4,
+    'DioBrando_JoJosBizarreAdventure_Evo0': 1.3,
+    'Emolga_Pokemon_Evo0': 1.4,
+    'SoulEvans_SoulEater_Evo0': 1.25,
+    'Ryuk_DeathNote_Evo0': 1.5,
+    'RyomenSukuna_JujutsuKaisen_Evo0': 1.1,
+    # Dézoom : le bas de la fenêtre (flouté) reste caché sous le bandeau.
+    'Maliketh_EldenRing_Evo1': 0.8,
 }
 
 # Quand il faut rogner en hauteur (image plus étroite que la cible), on
@@ -89,33 +121,54 @@ VERTICAL_BIAS_OVERRIDES = {
     'Loki_ValkyrieApocalypse_Evo1': 0.12,
     # Sujets tout en bas de portraits très allongés.
     'IzukuMidoriya_MyHeroAcademia_Evo3': 0.90,
-    'JosephJoestar_JoJosBizarreAdventure_Evo0': 0.85,
+    'JosephJoestar_JoJosBizarreAdventure_Evo0': 1.0,
     'Temari_Naruto_Evo0': 0.90,
+    'Garp_OnePiece_Evo0': 1.0,
+    'Garp_OnePiece_Evo2': 1.0,
+    'RyomenSukuna_JujutsuKaisen_Evo0': 1.0,
+    'Maliketh_EldenRing_Evo1': 0.0,
+    'DioBrando_JoJosBizarreAdventure_Evo0': 1.0,
+    'Emolga_Pokemon_Evo0': 1.0,
+    'Ryuk_DeathNote_Evo0': 1.0,
+    'SoulEvans_SoulEater_Evo0': 0.30,
+    'Hades_ValkyrieApocalypse_Evo0': 0.7,
 }
 
 
 def crop_to_ratio(img: Image.Image, base: str) -> Image.Image:
     w, h = img.size
     ratio = w / h
+    zoom = ZOOM_OVERRIDES.get(base, 1.0)
 
-    if abs(ratio - TARGET_RATIO) < 1e-6:
+    if abs(ratio - TARGET_RATIO) < 1e-6 and zoom == 1.0:
         return img
 
+    # Plus grande fenêtre au ratio cible, réduite d'un facteur `zoom`.
     if ratio > TARGET_RATIO:
-        # Image trop large : on rogne en largeur.
-        new_w = round(h * TARGET_RATIO)
-        x_center = X_CENTER_OVERRIDES.get(base, 0.5)
-        x0 = round(x_center * w - new_w / 2)
-        x0 = max(0, min(x0, w - new_w))
-        return img.crop((x0, 0, x0 + new_w, h))
+        new_w, new_h = h * TARGET_RATIO, h
     else:
-        # Image trop haute/étroite : on rogne en hauteur.
-        new_h = round(w / TARGET_RATIO)
-        excess = h - new_h
-        vertical_bias = VERTICAL_BIAS_OVERRIDES.get(base, VERTICAL_BIAS)
-        y0 = round(excess * vertical_bias)
-        y0 = max(0, min(y0, h - new_h))
-        return img.crop((0, y0, w, y0 + new_h))
+        new_w, new_h = w, w / TARGET_RATIO
+    new_w, new_h = round(new_w / zoom), round(new_h / zoom)
+
+    x_center = X_CENTER_OVERRIDES.get(base, 0.5)
+    x0 = round(x_center * w - new_w / 2)
+    x0 = max(min(0, w - new_w), min(x0, max(0, w - new_w)))
+
+    vertical_bias = VERTICAL_BIAS_OVERRIDES.get(base, VERTICAL_BIAS)
+    y0 = round((h - new_h) * vertical_bias)
+    y0 = max(min(0, h - new_h), min(y0, max(0, h - new_h)))
+
+    if new_w <= w and new_h <= h:
+        return img.crop((x0, y0, x0 + new_w, y0 + new_h))
+
+    # Zoom < 1 : la fenêtre déborde de l'image, on comble avec une version
+    # floutée et agrandie de l'image elle-même.
+    scale = max(new_w / w, new_h / h)
+    bg = img.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
+    bx, by = (bg.width - new_w) // 2, (bg.height - new_h) // 2
+    bg = bg.crop((bx, by, bx + new_w, by + new_h)).filter(ImageFilter.GaussianBlur(24))
+    bg.paste(img, (-x0, -y0))
+    return bg
 
 
 def main():
