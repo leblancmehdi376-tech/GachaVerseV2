@@ -448,13 +448,13 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     allowedCharacters: ['twix', 'igloo_na'],
     rewards:{ coinsMin:100_000, coinsMax:300_000, gemsMin:1, gemsMax:3, dropId:'oeuf_dragon_primordial', dropChance:0.75, dropQuantity:1 },
   },
-  // ── Moyennes (6-12h) ────────────────────────────────────────────────────
   {
     id:'esplanade_tempest', name:'Esplanade de Tempest', icon:'👹', universe:'Tensei Slime',
     description:'Sillonne les plaines de Tempest aux côtés des Kijins pour récupérer leurs cornes.',
-    duration: 8*H, slots:2, palierRequired:9, minTeamDps: referenceTeamDps('L'),
-    rewards:{ coinsMin:600_000, coinsMax:1_500_000, gemsMin:5, gemsMax:14, dropId:'corne_kijin', dropChance:0.65, dropQuantity:3 },
+    duration: 2*H, slots:2, palierRequired:9, minTeamDps: referenceTeamDps('L'),
+    rewards:{ coinsMin:600_000, coinsMax:1_500_000, gemsMin:5, gemsMax:14, dropId:'corne_kijin', dropChance:0.75, dropQuantity:3 },
   },
+  // ── Moyennes (6-12h) ────────────────────────────────────────────────────
   // ── Longues (12-24h) ────────────────────────────────────────────────────
   {
     id:'farm_namek', name:'Retour sur Namek', icon:'💫', universe:'Dragon Ball Z',

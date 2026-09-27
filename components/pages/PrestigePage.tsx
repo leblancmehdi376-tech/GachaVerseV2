@@ -119,17 +119,28 @@ function bonusReelItem(type: PrestigeBonusType): LootReelItem {
   return { icon: def.icon, label: def.label, color: BONUS_COLORS[type] };
 }
 
-function PrestigeReelPopup({ result, onClose }: { result: PrestigeBonusType; onClose: () => void }) {
-  const [reel] = useState(() => buildReel(result, () => PRESTIGE_BONUS_TYPES[Math.floor(Math.random() * PRESTIGE_BONUS_TYPES.length)]).map(bonusReelItem));
-  const def = PRESTIGE_BONUS_DEFS[result];
+const MULTI_SPIN_COUNT = 5;
+
+function PrestigeReelPopup({ results, onClose }: { results: PrestigeBonusType[]; onClose: () => void }) {
+  const [reels] = useState(() => results.map(r =>
+    buildReel(r, () => PRESTIGE_BONUS_TYPES[Math.floor(Math.random() * PRESTIGE_BONUS_TYPES.length)]).map(bonusReelItem)));
+  // Regroupe les résultats identiques (ex. "💥 DPS ×2").
+  const counts = results.reduce<Partial<Record<PrestigeBonusType, number>>>((acc, r) => ({ ...acc, [r]: (acc[r] ?? 0) + 1 }), {});
   return (
     <LootReelPopup
-      reel={reel}
-      revealedTitle="BONUS OBTENU"
+      reels={reels}
+      revealedTitle={results.length > 1 ? 'BONUS OBTENUS' : 'BONUS OBTENU'}
       onClose={onClose}
       revealed={(
-        <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
-          <span>{def.icon}</span>{def.label}
+        <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'6px 16px' }}>
+          {(Object.entries(counts) as [PrestigeBonusType, number][]).map(([type, n]) => {
+            const def = PRESTIGE_BONUS_DEFS[type];
+            return (
+              <div key={type} style={{ fontFamily:'var(--f-title)', fontSize: results.length > 1 ? 16.5 : 20.6, fontWeight:900, color:'#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{def.icon}</span>{def.label}{n > 1 ? ` ×${n}` : ''}
+              </div>
+            );
+          })}
         </div>
       )}
     />
@@ -144,7 +155,7 @@ export function PrestigePage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [savingPrestige, setSavingPrestige] = useState(false);
   const [syncPending, setSyncPending] = useState(false);
-  const [rollResult, setRollResult] = useState<PrestigeBonusType | null>(null);
+  const [rollResults, setRollResults] = useState<PrestigeBonusType[] | null>(null);
 
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (pas le lifetime) : c'est
   // ce qui gate l'éligibilité, pour éviter de pouvoir represtiger en boucle
@@ -172,9 +183,14 @@ export function PrestigePage() {
     }
   };
 
-  const handleSpendToken = () => {
-    const result = spendToken();
-    if (result) setRollResult(result);
+  const handleSpendTokens = (count: number) => {
+    const results: PrestigeBonusType[] = [];
+    for (let i = 0; i < count; i++) {
+      const result = spendToken();
+      if (!result) break;
+      results.push(result);
+    }
+    if (results.length > 0) setRollResults(results);
   };
 
   return (
@@ -202,7 +218,7 @@ export function PrestigePage() {
           syncPending={syncPending}
         />
       )}
-      {rollResult && <PrestigeReelPopup result={rollResult} onClose={() => setRollResult(null)} />}
+      {rollResults && <PrestigeReelPopup results={rollResults} onClose={() => setRollResults(null)} />}
 
       <div style={{ maxWidth:900, margin:'0 auto', display:'flex', flexDirection:'column', gap:22 }}>
 
@@ -257,10 +273,17 @@ export function PrestigePage() {
             <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:4 }}>JETONS DE PRESTIGE</div>
             <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26.8, color:'#fbbf24' }}>🎫 {tokens}</div>
           </div>
-          <button onClick={handleSpendToken} disabled={tokens <= 0 || rollResult !== null} className={tokens > 0 ? 'btn-primary' : 'btn-secondary'}
-            style={{ padding:'12px 24px', fontSize:14.4, cursor: (tokens > 0 && rollResult === null) ? 'pointer' : 'not-allowed', opacity: (tokens > 0 && rollResult === null) ? 1 : 0.4 }}>
-            🎲 Utiliser un jeton — bonus aléatoire
-          </button>
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+            {[1, MULTI_SPIN_COUNT].map(count => {
+              const can = tokens >= count && rollResults === null;
+              return (
+                <button key={count} onClick={() => handleSpendTokens(count)} disabled={!can} className={can ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding:'12px 24px', fontSize:14.4, cursor: can ? 'pointer' : 'not-allowed', opacity: can ? 1 : 0.4 }}>
+                  {count === 1 ? '🎲 Utiliser un jeton — bonus aléatoire' : `🎲 Utiliser ${count} jetons`}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Mémoire des Rangs — achat direct, pas de tirage */}

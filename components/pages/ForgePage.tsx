@@ -6,6 +6,7 @@ import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, RARITY_ORDER_ASC, Rarity } from '@/types/game';
 import { getEquipmentDef, getSpecialWeaponGroup, SPECIAL_WEAPON_FUSION_COST, SPECIAL_WEAPON_FUSION_RARITIES } from '@/lib/game/items';
 import { isTemplateOwned } from '@/lib/game/editions';
+import { ForgeRevealOverlay } from './ForgeRevealOverlay';
 
 // Recettes et drops triés par rareté du personnage forgé (du plus commun au
 // plus rare), puis par palier requis ; un drop sans recette passe en dernier.
@@ -82,6 +83,11 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
 function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
   const { canCraft, craftRecipe, getRunPeakPalier, collection } = useGameStore();
   const [expanded, setExpanded] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+
+  const handleCraft = () => {
+    if (craftRecipe(recipe.id) && recipe.reward.type === 'character') setRevealing(true);
+  };
 
   const locked = getRunPeakPalier() < recipe.palierRequired;
   const { ok } = canCraft(recipe.id);
@@ -133,7 +139,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
           {locked
             ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', fontWeight:700 }}>🔒 Palier {recipe.palierRequired} requis</div>
             : ok
-              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', fontWeight:700, animation:'ultraPulse 1.5s ease-in-out infinite' }}>✦ PRÊT À FORGER{alreadyOwned ? ' (doublon)' : ''}</div>
+              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--purple-glow)', fontWeight:700, padding:'3px 10px', borderRadius:999, background:'rgba(147,51,234,0.14)', border:'1px solid rgba(192,132,252,0.35)', animation:'forgeReadyGlow 2s ease-in-out infinite' }}>✦ PRÊT À FORGER{alreadyOwned ? ' (doublon)' : ''}</div>
               : <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700 }}>⚗ {recipe.ingredients.length} ingrédients requis{alreadyOwned ? ' (doublon)' : ''}</div>
           }
         </div>
@@ -187,7 +193,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
           {/* Bouton craft */}
           {!locked && (
             <button
-              onClick={() => craftRecipe(recipe.id)}
+              onClick={handleCraft}
               disabled={!ok}
               className={ok ? 'btn-primary' : 'btn-secondary'}
               style={{ padding:'12px', fontSize:14.4, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
@@ -196,6 +202,10 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
             </button>
           )}
         </div>
+      )}
+
+      {revealing && recipe.reward.characterId && (
+        <ForgeRevealOverlay characterId={recipe.reward.characterId} recipeIcon={recipe.icon} onClose={() => setRevealing(false)} />
       )}
     </div>
   );

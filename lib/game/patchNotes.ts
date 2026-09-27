@@ -20,6 +20,41 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: 'Forge, expéditions & confort',
+    sections: [
+      {
+        icon: '⚗️',
+        title: 'Forge',
+        changes: [
+          "Forger un personnage déclenche désormais une **animation de révélation** : cercle runique, flash, puis apparition de la carte.",
+          "Le statut **Prêt à forger** s'affiche maintenant dans un badge violet discret, sans le halo doré qui bavait autour.",
+        ],
+      },
+      {
+        icon: '🧭',
+        title: 'Expéditions',
+        changes: [
+          "L'expédition **Esplanade de Tempest** (Tensei Slime) dure désormais **2h** au lieu de **8h**.",
+        ],
+      },
+      {
+        icon: '⭐',
+        title: 'Prestige',
+        changes: [
+          "Nouveau bouton **Utiliser 5 jetons** : 5 roulettes tournent en même temps.",
+        ],
+      },
+      {
+        icon: '🎰',
+        title: 'Gacha',
+        changes: [
+          "Le **volume de gacha** sélectionné est mémorisé : en revenant sur la page, tu retombes sur le dernier volume ouvert.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: 'Maj v2.6',
     sections: [
       {

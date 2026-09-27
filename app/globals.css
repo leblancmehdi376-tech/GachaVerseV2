@@ -456,6 +456,35 @@ html, body {
   50%     { opacity: 0.6; box-shadow: 0 0 24px rgba(251,191,36,0.8); }
 }
 
+@keyframes forgeReadyGlow {
+  0%,100% { text-shadow: 0 0 4px rgba(192,132,252,0.35); border-color: rgba(192,132,252,0.3); }
+  50%     { text-shadow: 0 0 8px rgba(192,132,252,0.7);  border-color: rgba(192,132,252,0.6); }
+}
+
+/* Animation de forge (ForgeRevealOverlay) */
+@keyframes forgeFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes forgeSpin   { to { transform: rotate(360deg); } }
+@keyframes forgeSpark {
+  0%   { translate: 0 -110px; opacity: 0; }
+  30%  { opacity: 1; }
+  100% { translate: 0 0; opacity: 0; }
+}
+@keyframes forgeCharge {
+  0%   { transform: scale(0.8) rotate(0deg);  filter: drop-shadow(0 0 4px #c084fc); }
+  70%  { transform: scale(1.1) rotate(-6deg); filter: drop-shadow(0 0 18px #e879f9); }
+  85%  { transform: scale(1.05) rotate(6deg); }
+  100% { transform: scale(1.35) rotate(0deg); filter: drop-shadow(0 0 40px #fff); }
+}
+@keyframes forgeFlash  { from { opacity: 0.9; } to { opacity: 0; } }
+@keyframes forgeCardIn {
+  from { transform: scale(0.3) rotateY(90deg); opacity: 0; }
+  to   { transform: scale(1) rotateY(0deg);    opacity: 1; }
+}
+@keyframes forgeRise {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
 .anim-idle    { animation: idleFloat 3.5s ease-in-out infinite; }
 .anim-boss    { animation: bossPulse 1.5s ease-in-out infinite; }
 .anim-shake   { animation: shakeHit 0.25s ease-out; }

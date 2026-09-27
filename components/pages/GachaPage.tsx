@@ -13,6 +13,17 @@ import { PageScroll } from '@/components/ui/Page';
 import { GachaRevealOverlay } from './gacha/GachaRevealOverlay';
 import type { Res } from './gacha/gachaTypes';
 
+// Dernier volume de gacha sélectionné, mémorisé en local uniquement (pas
+// dans la sauvegarde cloud) pour réatterrir dessus en revenant sur la page.
+const BANNER_STORAGE_KEY = 'gv_gacha_banner';
+function loadBannerId(): BannerId {
+  try {
+    const saved = localStorage.getItem(BANNER_STORAGE_KEY);
+    if (saved && GACHA_BANNERS.some(b => b.id === saved)) return saved as BannerId;
+  } catch {}
+  return DEFAULT_BANNER_ID;
+}
+
 // 1 Jeton d'Anomalie tous les 100 tirages gacha cumulés (voir gachaSlice.ts).
 export function getPullsToNextToken(totalGachaPulls: number): { pullsInCycle: number; pullsToNextToken: number } {
   const pullsInCycle = (totalGachaPulls ?? 0) % 100;
@@ -60,7 +71,11 @@ export function GachaPage() {
   const [pulling,     setPulling]     = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [showPool,    setShowPool]    = useState(false);
-  const [bannerId,    setBannerId]    = useState<BannerId>(DEFAULT_BANNER_ID);
+  const [bannerId,    setBannerIdState] = useState<BannerId>(loadBannerId);
+  const setBannerId = (id: BannerId) => {
+    setBannerIdState(id);
+    try { localStorage.setItem(BANNER_STORAGE_KEY, id); } catch {}
+  };
   // Incrémenté à chaque clic sans assez de gemmes : relance l'animation du compteur.
   const [gemShake,    setGemShake]    = useState(0);
   const onInsufficient = () => setGemShake(n => n + 1);
