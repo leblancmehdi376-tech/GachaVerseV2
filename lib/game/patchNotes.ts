@@ -12,6 +12,15 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: '25 nouveaux paliers : 41 à 65',
+    changes: [
+      "Les paliers 41 à 65 sont désormais de vrais mondes, avec leurs propres ennemis, boss et décors (auparavant, on retombait sur les mondes des paliers 1 à 25).",
+      "Au programme : Dark Souls 3, Resident Evil, My Hero Academia, Jujutsu Kaisen, Darkest Dungeon, Clair Obscur, Shangri-La Frontier, Inazuma Eleven, Okami, Valorant, Frieren, l'Arc Cell de Dragon Ball Z, Baroque Works (One Piece), Zelda Ocarina of Time, The Elusive Samurai, Ravenswatch, Mario, Hell's Paradise, Gachiakuta, To Be Hero X, Death Note, Evangelion, JoJo, Soul Eater et Hunter x Hunter.",
+      "Au-delà du palier 65, les mondes recommencent en boucle à partir du palier 1 (les stats des ennemis continuent de monter).",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: 'Nouveaux logos de synergies',
     changes: [
       "25 synergies affichent désormais le logo de leur univers au lieu d'un emoji : Clair Obscur, Darkest Dungeon, Dark Souls, Death Note, Evangelion, Frieren, Gachiakuta, Hell's Paradise, Hunter x Hunter, Inazuma Eleven, JoJo, Jujutsu Kaisen, Mario, My Hero Academia, Okami, Ravenswatch, Resident Evil, Shangri-La Frontier, Solo Leveling, Soul Eater, The Beginning After The End, The Eminence in Shadow, The Elusive Samurai, To Be Hero X et Valorant.",

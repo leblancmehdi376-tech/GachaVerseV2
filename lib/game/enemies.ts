@@ -1,5 +1,6 @@
 import { Enemy } from '@/types/game';
 import { type BigNum, bnMulScalar, bnPow } from './bignum';
+import { PALIERS } from './paliers';
 
 export const COIN_BASE = 60;
 export const COIN_GROWTH = 1.13;
@@ -562,6 +563,331 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
     { name:'Maliketh',             sprite: sp(40,'maliketh'),       hpMult:2.2           },
     { name:'Radagon',              sprite: sp(40,'radagon'),        isBoss:true, hpMult:10 },
   ],
+  // ── PALIER 41 : Dark Souls 3 — Le Royaume de Lothric ─────────────────────
+  41: [
+    { name:'Iudex Gundyr',                  sprite: sp(41,'iudex_gundyr')                                          },
+    { name:'Veilleurs des Abysses',         sprite: sp(41,'veilleur_des_abysses'),                    hpMult:1.15  },
+    { name:'Chef Suprême Wolnir',           sprite: sp(41,'chef_supreme_wolnir'),                     hpMult:1.3   },
+    { name:'Grand Maître Sulyvahn',         sprite: sp(41,'grand_maitre_sulyvahn'),                   hpMult:1.45  },
+    { name:"Oceiros, le Roi Illuminé",      sprite: sp(41,'oceiros_le_roi_illumine'),                 hpMult:1.6   },
+    { name:'Yhorm le Géant',                sprite: sp(41,'yhorm_le_geant'),                          hpMult:1.75  },
+    { name:'Aldrich, Dévoreur des Dieux',   sprite: sp(41,'aldrich_le_devoreur_des_dieux'),           hpMult:1.9   },
+    { name:'Lothric & Lorian',              sprite: sp(41,'lothric_prince_cadet_et_lorian_prince_aine'), hpMult:2.05 },
+    { name:'Chevalier Esclave Gael',        sprite: sp(41,'chevalier_esclave_gael'),                  hpMult:2.2   },
+    { name:"L'Âme des Cendres",             sprite: sp(41,'l_ame_des_cendres'),         isBoss:true, hpMult:10    },
+  ],
+  // ── PALIER 42 : Resident Evil — L'Incident d'Umbrella ────────────────────
+  42: [
+    { name:'Ashley Graham',        sprite: sp(42,'ashley_graham')                        },
+    { name:'Sherry Birkin',        sprite: sp(42,'sherry_birkin'),   hpMult:1.15          },
+    { name:'Ethan Winters',        sprite: sp(42,'ethan_winters'),   hpMult:1.3           },
+    { name:'Claire Redfield',      sprite: sp(42,'claire_redfield'), hpMult:1.45          },
+    { name:'Jill Valentine',       sprite: sp(42,'jill_valentine'),  hpMult:1.6           },
+    { name:'HUNK',                 sprite: sp(42,'hunk'),            hpMult:1.75          },
+    { name:'Ada Wong',             sprite: sp(42,'ada_wong'),        hpMult:1.9           },
+    { name:'Chris Redfield',       sprite: sp(42,'chris_redfield'),  hpMult:2.05          },
+    { name:'Leon S. Kennedy',      sprite: sp(42,'leon_s_kennedy'),  hpMult:2.2           },
+    { name:'Albert Wesker',        sprite: sp(42,'albert_wesker'),   isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 43 : My Hero Academia — La Ligue des Vilains ──────────────────
+  43: [
+    { name:'Shuichi Iguchi',       sprite: sp(43,'shuichi_iguchi')                        },
+    { name:'Jin Bubaigawara',      sprite: sp(43,'jin_bubaigawara'),  hpMult:1.15          },
+    { name:'Blackmist',            sprite: sp(43,'blackmist'),        hpMult:1.3           },
+    { name:'Himiko Toga',          sprite: sp(43,'himiko_toga'),      hpMult:1.45          },
+    { name:'Stain',                sprite: sp(43,'stain'),            hpMult:1.6           },
+    { name:'Kai Chisaki',          sprite: sp(43,'kai_chisaki'),      hpMult:1.75          },
+    { name:'Brainless',            sprite: sp(43,'brainless'),        hpMult:1.9           },
+    { name:'Dabi',                 sprite: sp(43,'dabi'),             hpMult:2.05          },
+    { name:'Tomura Shigaraki',     sprite: sp(43,'tomura_shigaraki'), hpMult:2.2           },
+    { name:'All For One',          sprite: sp(43,'all_for_one'),      isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 44 : Jujutsu Kaisen — Incident de Shibuya ─────────────────────
+  44: [
+    { name:'Takako Uro',           sprite: sp(44,'takako_uro')                           },
+    { name:'Haruta Shigemo',       sprite: sp(44,'haruta_shigemo'),   hpMult:1.15          },
+    { name:'Ogami',                sprite: sp(44,'ogami'),            hpMult:1.3           },
+    { name:'Hanami',               sprite: sp(44,'hanami'),           hpMult:1.45          },
+    { name:'Jogo',                 sprite: sp(44,'jogo'),             hpMult:1.6           },
+    { name:'Choso',                sprite: sp(44,'choso'),            hpMult:1.75          },
+    { name:'Mahito',               sprite: sp(44,'mahito'),           hpMult:1.9           },
+    { name:'Toji Fushiguro',       sprite: sp(44,'toji_fushigoro'),   hpMult:2.05          },
+    { name:'Suguru Geto',          sprite: sp(44,'suguru_geto'),      hpMult:2.2           },
+    { name:'Ryomen Sukuna',        sprite: sp(44,'ryomen_sukuna'),    isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 45 : Darkest Dungeon — Le Manoir Ancestral ────────────────────
+  45: [
+    { name:'Brigand',              sprite: sp(45,'brigand')                              },
+    { name:'Le Nécromancien',      sprite: sp(45,'necromancien'),     hpMult:1.15          },
+    { name:'Shambler',             sprite: sp(45,'shambler'),         hpMult:1.3           },
+    { name:'Shrieker',             sprite: sp(45,'shrieker'),         hpMult:1.45          },
+    { name:'La Sirène',            sprite: sp(45,'sirene'),           hpMult:1.6           },
+    { name:'Le Collectionneur',    sprite: sp(45,'collector'),        hpMult:1.75          },
+    { name:'Le Prince Porc',       sprite: sp(45,'prince_porc'),      hpMult:1.9           },
+    { name:'La Comtesse',          sprite: sp(45,'countess'),         hpMult:2.05          },
+    { name:"L'Endormi",            sprite: sp(45,'l_endormi'),        hpMult:2.2           },
+    { name:'Le Cœur Sombre',       sprite: sp(45,'le_coeur_sombre'),  isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 46 : Clair Obscur — Expédition 33 ─────────────────────────────
+  46: [
+    { name:"L'Évêque",             sprite: sp(46,'l_eveque')                             },
+    { name:'Goblu',                sprite: sp(46,'goblu'),             hpMult:1.15         },
+    { name:'Sakapatate Ultime',    sprite: sp(46,'sakapatate_ultime'), hpMult:1.3          },
+    { name:'François',             sprite: sp(46,'francois'),          hpMult:1.45         },
+    { name:'Maître des Lampes',    sprite: sp(46,'maitre_des_lampes'), hpMult:1.6          },
+    { name:'Le Duelliste',         sprite: sp(46,'le_duelliste'),      hpMult:1.75         },
+    { name:'Sirène',               sprite: sp(46,'sirene'),            hpMult:1.9          },
+    { name:'Visage',               sprite: sp(46,'visage'),            hpMult:2.05         },
+    { name:'La Peintresse',        sprite: sp(46,'la_peintresse'),     hpMult:2.2          },
+    { name:'Renoir',               sprite: sp(46,'renoir'),            isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 47 : Shangri-La Frontier — Les Monstres Uniques ───────────────
+  47: [
+    { name:'Lapin Vorace',                  sprite: sp(47,'lapin_vorace')                                   },
+    { name:'Gros Serpent Vorace',           sprite: sp(47,'gros_serpent_vorace'),            hpMult:1.15    },
+    { name:'Gold Pion',                     sprite: sp(47,'gold_pion'),                      hpMult:1.3     },
+    { name:'Lycaon, les Dents de la Nuit',  sprite: sp(47,'lycaon_les_dents_de_la_nuit'),    hpMult:1.45    },
+    { name:'Vysache',                       sprite: sp(47,'vysache'),                        hpMult:1.6     },
+    { name:'Kirin le Méchadestrier',        sprite: sp(47,'kirin_le_mechadestrier'),         hpMult:1.75    },
+    { name:'Siegwurm, Maître des Cieux',    sprite: sp(47,'siegwurm_le_maitre_des_cieux'),   hpMult:1.9     },
+    { name:"Orchestra, l'Écho Fatal",       sprite: sp(47,'orchestra_l_echo_fatal'),         hpMult:2.05    },
+    { name:"Kthaanid des Abysses",          sprite: sp(47,'kthaanid_des_abysses'),           hpMult:2.2     },
+    { name:'Wezaemon, Gardien du Tombeau',  sprite: sp(47,'wezaemon_le_gardien_du_tombeau'), isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 48 : Inazuma Eleven — Le Tournoi Mondial ──────────────────────
+  48: [
+    { name:'Dave Quagmire',        sprite: sp(48,'dave_quagmire')                        },
+    { name:'Janus',                sprite: sp(48,'janus'),            hpMult:1.15          },
+    { name:'Bryce Whitingale',     sprite: sp(48,'bryce_whitingale'), hpMult:1.3           },
+    { name:'Claude Beacons',       sprite: sp(48,'claude_beacons'),   hpMult:1.45          },
+    { name:'Caleb Stonewall',      sprite: sp(48,'caleb_stonwall'),   hpMult:1.6           },
+    { name:'Byron Love',           sprite: sp(48,'byron_love'),       hpMult:1.75          },
+    { name:'Xavier Foster',        sprite: sp(48,'xavier_foster'),    hpMult:1.9           },
+    { name:'Bailong',              sprite: sp(48,'bailong'),          hpMult:2.05          },
+    { name:'Jude Sharp',           sprite: sp(48,'jude_sharp'),       hpMult:2.2           },
+    { name:'Ray Dark',             sprite: sp(48,'ray_dark'),         isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 49 : Okami — Le Retour d'Amaterasu ────────────────────────────
+  49: [
+    { name:'Tube Fox',             sprite: sp(49,'tube_fox')                             },
+    { name:'Nagi',                 sprite: sp(49,'nagi'),             hpMult:1.15          },
+    { name:'M. & Mme Cutter',      sprite: sp(49,'m_mme_cutter'),     hpMult:1.3           },
+    { name:'Oki',                  sprite: sp(49,'oki'),              hpMult:1.45          },
+    { name:'Rao le Maléfique',     sprite: sp(49,'rao_le_malefique'), hpMult:1.6           },
+    { name:'Waka',                 sprite: sp(49,'waka'),             hpMult:1.75          },
+    { name:'Lechku',               sprite: sp(49,'lechku'),           hpMult:1.9           },
+    { name:'Nechku',               sprite: sp(49,'nechku'),           hpMult:2.05          },
+    { name:'Ninetails',            sprite: sp(49,'ninetails'),        hpMult:2.2           },
+    { name:'Yami',                 sprite: sp(49,'yami'),             isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 50 : Valorant — Le Protocole Valorant ─────────────────────────
+  50: [
+    { name:'Sage',                 sprite: sp(50,'sage')                                 },
+    { name:'Phoenix',              sprite: sp(50,'phoenix'),          hpMult:1.15          },
+    { name:'Jett',                 sprite: sp(50,'jett'),             hpMult:1.3           },
+    { name:'Raze',                 sprite: sp(50,'raze'),             hpMult:1.45          },
+    { name:'Breach',               sprite: sp(50,'breach'),           hpMult:1.6           },
+    { name:'Deadlock',             sprite: sp(50,'deadlock'),         hpMult:1.75          },
+    { name:'Neon',                 sprite: sp(50,'neon'),             hpMult:1.9           },
+    { name:'Vyse',                 sprite: sp(50,'vyse'),             hpMult:2.05          },
+    { name:'Omen',                 sprite: sp(50,'omen'),             hpMult:2.2           },
+    { name:'Yoru',                 sprite: sp(50,'yoru'),             isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 51 : Frieren — L'Examen de Mage de 1re Classe ─────────────────
+  51: [
+    { name:'Qual',                 sprite: sp(51,'qual')                                 },
+    { name:'Draht',                sprite: sp(51,'draht'),            hpMult:1.15          },
+    { name:'Linie',                sprite: sp(51,'linie'),            hpMult:1.3           },
+    { name:'Lügner',               sprite: sp(51,'lugner'),           hpMult:1.45          },
+    { name:'Sein',                 sprite: sp(51,'sein'),             hpMult:1.6           },
+    { name:'Genau',                sprite: sp(51,'genau'),            hpMult:1.75          },
+    { name:'Aura',                 sprite: sp(51,'aura'),             hpMult:1.9           },
+    { name:'Revolte',              sprite: sp(51,'revolte'),          hpMult:2.05          },
+    { name:'Frieren Sombre',       sprite: sp(51,'dark_frieren'),     hpMult:2.2           },
+    { name:'Serie',                sprite: sp(51,'serie'),            isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 52 : Dragon Ball Z — Arc Cell ─────────────────────────────────
+  52: [
+    { name:'C-19',                 sprite: sp(52,'c19')                                  },
+    { name:'Dr Gero',              sprite: sp(52,'dr_gero'),          hpMult:1.15          },
+    { name:'C-17',                 sprite: sp(52,'c17'),              hpMult:1.3           },
+    { name:'C-18',                 sprite: sp(52,'c18'),              hpMult:1.45          },
+    { name:'C-16',                 sprite: sp(52,'c16'),              hpMult:1.6           },
+    { name:'Cell (1re forme)',     sprite: sp(52,'cell_1er_forme'),   hpMult:1.75          },
+    { name:'Cell (2e forme)',      sprite: sp(52,'cell_2eme_forme'),  hpMult:1.9           },
+    { name:'Cell Jr.',             sprite: sp(52,'cell_jr'),          hpMult:2.05          },
+    { name:'Cell Parfait',         sprite: sp(52,'cell_parfait'),     hpMult:2.2           },
+    { name:'Cell Parfait (Full Power)', sprite: sp(52,'cell_parfait_full_power'), isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 53 : One Piece — Baroque Works ────────────────────────────────
+  53: [
+    { name:'Miss Valentine',       sprite: sp(53,'miss_valentine')                       },
+    { name:'Lassou',               sprite: sp(53,'lassou'),              hpMult:1.15       },
+    { name:'Mister 4',             sprite: sp(53,'mister4'),             hpMult:1.3        },
+    { name:'Miss Merry Christmas', sprite: sp(53,'miss_mery_christmas'), hpMult:1.45       },
+    { name:'Mister 3',             sprite: sp(53,'mister3'),             hpMult:1.6        },
+    { name:'Miss Doublefinger',    sprite: sp(53,'miss_doublefinger'),   hpMult:1.75       },
+    { name:'Mister 2 Bon Clay',    sprite: sp(53,'mister2'),             hpMult:1.9        },
+    { name:'Mister 1',             sprite: sp(53,'mister1'),             hpMult:2.05       },
+    { name:'Nico Robin',           sprite: sp(53,'nico_robin'),          hpMult:2.2        },
+    { name:'Crocodile',            sprite: sp(53,'crocodile'),           isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 54 : The Legend of Zelda — Ocarina of Time ────────────────────
+  54: [
+    { name:'Gohma',                sprite: sp(54,'gohma')                                },
+    { name:'Roi Dodongo',          sprite: sp(54,'roi_dodongo'),      hpMult:1.15          },
+    { name:'Barinade',             sprite: sp(54,'barinade'),         hpMult:1.3           },
+    { name:'Ganon Spectral',       sprite: sp(54,'phantom_ganon'),    hpMult:1.45          },
+    { name:'Volvagia',             sprite: sp(54,'volvagia'),         hpMult:1.6           },
+    { name:'Morpha',               sprite: sp(54,'morpha'),           hpMult:1.75          },
+    { name:'Dark Link',            sprite: sp(54,'dark_link'),        hpMult:1.9           },
+    { name:'Bongo Bongo',          sprite: sp(54,'bongo_bongo'),      hpMult:2.05          },
+    { name:'Twinrova',             sprite: sp(54,'twinrova'),         hpMult:2.2           },
+    { name:'Ganondorf',            sprite: sp(54,'ganondorf'),        isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 55 : The Elusive Samurai — La Fuite de Tokiyuki ───────────────
+  55: [
+    { name:'Kazama Genba',         sprite: sp(55,'kazama_genba')                         },
+    { name:'Fubuki',               sprite: sp(55,'fubuki'),              hpMult:1.15       },
+    { name:'Mochizuki Ayako',      sprite: sp(55,'mochizuki_ayako'),     hpMult:1.3        },
+    { name:'Suwa Yorishige',       sprite: sp(55,'suwa_yorishige'),      hpMult:1.45       },
+    { name:'Hirano Shogen',        sprite: sp(55,'hirano_shogen'),       hpMult:1.6        },
+    { name:'Mochizuki Shigenobu',  sprite: sp(55,'shigenobu_mochizuki'), hpMult:1.75       },
+    { name:'Ichikawa Sukefusa',    sprite: sp(55,'ichikawa_sukefusa'),   hpMult:1.9        },
+    { name:'Shibukawa Yoshisue',   sprite: sp(55,'yoshisue_shibukawa'),  hpMult:2.05       },
+    { name:'Ogasawara Sadamune',   sprite: sp(55,'ogasawara_sadamune'),  hpMult:2.2        },
+    { name:'Ashikaga Takauji',     sprite: sp(55,'ashikaga_takauji'),    isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 56 : Ravenswatch — Reverie ────────────────────────────────────
+  56: [
+    { name:"L'Ogre",                   sprite: sp(56,'l_ogre')                                  },
+    { name:'La Mère Goule',            sprite: sp(56,'la_mere_goule'),            hpMult:1.15    },
+    { name:'Karkinos',                 sprite: sp(56,'karkinos'),                 hpMult:1.3     },
+    { name:'Abu al-Jann',              sprite: sp(56,'abu_al_jann'),              hpMult:1.45    },
+    { name:'Stéropès',                 sprite: sp(56,'steropes'),                 hpMult:1.6     },
+    { name:'Melion',                   sprite: sp(56,'melion'),                   hpMult:1.75    },
+    { name:'Baba Yaga',                sprite: sp(56,'baba_yaga'),                hpMult:1.9     },
+    { name:'Le Maître des Griffes',    sprite: sp(56,'le_maitre_des_griffes'),    hpMult:2.05    },
+    { name:'Le Maître des Tentacules', sprite: sp(56,'le_maitre_des_tentacules'), hpMult:2.2     },
+    { name:'Le Maître sans Visage',    sprite: sp(56,'le_maitre_sans_visage'),    isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 57 : Mario — Le Royaume Champignon ────────────────────────────
+  57: [
+    { name:'Goomba',               sprite: sp(57,'goomba')                               },
+    { name:'Topi Taupe',           sprite: sp(57,'topi_taupe'),       hpMult:1.15          },
+    { name:'Pom Pom',              sprite: sp(57,'pom_pom'),          hpMult:1.3           },
+    { name:'Roi Bob-omb',          sprite: sp(57,'roi_bo_bomb'),      hpMult:1.45          },
+    { name:'Méga Goomba',          sprite: sp(57,'mega_goomba'),      hpMult:1.6           },
+    { name:'Roi Boo',              sprite: sp(57,'roi_boo'),          hpMult:1.75          },
+    { name:'Petey Piranha',        sprite: sp(57,'petey_piranha'),    hpMult:1.9           },
+    { name:'Kamek',                sprite: sp(57,'kamek'),            hpMult:2.05          },
+    { name:'Bowser Jr.',           sprite: sp(57,'bowser_jr'),        hpMult:2.2           },
+    { name:'Bowser',               sprite: sp(57,'bowser'),           isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 58 : Hell's Paradise — L'Île de Shinsenkyō ────────────────────
+  58: [
+    { name:'Chef Iwagakure',       sprite: sp(58,'chef_iwakagure')                        },
+    { name:'Shugen Yamada Asaemon',sprite: sp(58,'shugen_yamada_asaemon'), hpMult:1.15     },
+    { name:'Tao Fa',               sprite: sp(58,'ta_fa'),            hpMult:1.3           },
+    { name:'Gui Fa',               sprite: sp(58,'gui_fa'),           hpMult:1.45          },
+    { name:'Mu Dan',               sprite: sp(58,'mu_dan'),           hpMult:1.6           },
+    { name:'Ju Fa',                sprite: sp(58,'ju_fa'),            hpMult:1.75          },
+    { name:'Zhu Jin',              sprite: sp(58,'zhu_jin'),          hpMult:1.9           },
+    { name:'Soshin',               sprite: sp(58,'soshin'),           hpMult:2.05          },
+    { name:'Ran',                  sprite: sp(58,'ran'),              hpMult:2.2           },
+    { name:'Rien',                 sprite: sp(58,'rien'),             isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 59 : Gachiakuta — Les Vandales ────────────────────────────────
+  59: [
+    { name:'Firefly',              sprite: sp(59,'Firefly')                              },
+    { name:'Konza',                sprite: sp(59,'konza'),              hpMult:1.15        },
+    { name:'Momoa Rukel',          sprite: sp(59,'momoa_rukel'),        hpMult:1.3         },
+    { name:'Bundus Begalkeit',     sprite: sp(59,'bundus_begalkeit'),   hpMult:1.45        },
+    { name:'Noerde Hew Amozo',     sprite: sp(59,'noerde_hew_amozo'),   hpMult:1.6         },
+    { name:'Cthoni Andor',         sprite: sp(59,'cthoni_andor'),       hpMult:1.75        },
+    { name:'Jabber Wonger',        sprite: sp(59,'jabber_wonger'),      hpMult:1.9         },
+    { name:'Fu Orostor',           sprite: sp(59,'fu_orostor'),         hpMult:2.05        },
+    { name:'Amo Empool',           sprite: sp(59,'amo_empool'),         hpMult:2.2         },
+    { name:'Zodyl Render',         sprite: sp(59,'zodyl_render'),       isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 60 : To Be Hero X — Le Classement de la Confiance ─────────────
+  60: [
+    { name:'Little Johnny',        sprite: sp(60,'little_johnny')                        },
+    { name:'Qui Shi',              sprite: sp(60,'qui_shi'),          hpMult:1.15          },
+    { name:'Ahu',                  sprite: sp(60,'ahu'),              hpMult:1.3           },
+    { name:'Loli',                 sprite: sp(60,'loli'),             hpMult:1.45          },
+    { name:'Ling Lin',             sprite: sp(60,'ling_lin'),         hpMult:1.6           },
+    { name:'E-Soul',               sprite: sp(60,'e_soul'),           hpMult:1.75          },
+    { name:'Dragon Boy',           sprite: sp(60,'dragon_boy'),       hpMult:1.9           },
+    { name:'Smile',                sprite: sp(60,'smile'),            hpMult:2.05          },
+    { name:'Nice',                 sprite: sp(60,'nice'),             hpMult:2.2           },
+    { name:'X',                    sprite: sp(60,'x'),                isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 61 : Death Note — L'Affaire Kira ──────────────────────────────
+  61: [
+    { name:'Anthony Rester',       sprite: sp(61,'anthony_rester')                       },
+    { name:'Dalil Guillohrtha',    sprite: sp(61,'dalil_guillohrtha'), hpMult:1.15         },
+    { name:'Matt',                 sprite: sp(61,'matt'),              hpMult:1.3          },
+    { name:'Misa Amane',           sprite: sp(61,'misa_amane'),        hpMult:1.45         },
+    { name:'Mello',                sprite: sp(61,'melio'),             hpMult:1.6          },
+    { name:'Near',                 sprite: sp(61,'nate_river'),        hpMult:1.75         },
+    { name:'Rem',                  sprite: sp(61,'rem'),               hpMult:1.9          },
+    { name:'Ryuk',                 sprite: sp(61,'ryuk'),              hpMult:2.05         },
+    { name:'L',                    sprite: sp(61,'l'),                 hpMult:2.2          },
+    { name:'Light Yagami',         sprite: sp(61,'light_yagami'),      isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 62 : Evangelion — Tokyo-3 ─────────────────────────────────────
+  62: [
+    { name:'Pen Pen',              sprite: sp(62,'pen_pen')                              },
+    { name:'Toji Suzuhara',        sprite: sp(62,'toji_suzuhara'),       hpMult:1.15       },
+    { name:'Misato Katsuragi',     sprite: sp(62,'misato_katsuragi'),    hpMult:1.3        },
+    { name:'Ritsuko Akagi',        sprite: sp(62,'ritsuko_akagi'),       hpMult:1.45       },
+    { name:'Ryoji Kaji',           sprite: sp(62,'ryoji_kaji'),          hpMult:1.6        },
+    { name:'Asuka Soryu Langley',  sprite: sp(62,'asuka_soryu_langley'), hpMult:1.75       },
+    { name:'Rei Ayanami',          sprite: sp(62,'rei_ayanami'),         hpMult:1.9        },
+    { name:'Shinji Ikari',         sprite: sp(62,'shinji_ikari'),        hpMult:2.05       },
+    { name:'Kaworu Nagisa',        sprite: sp(62,'kaworu_nagisa'),       hpMult:2.2        },
+    { name:'Gendo Ikari',          sprite: sp(62,'gendo_ikari'),         isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 63 : JoJo's Bizarre Adventure — L'Héritage des Joestar ────────
+  63: [
+    { name:'Rudol von Stroheim',   sprite: sp(63,'rudol_von_strheim')                    },
+    { name:'Yukako Yamagishi',     sprite: sp(63,'yukako_yamagishi'), hpMult:1.15          },
+    { name:'Rohan Kishibe',        sprite: sp(63,'rohan_kishibe'),    hpMult:1.3           },
+    { name:'Risotto Nero',         sprite: sp(63,'risotto_nero'),     hpMult:1.45          },
+    { name:'Kars',                 sprite: sp(63,'kars'),             hpMult:1.6           },
+    { name:'Yoshikage Kira',       sprite: sp(63,'kira'),             hpMult:1.75          },
+    { name:'Funny Valentine',      sprite: sp(63,'funny_valentine'),  hpMult:1.9           },
+    { name:'Diavolo',              sprite: sp(63,'diavolo'),          hpMult:2.05          },
+    { name:'Enrico Pucci',         sprite: sp(63,'enrico_pucci'),     hpMult:2.2           },
+    { name:'Dio Brando',           sprite: sp(63,'dio_brando'),       isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 64 : Soul Eater — L'Académie Shibusen ─────────────────────────
+  64: [
+    { name:'Eruka Frog',           sprite: sp(64,'eruka_frog')                           },
+    { name:'Famille Mizune',       sprite: sp(64,'mizune_family'),        hpMult:1.15      },
+    { name:'Free',                 sprite: sp(64,'free'),                 hpMult:1.3       },
+    { name:'Masamune Nakatsukasa', sprite: sp(64,'masamune_nakatsukasa'), hpMult:1.45      },
+    { name:'Giriko',               sprite: sp(64,'giriko'),               hpMult:1.6       },
+    { name:'Mosquito',             sprite: sp(64,'mosquito'),             hpMult:1.75      },
+    { name:'Mifune',               sprite: sp(64,'mifune'),               hpMult:1.9       },
+    { name:'Chrona',               sprite: sp(64,'chrona'),               hpMult:2.05      },
+    { name:'Arachne Gorgon',       sprite: sp(64,'arachne_gorgon'),       hpMult:2.2       },
+    { name:'Medusa Gorgon',        sprite: sp(64,'medusa_gorgon'),        isBoss:true, hpMult:10 },
+  ],
+  // ── PALIER 65 : Hunter x Hunter — Les Fourmis Chimères ───────────────────
+  65: [
+    { name:'Shizuku Murasaki',     sprite: sp(65,'shizuku_murasaki')                     },
+    { name:'Machi Komacine',       sprite: sp(65,'machi_komachine'),  hpMult:1.15          },
+    { name:'Shalnark',             sprite: sp(65,'sharmalk'),         hpMult:1.3           },
+    { name:'Feitan Portor',        sprite: sp(65,'feitan_pohtoh'),    hpMult:1.45          },
+    { name:'Silva Zoldyck',        sprite: sp(65,'silva_zoldyck'),    hpMult:1.6           },
+    { name:'Hisoka',               sprite: sp(65,'hisoka'),           hpMult:1.75          },
+    { name:'Chrollo Lucilfer',     sprite: sp(65,'kuroro_lucifer'),   hpMult:1.9           },
+    { name:'Shaiapouf',            sprite: sp(65,'shauapfufu'),       hpMult:2.05          },
+    { name:'Neferpitou',           sprite: sp(65,'neferpitot'),       hpMult:2.2           },
+    { name:'Meruem',               sprite: sp(65,'meruem'),           isBoss:true, hpMult:10 },
+  ],
 };
 
 // PV du boss d'un palier (vague 10, hpMult:10) — exposé pour calibrer d'autres
@@ -573,10 +899,11 @@ export function getPalierBossHp(palier: number): BigNum {
 }
 
 export function generateEnemy(wave: number, palier: number, maxPalierReached: number = palier): Enemy {
-  // Au-delà du palier 40, on cycle sur les mondes précédents pour le thème
-  // (sprite/nom des mobs) — seul themePalier sert au lookup ci-dessous, tout
-  // le reste (PV, coins, gemmes, id) continue d'utiliser le VRAI palier.
-  const themePalier = ((palier - 1) % 40) + 1;
+  // Au-delà du dernier palier défini, on cycle sur les mondes précédents pour
+  // le thème (sprite/nom des mobs) — même cycle que getPalierConfig/PalierBg.
+  // Seul themePalier sert au lookup ci-dessous, tout le reste (PV, coins,
+  // gemmes, id) continue d'utiliser le VRAI palier.
+  const themePalier = ((palier - 1) % PALIERS.length) + 1;
   const defs   = PALIER_ENEMIES[themePalier];
   const def    = defs ? defs[wave - 1] : getFallback(wave, themePalier);
   const isBoss = def.isBoss ?? (wave === 10);

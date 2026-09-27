@@ -3,7 +3,7 @@ import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
 import { PALIERS } from '@/lib/game/paliers';
 
 export function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {
-  // Les visuels de fond n'existent que pour les paliers 1..40 — au-delà, on
+  // Les visuels de fond n'existent que pour les paliers définis dans PALIERS — au-delà, on
   // réutilise le visuel du palier cyclé (même thème/mobs que getPalierConfig).
   const cycledPalier = ((palier - 1) % PALIERS.length) + 1;
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(`/backgrounds/bg_palier_${cycledPalier}`));
