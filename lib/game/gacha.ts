@@ -9,20 +9,44 @@ export const GACHA_COSTS = { single: 10, multi10: 95, multi100: 900 };
 // personnages compris), Vol.2 uniquement les personnages de la Bannière Vol.2.
 export type BannerId = 'vol1' | 'vol2';
 
+// Couleurs propres à chaque bannière (onglet, visuel, bandeau, boutons).
+export interface BannerTheme {
+  accent:  string; // couleur principale (bordures, titres)
+  hi:      string; // variante claire (sous-titres, coûts)
+  dark:    string; // fond le plus sombre (bandeau, bas du dégradé)
+  deep:    string; // fond saturé (dégradés des boutons et de l'onglet actif)
+  glow:    string; // lueur rgba
+}
+
 export interface GachaBanner {
   id:       BannerId;
   title:    string;
   subtitle: string;
   pool:     CharacterTemplate[];
-  // Personnages mis en avant sur le visuel (Vol.2 n'a pas d'image dédiée).
-  featuredIds?: string[];
+  // Personnages mis en avant sur le visuel (collage de leurs cartes) : choisis
+  // parmi les 4 meilleures raretés (T, P, CO, S) et les illustrations nettes.
+  featuredIds: string[];
+  // Forme affichée pour certains persos vedettes (par défaut Evo0), quand une
+  // évolution a une illustration plus nette que la forme de base.
+  featuredForms?: Partial<Record<string, number>>;
+  // Affiche un badge "NEW" sur l'onglet de la bannière.
+  isNew?: boolean;
+  theme:  BannerTheme;
 }
 
 export const GACHA_BANNERS: GachaBanner[] = [
-  { id: 'vol1', title: 'GACHA VERSE VOL.1', subtitle: 'Tous les personnages', pool: BANNER_POOL },
+  {
+    id: 'vol1', title: 'GACHA VERSE VOL.1', subtitle: 'Tous les personnages', pool: BANNER_POOL,
+    featuredIds: ['qin_shi_huang', 'goku', 'gilgamesh', 'rayquaza', 'luffy', 'limule'],
+    featuredForms: { limule: 1 },
+    theme: { accent: '#a855f7', hi: '#d8b4fe', dark: '#12071f', deep: '#4c1d95', glow: 'rgba(168,85,247,0.35)' },
+  },
   {
     id: 'vol2', title: 'GACHA VERSE VOL.2', subtitle: 'Nouveaux personnages uniquement', pool: BANNER_POOL_VOL2,
-    featuredIds: ['satoru_gojo', 'frieren', 'makima', 'nightmare_grimm', 'shawn_frost', 'chiaki_nanami'],
+    isNew: true,
+    featuredIds: ['frieren', 'ryomen_sukuna', 'chiaki_nanami', 'enjin', 'luminus_valentine', 'gohan'],
+    // Pourpre : violet tirant sur le rouge, pour bien se distinguer du Vol.1.
+    theme: { accent: '#d9468f', hi: '#f9a8d4', dark: '#1a0512', deep: '#6b0f45', glow: 'rgba(217,70,143,0.35)' },
   },
 ];
 

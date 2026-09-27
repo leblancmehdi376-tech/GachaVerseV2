@@ -4,7 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { getCharacterById } from '@/lib/game/characters';
-import { getDynamicRates, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, getBanner, type BannerId } from '@/lib/game/gacha';
+import { getDynamicRates, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
 import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { makeInstanceKey } from '@/lib/game/editions';
@@ -24,6 +24,36 @@ export function formatDropRate(rate: number): string {
   return rate >= 0.01 ? `${rate.toFixed(2)}%` : rate > 0 ? `${rate.toFixed(4)}%` : '0%';
 }
 
+// Bouton de tirage : même style pour ×1/×10/×100, aux couleurs de la bannière.
+// `highlight` met en avant l'offre la plus avantageuse. Sans assez de gemmes,
+// le bouton reste cliquable (aria-disabled) pour déclencher `onInsufficient`.
+function PullButton({ theme, count, cost, enabled, pulling, onClick, onInsufficient, discount, highlight }: {
+  theme: BannerTheme; count: number; cost: number; enabled: boolean; pulling: boolean;
+  onClick: () => void; onInsufficient: () => void; discount?: string; highlight?: boolean;
+}) {
+  return (
+    <button className="gacha-pull-btn" onClick={enabled ? onClick : onInsufficient} disabled={pulling} aria-disabled={!enabled}
+      style={{
+        position:'relative', overflow:'hidden', borderRadius:12, padding:'16px 14px',
+        display:'flex', flexDirection:'column', alignItems:'center', gap:6,
+        cursor:enabled&&!pulling?'pointer':'not-allowed', opacity:enabled?1:0.4, transition:'all 0.2s',
+        background:enabled?`linear-gradient(160deg, ${theme.dark}, ${theme.deep}${highlight?'':'aa'})`:'var(--bg-card)',
+        border:`1px solid ${enabled?(highlight?theme.accent:`${theme.accent}66`):'var(--border)'}`,
+        boxShadow:enabled?`0 4px ${highlight?28:16}px ${theme.glow}, inset 0 1px 0 rgba(255,255,255,0.07)`:'none',
+      }}>
+      {discount && (
+        <div style={{ position:'absolute', top:8, right:8, background:theme.accent, color:'white', fontFamily:'var(--f-num)', fontWeight:900, fontSize:11, padding:'2px 7px', borderRadius:6 }}>{discount}</div>
+      )}
+      <span style={{ fontFamily:'var(--f-ui)', fontSize:11, fontWeight:700, letterSpacing:2, color:enabled?theme.hi:'var(--text-muted)' }}>TIRAGE</span>
+      <span style={{ fontFamily:'var(--f-num)', fontSize:28, fontWeight:900, lineHeight:1, color:enabled?'white':'var(--text-muted)', textShadow:enabled?`0 0 14px ${theme.accent}`:'none' }}>×{count}</span>
+      <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:`1px solid ${theme.accent}55`, borderRadius:8, padding:'5px 14px' }}>
+        <span style={{ fontSize:13 }}>💎</span>
+        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:17, color:enabled?theme.hi:'var(--text-muted)' }}>{cost}</span>
+      </div>
+    </button>
+  );
+}
+
 export function GachaPage() {
   const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, getRunPeakPalier, getGachaCosts, totalGachaPulls, anomalyTokens } = useGameStore();
   const [results,     setResults]     = useState<Res[]>([]);
@@ -31,7 +61,11 @@ export function GachaPage() {
   const [showOverlay, setShowOverlay] = useState(false);
   const [showPool,    setShowPool]    = useState(false);
   const [bannerId,    setBannerId]    = useState<BannerId>(DEFAULT_BANNER_ID);
+  // Incrémenté à chaque clic sans assez de gemmes : relance l'animation du compteur.
+  const [gemShake,    setGemShake]    = useState(0);
+  const onInsufficient = () => setGemShake(n => n + 1);
   const banner = getBanner(bannerId);
+  const theme  = banner.theme;
   // Taux dynamiques calculés pour le palier max atteint DEPUIS LE DERNIER
   // PRESTIGE (pas le lifetime maxPalierReached, qui ne redescend jamais).
   const maxPalierReached = getRunPeakPalier();
@@ -89,93 +123,77 @@ export function GachaPage() {
         <div style={{ display:'flex', gap:8 }}>
           {GACHA_BANNERS.map(b => {
             const active = b.id === bannerId;
+            const t = b.theme;
             return (
               <button key={b.id} onClick={() => setBannerId(b.id)}
-                style={{ flex:1, padding:'10px 14px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:active?'linear-gradient(135deg,#2d0f5e,#4c1d95)':'var(--bg-card)', border:`1px solid ${active?'rgba(168,85,247,0.7)':'var(--border)'}`, boxShadow:active?'0 0 18px rgba(168,85,247,0.25)':'none', display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                style={{ flex:1, padding:'10px 14px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:active?`linear-gradient(135deg,${t.dark},${t.deep})`:'var(--bg-card)', border:`1px solid ${active?t.accent:'var(--border)'}`, boxShadow:active?`0 0 18px ${t.glow}`:'none', display:'flex', flexDirection:'column', alignItems:'center', gap:2, position:'relative', overflow:'hidden' }}>
+                {b.isNew && (
+                  // Ruban en diagonale sur le coin haut-gauche, façon paquet cadeau.
+                  <span className="gacha-new-ribbon" style={{ position:'absolute', top:9, left:-26, width:88, background:'linear-gradient(90deg,#f59e0b,#fde047,#f59e0b)', color:'#3b1d00', fontFamily:'var(--f-num)', fontWeight:900, fontSize:10, letterSpacing:1.5, textAlign:'center', padding:'2px 0', boxShadow:'0 2px 6px rgba(0,0,0,0.5)', borderTop:'1px solid rgba(255,255,255,0.6)', borderBottom:'1px solid rgba(120,53,15,0.6)', pointerEvents:'none' }}>NEW</span>
+                )}
                 <span style={{ fontFamily:'var(--f-title)', fontSize:13.4, fontWeight:900, letterSpacing:1.5, color:active?'white':'var(--text-sub)' }}>{b.title}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontSize:11.4, color:active?'var(--purple-hi)':'var(--text-muted)' }}>{b.subtitle} · {b.pool.length}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:11.4, color:active?t.hi:'var(--text-muted)' }}>{b.subtitle} · {b.pool.length}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Bannière */}
+        {/* Bannière : cartes vedettes en éventail + bandeau de titre */}
         <div style={{
-          position:'relative', borderRadius:14, overflow:'hidden',
-          border:'1px solid var(--border-glow)',
-          boxShadow:'0 0 32px rgba(168,85,247,0.2), 0 8px 32px rgba(0,0,0,0.5)',
+          borderRadius:14, overflow:'hidden',
+          border:`1px solid ${theme.accent}99`,
+          boxShadow:`0 0 32px ${theme.glow}, 0 8px 32px rgba(0,0,0,0.5)`,
         }}>
-          {banner.featuredIds ? (
-            // Pas d'image dédiée : collage des cartes des personnages vedettes.
-            <div style={{ display:'flex', height:220, background:'#06040f' }}>
-              {banner.featuredIds.map(id => {
-                const tpl = getCharacterById(id);
-                if (!tpl) return null;
-                return (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={id} src={`/sprites/new_cards_processed/${getCardBaseName(tpl, 0)}.webp?v=${NEW_CARDS_ASSET_VERSION}`} alt={tpl.name}
-                    style={{ flex:1, minWidth:0, height:'100%', objectFit:'cover', objectPosition:'center top' }} />
-                );
-              })}
+          <div style={{ position:'relative', aspectRatio:'1000 / 300', minHeight:150, background:`radial-gradient(ellipse at 50% 35%, ${theme.deep} 0%, ${theme.dark} 70%)`, overflow:'hidden' }}>
+            {banner.featuredIds.map((id, i, all) => {
+              const tpl = getCharacterById(id);
+              if (!tpl) return null;
+              const k = i - (all.length - 1) / 2; // -2.5 … 2.5 : position dans l'éventail
+              const form = banner.featuredForms?.[id] ?? 0;
+              return (
+                // Inclinaison et flottement gérés en CSS (.gacha-fan-card, globals.css).
+                <div key={id} className="gacha-fan-card"
+                  style={{
+                    position:'absolute', left:`${50 + k * 14.5}%`, top:`${8 + k * k * 1.6}%`, width:'19%',
+                    zIndex: 10 - Math.round(Math.abs(k) * 2),
+                    '--rot': `${k * 5}deg`, '--delay': `${-i * 0.55}s`,
+                  } as React.CSSProperties}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/sprites/new_cards_processed/${getCardBaseName(tpl, form)}.webp?v=${NEW_CARDS_ASSET_VERSION}`} alt={tpl.name}
+                    style={{
+                      display:'block', width:'100%', aspectRatio:'300 / 355', objectFit:'cover', objectPosition:'center top',
+                      borderRadius:8, border:'2px solid rgba(255,255,255,0.22)',
+                      boxShadow:`0 6px 18px rgba(0,0,0,0.6), 0 0 12px ${theme.glow}`,
+                    }} />
+                </div>
+              );
+            })}
+            {/* Fondu court vers le bandeau, teinté à la couleur de la bannière */}
+            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'35%', background:`linear-gradient(0deg, ${theme.dark}, transparent)`, pointerEvents:'none', zIndex:20 }} />
+          </div>
+          <div style={{ background:`linear-gradient(90deg, ${theme.dark}, ${theme.deep}66 50%, ${theme.dark})`, borderTop:`1px solid ${theme.accent}88`, padding:'12px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+            <div>
+              <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, textShadow:`0 0 18px ${theme.accent}, 0 2px 4px rgba(0,0,0,0.8)` }}>{banner.title}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:`${theme.hi}bb` }}>
+                {banner.pool.length} personnages · 10 raretés · cartes shiny
+              </div>
             </div>
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src="/gacha_banner.png" alt="Bannière"
-              style={{ width:'100%', display:'block', imageRendering:'pixelated', maxHeight:220, objectFit:'cover', objectPosition:'center' }} />
-          )}
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'70%', background:'linear-gradient(0deg,rgba(6,4,15,0.96),transparent)', pointerEvents:'none' }} />
-          <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 24px', zIndex:2 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--purple-hi)', letterSpacing:3, marginBottom:4 }}>✦ BANNIÈRE EXCLUSIVE</div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:4, textShadow:'0 0 20px rgba(168,85,247,0.6)' }}>{banner.title}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(255,255,255,0.45)' }}>
-              {banner.pool.length} personnages · 10 raretés · cartes shiny
-            </div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:theme.hi, letterSpacing:3, border:`1px solid ${theme.accent}77`, borderRadius:20, padding:'4px 12px', background:'rgba(0,0,0,0.3)' }}>✦ BANNIÈRE EXCLUSIVE</div>
           </div>
         </div>
 
         {/* Gems + Boutons */}
         <div className="gacha-pull-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr 1fr 1fr', gap:12, alignItems:'stretch' }}>
           {/* Gemmes */}
-          <div className="panel" style={{ borderColor:'rgba(34,211,238,0.3)', padding:'16px 20px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, boxShadow:'0 0 24px rgba(34,211,238,0.1)' }}>
+          <div key={gemShake} className={`panel${gemShake > 0 ? ' gacha-gems--short' : ''}`} style={{ borderColor:'rgba(34,211,238,0.3)', padding:'16px 20px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, boxShadow:'0 0 24px rgba(34,211,238,0.1)' }}>
             <span style={{ fontSize:28.8 }}>💎</span>
-            <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24.7, color:'var(--cyan-hi)' }}>{formatNumber(nekoGems)}</span>
+            <span className="gacha-gems__count" style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24.7, color:'var(--cyan-hi)' }}>{formatNumber(nekoGems)}</span>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700, letterSpacing:1.5 }}>NEKO-GEMMES</span>
           </div>
 
-          {/* ×1 */}
-          <button onClick={doSingle} disabled={!canS || pulling}
-            style={{ background:canS?'linear-gradient(135deg,#2d0f5e,#4c1d95)':'var(--bg-card)', border:`1px solid ${canS?'rgba(139,92,246,0.6)':'var(--border)'}`, borderRadius:12, padding:20, cursor:canS&&!pulling?'pointer':'not-allowed', opacity:canS?1:0.4, transition:'all 0.2s', boxShadow:canS?'0 4px 28px rgba(109,40,217,0.35),inset 0 1px 0 rgba(255,255,255,0.07)':'none', display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
-            <span style={{ fontSize:28.8 }}>✦</span>
-            <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canS?'var(--purple-glow)':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×1</span>
-            <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(34,211,238,0.25)', borderRadius:8, padding:'6px 16px' }}>
-              <span style={{ fontSize:14.4 }}>💎</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'var(--cyan-hi)' }}>{costs.single}</span>
-            </div>
-          </button>
-
-          {/* ×10 */}
-          <button onClick={doMulti} disabled={!canM || pulling}
-            style={{ background:canM?'linear-gradient(135deg,#451a03,#7c2d12)':'var(--bg-card)', border:`1px solid ${canM?'rgba(217,119,6,0.6)':'var(--border)'}`, borderRadius:12, padding:20, cursor:canM&&!pulling?'pointer':'not-allowed', opacity:canM?1:0.4, transition:'all 0.2s', boxShadow:canM?'0 4px 28px rgba(180,83,9,0.35),inset 0 1px 0 rgba(255,255,255,0.07)':'none', display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', overflow:'hidden' }}>
-            <div style={{ position:'absolute', top:8, right:8, background:'#d97706', color:'#000', fontFamily:'var(--f-num)', fontWeight:900, fontSize:12, padding:'2px 8px', borderRadius:6 }}>-5%</div>
-            <span style={{ fontSize:28.8 }}>✦✦</span>
-            <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canM?'#fbbf24':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×10</span>
-            <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:8, padding:'6px 16px' }}>
-              <span style={{ fontSize:14.4 }}>💎</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#fbbf24' }}>{costs.multi10}</span>
-            </div>
-          </button>
-
-          {/* ×100 */}
-          <button onClick={doMulti100} disabled={!canM100 || pulling}
-            style={{ background:canM100?'linear-gradient(135deg,#1a0536,#3b0764)':'var(--bg-card)', border:`1px solid ${canM100?'rgba(168,85,247,0.7)':'var(--border)'}`, borderRadius:12, padding:20, cursor:canM100&&!pulling?'pointer':'not-allowed', opacity:canM100?1:0.4, transition:'all 0.2s', boxShadow:canM100?'0 4px 28px rgba(147,51,234,0.4),inset 0 1px 0 rgba(255,255,255,0.07)':'none', display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', overflow:'hidden' }}>
-            <div style={{ position:'absolute', top:8, right:8, background:'#7c3aed', color:'#fff', fontFamily:'var(--f-num)', fontWeight:900, fontSize:12, padding:'2px 8px', borderRadius:6 }}>-10%</div>
-            <span style={{ fontSize:28.8 }}>✦✦✦</span>
-            <span style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:canM100?'#c084fc':'var(--text-muted)', fontWeight:700, letterSpacing:1 }}>TIRAGE ×100</span>
-            <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:'1px solid rgba(192,132,252,0.35)', borderRadius:8, padding:'6px 16px' }}>
-              <span style={{ fontSize:14.4 }}>💎</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#c084fc' }}>{costs.multi100}</span>
-            </div>
-          </button>
+          <PullButton theme={theme} count={1}   cost={costs.single}   enabled={canS}    pulling={pulling} onInsufficient={onInsufficient} onClick={doSingle} />
+          <PullButton theme={theme} count={10}  cost={costs.multi10}  enabled={canM}    pulling={pulling} onInsufficient={onInsufficient} onClick={doMulti}    discount="-5%" />
+          <PullButton theme={theme} count={100} cost={costs.multi100} enabled={canM100} pulling={pulling} onInsufficient={onInsufficient} onClick={doMulti100} discount="-10%" highlight />
         </div>
 
         {/* Progression vers le prochain Jeton d'Anomalie */}

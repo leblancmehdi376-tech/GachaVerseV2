@@ -12,6 +12,23 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: 'Refonte de la page Gacha',
+    changes: [
+      "La bannière Gacha Verse Vol.1 affiche désormais un collage de six personnages vedettes (Qin Shi Huang, Goku, Gilgamesh, Rayquaza, Luffy et Limule), comme la bannière Vol.2.",
+      "Les personnages vedettes de la bannière Vol.2 changent pour des illustrations plus nettes : Frieren, Ryomen Sukuna, Chiaki Nanami, Enjin, Luminus Valentine et Gohan.",
+      "Les personnages vedettes des deux bannières sont désormais tous de rareté S ou supérieure.",
+      "L'onglet de la bannière Vol.2 porte désormais un ruban « NEW » en coin, façon paquet cadeau.",
+      "Nouveau visuel des bannières : les cartes vedettes sont présentées en éventail, avec le titre dans un bandeau dédié en dessous.",
+      "Chaque bannière a sa propre couleur (violet pour le Vol.1, pourpre pour le Vol.2), reprise sur l'onglet, le visuel et les boutons.",
+      "Les boutons de tirage ×1, ×10 et ×100 ont un style unifié ; le ×100, le plus avantageux, est mis en avant.",
+      "Les cartes vedettes flottent doucement ; au survol, une carte se redresse et passe au premier plan.",
+      "Le ruban « NEW » s'enroule sur le coin de l'onglet à l'apparition, puis scintille de temps en temps.",
+      "Les boutons de tirage s'enfoncent au clic.",
+      "Cliquer sur un tirage sans assez de Neko-Gemmes fait trembler et rougir le compteur de gemmes.",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: 'Nouveaux visuels : ElFuZzion et Rokoul & Ayro',
     changes: [
       "ElFuZzion et Rokoul & Ayro ont enfin leur illustration de carte.",
