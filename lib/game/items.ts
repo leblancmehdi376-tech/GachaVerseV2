@@ -62,18 +62,18 @@ export const ITEM_DEFS: Record<string, ItemDef> = {
     sellGems: 250,
   },
   rokoul_item1: {
-    id: 'rokoul_item1', name: 'Item 1', icon: '1️⃣', color: '#7dd3fc',
+    id: 'rokoul_item1', name: 'Redbull Myrtille', icon: '🥤', color: '#6366f1',
     description: "Débloque la 1ère évolution de Rokoul & Ayro — aussi requis (en plus des suivants) pour ses évolutions ultérieures.",
     sellGems: 100,
   },
   rokoul_item2: {
-    id: 'rokoul_item2', name: 'Item 2', icon: '2️⃣', color: '#38bdf8',
-    description: "Débloque la 2ème évolution de Rokoul & Ayro, en plus de l'Item 1 — aussi requis pour l'évolution finale.",
+    id: 'rokoul_item2', name: 'Lunettes de Kamina', icon: '🕶️', color: '#f97316',
+    description: "Débloque la 2ème évolution de Rokoul & Ayro, en plus du Redbull Myrtille — aussi requises pour l'évolution finale.",
     sellGems: 100,
   },
   rokoul_item3: {
-    id: 'rokoul_item3', name: 'Item 3', icon: '3️⃣', color: '#0ea5e9',
-    description: "Débloque l'évolution finale de Rokoul & Ayro, en plus de l'Item 1 et de l'Item 2.",
+    id: 'rokoul_item3', name: 'Figurine Aatrox à 500€ de Rokoul', icon: '🗿', color: '#dc2626',
+    description: "Débloque l'évolution finale de Rokoul & Ayro, en plus du Redbull Myrtille et des Lunettes de Kamina.",
     sellGems: 250,
   },
 
