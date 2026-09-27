@@ -92,6 +92,7 @@ X_CENTER_OVERRIDES = {
     'Shisui_LesCarnetsdelApothicaire_Evo0': 0.43,
     'Hades_ValkyrieApocalypse_Evo0': 0.55,
     'Maliketh_EldenRing_Evo1': 0.68,
+    'Capuchon_NosAnimaux_Evo0': 0.58,
 }
 
 # Zoom par perso (>1 = fenêtre de recadrage plus petite que la plus grande
