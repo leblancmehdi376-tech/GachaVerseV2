@@ -12,6 +12,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: 'Nouveaux logos de synergies',
+    changes: [
+      "25 synergies affichent désormais le logo de leur univers au lieu d'un emoji : Clair Obscur, Darkest Dungeon, Dark Souls, Death Note, Evangelion, Frieren, Gachiakuta, Hell's Paradise, Hunter x Hunter, Inazuma Eleven, JoJo, Jujutsu Kaisen, Mario, My Hero Academia, Okami, Ravenswatch, Resident Evil, Shangri-La Frontier, Solo Leveling, Soul Eater, The Beginning After The End, The Eminence in Shadow, The Elusive Samurai, To Be Hero X et Valorant.",
+      "Toutes les synergies ont maintenant leur logo.",    ],
+  },
+  {
+    date: '27/09/2026',
     title: "Nouveau : cohésion d'équipe",
     changes: [
       "Le DPS du combat de l'accueil dépend désormais de la cohésion de ton équipe : plus les niveaux de tes 4 compagnons sont proches, plus tu gagnes de DPS (jusqu'à +20 %).",
