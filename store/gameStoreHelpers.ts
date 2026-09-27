@@ -394,6 +394,18 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
   const questsAfterCoins = bumpCoinQuests(quests, bnToNumber(baseCoins));
   const raidQuests = state.raidQuests ?? [];
   const bossCrownsBefore = (state as {bossCrowns?:number}).bossCrowns ?? 0;
+  // Drop d'équipement : tiré sur TOUS les kills (boss et passage en vague 10
+  // compris), pas seulement les vagues intermédiaires.
+  const equipDrop = getEquipmentDrop(
+    state.unlockedEquipDropRarities ?? ['C'],
+    (state.palier < runPeakPalierOf(state) ? FARM_EQUIP_DROP_RATE : 1) * getPrestigeBonuses(state.prestigeBonusLevels, state.prestigeRankRecoveryLevel).equipDropRateMult,
+  );
+  const equipDropFields = {
+    equipmentInventory: equipDrop
+      ? { ...state.equipmentInventory, [equipDrop]: (state.equipmentInventory[equipDrop] ?? 0) + 1 }
+      : state.equipmentInventory,
+    lastEquipmentDrop: equipDrop ?? null,
+  };
   if (state.currentEnemy.isBoss) {
     const next = state.palier + 1;
     // On ne pousse au classement QUE lors d'une vraie progression : re-farmer un
@@ -432,7 +444,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
         )
       : raidQuests;
     const newRunPeak = Math.max(runPeakPalierOf(state), next);
-    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, raidQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1 } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] }>;
+    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, raidQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1, ...equipDropFields } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] }>;
   }
   const nw = state.wave + 1;
   const runPeak = runPeakPalierOf(state);
@@ -441,17 +453,10 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     // évité → boucle sur vague 1, le boss ne se déclenche jamais.
     const isFarming = state.palier < runPeak;
     if (isFarming || state.bossAvoided) {
-      return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1 };
+      return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
     }
-    return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1 };
+    return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
   }
-  const equipDrop = getEquipmentDrop(
-    state.unlockedEquipDropRarities ?? ['C'],
-    (state.palier < runPeak ? FARM_EQUIP_DROP_RATE : 1) * getPrestigeBonuses(state.prestigeBonusLevels, state.prestigeRankRecoveryLevel).equipDropRateMult,
-  );
-  const newEquipmentInventory = equipDrop
-    ? { ...state.equipmentInventory, [equipDrop]: (state.equipmentInventory[equipDrop] ?? 0) + 1 }
-    : state.equipmentInventory;
   return {
     pixelCoins:coins,
     nekoGems:gems,
@@ -460,8 +465,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     raidQuests,
     wave:nw,
     ultUsedThisFight:[], currentEnemy:generateEnemy(nw,state.palier,runPeak),
-    equipmentInventory:newEquipmentInventory,
-    lastEquipmentDrop: equipDrop ?? null,
+    ...equipDropFields,
     totalKills: (state.totalKills ?? 0) + 1,
   };
 }

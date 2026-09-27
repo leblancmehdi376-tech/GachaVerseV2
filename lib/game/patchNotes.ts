@@ -12,6 +12,21 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: "Correctif : drop d'équipement sur tous les ennemis",
+    changes: [
+      "Les boss et le dernier ennemi avant la vague 10 peuvent désormais eux aussi faire tomber de l'équipement (auparavant, ils n'en donnaient jamais).",
+    ],
+  },
+  {
+    date: '27/09/2026',
+    title: 'Raids : relance automatique',
+    changes: [
+      "Après la victoire contre un boss de raid, le suivant apparaît automatiquement : le combat continue en arrière-plan pendant l'affichage des récompenses, plus besoin de fermer le pop-up.",
+      "Le pop-up de récompenses du raid se ferme bien tout seul au bout de 5 secondes.",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: 'Compadex : comptage fiabilisé',
     changes: [
       "Le Compadex ne compte plus les personnages ou équipements qui n'existent plus dans le jeu (renommés ou retirés) : les succès « Compadex Complet » et « Compadex Absolu » exigent désormais vraiment tout ce qui existe actuellement.",

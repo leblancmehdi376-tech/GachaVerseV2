@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useGameStore, bumpRaidBossQuests } from '@/store/gameStore';
 import { RAID_BOSSES, rollRaidDrop, getRaidBossMaxHp, getEffectiveDropTable, DropResult } from '@/lib/game/raidBoss';
 import { getItemDef } from '@/lib/game/items';
@@ -123,8 +123,23 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
     const nextAffinity = rollBossAffinity();
     setBossAffinity(nextAffinity);
     const freshMax = getRaidBossMaxHp(boss, totalEquippedDps, computeDurationMult(companionIds, nextAffinity));
-    setMaxHp(freshMax); setHp(freshMax); setDead(false); setDrops(null); setKills(k => k + 1);
+    setMaxHp(freshMax); setHp(freshMax); setDead(false); setKills(k => k + 1);
   };
+
+  // Relance automatique : le boss suivant apparaît peu après le kill, sans
+  // attendre la fermeture du pop-up de récompenses (le combat continue
+  // derrière). Couvre aussi la reprise d'un combat sauvegardé à l'état
+  // « vaincu » (changement d'onglet pendant le délai).
+  useEffect(() => {
+    if (!dead) return;
+    const t = setTimeout(respawn, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dead]);
+
+  // Référence stable : le pop-up relance son timer de fermeture auto à
+  // chaque changement de onClose, or le combat re-rend chaque seconde.
+  const closeDrops = useCallback(() => setDrops(null), []);
 
   const hpPct   = Math.max(0, bnDivRatio(hp, maxHp) * 100);
   const hpColor = hpPct > 50 ? '#c084fc' : hpPct > 20 ? '#f87171' : '#ff4040';
@@ -141,11 +156,9 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
 
       {drops && (
         <DropPopup
+          key={kills}
           drops={drops}
-          onClose={() => {
-            setDrops(null);
-            respawn();
-          }}
+          onClose={closeDrops}
         />
       )}
 
