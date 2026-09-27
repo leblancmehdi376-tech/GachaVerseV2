@@ -3,174 +3,66 @@
 // à la plus ancienne — ajouter les nouvelles en tête de tableau.
 // IMPORTANT : à chaque changement notable apporté au jeu, ajouter une entrée
 // ici (voir AGENTS.md, section "Patch notes").
+// Dans les textes, **mot** s'affiche en gras.
+export interface PatchNoteSection {
+  icon: string;
+  title: string;
+  changes: string[];
+}
+
 export interface PatchNoteEntry {
   date: string;   // affiché tel quel (ex: '13/09/2026')
   title: string;
-  changes: string[];
+  changes?: string[];
+  sections?: PatchNoteSection[];   // pour les grosses mises à jour
 }
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
-    title: "Ouverture animée des coffres d'équipement",
-    changes: [
-      "Ouvrir un coffre d'équipement de la boutique lance désormais une roue de tirage animée, comme pour les jetons de Prestige.",
-      "Les objets qui défilent sur la roue suivent les vraies chances du coffre ouvert. Clique sur la bande pour accélérer l'animation.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Refonte de la page Gacha',
-    changes: [
-      "La bannière Gacha Verse Vol.1 affiche désormais un collage de six personnages vedettes (Qin Shi Huang, Goku, Gilgamesh, Rayquaza, Luffy et Limule), comme la bannière Vol.2.",
-      "Les personnages vedettes de la bannière Vol.2 changent pour des illustrations plus nettes : Frieren, Ryomen Sukuna, Chiaki Nanami, Enjin, Luminus Valentine et Gohan.",
-      "Les personnages vedettes des deux bannières sont désormais tous de rareté S ou supérieure.",
-      "L'onglet de la bannière Vol.2 porte désormais un ruban « NEW » en coin, façon paquet cadeau.",
-      "Nouveau visuel des bannières : les cartes vedettes sont présentées en éventail, avec le titre dans un bandeau dédié en dessous.",
-      "Chaque bannière a sa propre couleur (violet pour le Vol.1, pourpre pour le Vol.2), reprise sur l'onglet, le visuel et les boutons.",
-      "Les boutons de tirage ×1, ×10 et ×100 ont un style unifié ; le ×100, le plus avantageux, est mis en avant.",
-      "Les cartes vedettes flottent doucement ; au survol, une carte se redresse et passe au premier plan.",
-      "Le ruban « NEW » s'enroule sur le coin de l'onglet à l'apparition, puis scintille de temps en temps.",
-      "Les boutons de tirage s'enfoncent au clic.",
-      "Cliquer sur un tirage sans assez de Neko-Gemmes fait trembler et rougir le compteur de gemmes.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Nouveaux visuels : ElFuZzion et Rokoul & Ayro',
-    changes: [
-      "ElFuZzion et Rokoul & Ayro ont enfin leur illustration de carte.",
-      "Le raid Rokoul & Ayro a maintenant son portrait de boss et son décor de fond.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: '25 nouveaux paliers : 41 à 65',
-    changes: [
-      "Les paliers 41 à 65 sont désormais de vrais mondes, avec leurs propres ennemis, boss et décors (auparavant, on retombait sur les mondes des paliers 1 à 25).",
-      "Au programme : Dark Souls 3, Resident Evil, My Hero Academia, Jujutsu Kaisen, Darkest Dungeon, Clair Obscur, Shangri-La Frontier, Inazuma Eleven, Okami, Valorant, Frieren, l'Arc Cell de Dragon Ball Z, Baroque Works (One Piece), Zelda Ocarina of Time, The Elusive Samurai, Ravenswatch, Mario, Hell's Paradise, Gachiakuta, To Be Hero X, Death Note, Evangelion, JoJo, Soul Eater et Hunter x Hunter.",
-      "Au-delà du palier 65, les mondes recommencent en boucle à partir du palier 1 (les stats des ennemis continuent de monter).",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Nouveaux logos de synergies',
-    changes: [
-      "25 synergies affichent désormais le logo de leur univers au lieu d'un emoji : Clair Obscur, Darkest Dungeon, Dark Souls, Death Note, Evangelion, Frieren, Gachiakuta, Hell's Paradise, Hunter x Hunter, Inazuma Eleven, JoJo, Jujutsu Kaisen, Mario, My Hero Academia, Okami, Ravenswatch, Resident Evil, Shangri-La Frontier, Solo Leveling, Soul Eater, The Beginning After The End, The Eminence in Shadow, The Elusive Samurai, To Be Hero X et Valorant.",
-      "Toutes les synergies ont maintenant leur logo.",    ],
-  },
-  {
-    date: '27/09/2026',
-    title: "Nouveau : cohésion d'équipe",
-    changes: [
-      "Le DPS du combat de l'accueil dépend désormais de la cohésion de ton équipe : plus les niveaux de tes 4 compagnons sont proches, plus tu gagnes de DPS (jusqu'à +20 %).",
-      "Tant que l'écart moyen de niveau avec ton compagnon le plus haut reste de 10 niveaux ou moins, tu profites du bonus maximal de +20 %.",
-      "Un gros écart de niveau entre tes compagnons donne un malus (jusqu'à −20 %). Ce malus est très léger en début de partie et devient plus exigeant quand ton équipe monte en niveau.",
-      "Un slot de compagnon vide compte comme un compagnon de niveau 0 : remplis tes 4 slots !",
-      "La cohésion s'affiche sous le DPS d'équipe dans le combat, l'onglet Améliorations et l'onglet Compagnons : un smiley content 😄 en cas de bonus, un smiley rouge de colère 😡 en cas de malus.",
-      "Survole la cohésion pour voir le détail : jauge, niveau le plus haut, écart moyen, écart toléré, slots vides et un conseil pour l'améliorer.",
-      "La cohésion ne s'applique ni aux raids ni aux expéditions.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: "Correctif : drop d'équipement sur tous les ennemis",
-    changes: [
-      "Les boss et le dernier ennemi avant la vague 10 peuvent désormais eux aussi faire tomber de l'équipement (auparavant, ils n'en donnaient jamais).",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Raids : relance automatique',
-    changes: [
-      "Après la victoire contre un boss de raid, le suivant apparaît automatiquement : le combat continue en arrière-plan pendant l'affichage des récompenses, plus besoin de fermer le pop-up.",
-      "Le pop-up de récompenses du raid se ferme bien tout seul au bout de 5 secondes.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Compadex : comptage fiabilisé',
-    changes: [
-      "Le Compadex ne compte plus les personnages ou équipements qui n'existent plus dans le jeu (renommés ou retirés) : les succès « Compadex Complet » et « Compadex Absolu » exigent désormais vraiment tout ce qui existe actuellement.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Benimaru rejoint la Forge',
-    changes: [
-      "Nouveau personnage à forger : Benimaru (Légendaire, Tensei Slime), obtenu contre 30 Cornes de Kijin. Recette débloquée dès le palier 9, bien plus accessible que les recettes Primordiales.",
-      "L'expédition « Esplanade de Tempest » ramène désormais des Cornes de Kijin au lieu des Éclats de Duplication.",
-      "Benimaru (Tensei Slime) n'est plus obtenable dans les bannières : il s'obtient uniquement à la Forge.",
-      "Les Éclats de Duplication sont supprimés (ainsi que leur recette « Invocation Divine ») : ceux que tu possédais ont été convertis en Cornes de Kijin, 1 pour 1.",
-      "Les expéditions sont désormais triées par rareté (de ce qu'elles permettent d'obtenir), de la plus commune à la plus rare.",
-      "Les recettes de la Forge et l'onglet « Mes drops » sont eux aussi triés par rareté du personnage à forger.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: '31 nouvelles armes spéciales',
-    changes: [
-      "3 armes Transcendantes : Épée cauchemardesque (Nightmare Grimm), Sixième Œil (Satoru Gojo) et Truite Saumonée (Niyunishi).",
-      "8 armes Primordiales pour Shawn Frost, Frieren, Enjin, Garp, Archer, Chiaki Nanami, Makima et Maliketh.",
-      "20 armes Cosmiques pour les nouveaux personnages Cosmiques de la bannière Vol.2, Rokoul & Ayro et Ushiwaka.",
-      "Elles peuvent tomber en combat, dans les coffres, en fusion d'équipement et en fusion d'armes spéciales, et donnent un gros bonus au personnage associé.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Monde des Douzes réservé à Twix et Igloo',
-    changes: [
-      "L'expédition « S'aventurer dans le monde des Douzes » ne peut désormais être faite que par Twix ou Igloo (seuls ou ensemble), au lieu d'exiger un type tiré au hasard.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Correctif : animation des cartes Primordiales et Transcendantes',
-    changes: [
-      "L'animation spéciale des cartes Primordiales et Transcendantes est désormais toujours jouée, même si tu cliques sur « Voir le résumé » pendant l'invocation.",
-      "Si tu en obtiens plusieurs dans le même tirage, leurs animations s'enchaînent une par une avant d'afficher le résumé.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Correctif : barres de taux de drop',
-    changes: [
-      "Les barres des taux de drop du Gacha sont désormais proportionnelles aux probabilités : la rareté la plus probable a une barre pleine, les autres s'ajustent par rapport à elle.",
-    ],
-  },
-  {
-    date: '27/09/2026',
-    title: 'Bannière Vol.2 : 214 nouveaux personnages',
-    changes: [
-      "Nouvelle bannière « Gacha Verse Vol.2 » : elle ne contient que les 214 nouveaux personnages. Choisis ta bannière en haut de la page Gacha (même coût et mêmes taux que la Vol.1).",
-      "Les nouveaux personnages peuvent aussi être obtenus sur la bannière Vol.1.",
-      "22 nouveaux univers : Dark Souls 3, Resident Evil, My Hero Academia, Jujutsu Kaisen, Darkest Dungeon, Clair Obscur, Shangri-La Frontier, Inazuma Eleven, Okami, Valorant, Frieren, The Elusive Samurai, Ravenswatch, Mario, Gachiakuta, Hell's Paradise, To Be Hero X, Death Note, Evangelion, JoJo's Bizarre Adventure, Soul Eater et Hunter x Hunter.",
-      "Des renforts pour les univers existants : One Piece, Naruto, Dragon Ball, Bleach, Chainsaw Man, Hollow Knight, Pokémon, et bien d'autres.",
-      "Nouvelles synergies pour tous ces univers, ainsi que pour The Eminence in Shadow, Tbate et Solo Leveling.",
-      "Deux nouveaux Transcendants : Satoru Gojo et Nightmare Grimm.",
-      "Plusieurs nouveaux personnages ont des évolutions (Gohan, Sasuke et Izuku jusqu'à 4 formes).",
-      "Les nouveaux Primordiaux et Transcendants ont leur propre réplique lors de leur invocation, tout comme Niyunishi.",
-      "Kanao Tsuyuri, Les deux Isis et Capuchon n'ont pas encore de visuel : il arrive bientôt.",
-    ],
-  },
-  {
-    date: '26/09/2026',
-    title: 'Deux nouveaux personnages Chill&Cool',
-    changes: [
-      "Nouveau boss de raid : Rokoul & Ayro (Cosmique, Chill&Cool). Ses pièces s'échangent en Boutique contre le personnage, et il fait tomber ses 3 objets d'évolution (Item 1, Item 2, Item 3).",
-      "Nouveau personnage à forger : ElFuZzion (Mythique, Chill&Cool), obtenu contre 6 Œufs de Dragon Primordiaux.",
-      "Nouvelle expédition « S'aventurer dans le monde des Douzes » (1h, débloquée au palier 11) : 75% de chance de ramener un Œuf de Dragon Primordial.",
-      "Les visuels de ces deux personnages arrivent bientôt : leurs initiales sont affichées en attendant.",
-    ],
-  },
-  {
-    date: '26/09/2026',
-    title: 'Enchaînement des ultis',
-    changes: [
-      "Activer un ulti pendant qu'un autre est déjà en cours ne l'annule plus : il est mis en file d'attente et se lance automatiquement dès que le précédent se termine.",
-      "Plusieurs ultis peuvent être stackés à la suite ; leur position dans la file s'affiche sur la carte du compagnon (« EN FILE #1 », « EN FILE #2 »…).",
-      "Le cooldown d'un ulti en file ne démarre qu'au moment où il se lance réellement.",
-      "Cliquer à nouveau sur un ulti en file le retire de la file d'attente.",
+    title: 'Maj v2.6',
+    sections: [
+      {
+        icon: '🎰',
+        title: 'Gacha',
+        changes: [
+          "Nouvelle bannière **Gacha Verse Vol.2** : **214 personnages** et **22 nouveaux univers**, avec leurs synergies.",
+          "Deux nouveaux Transcendants : **Satoru Gojo** et **Nightmare Grimm**.",
+          "Page Gacha refaite : nouveaux visuels et une couleur propre à chaque bannière.",
+        ],
+      },
+      {
+        icon: '⚔️',
+        title: 'Combat',
+        changes: [
+          "**Paliers 41 à 65** : 25 nouveaux mondes avec leurs ennemis, boss et décors.",
+          "**Cohésion d'équipe** : des compagnons de niveaux proches donnent jusqu'à **+20 % de DPS**, un gros écart ou un slot vide jusqu'à −20 %.",
+          "Les **ultis** lancés pendant un autre se mettent en file d'attente au lieu de l'annuler.",
+          "Raids : le boss suivant apparaît automatiquement après une victoire.",
+        ],
+      },
+      {
+        icon: '✨',
+        title: 'Personnages & objets',
+        changes: [
+          "**Rokoul & Ayro** (Cosmique) : nouveau boss de raid.",
+          "**ElFuZzion** (Mythique) : à forger avec des Œufs de Dragon, via l'expédition « Monde des Douzes » (Twix et Igloo).",
+          "**Benimaru** : uniquement à la Forge, contre 30 Cornes de Kijin. Les Éclats de Duplication sont convertis en Cornes.",
+          "**31 nouvelles armes spéciales** : 3 Transcendantes, 8 Primordiales, 20 Cosmiques.",
+          "Les coffres d'équipement s'ouvrent avec une **roue de tirage animée**.",
+        ],
+      },
+      {
+        icon: '🛠️',
+        title: 'Confort & correctifs',
+        changes: [
+          "Toutes les synergies ont leur logo.",
+          "Expéditions, recettes de Forge et « Mes drops » triés par rareté.",
+          "Les boss peuvent enfin faire tomber de l'équipement.",
+          "Les animations Primordiales et Transcendantes ne sont plus sautées.",
+          "Barres de taux de drop et Compadex corrigés.",
+        ],
+      },
     ],
   },
   {

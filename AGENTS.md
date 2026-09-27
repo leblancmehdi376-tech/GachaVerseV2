@@ -20,3 +20,23 @@ Each entry looks like:
   ],
 },
 ```
+
+Don't hesitate to use the richer display to keep notes easy to read:
+- Wrap key words in `**double asterisks**` to render them in bold (names, numbers, feature names).
+- Keep each line short: one idea per line.
+- For bigger updates, use `sections` instead of `changes`, grouping lines by theme with an emoji icon:
+```ts
+{
+  date: '27/09/2026',
+  title: 'Maj v2.6',
+  sections: [
+    {
+      icon: '⚔️',
+      title: 'Combat',
+      changes: [
+        "**Paliers 41 à 65** : 25 nouveaux mondes.",
+      ],
+    },
+  ],
+},
+```
