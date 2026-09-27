@@ -11,7 +11,8 @@ import {
   SHOP_CHAR_PRICE_ORBS, LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS,
   EQUIPMENT_CHESTS, getRerollShopCost,
 } from '@/lib/game/shop';
-import { getEquipmentDef, getItemDef } from '@/lib/game/items';
+import { getEquipmentDef, getItemDef, rollEquipmentChest, ChestTier } from '@/lib/game/items';
+import { LootReelPopup, LootReelItem, buildReel } from '@/components/ui/LootReelPopup';
 import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
 import { makeInstanceKey } from '@/lib/game/editions';
 
@@ -24,6 +25,31 @@ function NewBadge() {
     <span style={{ position:'absolute', top:-6, right:-6, background:'#4ade80', color:'#052e12', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'10px', letterSpacing:'0.3px', padding:'2px 6px', borderRadius:'999px', boxShadow:'0 0 8px rgba(74,222,128,0.6)', zIndex:30 }}>
       NEW
     </span>
+  );
+}
+
+// Roue façon lootbox à l'ouverture d'un coffre : les éléments de remplissage
+// sont tirés avec les mêmes taux que le coffre, pour que la bande reflète ses
+// vraies chances (l'objet gagnant est déjà tiré et crédité par le store).
+function equipReelItem(itemId: string): LootReelItem {
+  const def = getEquipmentDef(itemId);
+  return { icon: def?.icon ?? '❔', label: def?.name ?? itemId, color: def?.color ?? '#9ca3af' };
+}
+
+function ChestReelPopup({ itemId, tier, onClose }: { itemId: string; tier: ChestTier; onClose: () => void }) {
+  const [reel] = useState(() => buildReel(itemId, () => rollEquipmentChest(tier)).map(equipReelItem));
+  const item = getEquipmentDef(itemId);
+  return (
+    <LootReelPopup
+      reel={reel}
+      revealedTitle="ÉQUIPEMENT OBTENU"
+      onClose={onClose}
+      revealed={(
+        <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:item?.color ?? '#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
+          <span>{item?.icon}</span>{item?.name ?? itemId}
+        </div>
+      )}
+    />
   );
 }
 
@@ -56,7 +82,7 @@ export function ShopPage() {
   const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useGameStore();
 
   const [, setTick] = useState(0);
-  const [chestResult, setChestResult] = useState<{ itemId: string; tier: string } | null>(null);
+  const [chestResult, setChestResult] = useState<{ itemId: string; tier: ChestTier } | null>(null);
   const [starterResult, setStarterResult] = useState<{ templateId: string; edition: CardEdition } | null>(null);
   const [showRerollConfirm, setShowRerollConfirm] = useState(false);
   useEffect(() => {
@@ -397,24 +423,11 @@ export function ShopPage() {
             <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>COFFRES D&apos;ÉQUIPEMENT</span>
           </div>
 
-          {chestResult && (() => {
-            const item = getEquipmentDef(chestResult.itemId);
-            if (!item) return null;
-            return (
-              <div style={{ marginBottom:'14px', padding:'12px 16px', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:'10px', display:'flex', alignItems:'center', gap:'12px' }}>
-                <span style={{ fontSize:'24.7px' }}>{item.icon}</span>
-                <div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'#4ade80' }}>Équipement obtenu !</div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:item.color, fontWeight:700 }}>{item.name}</div>
-                </div>
-                <button onClick={() => setChestResult(null)} style={{ marginLeft:'auto', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'16.5px' }}>✕</button>
-              </div>
-            );
-          })()}
+          {chestResult && <ChestReelPopup itemId={chestResult.itemId} tier={chestResult.tier} onClose={() => setChestResult(null)} />}
 
           <div className="shop-pack-grid-3" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
             {EQUIPMENT_CHESTS.map(chest => {
-              const canBuy = nekoGems >= chest.gems;
+              const canBuy = nekoGems >= chest.gems && !chestResult;
               return (
                 <div key={chest.id} style={{ background:`${chest.color}0a`, border:`1px solid ${chest.color}33`, borderRadius:'12px', padding:'14px', display:'flex', flexDirection:'column', alignItems:'center', gap:'8px' }}>
                   <span style={{ fontSize:'33px', filter:`drop-shadow(0 0 8px ${chest.glow})` }}>{chest.emoji}</span>
@@ -429,9 +442,9 @@ export function ShopPage() {
                   </div>
                   <button
                     onClick={() => {
-                      const tier = chest.id.replace('chest_', '') as 'common' | 'rare' | 'epic';
+                      const tier = chest.id.replace('chest_', '') as ChestTier;
                       const result = buyEquipmentChest(tier);
-                      if (result) setChestResult({ itemId: result, tier: chest.id });
+                      if (result) setChestResult({ itemId: result, tier });
                     }}
                     disabled={!canBuy}
                     style={{

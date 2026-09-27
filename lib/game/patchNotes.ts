@@ -12,6 +12,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: "Ouverture animée des coffres d'équipement",
+    changes: [
+      "Ouvrir un coffre d'équipement de la boutique lance désormais une roue de tirage animée, comme pour les jetons de Prestige.",
+      "Les objets qui défilent sur la roue suivent les vraies chances du coffre ouvert. Clique sur la bande pour accélérer l'animation.",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: 'Refonte de la page Gacha',
     changes: [
       "La bannière Gacha Verse Vol.1 affiche désormais un collage de six personnages vedettes (Qin Shi Huang, Goku, Gilgamesh, Rayquaza, Luffy et Limule), comme la bannière Vol.2.",
