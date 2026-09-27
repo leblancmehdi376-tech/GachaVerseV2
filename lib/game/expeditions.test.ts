@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  EXPEDITION_DEFS, ExpeditionDef, hasRealUniverse,
+  EXPEDITION_DEFS, ExpeditionDef, hasRealUniverse, needsRolledAffinity,
   computeDropAttempts, rollExpeditionRewards, getDropTiers,
 } from './expeditions';
 import { CHARACTER_POOL } from './characters';
@@ -49,6 +49,15 @@ describe('EXPEDITION_DEFS — cohérence globale', () => {
         expect(CHARACTER_POOL.some(c => c.universe === def.universe)).toBe(false);
       }
     }
+  });
+});
+
+describe('monde_des_douze', () => {
+  it("est réservée à Twix et Igloo, sans type tiré", () => {
+    const def = EXPEDITION_DEFS.find(d => d.id === 'monde_des_douze')!;
+    expect(def.allowedCharacters).toEqual(['twix', 'igloo_na']);
+    for (const id of def.allowedCharacters!) expect(CHARACTER_POOL.some(c => c.id === id)).toBe(true);
+    expect(needsRolledAffinity(def)).toBe(false);
   });
 });
 

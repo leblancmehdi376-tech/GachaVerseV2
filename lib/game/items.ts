@@ -362,6 +362,21 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     description:"Une arme antique qui annonce la chute des empires. Bonus si équipé par Qin Shi Huang.", dpsMultiplier:RARITY_BASE_MULT.T,
     bonusFor:{ templateId:'qin_shi_huang', multiplier:PERSO_BONUS_MULT.T, description:'Bonus si équipé par Qin Shi Huang' },
   },
+  weapon_transcendant_nightmare_grimm: {
+    id: 'weapon_transcendant_nightmare_grimm', name: 'Épée cauchemardesque', slot:'weapon', rarity:'T', icon:'🎪', color:'#e879f9',
+    description:"Une lame née des flammes du cauchemar. Bonus si équipé par Nightmare Grimm.", dpsMultiplier:RARITY_BASE_MULT.T,
+    bonusFor:{ templateId:'nightmare_grimm', multiplier:PERSO_BONUS_MULT.T, description:'Bonus si équipé par Nightmare Grimm' },
+  },
+  weapon_transcendant_gojo: {
+    id: 'weapon_transcendant_gojo', name: 'Sixième Œil', slot:'weapon', rarity:'T', icon:'👁️', color:'#e879f9',
+    description:"Des yeux qui perçoivent l'énergie occulte jusqu'à l'atome. Bonus si équipé par Satoru Gojo.", dpsMultiplier:RARITY_BASE_MULT.T,
+    bonusFor:{ templateId:'satoru_gojo', multiplier:PERSO_BONUS_MULT.T, description:'Bonus si équipé par Satoru Gojo' },
+  },
+  weapon_transcendant_niyunishi: {
+    id: 'weapon_transcendant_niyunishi', name: 'Truite Saumonée', slot:'weapon', rarity:'T', icon:'🐟', color:'#e879f9',
+    description:"Une prise légendaire pêchée au cœur de la forêt. Bonus si équipé par Niyunishi.", dpsMultiplier:RARITY_BASE_MULT.T,
+    bonusFor:{ templateId:'niyunishi', multiplier:PERSO_BONUS_MULT.T, description:'Bonus si équipé par Niyunishi' },
+  },
 
   // ── Équipements Primordiaux personnalisés ────────────────────────────────
   weapon_primordial_aatrox: {
@@ -454,6 +469,46 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     description:"Le sabre le plus puissant, forgé pour terrasser les démons. Bonus si équipé par Yoriichi Tsugikuni.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'yoriichi', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Yoriichi Tsugikuni' },
   },
+  weapon_primordial_shawn_frost: {
+    id: 'weapon_primordial_shawn_frost', name: 'Ice Ballon', slot:'weapon', rarity:'P', icon:'⚽', color:'#ff6b35',
+    description:"Un ballon gelé qui glace les gardiens sur place. Bonus si équipé par Shawn Frost.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'shawn_frost', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Shawn Frost' },
+  },
+  weapon_primordial_frieren: {
+    id: 'weapon_primordial_frieren', name: 'Bâton de Frieren', slot:'weapon', rarity:'P', icon:'🪄', color:'#ff6b35',
+    description:"Le bâton d'une mage elfe millénaire. Bonus si équipé par Frieren.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'frieren', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Frieren' },
+  },
+  weapon_primordial_enjin: {
+    id: 'weapon_primordial_enjin', name: 'Umbreaker', slot:'weapon', rarity:'P', icon:'☂️', color:'#ff6b35',
+    description:"Un parapluie transformé en arme redoutable. Bonus si équipé par Enjin.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'enjin', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Enjin' },
+  },
+  weapon_primordial_garp: {
+    id: 'weapon_primordial_garp', name: 'Boulet de canon géant', slot:'weapon', rarity:'P', icon:'💣', color:'#ff6b35',
+    description:"Lancé à mains nues avec la force d'un héros de la Marine. Bonus si équipé par Garp.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'garp', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Garp' },
+  },
+  weapon_primordial_archer: {
+    id: 'weapon_primordial_archer', name: 'Kanshou et Bakuya', slot:'weapon', rarity:'P', icon:'⚔️', color:'#ff6b35',
+    description:"Deux lames jumelles, l'une noire et l'autre blanche. Bonus si équipé par Archer.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'archer_fate', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Archer' },
+  },
+  weapon_primordial_chiaki: {
+    id: 'weapon_primordial_chiaki', name: 'Nantendo Game Girl Advance', slot:'weapon', rarity:'P', icon:'🎮', color:'#ff6b35',
+    description:"La console portable dont elle ne se sépare jamais. Bonus si équipé par Chiaki Nanami.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'chiaki_nanami', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Chiaki Nanami' },
+  },
+  weapon_primordial_makima: {
+    id: 'weapon_primordial_makima', name: 'Blood Chain', slot:'weapon', rarity:'P', icon:'⛓️', color:'#ff6b35',
+    description:"Des chaînes de sang qui soumettent quiconque à sa volonté. Bonus si équipé par Makima.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'makima', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Makima' },
+  },
+  weapon_primordial_maliketh: {
+    id: 'weapon_primordial_maliketh', name: 'Le sabre de rituel', slot:'weapon', rarity:'P', icon:'🗡️', color:'#ff6b35',
+    description:"La lame qui scellait la Mort du Destin. Bonus si équipé par Maliketh.", dpsMultiplier:RARITY_BASE_MULT.P,
+    bonusFor:{ templateId:'maliketh', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Maliketh' },
+  },
 
   // ── Équipements Cosmiques personnalisés ──────────────────────────────────
   weapon_cosmic_aizen: {
@@ -505,6 +560,106 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     id: 'weapon_cosmic_luffy', name: 'Gomu Gomu No Mi', slot:'weapon', rarity:'CO', icon:'🍉', color:'#34d399',
     description:'Bonus si équipé par Luffy.', dpsMultiplier:RARITY_BASE_MULT.CO,
     bonusFor:{ templateId:'luffy', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Luffy' },
+  },
+  weapon_cosmic_roi_sans_nom: {
+    id: 'weapon_cosmic_roi_sans_nom', name: 'Dragonslayer Swordspear', slot:'weapon', rarity:'CO', icon:'🐲', color:'#34d399',
+    description:"Une lance-épée chargée de la foudre des dragons. Bonus si équipé par Le Roi sans Nom.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'roi_sans_nom', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Le Roi sans Nom' },
+  },
+  weapon_cosmic_leon: {
+    id: 'weapon_cosmic_leon', name: 'Silver Ghost', slot:'weapon', rarity:'CO', icon:'🔫', color:'#34d399',
+    description:"Un pistolet fiable pour survivre à l'horreur. Bonus si équipé par Leon S. Kennedy.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'leon_kennedy', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Leon S. Kennedy' },
+  },
+  weapon_cosmic_izuku: {
+    id: 'weapon_cosmic_izuku', name: 'One For All', slot:'weapon', rarity:'CO', icon:'💚', color:'#34d399',
+    description:"Un Alter transmis de génération en génération. Bonus si équipé par Izuku Midoriya.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'izuku_midoriya', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Izuku Midoriya' },
+  },
+  weapon_cosmic_sukuna: {
+    id: 'weapon_cosmic_sukuna', name: 'Doigts de Sukuna', slot:'weapon', rarity:'CO', icon:'☝️', color:'#34d399',
+    description:"Des reliques maudites renfermant le pouvoir du Roi des Fléaux. Bonus si équipé par Ryomen Sukuna.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'ryomen_sukuna', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Ryomen Sukuna' },
+  },
+  weapon_cosmic_verso: {
+    id: 'weapon_cosmic_verso', name: 'Contorso', slot:'weapon', rarity:'CO', icon:'🗡️', color:'#34d399',
+    description:"Bonus si équipé par Verso.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'verso', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Verso' },
+  },
+  weapon_cosmic_sunraku: {
+    id: 'weapon_cosmic_sunraku', name: 'Lames Vorpales', slot:'weapon', rarity:'CO', icon:'🔪', color:'#34d399',
+    description:"Des lames jumelles taillées pour les combos les plus rapides. Bonus si équipé par Sunraku.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'sunraku', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Sunraku' },
+  },
+  weapon_cosmic_ushiwaka: {
+    id: 'weapon_cosmic_ushiwaka', name: 'Nature hybride', slot:'weapon', rarity:'CO', icon:'🌙', color:'#34d399',
+    description:"Mi-humain, mi-céleste : le pouvoir d'un prophète venu de la Lune. Bonus si équipé par Ushiwaka.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'ushiwaka', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Ushiwaka' },
+  },
+  weapon_cosmic_reyna: {
+    id: 'weapon_cosmic_reyna', name: 'Vandal Prélude du chaos', slot:'weapon', rarity:'CO', icon:'🔫', color:'#34d399',
+    description:"Un fusil orné qui annonce le carnage. Bonus si équipé par Reyna.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'reyna', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Reyna' },
+  },
+  weapon_cosmic_stark: {
+    id: 'weapon_cosmic_stark', name: 'Hache de combat à double tranchant asymétrique', slot:'weapon', rarity:'CO', icon:'🪓', color:'#34d399',
+    description:"Une hache massive capable de fendre un dragon. Bonus si équipé par Stark.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'stark', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Stark' },
+  },
+  weapon_cosmic_rudo: {
+    id: 'weapon_cosmic_rudo', name: '3R', slot:'weapon', rarity:'CO', icon:'🧤', color:'#34d399',
+    description:"Des gants qui révèlent la valeur cachée des déchets. Bonus si équipé par Rudo Surebrec.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'rudo_surebrec', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Rudo Surebrec' },
+  },
+  weapon_cosmic_joseph: {
+    id: 'weapon_cosmic_joseph', name: 'Clackers Volants', slot:'weapon', rarity:'CO', icon:'🪀', color:'#34d399',
+    description:"Des clackers chargés d'Onde, imprévisibles. Bonus si équipé par Joseph Joestar.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'joseph_joestar', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Joseph Joestar' },
+  },
+  weapon_cosmic_kuroro: {
+    id: 'weapon_cosmic_kuroro', name: 'Skill Hunter', slot:'weapon', rarity:'CO', icon:'📕', color:'#34d399',
+    description:"Le livre qui vole les Nen de ses adversaires. Bonus si équipé par Kuroro Lucifer.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'kuroro_lucifer', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Kuroro Lucifer' },
+  },
+  weapon_cosmic_sasuke: {
+    id: 'weapon_cosmic_sasuke', name: 'Kusanagi', slot:'weapon', rarity:'CO', icon:'⚡', color:'#34d399',
+    description:"Une lame capable de canaliser le chidori. Bonus si équipé par Sasuke.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'sasuke', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Sasuke' },
+  },
+  weapon_cosmic_luminus: {
+    id: 'weapon_cosmic_luminus', name: 'Asmodeus', slot:'weapon', rarity:'CO', icon:'🦇', color:'#34d399',
+    description:"L'arme de la Reine des Vampires. Bonus si équipé par Luminus Valentine.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'luminus_valentine', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Luminus Valentine' },
+  },
+  weapon_cosmic_ender_dragon: {
+    id: 'weapon_cosmic_ender_dragon', name: 'Souffle de dragon', slot:'weapon', rarity:'CO', icon:'🟪', color:'#34d399',
+    description:"Un nuage violet corrosif venu de l'End. Bonus si équipé par Ender Dragon.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'ender_dragon', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Ender Dragon' },
+  },
+  weapon_cosmic_mori_ogai: {
+    id: 'weapon_cosmic_mori_ogai', name: 'Le bistouri de chirurgie', slot:'weapon', rarity:'CO', icon:'🩺', color:'#34d399',
+    description:"Un scalpel aussi précis que les calculs de son porteur. Bonus si équipé par Mori Ogai.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'mori_ogai', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Mori Ogai' },
+  },
+  weapon_cosmic_giyu: {
+    id: 'weapon_cosmic_giyu', name: 'Nichirin Blade', slot:'weapon', rarity:'CO', icon:'🌊', color:'#34d399',
+    description:"Un sabre forgé pour trancher les démons. Bonus si équipé par Giyu Tomioka.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'giyu_tomioka', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Giyu Tomioka' },
+  },
+  weapon_cosmic_puppet: {
+    id: 'weapon_cosmic_puppet', name: 'Jumpscare', slot:'weapon', rarity:'CO', icon:'🎁', color:'#34d399',
+    description:"Surgit de sa boîte quand on s'y attend le moins. Bonus si équipé par Puppet.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'puppet', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Puppet' },
+  },
+  weapon_cosmic_rokoul_ayro: {
+    id: 'weapon_cosmic_rokoul_ayro', name: 'RedBull Myrtille', slot:'weapon', rarity:'CO', icon:'🥤', color:'#34d399',
+    description:"Ça donne des ailes, et un sacré coup de boost. Bonus si équipé par Rokoul & Ayro.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'rokoul_ayro', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Rokoul & Ayro' },
+  },
+  weapon_cosmic_kinger: {
+    id: 'weapon_cosmic_kinger', name: 'Sceau en acier', slot:'weapon', rarity:'CO', icon:'♟️', color:'#34d399',
+    description:"Bonus si équipé par Kinger.", dpsMultiplier:RARITY_BASE_MULT.CO,
+    bonusFor:{ templateId:'kinger', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Kinger' },
   },
 };
 

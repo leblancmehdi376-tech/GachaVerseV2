@@ -12,6 +12,23 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '27/09/2026',
+    title: '31 nouvelles armes spéciales',
+    changes: [
+      "3 armes Transcendantes : Épée cauchemardesque (Nightmare Grimm), Sixième Œil (Satoru Gojo) et Truite Saumonée (Niyunishi).",
+      "8 armes Primordiales pour Shawn Frost, Frieren, Enjin, Garp, Archer, Chiaki Nanami, Makima et Maliketh.",
+      "20 armes Cosmiques pour les nouveaux personnages Cosmiques de la bannière Vol.2, Rokoul & Ayro et Ushiwaka.",
+      "Elles peuvent tomber en combat, dans les coffres, en fusion d'équipement et en fusion d'armes spéciales, et donnent un gros bonus au personnage associé.",
+    ],
+  },
+  {
+    date: '27/09/2026',
+    title: 'Monde des Douzes réservé à Twix et Igloo',
+    changes: [
+      "L'expédition « S'aventurer dans le monde des Douzes » ne peut désormais être faite que par Twix ou Igloo (seuls ou ensemble), au lieu d'exiger un type tiré au hasard.",
+    ],
+  },
+  {
+    date: '27/09/2026',
     title: 'Correctif : animation des cartes Primordiales et Transcendantes',
     changes: [
       "L'animation spéciale des cartes Primordiales et Transcendantes est désormais toujours jouée, même si tu cliques sur « Voir le résumé » pendant l'invocation.",

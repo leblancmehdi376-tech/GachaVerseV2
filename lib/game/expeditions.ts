@@ -68,6 +68,17 @@ export function hasRealUniverse(def: ExpeditionDef): boolean {
   return REAL_CHARACTER_UNIVERSES.has(def.universe);
 }
 
+// Expédition réservée à une liste précise de personnages (`allowedCharacters`) :
+// remplace la contrainte d'univers/type, et aucun type n'est tiré pour elle.
+export function hasCharacterWhitelist(def: ExpeditionDef): boolean {
+  return !!def.allowedCharacters?.length;
+}
+
+// Vrai si l'expédition exige un TYPE (affinité) tiré au hasard.
+export function needsRolledAffinity(def: ExpeditionDef): boolean {
+  return !hasRealUniverse(def) && !hasCharacterWhitelist(def);
+}
+
 // ── Drops spéciaux par palier ────────────────────────────────────────────
 export interface PalierDrop {
   id:          string;
@@ -260,6 +271,7 @@ export interface ExpeditionDef {
   slots:          number;      // nb persos (1-4)
   palierRequired: number;
   minTeamDps:     number;      // DPS d'équipe requis (voir referenceTeamDps)
+  allowedCharacters?: string[]; // si défini, seuls ces templateIds peuvent partir (remplace univers/type)
   rewards: {
     coinsMin:     number;
     coinsMax:     number;
@@ -406,13 +418,12 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     duration: 8*H, slots:4, palierRequired:9, minTeamDps: referenceTeamDps(rarityForPalier(4)),
     rewards:{ coinsMin:200_000, coinsMax:600_000, dropChance:0.5, dropQuantity:1, dropGems:true, dropGemsAmount:16 },
   },
-  // universe:'Monde des Douze' ne correspond à aucun univers de CHARACTER_POOL :
-  // contrainte de TYPE plutôt que de personnage (les seuls persos Chill&Cool
-  // sont hors de portée au palier 11).
+  // Réservée à Twix et Igloo (allowedCharacters) : ni contrainte d'univers ni de type.
   {
     id:'monde_des_douze', name:'S\'aventurer dans le monde des Douzes', icon:'🥚', universe:'Monde des Douze',
     description:'S\'aventurer dans le monde des Douzes, menfin on dirait plutôt une balade dans son jardin.',
     duration: H, slots:2, palierRequired: RARITY_GATES.M.unlockPalier, minTeamDps: referenceTeamDps('M'),
+    allowedCharacters: ['twix', 'igloo_na'],
     rewards:{ coinsMin:100_000, coinsMax:300_000, gemsMin:1, gemsMax:3, dropId:'oeuf_dragon_primordial', dropChance:0.75, dropQuantity:1 },
   },
   // ── Moyennes (6-12h) ────────────────────────────────────────────────────

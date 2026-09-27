@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useGameStore, ActiveExpedition } from '@/store/gameStore';
-import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasCharacterWhitelist, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
@@ -97,10 +97,13 @@ function CharSelector({ def, onConfirm, onClose }: {
 
   // Exigence d'univers (ou de type pour les expéditions sans univers de perso
   // réel, ex: Atelier/Chasse/Mystique) : TOUTE l'équipe envoyée doit correspondre.
+  const whitelist = hasCharacterWhitelist(def) ? def.allowedCharacters! : null;
+  const whitelistNames = whitelist?.map(id => CHARACTER_POOL.find(c => c.id === id)?.name ?? id).join(' ou ');
   const requiresRealUniverse = hasRealUniverse(def);
-  const requiredAffinity = requiresRealUniverse ? null : getExpeditionAffinity(def.id);
+  const requiredAffinity = whitelist || requiresRealUniverse ? null : getExpeditionAffinity(def.id);
   const matchesRequirement = (tplId: string) =>
-    requiresRealUniverse
+    whitelist ? whitelist.includes(tplId)
+    : requiresRealUniverse
       ? CHARACTER_POOL.find(c => c.id === tplId)?.universe === def.universe
       : getAffinityForId(tplId) === requiredAffinity;
 
@@ -124,7 +127,9 @@ function CharSelector({ def, onConfirm, onClose }: {
               Sélectionne jusqu&apos;à {def.slots} personnage{def.slots > 1 ? 's' : ''} · DPS requis : {formatNumber(def.minTeamDps)}
             </div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, marginTop:4, display:'flex', alignItems:'center', gap:5 }}>
-              {requiresRealUniverse
+              {whitelist
+                ? <>Réservée à <span style={{ color:'var(--purple-glow)', fontWeight:700 }}>{whitelistNames}</span></>
+                : requiresRealUniverse
                 ? <>Équipe 100% <span style={{ color:'var(--purple-glow)', fontWeight:700 }}>{def.universe}</span></>
                 : <>Équipe 100% type <span style={{ color:AFFINITY_CONFIG[requiredAffinity!].color, fontWeight:700 }}>{AFFINITY_CONFIG[requiredAffinity!].icon} {AFFINITY_CONFIG[requiredAffinity!].label}</span></>
               }
@@ -184,7 +189,7 @@ function CharSelector({ def, onConfirm, onClose }: {
                 {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
                 {mismatched && !onExpedition && !inTeam && (
                   <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#f87171' }}>
-                    {requiresRealUniverse ? '✗ MAUVAIS UNIVERS' : '✗ MAUVAIS TYPE'}
+                    {whitelist ? '✗ NON AUTORISÉ' : requiresRealUniverse ? '✗ MAUVAIS UNIVERS' : '✗ MAUVAIS TYPE'}
                   </span>
                 )}
               </button>
@@ -288,8 +293,9 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
   const { getRunPeakPalier, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
   const { getExpeditionAffinity } = useGameStore();
   const palierLocked = getRunPeakPalier() < def.palierRequired;
+  const whitelist = hasCharacterWhitelist(def) ? def.allowedCharacters! : null;
   const requiresRealUniverse = hasRealUniverse(def);
-  const requiredAffinity = requiresRealUniverse ? null : getExpeditionAffinity(def.id);
+  const requiredAffinity = whitelist || requiresRealUniverse ? null : getExpeditionAffinity(def.id);
 
   // Déblocage one-shot déjà obtenu : impossible de relancer l'expédition
   // (voir expeditionStore.canStart, qui applique la même règle côté logique).
@@ -326,8 +332,9 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:'var(--f-title)', fontSize:14.4, color:'var(--text)', letterSpacing:1, marginBottom:3 }}>{def.name}</div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, letterSpacing:1, marginBottom:5, display:'flex', alignItems:'center', gap:5,
-            color: requiresRealUniverse ? 'var(--purple-glow)' : AFFINITY_CONFIG[requiredAffinity!].color }}>
-            {requiresRealUniverse ? def.universe : <>{AFFINITY_CONFIG[requiredAffinity!].icon} Type {AFFINITY_CONFIG[requiredAffinity!].label}</>}
+            color: !requiredAffinity ? 'var(--purple-glow)' : AFFINITY_CONFIG[requiredAffinity].color }}>
+            {whitelist ? <>Réservée à {whitelist.map(id => CHARACTER_POOL.find(c => c.id === id)?.name ?? id).join(' ou ')}</>
+              : requiresRealUniverse ? def.universe : <>{AFFINITY_CONFIG[requiredAffinity!].icon} Type {AFFINITY_CONFIG[requiredAffinity!].label}</>}
           </div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.5, marginBottom:10 }}>{def.description}</div>
           {/* Stats */}

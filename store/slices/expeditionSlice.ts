@@ -1,7 +1,7 @@
 // Expéditions et craft/forge. Fusionné dans gameStore depuis l'ancien
 // store/expeditionStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
-import { EXPEDITION_DEFS, CRAFT_RECIPES, getExpeditionTeamDps, hasRealUniverse, rollExpeditionRewards } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, CRAFT_RECIPES, getExpeditionTeamDps, hasCharacterWhitelist, hasRealUniverse, needsRolledAffinity, rollExpeditionRewards } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, getPrevRarity } from '@/types/game';
 import { parseInstanceKey } from '@/lib/game/editions';
@@ -39,7 +39,7 @@ export function initialDefAffinities(): Record<string, Affinity> {
 export function backfillDefAffinities(existing: Record<string, Affinity>): Record<string, Affinity> {
   const out = { ...existing };
   for (const def of EXPEDITION_DEFS) {
-    if (!hasRealUniverse(def) && !out[def.id]) out[def.id] = rollAffinity();
+    if (needsRolledAffinity(def) && !out[def.id]) out[def.id] = rollAffinity();
   }
   return out;
 }
@@ -134,8 +134,16 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
     }
 
     // Exigence d'univers (ou de type si l'expédition n'a pas d'univers de
-    // perso réel) : TOUTE l'équipe envoyée doit correspondre.
-    if (hasRealUniverse(def)) {
+    // perso réel, ou liste blanche de persos) : TOUTE l'équipe envoyée doit correspondre.
+    if (hasCharacterWhitelist(def)) {
+      const allowed = def.allowedCharacters!;
+      for (const cid of characterIds) {
+        if (!allowed.includes(cid)) {
+          const names = allowed.map(id => CHARACTER_POOL.find(c => c.id === id)?.name ?? id).join(' ou ');
+          return { ok:false, reason:`Seul ${names} peut partir dans cette expédition` };
+        }
+      }
+    } else if (hasRealUniverse(def)) {
       for (const cid of characterIds) {
         const tpl = CHARACTER_POOL.find(c => c.id === cid);
         if (!tpl || tpl.universe !== def.universe)
@@ -225,7 +233,7 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
 
     // Nouveau type requis pour la prochaine tentative (expéditions sans
     // univers de perso réel — voir hasRealUniverse).
-    if (!hasRealUniverse(def)) {
+    if (needsRolledAffinity(def)) {
       set(s => ({ expeditionDefAffinities: { ...s.expeditionDefAffinities, [def.id]: rollAffinity() } }));
     }
 

@@ -2,15 +2,15 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from '@/store/gameStore';
 import type { ActiveExpedition } from '@/store/gameStore.types';
 import { backfillDefAffinities, initialDefAffinities } from './expeditionSlice';
-import { EXPEDITION_DEFS, hasRealUniverse } from '@/lib/game/expeditions';
+import { EXPEDITION_DEFS, needsRolledAffinity } from '@/lib/game/expeditions';
 import { AFFINITY_ORDER } from '@/lib/game/affinities';
 import { bnToNumber } from '@/lib/game/bignum';
 
 describe('backfillDefAffinities', () => {
-  it("attribue un type à chaque expédition sans univers de personnage réel", () => {
+  it("attribue un type à chaque expédition sans univers de personnage réel ni liste blanche", () => {
     const out = backfillDefAffinities({});
     for (const def of EXPEDITION_DEFS) {
-      if (!hasRealUniverse(def)) {
+      if (needsRolledAffinity(def)) {
         expect(AFFINITY_ORDER).toContain(out[def.id]);
       } else {
         expect(out[def.id]).toBeUndefined();
