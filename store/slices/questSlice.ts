@@ -6,6 +6,33 @@ import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, rollQuestDefs, rollCoinHoursQuest 
 import type { GameStore, QuestActions } from '../gameStore.types';
 import { bnAdd, bnFromNumber, bnToNumber } from '@/lib/game/bignum';
 
+// Version pure de bumpQuestProgress : renvoie le patch à fusionner dans un
+// set() existant ({} si rien ne change), pour qu'une action puisse bumper ses
+// quêtes dans la MÊME mise à jour que le reste de son effet (chaque set()
+// séparé = une notification de tous les abonnés + une écriture persist).
+export function bumpQuestsIn(
+  state: Pick<GameStore, 'quests' | 'weeklyQuests' | 'raidQuests'>,
+  id: string,
+  by = 1,
+): Partial<Pick<GameStore, 'quests' | 'weeklyQuests' | 'raidQuests'>> {
+  const bump = (arr: GameStore['quests']) => {
+    let changed = false;
+    const next = arr.map(q => {
+      if (q.id !== id || q.done) return q;
+      const current = Math.min(q.current + by, q.target);
+      if (current === q.current) return q;
+      changed = true;
+      return { ...q, current };
+    });
+    return changed ? next : arr;
+  };
+  const quests       = bump(state.quests);
+  const weeklyQuests = bump(state.weeklyQuests ?? []);
+  const raidQuests   = bump(state.raidQuests ?? []);
+  if (quests === state.quests && weeklyQuests === (state.weeklyQuests ?? []) && raidQuests === (state.raidQuests ?? [])) return {};
+  return { quests, weeklyQuests, raidQuests };
+}
+
 export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (set, get) => ({
   // Helper générique et réutilisable pour toute future quête : cherche l'id
   // dans les 3 tableaux (jour/semaine/raid) et incrémente celle trouvée.
@@ -18,24 +45,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
   // change. Sous spam d'une action qui bump une quête à chaque clic (ex:
   // amélioration de perso), ça peut cascader jusqu'au "Maximum update depth
   // exceeded" de React.
-  bumpQuestProgress: (id, by = 1) => set(state => {
-    const bump = (arr: typeof state.quests) => {
-      let changed = false;
-      const next = arr.map(q => {
-        if (q.id !== id || q.done) return q;
-        const current = Math.min(q.current + by, q.target);
-        if (current === q.current) return q;
-        changed = true;
-        return { ...q, current };
-      });
-      return changed ? next : arr;
-    };
-    const quests       = bump(state.quests);
-    const weeklyQuests = bump(state.weeklyQuests ?? []);
-    const raidQuests  = bump(state.raidQuests ?? []);
-    if (quests === state.quests && weeklyQuests === (state.weeklyQuests ?? []) && raidQuests === (state.raidQuests ?? [])) return {};
-    return { quests, weeklyQuests, raidQuests };
-  }),
+  bumpQuestProgress: (id, by = 1) => set(state => bumpQuestsIn(state, id, by)),
   // Fixe directement la progression (pour les quêtes "atteindre X", pas "cumuler +1").
   setQuestProgress: (id, value) => set(state => {
     const setVal = (arr: typeof state.quests) => {

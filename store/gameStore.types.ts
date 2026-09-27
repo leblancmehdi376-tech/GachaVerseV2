@@ -87,6 +87,8 @@ export interface CharacterSlice {
   getGoldMultiplier: () => BigNum;
   getGoldUpgradeCost: () => BigNum;
   levelUpCharacter: (templateId: string) => void;
+  /** Monte jusqu'à `count` niveaux (s'arrête dès qu'un niveau n'est plus payable), en une seule mise à jour. */
+  levelUpCharacterN: (templateId: string, count: number) => void;
   evolveCharacter: (templateId: string) => void;
   getTotalDps: () => BigNum;
   // Cohésion d'équipe (combat de l'accueil uniquement) — voir lib/game/cohesion.ts

@@ -61,6 +61,8 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Les boss peuvent enfin faire tomber de l'équipement.",
           "Les animations Primordiales et Transcendantes ne sont plus sautées.",
           "Barres de taux de drop et Compadex corrigés.",
+          "Fini le **lag** en spammant **LVL UP** : chaque amélioration ne recharge plus que **sa carte**.",
+          "Le bouton **×10** applique ses 10 niveaux d'un coup.",
         ],
       },
     ],

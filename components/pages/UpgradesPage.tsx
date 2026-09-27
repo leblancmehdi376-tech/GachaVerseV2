@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, getGoldChestCost, getGoldChestMultiplier } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
@@ -105,25 +105,32 @@ function GoldUpgradeCard() {
 }
 
 // ── Carte personnage avec PP ──────────────────────────────────────────────
-function CharCard({ templateId }: { templateId: string }) {
-  const { collection, pixelCoins, levelUpCharacter, evolveCharacter, inventory, focusExpedition, expeditionDropInventory: dropInventory } = useGameStore(useShallow(s => ({
-    collection: s.collection,
-    pixelCoins: s.pixelCoins,
-    levelUpCharacter: s.levelUpCharacter,
-    evolveCharacter: s.evolveCharacter,
-    inventory: s.inventory,
-    focusExpedition: s.focusExpedition,
-    expeditionDropInventory: s.expeditionDropInventory,
-  })));
-  const owned = collection[templateId];
+// Mémoïsée + ne souscrit qu'à SON perso et à des booléens "payable" (pas à
+// toute la collection ni aux pixelCoins bruts) : améliorer un perso ne
+// re-rend plus que sa carte, et les gains de coins du combat ne re-rendent
+// une carte que quand son bouton passe de grisé à actif (ou l'inverse).
+const CharCard = memo(function CharCard({ templateId }: { templateId: string }) {
+  const { owned, canAffordLv, canAffordEvo, levelUpCharacter, levelUpCharacterN, evolveCharacter, inventory, focusExpedition, expeditionDropInventory: dropInventory } = useGameStore(useShallow(s => {
+    const owned = s.collection[templateId];
+    const tpl = owned ? getCharacterById(parseInstanceKey(templateId).templateId) : undefined;
+    return {
+      owned,
+      canAffordLv: !!owned && bnGte(s.pixelCoins, levelUpCost(owned.level)),
+      canAffordEvo: !!owned && !!tpl && bnGte(s.pixelCoins, evoCost(tpl.rarity, owned.currentForm)),
+      levelUpCharacter: s.levelUpCharacter,
+      levelUpCharacterN: s.levelUpCharacterN,
+      evolveCharacter: s.evolveCharacter,
+      inventory: s.inventory,
+      focusExpedition: s.focusExpedition,
+      expeditionDropInventory: s.expeditionDropInventory,
+    };
+  }));
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom partagés entre éditions)
   const tpl   = getCharacterById(pureId);
   if (!owned || !tpl) return null;
   const canEvo_  = canEvolve(tpl, owned, inventory, dropInventory);
   const lvCost   = levelUpCost(owned.level);
   const evoCostV = evoCost(tpl.rarity, owned.currentForm);
-  const canAffordLv  = bnGte(pixelCoins, lvCost);
-  const canAffordEvo = bnGte(pixelCoins, evoCostV);
   const dps      = calcCharDps(tpl, owned);
   const cfg      = RARITY_CONFIG[tpl.rarity];
   const nextForm = tpl.forms?.[owned.currentForm + 1];
@@ -135,7 +142,7 @@ function CharCard({ templateId }: { templateId: string }) {
   const evoStoneDrop = getPalierDrop(EVOLUTION_STONE_ITEM_ID);
   const evoStoneExpedition = EXPEDITION_DEFS.find(x => x.rewards.dropId === EVOLUTION_STONE_ITEM_ID);
   const name     = getCharFormName(tpl, owned.currentForm);
-  const handleLevelUpX10 = () => { for (let i = 0; i < 10; i++) levelUpCharacter(templateId); };
+  const handleLevelUpX10 = () => levelUpCharacterN(templateId, 10);
 
   return (
     <div style={{ background:'linear-gradient(135deg,#0e0c1a,#130f22)', border:`1px solid ${cfg.color}33`, borderRadius:12, padding:14, position:'relative', overflow:'hidden', boxShadow:`0 0 14px ${cfg.glow}0d` }}>
@@ -223,7 +230,7 @@ function CharCard({ templateId }: { templateId: string }) {
       )}
     </div>
   );
-}
+});
 
 // ── PAGE ──────────────────────────────────────────────────────────────────
 export function UpgradesPage() {

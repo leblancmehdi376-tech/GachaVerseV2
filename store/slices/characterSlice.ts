@@ -14,7 +14,21 @@ import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { computeCohesion } from '@/lib/game/cohesion';
 import { getGoldChestCost, getGoldGainMultiplier, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice } from '../gameStore.types';
-import { BN_ZERO, bnAdd, bnMulScalar, type BigNum } from '@/lib/game/bignum';
+import { BN_ZERO, bnAdd, bnGte, bnMulScalar, bnSub, type BigNum } from '@/lib/game/bignum';
+import { bumpQuestsIn } from './questSlice';
+
+// Compteurs communs à toute amélioration (quêtes "Améliorer tes personnages"
+// jour/semaine + cumul à vie), sous forme de patch à fusionner dans le set()
+// de l'action : une amélioration = une seule mise à jour du store.
+function upgradeCountersPatch(state: GameStore, count: number): Partial<GameStore> {
+  const daily = bumpQuestsIn(state, 'd_upgrade', count);
+  const weekly = bumpQuestsIn({
+    quests: daily.quests ?? state.quests,
+    weeklyQuests: daily.weeklyQuests ?? state.weeklyQuests,
+    raidQuests: daily.raidQuests ?? state.raidQuests,
+  }, 'w_upgrade', count);
+  return { ...daily, ...weekly, totalUpgradesPerformed: (state.totalUpgradesPerformed ?? 0) + count };
+}
 
 export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlice> = (set, get) => ({
   setUsername: (name) => set({ username: name.trim().slice(0, 20) }),
@@ -28,18 +42,18 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
   },
 
   upgradeGold: () => {
-    const level = get().goldUpgradeLevel ?? 0;
-    const maxLevel = runPeakPalierOf(get());
+    const s = get();
+    const level = s.goldUpgradeLevel ?? 0;
+    const maxLevel = runPeakPalierOf(s);
     if (level >= maxLevel) return; // pas encore débloqué par la progression de palier
-    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const anomalyMult = 1 - calcAnomalyBonuses(s.ownedAnomalies).upgradeCostReductionPct;
     const cost = bnMulScalar(getGoldChestCost(level), anomalyMult);
-    if (!get().spendPixelCoins(cost)) return;
+    if (!bnGte(s.pixelCoins, cost)) return;
     set(state => ({
+      pixelCoins: bnSub(state.pixelCoins, cost),
       goldUpgradeLevel: (state.goldUpgradeLevel ?? 0) + 1,
+      ...upgradeCountersPatch(state, 1),
     }));
-    get().bumpQuestProgress('d_upgrade', 1);
-    get().bumpQuestProgress('w_upgrade', 1);
-    set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
   getGoldMultiplier: () => {
@@ -64,69 +78,78 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
   },
 
   levelUpHero: () => {
-    const { hero } = get();
-    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const { hero, ownedAnomalies, pixelCoins } = get();
+    const anomalyMult = 1 - calcAnomalyBonuses(ownedAnomalies).upgradeCostReductionPct;
     const cost = bnMulScalar(heroLevelUpCost(hero.level), anomalyMult);
-    if (!get().spendPixelCoins(cost)) return;
+    if (!bnGte(pixelCoins, cost)) return;
     set(state => ({
+      pixelCoins: bnSub(state.pixelCoins, cost),
       hero: { ...state.hero, level: state.hero.level + 1, xp: 0 },
+      ...upgradeCountersPatch(state, 1),
     }));
-    get().bumpQuestProgress('d_upgrade', 1);
-    get().bumpQuestProgress('w_upgrade', 1);
-    set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
   evolveHero: () => {
-    const { hero } = get();
+    const { hero, ownedAnomalies, pixelCoins } = get();
     const forms = HERO_TEMPLATE.forms ?? [];
     if (!canEvolveHero(forms, hero)) return;
-    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    const anomalyMult = 1 - calcAnomalyBonuses(ownedAnomalies).upgradeCostReductionPct;
     const cost = bnMulScalar(evoCost('L', hero.currentForm), anomalyMult);
-    if (!get().spendPixelCoins(cost)) return;
+    if (!bnGte(pixelCoins, cost)) return;
     set(state => ({
+      pixelCoins: bnSub(state.pixelCoins, cost),
       hero: { ...state.hero, currentForm: state.hero.currentForm + 1, level: state.hero.level + 1 },
+      ...upgradeCountersPatch(state, 1),
     }));
-    get().bumpQuestProgress('d_upgrade', 1);
-    get().bumpQuestProgress('w_upgrade', 1);
-    set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
   // ─── Personnages ──────────────────────────────────────────────────
-  levelUpCharacter: (templateId) => {
-    const owned = get().collection[templateId];
-    if (!owned) return;
+  levelUpCharacter: (templateId) => get().levelUpCharacterN(templateId, 1),
+
+  // Monte jusqu'à `count` niveaux d'affilée (s'arrête dès qu'un niveau n'est
+  // plus payable), en UN SEUL set() — le bouton ×10 appelait avant
+  // levelUpCharacter 10 fois, soit ~50 mises à jour du store (chacune
+  // notifiant tous les abonnés et réécrivant la sauvegarde locale).
+  levelUpCharacterN: (templateId, count) => {
+    const s = get();
+    const owned = s.collection[templateId];
+    if (!owned || count <= 0) return;
     const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
     if (!tpl) return;
-    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
-    const cost = bnMulScalar(levelUpCost(owned.level), anomalyMult);
-    if (!get().spendPixelCoins(cost)) return;
+    const anomalyMult = 1 - calcAnomalyBonuses(s.ownedAnomalies).upgradeCostReductionPct;
+    let coins = s.pixelCoins;
+    let levels = 0;
+    while (levels < count) {
+      const cost = bnMulScalar(levelUpCost(owned.level + levels), anomalyMult);
+      if (!bnGte(coins, cost)) break;
+      coins = bnSub(coins, cost);
+      levels++;
+    }
+    if (levels === 0) return;
     set(state => ({
+      pixelCoins: coins,
       collection: {
         ...state.collection,
-        [templateId]: { ...owned, level: owned.level + 1, xp: 0 },
+        [templateId]: { ...owned, level: owned.level + levels, xp: 0 },
       },
+      ...upgradeCountersPatch(state, levels),
     }));
-    get().bumpQuestProgress('d_upgrade', 1);
-    get().bumpQuestProgress('w_upgrade', 1);
-    set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
   evolveCharacter: (templateId) => {
-    const owned = get().collection[templateId];
+    const s = get();
+    const owned = s.collection[templateId];
     if (!owned) return;
     const tpl = getCharacterById(parseInstanceKey(templateId).templateId);
-    if (!tpl || !canEvolve(tpl, owned, get().inventory, get().expeditionDropInventory)) return;
-    const anomalyMult = 1 - calcAnomalyBonuses(get().ownedAnomalies).upgradeCostReductionPct;
+    if (!tpl || !canEvolve(tpl, owned, s.inventory, s.expeditionDropInventory)) return;
+    const anomalyMult = 1 - calcAnomalyBonuses(s.ownedAnomalies).upgradeCostReductionPct;
     const cost = bnMulScalar(evoCost(tpl.rarity, owned.currentForm), anomalyMult);
-    if (!get().spendPixelCoins(cost)) return;
-    // Consomme les Pierres d'Évolution (drop d'expédition) requises —
-    // sauf pour les persos marqués noEvoStones (aucun actuellement).
-    if (!tpl.noEvoStones) {
-      const stonesCost = evoStoneCost(tpl.rarity, owned.currentForm);
-      if (stonesCost > 0) get().consumeDrop(EVOLUTION_STONE_ITEM_ID, stonesCost);
-    }
-    // Consomme les items requis pour cette évolution si applicable (1 de
-    // chacun — cumulatif d'une forme à l'autre, voir EvoForm.requiredItemIds)
+    if (!bnGte(s.pixelCoins, cost)) return;
+    // Pierres d'Évolution (drop d'expédition) requises — sauf pour les persos
+    // marqués noEvoStones (aucun actuellement).
+    const stonesCost = tpl.noEvoStones ? 0 : evoStoneCost(tpl.rarity, owned.currentForm);
+    // Items requis pour cette évolution si applicable (1 de chacun —
+    // cumulatif d'une forme à l'autre, voir EvoForm.requiredItemIds)
     const nextForm = tpl.forms?.[owned.currentForm + 1];
     const requiredItems = nextForm?.requiredItemIds;
     set(state => {
@@ -136,17 +159,20 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       if (requiredItems?.length) {
         for (const id of requiredItems) newInventory[id] = Math.max(0, (newInventory[id] ?? 0) - 1);
       }
+      const stonesHave = state.expeditionDropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0;
       return {
+        pixelCoins: bnSub(state.pixelCoins, cost),
         inventory: newInventory,
+        ...(stonesCost > 0 && stonesHave >= stonesCost && {
+          expeditionDropInventory: { ...state.expeditionDropInventory, [EVOLUTION_STONE_ITEM_ID]: stonesHave - stonesCost },
+        }),
         collection: {
           ...state.collection,
           [templateId]: { ...owned, currentForm: owned.currentForm + 1, level: owned.level + 1 },
         },
+        ...upgradeCountersPatch(state, 1),
       };
     });
-    get().bumpQuestProgress('d_upgrade', 1);
-    get().bumpQuestProgress('w_upgrade', 1);
-    set(s => ({ totalUpgradesPerformed: (s.totalUpgradesPerformed ?? 0) + 1 }));
   },
 
   // Détail du DPS d'UN allié équipé : base (avant type), multiplicateur de
