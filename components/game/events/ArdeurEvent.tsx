@@ -4,7 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { STAT, EV_PERFECT } from '@/lib/game/achievements';
 import {
   useRandomEventStore, ARDEUR_DURATION_MS, ARDEUR_MAX_MULT, ARDEUR_GAIN_PER_CLICK,
-  ARDEUR_DECAY_PER_SEC, ARDEUR_BUFF_MS,
+  ARDEUR_DECAY_PER_SEC, ARDEUR_BUFF_MS, ARDEUR_MAX_GRACE_MS,
 } from '@/store/randomEventStore';
 
 // Ardeur = jauge de "chaleur" (0→1) qui MONTE à chaque clic mais REDESCEND en
@@ -17,20 +17,28 @@ export function ArdeurEvent() {
   const heatRef = useRef(0);
   const peakRef = useRef(0);
   const joinedRef = useRef(false);
+  const lastRef = useRef(0);       // instant jusqu'où la décroissance a été appliquée
+  const fullUntilRef = useRef(0);  // jauge pleine : pas de décroissance avant cet instant
 
   const mult = 1 + (ARDEUR_MAX_MULT - 1) * heat;
 
+  // Applique la décroissance écoulée jusqu'à `now` (en temps réel, pas par tick,
+  // sinon la jauge ne peut jamais valoir 1 au moment où on la lit).
+  const settle = (now: number) => {
+    const from = heatRef.current >= 1 ? Math.max(lastRef.current, fullUntilRef.current) : lastRef.current;
+    if (now > from) heatRef.current = Math.max(0, heatRef.current - ARDEUR_DECAY_PER_SEC * (now - from) / 1000);
+    lastRef.current = Math.max(lastRef.current, now);
+  };
+
   useEffect(() => {
     const start = Date.now();
-    let last = start;
+    lastRef.current = start;
     const iv = setInterval(() => {
       const now = Date.now();
-      const dt = (now - last) / 1000; last = now;
-      // Décroissance continue de la jauge.
-      heatRef.current = Math.max(0, heatRef.current - ARDEUR_DECAY_PER_SEC * dt);
+      const left = ARDEUR_DURATION_MS - (now - start);
+      settle(left <= 0 ? start + ARDEUR_DURATION_MS : now);
       setHeat(heatRef.current);
 
-      const left = ARDEUR_DURATION_MS - (now - start);
       setTimeLeft(Math.max(0, left));
       if (left <= 0) {
         clearInterval(iv);
@@ -45,7 +53,10 @@ export function ArdeurEvent() {
   }, [end, setEventDpsMult]);
 
   const hit = () => {
+    const now = Date.now();
+    settle(now);
     heatRef.current = Math.min(1, heatRef.current + ARDEUR_GAIN_PER_CLICK);
+    if (heatRef.current >= 1) fullUntilRef.current = now + ARDEUR_MAX_GRACE_MS;
     peakRef.current = Math.max(peakRef.current, heatRef.current);
     setHeat(heatRef.current);
     if (!joinedRef.current) { joinedRef.current = true; useGameStore.getState().addStat(STAT.eventsJoined); }

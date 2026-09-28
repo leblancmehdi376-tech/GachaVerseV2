@@ -16,6 +16,7 @@ export const ARDEUR_MAX_MULT      = 2.0;    // ×2 DPS au max (dur à atteindre)
 export const ARDEUR_GAIN_PER_CLICK = 0.07;  // +7% de jauge par clic
 export const ARDEUR_DECAY_PER_SEC = 0.32;   // -32% de jauge par seconde (exigeant mais atteignable)
 export const ARDEUR_BUFF_MS       = 20000;  // durée du boost obtenu
+export const ARDEUR_MAX_GRACE_MS  = 150;    // jauge pleine : pas de décroissance pendant ce délai après un clic
 
 // Tempête de neige : UNE orbe à la fois, toutes les 5 s.
 export const TEMPETE_ORBES       = 4;      // nombre d'orbes sur l'event

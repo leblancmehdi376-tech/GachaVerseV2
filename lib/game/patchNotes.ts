@@ -20,6 +20,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Maj v2.6.4',
+    changes: [
+      "**Ardeur** : le boost plafonnait à **×1.98** à cause d'un bug, le **×2** est désormais atteignable.",
+      "**Ardeur** : une fois la jauge pleine, elle **reste au max** tant que tu continues de frapper.",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Maj v2.6.3',
     changes: [
       "**Navigation plus réactive** : changer de page répond jusqu'à **3x plus vite**.",
