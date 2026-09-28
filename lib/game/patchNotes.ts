@@ -20,6 +20,40 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'GachaDle : récompenses et quêtes',
+    sections: [
+      {
+        icon: '📅',
+        title: 'Défi du jour',
+        changes: [
+          "Réussir le **défi du jour** rapporte maintenant **100 💎**.",
+          "Enchaîne les jours pour faire monter ta **série 🔥** : la récompense grimpe jusqu'à **150 💎** à partir de **5 jours** d'affilée.",
+          "Rater un jour remet la série à zéro.",
+          "Ta progression du défi du jour est maintenant **sauvegardée dans le cloud**.",
+        ],
+      },
+      {
+        icon: '📜',
+        title: 'Quêtes GachaDle',
+        changes: [
+          "**26 quêtes** à accomplir directement sur la page **GachaDle**, chacune réclamable une seule fois.",
+          "**Séries** de 3 à 30 jours, victoires en **moins de 10, 6, 3 ou 2 essais**, **1 à 30 parties** jouées.",
+          "Trouve un personnage de **chaque rareté**, de Commun à **Transcendant**.",
+          "Accomplis-les toutes pour un bonus de **900 💎**.",
+          "Les parties, essais et raretés comptent aussi en **partie libre** (pas les séries).",
+        ],
+      },
+      {
+        icon: '🏆',
+        title: 'Succès',
+        changes: [
+          "Nouveau succès **Pro du GachaverseDLE** : termine toutes les quêtes GachaDle pour débloquer le titre du même nom (**+10 %** d'or).",
+        ],
+      },
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Nouvelle activité : GachaDle',
     changes: [
       "Nouvelle page **GachaDle** dans **Activités** : devine le personnage mystère !",

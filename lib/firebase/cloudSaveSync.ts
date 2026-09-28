@@ -117,6 +117,17 @@ export function getSerializableState() {
     // doit donc être synchronisé pour survivre à un changement d'appareil.
     compadexCharactersSeen: s.compadexCharactersSeen ?? {},
     compadexEquipmentSeen:  s.compadexEquipmentSeen ?? {},
+    // GachaDle — jamais reset au Prestige. Les essais du défi du jour sont
+    // synchronisés pour qu'un autre appareil ne puisse pas le rejouer.
+    dleDailyDate:     s.dleDailyDate ?? '',
+    dleDailyGuesses:  s.dleDailyGuesses ?? [],
+    dleStreak:        s.dleStreak ?? 0,
+    dleBestStreak:    s.dleBestStreak ?? 0,
+    dleLastWinDate:   s.dleLastWinDate ?? '',
+    dleGamesWon:      s.dleGamesWon ?? 0,
+    dleBestGuesses:   s.dleBestGuesses ?? 0,
+    dleRaritiesFound: s.dleRaritiesFound ?? [],
+    dleQuestsClaimed: s.dleQuestsClaimed ?? [],
     // Historique de solde (graphe admin) — voir recordCurrencySnapshot,
     // appelé juste avant dans saveToFirebase : ce champ ne fait donc que
     // grossir un payload déjà écrit, sans lecture/écriture Firestore en plus.
@@ -135,7 +146,8 @@ export function getSerializableState() {
 //   JAMAIS pouvoir redisparaître, même si la source qui la connaît n'est pas
 //   la plus récente des deux (sinon un device qui synchronise en retard
 //   "gagnerait" et effacerait silencieusement la progression Compadex faite
-//   entre-temps sur l'autre appareil).
+//   entre-temps sur l'autre appareil). Idem pour `dleQuestsClaimed` (quêtes
+//   GachaDle réclamées) : sinon une quête redeviendrait réclamable.
 // - `activeTitle` (préférence d'affichage, pas un déblocage) suit lui la
 //   source la plus fraîche (`freshest`), comme le reste de l'état.
 export function mergeMonotonicState(
@@ -144,6 +156,7 @@ export function mergeMonotonicState(
 ): {
   achievementsClaimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string;
   compadexCharactersSeen: Record<string, true>; compadexEquipmentSeen: Record<string, true>;
+  dleQuestsClaimed: string[];
 } {
   const current = useGameStore.getState();
   const achievementsClaimed: Record<string, boolean> = { ...current.achievementsClaimed };
@@ -174,7 +187,14 @@ export function mergeMonotonicState(
   const remoteEquip = remote?.compadexEquipmentSeen as Record<string, unknown> | undefined;
   if (remoteEquip) for (const id of Object.keys(remoteEquip)) compadexEquipmentSeen[id] = true;
 
-  return { achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen };
+  const dleQuestsClaimed = new Set<string>(current.dleQuestsClaimed ?? []);
+  const remoteDle = remote?.dleQuestsClaimed as string[] | undefined;
+  if (Array.isArray(remoteDle)) for (const id of remoteDle) dleQuestsClaimed.add(id);
+
+  return {
+    achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen,
+    dleQuestsClaimed: Array.from(dleQuestsClaimed),
+  };
 }
 
 // ── Rafraîchissement local de savedAt ──────────────────────────────────────
@@ -215,6 +235,7 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   delete data.activeTitle;
   delete data.compadexCharactersSeen;
   delete data.compadexEquipmentSeen;
+  delete data.dleQuestsClaimed;
 
   // Migration BigNum : une sauvegarde cloud écrite par une version antérieure
   // (ou par un client qui n'a pas encore rechargé ce code) stocke encore ces

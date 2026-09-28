@@ -41,6 +41,9 @@ TITLE_GOLD_BONUS_PCT['Réincarné'] = 15;
 TITLE_GOLD_BONUS_PCT['⚡ Le Protagoniste Prometteur'] = 7;
 TITLE_GOLD_BONUS_PCT['🌌 Briseur de Limites'] = 28;
 
+// ── GachaDle — toutes les quêtes GachaDle accomplies (succès dle_pro) ─────
+TITLE_GOLD_BONUS_PCT['Pro du GachaverseDLE'] = 10;
+
 // ── Titres de raid — drop rare (1%) sur un kill de boss de raid ───────
 // Hors interpolation de TITLE_ORDER (pas liés à un succès), bonus fixé
 // directement comme demandé.

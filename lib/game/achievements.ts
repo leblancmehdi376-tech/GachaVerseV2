@@ -2,6 +2,7 @@
 
 import { CHARACTER_POOL } from './characters';
 import { EQUIPMENT_DEFS } from './items';
+import { DLE_QUESTS } from './gachadle';
 
 // Totaux du Compadex — voir la section COMPADEX ci-dessous. Exportés pour que
 // hooks/useAchievementTrackers.ts puisse détecter la complétion à 100% sans
@@ -599,6 +600,14 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward:{ type:'gems', value:1000 },
     secret:true,
     resetsOnPrestige:true,
+  },
+
+  // — GachaDle —
+  {
+    id:'dle_pro', category:'social', icon:'❓',
+    title:'Pro du GachaverseDLE', name:'Pro du GachaverseDLE',
+    description:'Accomplis toutes les quêtes GachaDle.', target:DLE_QUESTS.length,
+    reward:{ type:'title', value:'Pro du GachaverseDLE' },
   },
 
   // — Sans équivalent thématique —

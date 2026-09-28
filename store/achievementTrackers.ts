@@ -185,6 +185,11 @@ export function trackCompadexEquipment(seenCount: number) {
   }
 }
 
+/** `doneCount` = nombre de quêtes GachaDle accomplies (voir countDleQuestsDone). */
+export function trackDleQuests(doneCount: number) {
+  useGameStore.getState().setProgress('dle_pro', doneCount);
+}
+
 export function trackCompadexBoth(charComplete: boolean, equipComplete: boolean) {
   useGameStore.getState().setProgress('compadex_both_100', (charComplete ? 1 : 0) + (equipComplete ? 1 : 0));
 }

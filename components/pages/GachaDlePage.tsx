@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { PageScroll } from '@/components/ui/Page';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { UniverseIcon } from '@/components/ui/CollectionFilters';
@@ -9,29 +10,14 @@ import { RARITY_CONFIG, CharacterTemplate } from '@/types/game';
 import { getCardFormCount } from '@/lib/game/cardAssets';
 import { GENDER_CONFIG, getCharacterGender } from '@/lib/game/characterGenders';
 import {
-  compareGuess, getDailyTarget, getDleDateKey, getRandomTarget, suggestCharacters,
-  DLE_POOL, type DleOrderMatch,
+  compareGuess, getDailyTarget, getDleDailyReward, getDleDateKey, getDleQuestProgress, getRandomTarget, suggestCharacters,
+  DLE_POOL, DLE_QUESTS, type DleOrderMatch,
 } from '@/lib/game/gachadle';
+import { useGameStore } from '@/store/gameStore';
+import { getDleStats, selectDleCurrentStreak } from '@/store/slices/gachaDleSlice';
 
 type Mode = 'daily' | 'free';
-
-// Progression du défi du jour, mémorisée en local uniquement (pas dans la
-// sauvegarde cloud) pour la retrouver en revenant sur la page le même jour.
-const DAILY_STORAGE_KEY = 'gv_gachadle_daily';
-function loadDailyGuesses(dateKey: string): string[] {
-  try {
-    const raw = localStorage.getItem(DAILY_STORAGE_KEY);
-    if (!raw) return [];
-    const saved = JSON.parse(raw) as { date?: string; guesses?: unknown };
-    if (saved.date !== dateKey || !Array.isArray(saved.guesses)) return [];
-    return saved.guesses.filter((id): id is string => typeof id === 'string' && !!getCharacterById(id));
-  } catch {
-    return [];
-  }
-}
-function saveDailyGuesses(dateKey: string, guesses: string[]) {
-  try { localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ date: dateKey, guesses })); } catch {}
-}
+const NO_GUESSES: string[] = [];
 
 const OK  = { color: '#4ade80', bg: 'rgba(22,163,74,0.22)',  border: 'rgba(74,222,128,0.55)' };
 const CLOSE = { color: '#fb923c', bg: 'rgba(234,88,12,0.22)', border: 'rgba(251,146,60,0.55)' };
@@ -120,6 +106,63 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
+function DleQuestsPanel() {
+  const stats = useGameStore(useShallow(getDleStats));
+  const claimed = useGameStore(s => s.dleQuestsClaimed);
+  const claimDleQuest = useGameStore(s => s.claimDleQuest);
+  const rows = DLE_QUESTS.map((q, i) => ({ q, i, p: getDleQuestProgress(q, stats), isClaimed: claimed.includes(q.id) }));
+  // Réclamables d'abord, puis en cours, puis déjà reçues.
+  const rank = (r: typeof rows[number]) => (r.isClaimed ? 2 : r.p.done ? 0 : 1);
+  const sorted = [...rows].sort((a, b) => rank(a) - rank(b) || a.i - b.i);
+  const doneCount = rows.filter(r => r.p.done).length;
+
+  return (
+    <div className="panel" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <span style={{ fontFamily: 'var(--f-title)', fontSize: 15, fontWeight: 700, color: '#38bdf8', letterSpacing: 2 }}>📜 QUÊTES GACHADLE</span>
+        <span style={{ fontFamily: 'var(--f-num)', fontSize: 12.4, color: 'var(--text-dim)' }}>{doneCount} / {DLE_QUESTS.length}</span>
+      </div>
+      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        Les séries comptent les défis du jour réussis d&apos;affilée. Les parties, essais et raretés comptent aussi en partie libre.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {sorted.map(({ q, p, isClaimed }) => {
+          const ready = p.done && !isClaimed;
+          return (
+            <div key={q.id} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', borderRadius: 8,
+              background: ready ? 'rgba(56,189,248,0.10)' : 'var(--bg-deep)',
+              border: `1px solid ${ready ? 'rgba(56,189,248,0.5)' : 'var(--border)'}`,
+              opacity: isClaimed ? 0.55 : 1,
+            }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{q.label}</div>
+                {p.target > 1 && (
+                  <div style={{ marginTop: 5, height: 5, borderRadius: 3, background: 'var(--border)', overflow: 'hidden' }}>
+                    <div style={{ width: `${(p.current / p.target) * 100}%`, height: '100%', background: p.done ? OK.color : '#38bdf8' }} />
+                  </div>
+                )}
+              </div>
+              {p.target > 1 && (
+                <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>{p.current}/{p.target}</span>
+              )}
+              <span style={{ fontFamily: 'var(--f-num)', fontSize: 12.4, color: '#38bdf8', whiteSpace: 'nowrap', minWidth: 60, textAlign: 'right' }}>+{q.gems} 💎</span>
+              {isClaimed ? (
+                <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 11.5, color: OK.color, minWidth: 64, textAlign: 'center' }}>✓ REÇU</span>
+              ) : (
+                <button type="button" className={ready ? 'btn-primary' : 'btn-secondary'} disabled={!ready}
+                  onClick={() => claimDleQuest(q.id)} style={{ padding: '6px 10px', fontSize: 11.5, minWidth: 64 }}>
+                  RÉCUP
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export function GachaDlePage() {
@@ -127,7 +170,13 @@ export function GachaDlePage() {
   const dailyTarget = useMemo(() => getDailyTarget(dateKey), [dateKey]);
 
   const [mode, setMode] = useState<Mode>('daily');
-  const [dailyGuesses, setDailyGuesses] = useState<string[]>(() => loadDailyGuesses(dateKey));
+  // Essais du défi du jour : dans le store (sauvegarde cloud), ignorés s'ils datent d'un autre jour.
+  const storedDaily = useGameStore(s => s.dleDailyGuesses);
+  const storedDailyDate = useGameStore(s => s.dleDailyDate);
+  const dailyGuesses = storedDailyDate === dateKey ? storedDaily : NO_GUESSES;
+  const submitDleDailyGuess = useGameStore(s => s.submitDleDailyGuess);
+  const recordDleFreeWin = useGameStore(s => s.recordDleFreeWin);
+  const streak = useGameStore(s => selectDleCurrentStreak(s, dateKey));
   const [freeTarget, setFreeTarget] = useState<CharacterTemplate>(() => getRandomTarget());
   const [freeGuesses, setFreeGuesses] = useState<string[]>([]);
   const [query, setQuery] = useState('');
@@ -139,14 +188,18 @@ export function GachaDlePage() {
   const target  = mode === 'daily' ? dailyTarget : freeTarget;
   const guesses = mode === 'daily' ? dailyGuesses : freeGuesses;
   const won = guesses.includes(target.id);
+  const dailyWon = dailyGuesses.includes(dailyTarget.id);
   const guessedIds = useMemo(() => new Set(guesses), [guesses]);
   const suggestions = useMemo(() => suggestCharacters(query, guessedIds), [query, guessedIds]);
 
   const submit = (tpl: CharacterTemplate) => {
     if (won || guessedIds.has(tpl.id)) return;
     const next = [...guesses, tpl.id];
-    if (mode === 'daily') { setDailyGuesses(next); saveDailyGuesses(dateKey, next); }
-    else setFreeGuesses(next);
+    if (mode === 'daily') submitDleDailyGuess(dateKey, tpl.id);
+    else {
+      setFreeGuesses(next);
+      if (tpl.id === target.id) recordDleFreeWin(next.length, target.rarity);
+    }
     setLastGuessId(tpl.id);
     setQuery('');
     setHighlight(0);
@@ -190,9 +243,15 @@ export function GachaDlePage() {
               Devine le personnage mystère ! Chaque proposition révèle si son <b>genre</b>, sa <b>rareté</b>, son <b>type</b>, son <b>univers</b> et son <b>nombre de formes</b> correspondent. ▲/▼ : le mystère a une valeur plus haute ou plus basse. Type en <b style={{ color: CLOSE.color }}>orange</b> : voisin dans le cycle des types.
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <ModeButton active={mode === 'daily'} onClick={() => switchMode('daily')}>📅 DÉFI DU JOUR</ModeButton>
-            <ModeButton active={mode === 'free'} onClick={() => switchMode('free')}>🎲 PARTIE LIBRE</ModeButton>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <ModeButton active={mode === 'daily'} onClick={() => switchMode('daily')}>📅 DÉFI DU JOUR</ModeButton>
+              <ModeButton active={mode === 'free'} onClick={() => switchMode('free')}>🎲 PARTIE LIBRE</ModeButton>
+            </div>
+            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-dim)', textAlign: 'right' }}>
+              🔥 Série : <b style={{ color: streak > 0 ? CLOSE.color : 'var(--text-dim)' }}>{streak}</b>
+              {' · '}Défi du jour : <b style={{ color: dailyWon ? OK.color : '#38bdf8' }}>{dailyWon ? 'réussi ✓' : `+${getDleDailyReward(streak + 1)} 💎`}</b>
+            </div>
           </div>
         </div>
 
@@ -207,7 +266,9 @@ export function GachaDlePage() {
                 trouvé en <b>{guesses.length}</b> essai{guesses.length > 1 ? 's' : ''}.
               </div>
               {mode === 'daily' && (
-                <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)', marginTop: 4 }}>Un nouveau personnage mystère t&apos;attend demain.</div>
+                <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)', marginTop: 4 }}>
+                  🔥 Série de <b style={{ color: CLOSE.color }}>{streak}</b> jour{streak > 1 ? 's' : ''}. Un nouveau personnage mystère t&apos;attend demain.
+                </div>
               )}
             </div>
             <button type="button" className="btn-primary" onClick={newFreeGame} style={{ padding: '10px 16px', fontSize: 12.4 }}>
@@ -294,6 +355,8 @@ export function GachaDlePage() {
             {DLE_POOL.length} personnages possibles. À toi de jouer !
           </div>
         )}
+
+        <DleQuestsPanel />
       </div>
     </PageScroll>
   );

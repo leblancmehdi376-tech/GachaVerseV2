@@ -8,11 +8,13 @@ import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
+import { countDleQuestsDone } from '@/lib/game/gachadle';
+import { getDleStats } from '@/store/slices/gachaDleSlice';
 import {
   trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection,
   trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige,
   trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax,
-  trackCompadexCharacters, trackCompadexEquipment, trackCompadexBoth,
+  trackCompadexCharacters, trackCompadexEquipment, trackCompadexBoth, trackDleQuests,
 } from '@/store/achievementTrackers';
 
 // Synchronise en continu les compteurs de jeu vers le store de succès —
@@ -50,6 +52,7 @@ export function useAchievementTrackers() {
   const unlockedTitlesCount = useGameStore(s => s.unlockedTitles.length);
   const compadexCharactersSeen = useGameStore(s => s.compadexCharactersSeen);
   const compadexEquipmentSeen = useGameStore(s => s.compadexEquipmentSeen);
+  const dleQuestsDone = useGameStore(s => countDleQuestsDone(getDleStats(s)));
 
   useEffect(() => { trackBossKills(totalBossKills); }, [totalBossKills]);
   useEffect(() => { trackBossCrowns(totalBossCrownsEarned); }, [totalBossCrownsEarned]);
@@ -60,6 +63,7 @@ export function useAchievementTrackers() {
   useEffect(() => { trackVoidOrbs(totalVoidOrbsEarned); }, [totalVoidOrbsEarned]);
   useEffect(() => { trackUnlockedTitles(unlockedTitlesCount); }, [unlockedTitlesCount]);
   useEffect(() => { trackGachaPulls(totalGachaPulls); }, [totalGachaPulls]);
+  useEffect(() => { trackDleQuests(dleQuestsDone); }, [dleQuestsDone]);
   useEffect(() => {
     const active = computeActiveSynergies(equippedTeam);
     const hasMax = active.some((a: { def: { thresholds: unknown[] }; threshold: unknown }) =>
