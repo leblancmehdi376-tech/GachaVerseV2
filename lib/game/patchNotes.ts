@@ -20,6 +20,17 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Maj v2.6.5',
+    changes: [
+      "**Rokoul & Ayro** : ses évolutions affichent désormais son visuel de base au lieu d'une carte vide, en attendant leurs illustrations.",
+      "Même correctif pour tout perso dont une **évolution n'a pas encore d'illustration**.",
+      "**Cliquer sur la bande pour accélérer** fonctionne de nouveau lors des tirages de **Prestige** et de l'ouverture des **coffres d'équipement**.",
+      "**Nouvelles unités** pour les très grands nombres : après **No**, place à **Dc**, **UDc**, **Vg**... jusqu'à **Ce** (10^303), puis **aa**, **ab**...",
+      "Nouvelle option dans les **Paramètres** : afficher les nombres en **notation scientifique** (ex : **1.50e15**).",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Maj v2.6.4',
     changes: [
       "**Ardeur** : le boost plafonnait à **×1.98** à cause d'un bug, le **×2** est désormais atteignable.",

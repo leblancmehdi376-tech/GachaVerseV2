@@ -13,6 +13,7 @@ import { SecretsLayer } from '@/components/game/SecretsLayer';
 import { EGG, pageStatKey } from '@/lib/game/achievements';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
+import { useDisplaySettingsStore } from '@/store/displaySettingsStore';
 import { getCompadexProgress } from '@/lib/game/compadex';
 import { useAuth } from '@/hooks/useAuth';
 import { useCloudSave } from '@/hooks/useCloudSave';
@@ -144,6 +145,9 @@ const COMBAT_PAGES: Page[] = ['home'];
 
 export function GameLayout() {
   useDpsTick();
+  // Abonnement à la notation des nombres (Paramètres) : re-rend l'interface
+  // dès qu'elle change, formatNumber lisant la valeur directement.
+  useDisplaySettingsStore(s => s.numberNotation);
   const { status: instanceStatus, requestTakeover } = useInstanceLock();
   const [page,          setPage]          = useState<Page>('home');
   const [showAuth,      setShowAuth]      = useState(false);

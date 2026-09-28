@@ -77,6 +77,12 @@ export function CharacterCardThumb({
       ? buildImageCandidates(`/sprites/cards/${cardBaseName}`)
       : []),
     ...buildImageCandidates(`/sprites/cards/${legacyBase}`),
+    // Visuel d'évolution pas encore dessiné : on retombe sur l'art de base (Evo0).
+    ...(tpl && safeFormIndex > 0
+      ? buildImageCandidates(
+          `/sprites/new_cards_processed/${getCardBaseName(tpl, 0)}`
+        ).map(c => `${c}?v=${NEW_CARDS_ASSET_VERSION}`)
+      : []),
   ];
 
   const { src, failed, onError } = useFallbackImage(candidates);

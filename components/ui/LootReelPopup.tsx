@@ -11,6 +11,7 @@ export const REEL_WIN_INDEX = 44;
 const REEL_SPIN_MS = 4600;
 const REEL_STAGGER_MS = 350;
 const REEL_SKIP_MS = 280;
+const REEL_EASING = 'cubic-bezier(0.12,0.72,0.18,1)';
 
 const SIZES = {
   normal:  { itemWidth:130, gap:14, height:118, icon:32, pad:'14px 8px', label:10.5 },
@@ -67,17 +68,24 @@ function ReelStrip({ reel, spinMs, compact, skipSignal, revealed, onDone, onSkip
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Accélération demandée (clic sur n'importe quelle bande).
+  // Accélération demandée (clic sur n'importe quelle bande). Fait directement
+  // sur le DOM : via deux setState successifs, React pouvait regrouper le
+  // "figer à la position courante" et le "relancer vers la cible" en un seul
+  // rendu — la valeur de transform ne changeait alors pas et la transition
+  // en cours (lente) continuait, rendant le clic sans effet.
   useEffect(() => {
-    if (!skipSignal || stopped || skippedRef.current || !trackRef.current) return;
+    const el = trackRef.current;
+    if (!skipSignal || stopped || skippedRef.current || !el) return;
     skippedRef.current = true;
-    const matrix = new DOMMatrixReadOnly(getComputedStyle(trackRef.current).transform);
-    setDurationMs(0);
-    setPosX(matrix.m41);
-    requestAnimationFrame(() => {
-      setDurationMs(REEL_SKIP_MS);
-      setPosX(targetXRef.current);
-    });
+    const currentX = new DOMMatrixReadOnly(getComputedStyle(el).transform).m41;
+    el.style.transition = 'none';
+    el.style.transform = `translateX(${currentX}px)`;
+    void el.offsetWidth; // force le recalcul pour que la nouvelle transition parte de currentX
+    el.style.transition = `transform ${REEL_SKIP_MS}ms ${REEL_EASING}`;
+    el.style.transform = `translateX(${targetXRef.current}px)`;
+    // Aligne l'état React sur le DOM pour qu'un re-rendu ne relance pas l'animation lente.
+    setDurationMs(REEL_SKIP_MS);
+    setPosX(targetXRef.current);
   }, [skipSignal, stopped]);
 
   const handleTransitionEnd = (e: React.TransitionEvent) => {
@@ -101,7 +109,7 @@ function ReelStrip({ reel, spinMs, compact, skipSignal, revealed, onDone, onSkip
         style={{
           display:'flex', alignItems:'center', gap:size.gap, height:'100%',
           transform:`translateX(${posX}px)`,
-          transition: durationMs ? `transform ${durationMs}ms cubic-bezier(0.12,0.72,0.18,1)` : 'none',
+          transition: durationMs ? `transform ${durationMs}ms ${REEL_EASING}` : 'none',
           willChange:'transform', cursor: revealed ? 'default' : 'pointer',
         }}
       >

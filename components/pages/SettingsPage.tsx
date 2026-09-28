@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatNumber } from '@/lib/game/format';
 import { redeemGiftCode } from '@/lib/firebase/giftCodes';
 import { useSpoilerStore } from '@/store/spoilerStore';
+import { useDisplaySettingsStore } from '@/store/displaySettingsStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { formatSyncStatus, type CloudSyncStatus } from '@/lib/firebase/cloudSaveSync';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
@@ -15,6 +16,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore();
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
+  const { numberNotation, setNotation } = useDisplaySettingsStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
   const ALL_UNIVERSES = [...new Set(CHARACTER_POOL.map(c => c.universe).filter((u): u is string => !!u))].sort((a, b) => a.localeCompare(b, 'fr'));
   const [confirmReset, setConfirmReset] = useState(false);
@@ -277,6 +279,34 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
               )}
             </>
           )}
+        </div>
+
+        {/* ── AFFICHAGE DES NOMBRES ── */}
+        <div className="panel" style={{ padding:'20px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px' }}>
+            <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#fbbf24,#b45309)', borderRadius:'2px', boxShadow:'0 0 8px #fbbf24' }} />
+            <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>🔢 AFFICHAGE DES NOMBRES</span>
+          </div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)', marginBottom:'14px', lineHeight:1.5 }}>
+            Choisis comment afficher les grands nombres (DPS, pièces, PV...).
+          </div>
+          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+            {([
+              { k:'suffix'     as const, label:'Unités',      example:'1.5Qa · 3.2Vg' },
+              { k:'scientific' as const, label:'Scientifique', example:'1.50e15' },
+            ]).map(o => {
+              const active = numberNotation === o.k;
+              return (
+                <button key={o.k} onClick={() => setNotation(o.k)}
+                  style={{ flex:'1 1 160px', padding:'10px 14px', borderRadius:'8px', cursor:'pointer', textAlign:'left',
+                    background: active ? 'rgba(251,191,36,0.12)' : 'var(--bg-card)',
+                    border:`1px solid ${active ? 'rgba(251,191,36,0.5)' : 'var(--border)'}` }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color: active ? '#fbbf24' : 'var(--text-sub)' }}>{active ? '● ' : '○ '}{o.label}</div>
+                  <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-dim)', marginTop:'3px' }}>{o.example}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ── ANTI-SPOIL ── */}
