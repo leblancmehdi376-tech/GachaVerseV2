@@ -330,11 +330,11 @@ export function bumpCoinQuests(quests: Quest[], amount: number): Quest[] {
 
 type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] };
 type PrestigeReadState = { prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number };
-type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[]; achievementStats?: Record<string, number>; charMastery?: Record<string, CharMastery> };
+type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { unlockedTitles: string[]; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[]; achievementStats?: Record<string, number>; charMastery?: Record<string, CharMastery> };
 
 export interface GoldGainMultiplierInputs {
   goldUpgradeLevel: number;
-  activeTitle: string;
+  unlockedTitles: string[];
   ultActiveUlts: ActiveUlt[];
   goldBoostEndsAt: number;
   prestigeBonusLevels: PrestigeBonusLevels;
@@ -342,7 +342,7 @@ export interface GoldGainMultiplierInputs {
   ownedAnomalies: Anomaly[];
 }
 
-// Multiplicateur TOTAL appliqué aux golds gagnés (coffre d'or × titre × ult
+// Multiplicateur TOTAL appliqué aux golds gagnés (coffre d'or × titres débloqués × ult
 // actif × boost temporaire boutique × passif prestige × anomalies).
 // Source de vérité UNIQUE : resolveEnemyDeath (gain réel au kill),
 // getGoldMultiplier (characterSlice, ré-utilisé par UpgradesPage et le calcul
@@ -351,13 +351,34 @@ export interface GoldGainMultiplierInputs {
 // sous-ensemble des boosts (ex: TeamBar n'affichait que le bonus du coffre,
 // sans prestige/anomalie/ult/boost), ce qui sous-affichait/sous-payait l'or réel.
 export function getGoldGainMultiplier(inputs: GoldGainMultiplierInputs): BigNum {
-  const chestMult    = getGoldChestMultiplier(inputs.goldUpgradeLevel ?? 0); // BigNum (non-plafonné, suit maxPalierReached)
-  const titleMult    = getTitleGoldMultiplier(inputs.activeTitle);
-  const ultCoinMult  = getActiveCoinMultiplier(inputs.ultActiveUlts);
-  const boostGoldMult   = Date.now() < inputs.goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
-  const prestigeCoinMult = getPrestigeBonuses(inputs.prestigeBonusLevels, inputs.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
-  const anomalyGoldMult = calcAnomalyBonuses(inputs.ownedAnomalies ?? []).goldGainMult;
-  return bnMulScalar(chestMult, titleMult * ultCoinMult * boostGoldMult * prestigeCoinMult * anomalyGoldMult);
+  return getGoldGainBreakdown(inputs).total;
+}
+
+// Détail de getGoldGainMultiplier (même calcul), affiché au survol du butin
+// (voir GoldBreakdownTooltip). Multiplicateurs en facteur (1.2 = +20 %).
+export interface GoldGainBreakdown {
+  total: BigNum;
+  chestLevel: number;
+  chestMult: BigNum;      // coffre d'or (BigNum, non plafonné)
+  titleMult: number;      // titres débloqués
+  ultMult: number;        // ultimes actifs
+  boostMult: number;      // boost or temporaire (boutique)
+  prestigeMult: number;   // passif prestige × shop "Fortune Ancestrale"
+  anomalyMult: number;    // anomalies
+}
+
+export function getGoldGainBreakdown(inputs: GoldGainMultiplierInputs): GoldGainBreakdown {
+  const chestLevel   = inputs.goldUpgradeLevel ?? 0;
+  const chestMult    = getGoldChestMultiplier(chestLevel); // BigNum (non-plafonné, suit maxPalierReached)
+  const titleMult    = getTitleGoldMultiplier(inputs.unlockedTitles ?? []);
+  const ultMult      = getActiveCoinMultiplier(inputs.ultActiveUlts);
+  const boostMult    = Date.now() < inputs.goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
+  const prestigeMult = getPrestigeBonuses(inputs.prestigeBonusLevels, inputs.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
+  const anomalyMult  = calcAnomalyBonuses(inputs.ownedAnomalies ?? []).goldGainMult;
+  return {
+    total: bnMulScalar(chestMult, titleMult * ultMult * boostMult * prestigeMult * anomalyMult),
+    chestLevel, chestMult, titleMult, ultMult, boostMult, prestigeMult, anomalyMult,
+  };
 }
 
 export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameState & QuestState> {
@@ -368,7 +389,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
 
   const goldMult = getGoldGainMultiplier({
     goldUpgradeLevel: (state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0,
-    activeTitle: state.activeTitle,
+    unlockedTitles: state.unlockedTitles ?? [],
     ultActiveUlts: state.ultActiveUlts,
     goldBoostEndsAt: (state as {goldBoostEndsAt?:number}).goldBoostEndsAt ?? 0,
     prestigeBonusLevels: state.prestigeBonusLevels,

@@ -1,68 +1,110 @@
-// ── Bonus d'or par titre équipé ────────────────────────────────────────────
-// Les titres sont classés du plus facile (Novice, +5%) au plus dur
-// (Architecte du Panthéon — 5 personnages en Base+Or+Diamant à la fois, +75%),
-// avec une montée linéaire entre les deux. Le classement suit la difficulté
-// réelle des succès qui les débloquent (et non l'ordre du fichier, les
-// catégories n'étant pas comparables entre elles en valeur brute).
-const TITLE_ORDER: string[] = [
-  'Novice', 'Premier Sang', 'Briseur de Cornes', 'Six Seven', 'Recruteur', 'Chanceux', 'Élu', 'Joueur', 'Serviteur',
-  'Astre', 'Étincelant', 'Voyageur', 'Émissaire', 'Légat', 'Souverain',
-  'Meneur', 'Tacticien', 'Chasseur', 'Exterminateur', 'Trésorier', 'Aventurier',
-  'Conquérant', 'Optimisateur', 'Archiviste', 'Scintillant', 'Parieur', 'Forgeron', 'Faucheur', 'Insatiable',
-  'Dompteur de Mondes', 'Tueur de Dieux', 'Collectionneur', 'Économe', 'Nébuleuse', 'Invocateur', 'Puissant', 'Fléau',
-  'Harmonie Totale', 'Maître Artisan', 'Décoré', 'Fossoyeur',
-  'Maître du Multivers', 'Millionnaire', 'Complétiste', 'Réincarné',
-  'Éclat Pur', 'Trinité', 'Néant Incarné',
-  'Dévastateur', 'Grand Invocateur', 'Garde d\'Élite',
-  'Annihilateur', 'Cataclysme', 'Ploutocrate', 'Ascendant', 'Prisme Absolu',
-  'Oligarque',
-  // ── Extrêmement difficiles (au-delà de tout ce qui précède) ────────────
-  'Finisseur', 'Légende Vivante', 'Apocalypse', 'Insatiable Absolu', 'Singularité',
-  'Renaissant', 'Élu Suprême', 'Empereur', 'Éternel', 'Architecte du Panthéon',
-  // ── Compadex 100% — parmi les tout derniers succès du jeu ──────────────
-  '🌌 Rassembleur d\'Âmes', '⚔️ Collectionneur de reliques', '👑 Souverain des Reliques et des Âmes perdues',
-];
-
-const MIN_BONUS_PCT = 5;   // Novice
-const MAX_BONUS_PCT = 75;  // Architecte du Panthéon (était 60, plafond relevé pour ce nouveau palier)
-
-export const TITLE_GOLD_BONUS_PCT: Record<string, number> = Object.fromEntries(
-  TITLE_ORDER.map((title, i) => [
-    title,
-    Math.round((MIN_BONUS_PCT + (MAX_BONUS_PCT - MIN_BONUS_PCT) * i / (TITLE_ORDER.length - 1)) * 10) / 10,
-  ])
-);
-TITLE_GOLD_BONUS_PCT['Six Seven'] = 6.7;
-TITLE_GOLD_BONUS_PCT['Réincarné'] = 15;
-
-// ── Titres de la refonte des succès (10 catégories) — bonus fixés
-// directement, hors interpolation de TITLE_ORDER (pour ne pas décaler les
-// bonus des titres existants).
-TITLE_GOLD_BONUS_PCT['Maître des Festivités'] = 12;
-TITLE_GOLD_BONUS_PCT['Gardien des Secrets']   = 15;
-TITLE_GOLD_BONUS_PCT['Invaincu']              = 18;
-TITLE_GOLD_BONUS_PCT['Maître Absolu']         = 20;
-
-// ── Titres de connexion journalière — bonus fixé au jour de déblocage ─────
-// Hors interpolation de TITLE_ORDER (pas liés à un succès), voir
-// lib/game/dailyRewards.ts pour le calendrier.
-TITLE_GOLD_BONUS_PCT['⚡ Le Protagoniste Prometteur'] = 7;
-TITLE_GOLD_BONUS_PCT['🌌 Briseur de Limites'] = 28;
-
 // ── Titres de raid — drop rare (1%) sur un kill de boss de raid ───────
-// Hors interpolation de TITLE_ORDER (pas liés à un succès), bonus fixé
-// directement comme demandé.
 export const RAID_TITLES: Record<string, string> = {
   shadow_monarch:  'Shadow Monarch',
   eminence_shadow: 'Shadow Eminence',
   arthur_leywin:   'Godkiller',
 };
-TITLE_GOLD_BONUS_PCT['Shadow Monarch']  = 8;
-TITLE_GOLD_BONUS_PCT['Shadow Eminence'] = 10;
-TITLE_GOLD_BONUS_PCT['Godkiller']       = 12;
 
-/** Multiplicateur d'or (1.05 → 1.60) du titre actuellement équipé. */
-export function getTitleGoldMultiplier(activeTitle: string): number {
-  const pct = TITLE_GOLD_BONUS_PCT[activeTitle] ?? 0;
-  return 1 + pct / 100;
+// ── Bonus d'or (%) par titre ───────────────────────────────────────────────
+// Valeurs fixées à la main. Tous les titres débloqués cumulent leur bonus
+// (voir getTotalTitleGoldBonusPct), le titre équipé ne sert qu'à l'affichage.
+export const TITLE_GOLD_BONUS_PCT: Record<string, number> = {
+  // ── Succès ─────────────────────────────────────────────────────────────
+  'Novice':                5,
+  'Premier Sang':          6,
+  'Six Seven':             6.7,
+  'Réincarné':             15,
+  'Maître des Festivités': 12,
+  'Gardien des Secrets':   15,
+  'Invaincu':              18,
+  'Maître Absolu':         20,
+  // ── Compadex 100% — parmi les tout derniers succès du jeu ──────────────
+  '🌌 Rassembleur d\'Âmes':                         73,
+  '⚔️ Collectionneur de reliques':                  74,
+  '👑 Souverain des Reliques et des Âmes perdues': 75,
+
+  // ── Connexion journalière (voir lib/game/dailyRewards.ts) ─────────────
+  '⚡ Le Protagoniste Prometteur': 7,
+  '🌌 Briseur de Limites':         28,
+
+  // ── Raid (voir RAID_TITLES) ───────────────────────────────────────────
+  'Shadow Monarch':  8,
+  'Shadow Eminence': 10,
+  'Godkiller':       12,
+
+  // ── Anciens titres, plus obtenables depuis la refonte des succès ──────
+  // 'Briseur de Cornes':      7,
+  // 'Recruteur':              9.1,
+  // 'Chanceux':               10.1,
+  // 'Élu':                    11.1,
+  // 'Joueur':                 12.1,
+  // 'Serviteur':              13.1,
+  // 'Astre':                  14.1,
+  // 'Étincelant':             15.1,
+  // 'Voyageur':               16.2,
+  // 'Émissaire':              17.2,
+  // 'Légat':                  18.2,
+  // 'Souverain':              19.2,
+  // 'Meneur':                 20.2,
+  // 'Tacticien':              21.2,
+  // 'Chasseur':               22.2,
+  // 'Exterminateur':          23.3,
+  // 'Trésorier':              24.3,
+  // 'Aventurier':             25.3,
+  // 'Conquérant':             26.3,
+  // 'Optimisateur':           27.3,
+  // 'Archiviste':             28.3,
+  // 'Scintillant':            29.3,
+  // 'Parieur':                30.4,
+  // 'Forgeron':               31.4,
+  // 'Faucheur':               32.4,
+  // 'Insatiable':             33.4,
+  // 'Dompteur de Mondes':     34.4,
+  // 'Tueur de Dieux':         35.4,
+  // 'Collectionneur':         36.4,
+  // 'Économe':                37.5,
+  // 'Nébuleuse':              38.5,
+  // 'Invocateur':             39.5,
+  // 'Puissant':               40.5,
+  // 'Fléau':                  41.5,
+  // 'Harmonie Totale':        42.5,
+  // 'Maître Artisan':         43.6,
+  // 'Décoré':                 44.6,
+  // 'Fossoyeur':              45.6,
+  // 'Maître du Multivers':    46.6,
+  // 'Millionnaire':           47.6,
+  // 'Complétiste':            48.6,
+  // 'Éclat Pur':              50.7,
+  // 'Trinité':                51.7,
+  // 'Néant Incarné':          52.7,
+  // 'Dévastateur':            53.7,
+  // 'Grand Invocateur':       54.7,
+  // 'Garde d\'Élite':         55.7,
+  // 'Annihilateur':           56.7,
+  // 'Cataclysme':             57.8,
+  // 'Ploutocrate':            58.8,
+  // 'Ascendant':              59.8,
+  // 'Prisme Absolu':          60.8,
+  // 'Oligarque':              61.8,
+  // 'Finisseur':              62.8,
+  // 'Légende Vivante':        63.8,
+  // 'Apocalypse':             64.9,
+  // 'Insatiable Absolu':      65.9,
+  // 'Singularité':            66.9,
+  // 'Renaissant':             67.9,
+  // 'Élu Suprême':            68.9,
+  // 'Empereur':               69.9,
+  // 'Éternel':                70.9,
+  // 'Architecte du Panthéon': 72,
+};
+
+/** Bonus d'or total (%) : somme des bonus de TOUS les titres débloqués. */
+export function getTotalTitleGoldBonusPct(unlockedTitles: readonly string[]): number {
+  const total = [...new Set(unlockedTitles)].reduce((sum, t) => sum + (TITLE_GOLD_BONUS_PCT[t] ?? 0), 0);
+  return Math.round(total * 10) / 10;
+}
+
+/** Multiplicateur d'or cumulé de tous les titres débloqués (additif). */
+export function getTitleGoldMultiplier(unlockedTitles: readonly string[]): number {
+  return 1 + getTotalTitleGoldBonusPct(unlockedTitles) / 100;
 }

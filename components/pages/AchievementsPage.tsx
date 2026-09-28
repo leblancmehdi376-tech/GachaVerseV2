@@ -1,12 +1,14 @@
 'use client';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import {
   ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES, ACHIEVEMENT_ENTRIES, CATEGORY_META, EGG, TIER_META, MAX_SHOWCASED_TROPHIES,
-  getAchievementTier, isHiddenAchievement, type AchievCategory, type AchievTier, type AchievementEntry,
+  getAchievementTier, isHiddenAchievement, type AchievCategory, type AchievTier,
 } from '@/lib/game/achievements';
 import { PageScroll } from '@/components/ui/Page';
+import { SearchIcon } from '@/components/ui/CollectionFilters';
+import { normalizeSearch } from '@/lib/game/collectionFilters';
 import { AchievementCard } from './achievements/AchievementCard';
 import { TrophiesPanel } from './achievements/TrophiesPanel';
 import { TitlesPanel } from './achievements/TitlesPanel';
@@ -14,14 +16,13 @@ import { categoryVars, getEntryState, readRevealed, writeRevealed, type AchStatu
 
 type View = 'achievements' | 'trophies' | 'titles';
 type StatusFilter = 'all' | AchStatus;
-type Sort = 'default' | 'progress' | 'reward' | 'tier';
+type Sort = 'default' | 'progress' | 'tier';
 
-const STATUS_FILTERS: { id: StatusFilter; label: string }[] = [
-  { id:'all',       label:'TOUS' },
-  { id:'claimable', label:'🎁 À RÉCUPÉRER' },
-  { id:'progress',  label:'EN COURS' },
-  { id:'done',      label:'✓ TERMINÉS' },
-  { id:'locked',    label:'🔒 VERROUILLÉS' },
+const STATUS_FILTERS: { id: StatusFilter; label: string; color: string; glow: string }[] = [
+  { id:'all',       label:'✦ TOUS',         color:'#c084fc', glow:'#9333ea' },
+  { id:'claimable', label:'🎁 À RÉCUPÉRER', color:'#fbbf24', glow:'#d97706' },
+  { id:'progress',  label:'⏳ EN COURS',     color:'#22d3ee', glow:'#0891b2' },
+  { id:'done',      label:'✓ TERMINÉS',     color:'#4ade80', glow:'#16a34a' },
 ];
 
 // Les deux familles de succès, affichées en sections séparées.
@@ -30,20 +31,17 @@ const SECTIONS = [
   { reset: true,  icon: '🔄', title: 'SUCCÈS DE RUN', hint: 'Remis à zéro à chaque Prestige : progression et récompenses à regagner.', accent: '#93c5fd' },
 ] as const;
 
-const SORTS: { id: Sort; label: string }[] = [
-  { id:'default',  label:'Ordre du jeu' },
-  { id:'progress', label:'Plus avancés' },
-  { id:'reward',   label:'Meilleure récompense' },
-  { id:'tier',     label:'Rang (Platine → Bronze)' },
+// Segment de tri façon Compadex (voir CollectionFilters) — libellés courts,
+// détail au survol.
+const SORTS: { id: Sort; label: string; hint: string; reversed: string }[] = [
+  { id:'default',  label:'DÉFAUT',     hint:'Ordre par défaut (à récupérer en tête)', reversed:'Ordre par défaut inversé' },
+  { id:'progress', label:'AVANCEMENT', hint:'Plus avancés d’abord',                   reversed:'Moins avancés d’abord' },
+  { id:'tier',     label:'RANG',       hint:'Rang (Platine → Bronze)',                reversed:'Rang (Bronze → Platine)' },
 ];
 
 const TIER_ORDER: AchievTier[] = ['bronze', 'silver', 'gold', 'platinum'];
 const TITLE_TAPS_FOR_RAIN = 10;
 const RAIN_ICONS = ['🏆', '🥇', '⭐', '💎', '👑', '✨'];
-
-function rewardValue(entry: AchievementEntry): number {
-  return Math.max(...entry.levels.map(a => a.reward?.type === 'title' ? 5000 : typeof a.reward?.value === 'number' ? a.reward.value : 0));
-}
 
 // Anneau de progression global.
 function Ring({ pct }: { pct: number }) {
@@ -69,7 +67,9 @@ function Ring({ pct }: { pct: number }) {
   );
 }
 
-export function AchievementsPage() {
+// memo : GameLayout se re-rend à chaque tick de combat (pièces, kills…) ;
+// sans props, la page n'a alors aucune raison de se re-rendre avec lui.
+export const AchievementsPage = memo(function AchievementsPage() {
   const { unlocked, progress, claimed, showcasedCount, claimAchievements, claimAllAchievements, discover } = useGameStore(useShallow(s => ({
     unlocked: s.achievementUnlocked,
     progress: s.achievementProgress,
@@ -84,6 +84,7 @@ export function AchievementsPage() {
   const [cat, setCat]       = useState<AchievCategory | 'all'>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [sort, setSort]     = useState<Sort>('default');
+  const [sortReversed, setSortReversed] = useState(false);
   const [query, setQuery]   = useState('');
 
   // ── Secrets "découverts" : animation de révélation une seule fois ────────
@@ -136,8 +137,11 @@ export function AchievementsPage() {
     return out;
   }, [unlocked]);
 
+  // Recherche différée : la saisie reste fluide, la grille suit juste après.
+  const deferredQuery = useDeferredValue(query);
   const list = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    // Insensible aux accents et à la casse, comme la recherche du Compadex.
+    const q = normalizeSearch(deferredQuery);
     const items = ACHIEVEMENT_ENTRIES.map(entry => ({ entry, st: getEntryState(entry, progress, unlocked, claimed) })).filter(({ entry, st }) => {
       if (cat !== 'all' && entry.levels[0].category !== cat) return false;
       if (status !== 'all' && st.status !== status) return false;
@@ -145,23 +149,26 @@ export function AchievementsPage() {
         // Un niveau caché ne se trouve pas par son vrai nom avant d'être débloqué.
         const visible = entry.levels.filter(a => !isHiddenAchievement(a) || unlocked[a.id]);
         const hay = [entry.series && visible.length > 0 ? entry.series.name : '', ...visible.map(a => `${a.name} ${a.description} ${a.title}`)].join(' ');
-        if (!(hay || '???').toLowerCase().includes(q)) return false;
+        if (!normalizeSearch(hay || '???').includes(q)) return false;
       }
       return true;
     });
     if (sort === 'progress') items.sort((x, y) => y.st.ratio - x.st.ratio);
-    if (sort === 'reward')   items.sort((x, y) => rewardValue(y.entry) - rewardValue(x.entry));
     if (sort === 'tier')     items.sort((x, y) => TIER_META[getAchievementTier(y.st.current)].score - TIER_META[getAchievementTier(x.st.current)].score);
     // Réclamables toujours en tête (hors tri explicite) : c'est l'action attendue.
     if (sort === 'default')  items.sort((x, y) => Number(y.st.status === 'claimable') - Number(x.st.status === 'claimable'));
+    if (sortReversed) items.reverse();
     return items.map(i => i.entry);
-  }, [cat, status, sort, query, unlocked, claimed, progress]);
+  }, [cat, status, sort, sortReversed, deferredQuery, unlocked, claimed, progress]);
 
   const meta = cat === 'all' ? null : CATEGORY_META[cat];
   const catStats = cat === 'all' ? null : perCategory[cat];
   // Clé de la grille : relance l'animation d'entrée des cartes à chaque
-  // changement de filtre (pas à chaque progression).
-  const gridKey = `${cat}|${status}|${sort}|${query}`;
+  // changement de filtre (pas à chaque progression, ni à chaque lettre tapée
+  // dans la recherche — qui recréait sinon toutes les cartes).
+  const gridKey = `${cat}|${status}|${sort}|${sortReversed}`;
+  const sortIdx = Math.max(0, SORTS.findIndex(s => s.id === sort));
+  const curSort = SORTS[sortIdx];
 
   return (
     <PageScroll>
@@ -263,21 +270,52 @@ export function AchievementsPage() {
             </div>
           )}
 
-          {/* ── Filtres ── */}
-          <div className="ach-toolbar">
-            <label className="ach-search">
-              <span>🔎</span>
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher un succès…" />
-              {query && <button onClick={() => setQuery('')} style={{ background:'none', border:'none', color:'var(--text-dim)', cursor:'pointer', fontSize:14 }}>✕</button>}
-            </label>
-            <select className="ach-select" value={sort} onChange={e => setSort(e.target.value as Sort)} aria-label="Trier">
-              {SORTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
-          </div>
-          <div className="ach-chips">
-            {STATUS_FILTERS.map(f => (
-              <button key={f.id} className={`ach-chip${status === f.id ? ' is-active' : ''}`} onClick={() => setStatus(f.id)}>{f.label}</button>
-            ))}
+          {/* ── Filtres ── une seule ligne sur PC ; sur mobile, les blocs
+              passent à la ligne selon la largeur (voir .ach-toolbar2). */}
+          <div className="cf-frame">
+            <div className="cf-frame__inner ach-toolbar2">
+              <div className="cf-search ach-toolbar2__search">
+                <SearchIcon />
+                <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher un succès, un titre…" />
+                {query && <button type="button" className="cf-search__clear" onClick={() => setQuery('')} aria-label="Effacer la recherche">✕</button>}
+              </div>
+              <div className="ach-toolbar2__status">
+                {STATUS_FILTERS.map(f => {
+                  const on = status === f.id;
+                  return (
+                    <button key={f.id} type="button" className="cf-press cf-bevel" onClick={() => setStatus(on && f.id !== 'all' ? 'all' : f.id)} style={{
+                      background: on ? `linear-gradient(135deg, ${f.color}, ${f.glow})` : `${f.color}14`,
+                      color: on ? '#0a0818' : f.color, boxShadow: on ? `0 0 16px ${f.glow}` : 'none',
+                    }}>{f.label}</button>
+                  );
+                })}
+              </div>
+              {/* Nombre de résultats + tri, collés et poussés à droite. */}
+              <div className="ach-sortbar">
+                <span className="ach-sortbar__count">{list.length} résultat{list.length > 1 ? 's' : ''}</span>
+                <div className="ach-sort">
+                  <div className="cf-segment" role="radiogroup" aria-label="Trier" style={{ ['--n' as string]: SORTS.length } as CSSProperties}>
+                    <div className="cf-segment__thumb" style={{
+                      left:`calc(3px + ${sortIdx} * (100% - 6px) / ${SORTS.length})`,
+                      width:`calc((100% - 6px) / ${SORTS.length})`,
+                    }} />
+                    {SORTS.map(s => (
+                      <button key={s.id} type="button" role="radio" aria-checked={sort === s.id} title={s.hint}
+                        onClick={() => { if (s.id !== sort) { setSort(s.id); setSortReversed(false); } }}
+                        style={{ color: sort === s.id ? '#fbbf24' : 'var(--text-dim)' }}>
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button type="button" className="cf-sort-dir" onClick={() => setSortReversed(r => !r)}
+                    title={sortReversed ? curSort.reversed : curSort.hint}
+                    aria-label={`Inverser le tri (${sortReversed ? curSort.reversed : curSort.hint})`}
+                    style={{ transform: sortReversed ? 'rotate(180deg)' : 'none' }}>
+                    ↓
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* ── Grilles : permanents puis succès de run ── */}
@@ -318,4 +356,4 @@ export function AchievementsPage() {
       )}
     </PageScroll>
   );
-}
+});

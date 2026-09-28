@@ -857,9 +857,12 @@ html, body {
   left: -40%;
   background: linear-gradient(100deg, transparent, rgba(255,255,255,0.06), transparent);
   animation: achHeroSweep 7s ease-in-out infinite;
+  will-change: transform;
   pointer-events: none;
 }
-@keyframes achHeroSweep { 0%, 55% { left: -40%; } 100% { left: 120%; } }
+/* Anime transform (composité) et non left, qui forçait une mise en page à
+   chaque frame. 400 % de sa largeur (40 %) = de -40 % à 120 % du bandeau. */
+@keyframes achHeroSweep { 0%, 55% { transform: translateX(0); } 100% { transform: translateX(400%); } }
 
 .ach-hero__brand {
   font-family: var(--f-title); font-weight: 900; letter-spacing: 4px; font-size: 12.4px;
@@ -966,15 +969,34 @@ html, body {
 }
 
 /* ── Barre d'outils ────────────────────────────────────────────────── */
-.ach-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.ach-search {
-  flex: 1 1 200px; min-width: 0; display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.ach-search:focus-within { border-color: rgba(192,132,252,0.55); box-shadow: 0 0 14px rgba(192,132,252,0.18); }
-.ach-search input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--text); font-family: var(--f-ui); font-size: 14px; font-weight: 600; }
 .ach-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+/* Barre de filtres de la page Succès : recherche · statuts · compteur + tri.
+   Une seule ligne sur PC ; sur mobile, chaque bloc passe à la ligne et prend
+   toute la largeur. Les boutons de tri sont en grille à colonnes égales pour
+   que la pastille (thumb, positionnée en %) reste alignée quelle que soit la
+   largeur. */
+.ach-toolbar2 { padding: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.ach-toolbar2__search { flex: 1 1 200px; max-width: 300px; }
+.ach-toolbar2__status { display: flex; flex-wrap: wrap; gap: 6px; }
+.ach-sortbar { margin-left: auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.ach-sortbar__count { font-family: var(--f-num); font-size: 12px; font-weight: 800; color: var(--text-dim); white-space: nowrap; }
+.ach-sort { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; }
+.ach-sort .cf-segment { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); flex: 1 1 auto; min-width: 0; }
+.ach-sort .cf-segment > button { min-width: 0; padding: 5px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ach-sort .cf-sort-dir { flex-shrink: 0; }
+.ach-sort .cf-segment__thumb { transition: left .25s cubic-bezier(.4,1.4,.6,1), width .25s ease; }
+@media (max-width: 640px) {
+  .ach-toolbar2__search { flex-basis: 100%; max-width: none; }
+  .ach-sortbar { flex: 1 1 100%; margin-left: 0; }
+  .ach-sort { flex: 1 1 260px; }
+  .ach-sort .cf-segment > button { padding: 5px 4px; }
+}
+@media (max-width: 400px) {
+  .ach-sort .cf-segment > button { padding: 5px 1px; font-size: 11px; letter-spacing: 0; }
+}
+@media (max-width: 350px) {
+  .ach-sort .cf-segment > button { font-size: 10px; }
+}
 .ach-chip {
   padding: 7px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap;
   background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim);
@@ -983,10 +1005,6 @@ html, body {
 }
 .ach-chip:hover { color: var(--text); border-color: var(--border-lit); }
 .ach-chip.is-active { color: #e9d5ff; border-color: rgba(192,132,252,0.6); background: rgba(147,51,234,0.18); box-shadow: 0 0 12px rgba(147,51,234,0.25); }
-.ach-select {
-  padding: 7px 10px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-sub);
-  font-family: var(--f-ui); font-weight: 700; font-size: 12.4px; cursor: pointer;
-}
 
 /* ── Bandeau de catégorie ──────────────────────────────────────────── */
 .ach-catbar {
@@ -1016,6 +1034,10 @@ html, body {
   animation: achFadeUp 0.42s cubic-bezier(.2,.8,.2,1) both;
   animation-delay: calc(min(var(--i, 0), 24) * 22ms);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease;
+  /* Hors écran, le navigateur saute la carte (rendu + animations en boucle).
+     La hauteur "auto" retient la dernière taille réelle : pas de saut au défilement. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 300px auto 150px;
 }
 .ach-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--acc) 50%, var(--border)); box-shadow: 0 10px 28px rgba(0,0,0,0.5), 0 0 22px var(--glow); }
 .ach-card.is-done {
@@ -1032,13 +1054,16 @@ html, body {
 .ach-card.is-done::after {
   content: ''; position: absolute; top: 0; bottom: 0; width: 45%; left: -60%;
   background: linear-gradient(100deg, transparent, rgba(255,255,255,0.08), transparent);
-  animation: achCardSweep 5.5s ease-in-out infinite;
+  animation: achCardSweepX 5.5s ease-in-out infinite;
   animation-delay: calc(var(--i, 0) * 180ms);
   pointer-events: none;
 }
 @keyframes achCardSweep { 0%, 70% { left: -60%; } 100% { left: 130%; } }
-.ach-card.is-locked .ach-medal__icon { filter: grayscale(0.85) brightness(0.75); }
-.ach-card.is-locked .ach-card__name { color: var(--text-sub); }
+/* Variante composité des cartes (en boucle) : ~422 % de sa largeur (45 %) =
+   de -60 % à 130 % de la carte, sans mise en page à chaque frame. */
+@keyframes achCardSweepX { 0%, 70% { transform: translateX(0); } 100% { transform: translateX(422%); } }
+.ach-card.is-todo .ach-medal__icon { filter: grayscale(0.85) brightness(0.75); }
+.ach-card.is-todo .ach-card__name { color: var(--text-sub); }
 .ach-card.is-claimable {
   border-color: #fbbf24;
   animation: achFadeUp 0.42s both, achClaimPulse 1.8s ease-in-out infinite 0.5s;
@@ -1094,7 +1119,7 @@ html, body {
   clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0% 50%);
   background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--acc) 24%, #15102a), #0a0718 75%);
 }
-.ach-card.is-locked .ach-medal { background: linear-gradient(160deg, #2a2346, #0c0a1a); }
+.ach-card.is-todo .ach-medal { background: linear-gradient(160deg, #2a2346, #0c0a1a); }
 .ach-medal__icon { position: relative; font-size: 22px; line-height: 1; filter: drop-shadow(0 0 8px var(--glow)); }
 .ach-card.is-done .ach-medal__icon { animation: achIconFloat 3.4s ease-in-out infinite; }
 @keyframes achIconFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
@@ -1131,6 +1156,7 @@ html, body {
   transition: width 0.9s cubic-bezier(.2,.8,.2,1);
 }
 .ach-prog__fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: translateX(-100%); animation: progSheen 2.8s ease-in-out infinite; }
+.ach-prog__fill.is-empty::after { display: none; }
 .ach-card.is-done .ach-prog__fill { background: linear-gradient(90deg, #15803d, #4ade80); box-shadow: 0 0 8px rgba(74,222,128,0.5); }
 .ach-prog__num { font-family: var(--f-num); font-size: 11px; font-weight: 700; color: var(--text-sub); white-space: nowrap; }
 
@@ -1202,6 +1228,7 @@ html, body {
   --acc: #fbbf24; --glow: rgba(251,191,36,0.5);
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
   padding: 16px 6px 12px; border-radius: 12px; cursor: pointer; min-height: 168px; justify-content: flex-end;
+  overflow: hidden;
   background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--acc) 8%, transparent) 100%);
   border: 1px solid color-mix(in srgb, var(--acc) 35%, transparent);
   color: inherit;
@@ -1209,8 +1236,8 @@ html, body {
   animation: achFadeUp 0.45s both; animation-delay: calc(var(--i, 0) * 70ms);
 }
 .trophy-slot::before {
-  content: ''; position: absolute; left: 50%; top: -30px; width: 120%; height: 120px; transform: translateX(-50%);
-  background: radial-gradient(50% 100% at 50% 0%, color-mix(in srgb, var(--acc) 30%, transparent), transparent 70%);
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 110px;
+  background: radial-gradient(60% 100% at 50% 0%, color-mix(in srgb, var(--acc) 30%, transparent), transparent 70%);
   pointer-events: none;
 }
 .trophy-slot:hover { transform: translateY(-4px); box-shadow: 0 0 26px var(--glow); }
@@ -1385,8 +1412,18 @@ html, body {
 .dps-tip__dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .dps-tip__total { display: flex; justify-content: space-between; padding-top: 7px; border-top: 1px solid rgba(74,222,128,0.3); font-family: var(--f-num); font-weight: 900; font-size: 13px; color: #4ade80; }
 .dps-tip__subtotal { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px dashed rgba(255,255,255,0.12); font-family: var(--f-num); font-weight: 800; font-size: 12px; color: var(--text); }
+.dps-tip--gold { border-color: rgba(251,191,36,0.4); box-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 0 22px rgba(251,191,36,0.12); }
+.dps-tip--gold .dps-tip__title { color: #fcd34d; }
+.dps-tip--gold .dps-tip__total { border-top-color: rgba(251,191,36,0.35); color: var(--gold); }
 .dps-tip__note { margin-top: 6px; font-size: 11.5px; color: #fbbf24; }
 .dps-tip__empty { font-size: 12.4px; color: var(--text-dim); padding: 4px 0; }
+.dps-tip--syn { border-color: rgba(167,139,250,0.4); box-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 0 22px rgba(167,139,250,0.12); }
+.dps-tip--syn .dps-tip__title { color: #c4b5fd; }
+.dps-tip--syn .dps-tip__char + .dps-tip__char { margin-top: 8px; }
+.syn-tip__members { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dps-tip__row.syn-tip__tier { color: rgba(255,255,255,0.28); }
+.dps-tip__row.syn-tip__tier.is-active { font-weight: 800; }
+.syn-tip__note { color: var(--text-dim); line-height: 1.35; }
 
 /* ═══ Filtres de collection (components/ui/CollectionFilters.tsx) ═══ */
 .cf-frame {

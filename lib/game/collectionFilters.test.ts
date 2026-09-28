@@ -70,6 +70,14 @@ describe('compareCharacters', () => {
     expect(compareCharacters(strong, none, 'dps', false)).toBeLessThan(0);
     expect(compareCharacters(strong, none, 'dps', true)).toBeGreaterThan(0);
   });
+
+  it("maîtrise : le plus maîtrisé d'abord, jamais joué = 0, inversion symétrique", () => {
+    const mastery = { [tplA.id]: { k: 1_000_000, w: 1_000_000, lv: 1_000, f: 1_000 } };
+    const A = { tpl: tplA, owned: null };
+    const B = { tpl: tplB, owned: null };
+    expect(compareCharacters(A, B, 'mastery', false, mastery)).toBeLessThan(0);
+    expect(compareCharacters(A, B, 'mastery', true, mastery)).toBeGreaterThan(0);
+  });
 });
 
 describe('countActiveFilters', () => {

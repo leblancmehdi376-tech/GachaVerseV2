@@ -2,7 +2,7 @@
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
-import { TITLE_GOLD_BONUS_PCT, RAID_TITLES } from '@/lib/game/titles';
+import { TITLE_GOLD_BONUS_PCT, RAID_TITLES, getTotalTitleGoldBonusPct } from '@/lib/game/titles';
 import { DAILY_REWARD_TITLES } from '@/lib/game/dailyRewards';
 
 function TitleCard({ icon, title, subtitle, unlocked, active, onSelect }: {
@@ -44,10 +44,23 @@ export function TitlesPanel() {
     activeTitle: s.activeTitle, unlockedTitles: s.unlockedTitles, setActiveTitle: s.setActiveTitle, unlocked: s.achievementUnlocked,
   })));
 
+  const totalBonusPct = getTotalTitleGoldBonusPct(unlockedTitles);
+
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
+      <div className="panel" style={{ padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', flexWrap:'wrap', borderColor:'#fbbf2466', background:'rgba(251,191,36,0.08)' }}>
+        <div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:2 }}>BONUS D&apos;OR TOTAL DES TITRES</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginTop:'2px' }}>
+            {unlockedTitles.length} titre{unlockedTitles.length > 1 ? 's' : ''} débloqué{unlockedTitles.length > 1 ? 's' : ''} — tous les bonus se cumulent
+          </div>
+        </div>
+        <div style={{ fontFamily:'var(--f-num)', fontSize:'24px', fontWeight:900, color:'var(--gold-hi)' }}>
+          🪙 +{totalBonusPct}%
+        </div>
+      </div>
       <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>
-        Choisis le titre affiché sur ton profil. Les titres se débloquent en complétant des succès.
+        Chaque titre débloqué ajoute son bonus d&apos;or, qu&apos;il soit équipé ou non. Choisis celui affiché sur ton profil.
       </div>
       <div style={GRID}>
         {ACHIEVEMENTS.filter(a => a.reward?.type === 'title').map(a => {

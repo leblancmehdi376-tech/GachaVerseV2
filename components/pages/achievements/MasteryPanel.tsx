@@ -9,21 +9,27 @@ import { formatNumber } from '@/lib/game/format';
 import { RARITY_CONFIG } from '@/types/game';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge } from '@/components/ui/RarityBadge';
+import { CollectionFilters } from '@/components/ui/CollectionFilters';
+import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
 
 const PAGE_SIZE = 40;
-type Sort = 'mastery' | 'name' | 'rarity';
 
 /**
  * Maîtrise par personnage : chaque personnage déjà joué (ou possédé) a sa
  * propre progression — niveau, combats livrés, boss vaincus — résumée en un
  * pourcentage de maîtrise qui lui donne un bonus de DPS personnel.
+ * Recherche, filtres et tri partagés avec Compadex / Compagnons / Améliorations ;
+ * les compagnons équipés passent toujours en tête.
  */
 export function MasteryPanel() {
-  const { charMastery, collection } = useGameStore(useShallow(s => ({ charMastery: s.charMastery, collection: s.collection })));
-  const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<Sort>('mastery');
+  const { charMastery, collection, equippedTeam, filters } = useGameStore(useShallow(s => ({
+    charMastery: s.charMastery, collection: s.collection, equippedTeam: s.equippedTeam, filters: s.collectionFilters,
+  })));
   const [open, setOpen] = useState<string | null>(null);
   const [limit, setLimit] = useState(PAGE_SIZE);
+  // Nouvelle recherche / nouveau filtre : on repart de la première page.
+  const [limitFilters, setLimitFilters] = useState(filters);
+  if (limitFilters !== filters) { setLimitFilters(filters); setLimit(PAGE_SIZE); }
 
   const rows = useMemo(() => {
     const ids = new Set<string>(Object.keys(charMastery));
@@ -33,21 +39,31 @@ export function MasteryPanel() {
       if (!tpl || tpl.isHero) return [];
       const milestones = getMasteryMilestones(charMastery[id], tpl.rarity);
       const pct = getMasteryPct(milestones);
-      return [{ tpl, milestones, pct, bonus: getMasteryDpsBonus(pct) }];
+      // Meilleure édition possédée, pour le tri par DPS.
+      const owned = Object.values(collection).filter(c => c.templateId === id)
+        .sort((a, b) => b.level - a.level)[0] ?? null;
+      return [{ tpl, owned, milestones, pct, bonus: getMasteryDpsBonus(pct) }];
     });
   }, [charMastery, collection]);
 
-  const sorted = useMemo(() => {
-    const out = [...rows];
-    const rarityRank = Object.keys(RARITY_CONFIG);
-    if (sort === 'mastery') out.sort((a, b) => b.pct - a.pct || a.tpl.name.localeCompare(b.tpl.name));
-    if (sort === 'name')    out.sort((a, b) => a.tpl.name.localeCompare(b.tpl.name));
-    if (sort === 'rarity')  out.sort((a, b) => rarityRank.indexOf(b.tpl.rarity) - rarityRank.indexOf(a.tpl.rarity) || b.pct - a.pct);
-    return out;
-  }, [rows, sort]);
+  const universes = useMemo(() =>
+    [...new Set(rows.map(r => r.tpl.universe).filter((u): u is string => !!u))],
+  [rows]);
 
-  const q = query.trim().toLowerCase();
-  const filtered = q ? sorted.filter(r => r.tpl.name.toLowerCase().includes(q) || (r.tpl.universe ?? '').toLowerCase().includes(q)) : sorted;
+  const equippedIds = useMemo(() =>
+    new Set(equippedTeam.filter((k): k is string => !!k).map(k => parseInstanceKey(k).templateId)),
+  [equippedTeam]);
+
+  const filtered = useMemo(() =>
+    rows.filter(r => matchesCharacterFilters(r.tpl, filters)).sort((a, b) => {
+      // Compagnons équipés en priorité, avant tout autre critère de tri.
+      const aEq = equippedIds.has(a.tpl.id);
+      const bEq = equippedIds.has(b.tpl.id);
+      if (aEq !== bEq) return aEq ? -1 : 1;
+      return compareCharacters(a, b, filters.sortKey, filters.sortReversed, charMastery);
+    }),
+  [rows, filters, equippedIds, charMastery]);
+
   const byTier = MASTERY_DPS_TIERS.map(t => rows.filter(r => r.pct >= t.pct).length);
 
   return (
@@ -63,17 +79,7 @@ export function MasteryPanel() {
         ))}
       </div>
 
-      <div className="ach-toolbar">
-        <label className="ach-search">
-          <span>🔎</span>
-          <input value={query} onChange={e => { setQuery(e.target.value); setLimit(PAGE_SIZE); }} placeholder="Personnage ou licence…" />
-        </label>
-        <select className="ach-select" value={sort} onChange={e => setSort(e.target.value as Sort)} aria-label="Trier">
-          <option value="mastery">Maîtrise</option>
-          <option value="rarity">Rareté</option>
-          <option value="name">Nom</option>
-        </select>
-      </div>
+      <CollectionFilters universes={universes} />
 
       {filtered.length === 0 && <div className="ach-empty">Aucun personnage trouvé. Recrute des alliés et fais-les combattre pour développer leur maîtrise.</div>}
 
@@ -91,6 +97,7 @@ export function MasteryPanel() {
                 <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, color:'var(--text)' }}>{tpl.name}</span>
                   <RarityBadge rarity={tpl.rarity} size="xs" />
+                  {equippedIds.has(tpl.id) && <span className="ach-tier" style={{ ['--acc' as string]: '#4ade80' } as CSSProperties}>ÉQUIPÉ</span>}
                   {pct >= 100 && <span className="ach-tier" style={{ ['--acc' as string]: '#fbbf24' } as CSSProperties}>MAÎTRISÉ</span>}
                 </div>
                 <div className="mastery-bar"><div className="mastery-bar__fill" style={{ width:`${pct}%` }} /></div>

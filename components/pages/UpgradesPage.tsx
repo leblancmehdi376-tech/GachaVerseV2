@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, memo } from 'react';
+import { useSyncExternalStore, memo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, getGoldChestCost, getGoldChestMultiplier } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
@@ -13,7 +13,7 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
 import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
-import { bnGte, bnLt, bnToNumber } from '@/lib/game/bignum';
+import { bnGte } from '@/lib/game/bignum';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
 
 const RARITY_PRIORITY: Record<string, number> = {
@@ -50,6 +50,14 @@ function LevelBar({ level, color }: { level: number; color: string }) {
   );
 }
 
+// Faux côté serveur, vrai côté client : la page lit le store local (sauvegarde
+// navigateur), on ne l'affiche qu'une fois côté client pour éviter un écart
+// d'hydratation. Remplace l'ancien useEffect(() => setMounted(true)).
+const noopSubscribe = () => () => {};
+function useIsClient() {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
+
 // ── Carte : Coffre d'Or (un niveau débloqué par palier atteint) ──────────
 // Bonus = ×1.2^niveau (formule fixe), coût = 6000 × 1.13^niveau (même taux
 // que la progression naturelle des golds par palier). Le niveau achetable
@@ -57,19 +65,20 @@ function LevelBar({ level, color }: { level: number; color: string }) {
 // maxPalierReached, qui ne redescend jamais) — pas de plafond fixe, il
 // grandit avec la progression du joueur dans le run en cours.
 function GoldUpgradeCard() {
-  const { goldUpgradeLevel, upgradeGold, pixelCoins, getGoldMultiplier, getRunPeakPalier } = useGameStore(useShallow(s => ({
+  const { goldUpgradeLevel, upgradeGold, pixelCoins, getRunPeakPalier } = useGameStore(useShallow(s => ({
     goldUpgradeLevel: s.goldUpgradeLevel,
     upgradeGold: s.upgradeGold,
     pixelCoins: s.pixelCoins,
-    getGoldMultiplier: s.getGoldMultiplier,
     getRunPeakPalier: s.getRunPeakPalier,
   })));
   const level      = goldUpgradeLevel ?? 0;
   const maxLevel   = getRunPeakPalier();
-  const mult       = getGoldMultiplier();
+  // Affiché uniquement en multiplicateurs (×), comme le détail de l'or en
+  // combat : le bonus grandit en ×1.2 par niveau, un % deviendrait illisible.
+  const mult       = getGoldChestMultiplier(level);
   const locked     = level >= maxLevel;
   const nextCost   = getGoldChestCost(level);
-  const nextPct    = Math.round((bnToNumber(getGoldChestMultiplier(level + 1)) - 1) * 100);
+  const nextMult   = getGoldChestMultiplier(level + 1);
   const canAfford  = !locked && bnGte(pixelCoins, nextCost);
 
   return (
@@ -79,7 +88,7 @@ function GoldUpgradeCard() {
           <div style={{ fontFamily:'var(--f-title)', fontSize:13.4, color:'#4ade80', marginBottom:8 }}>🪙 COFFRE D&apos;OR</div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu. Chaque palier atteint débloque un niveau supplémentaire.</div>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>Bonus actuel :</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>Bonus du coffre :</span>
             <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.5, color:'#4ade80' }}>×{formatNumber(mult)}</span>
           </div>
         </div>
@@ -96,7 +105,7 @@ function GoldUpgradeCard() {
       ) : (
         <button onClick={() => upgradeGold()} disabled={!canAfford} className={canAfford?'btn-primary':'btn-secondary'}
           style={{ width:'100%', padding:'10px', fontSize:13.4, display:'flex', alignItems:'center', justifyContent:'center', gap:10, background:canAfford?undefined:'rgba(255,255,255,0.03)' }}>
-          <span>AMÉLIORER → +{nextPct}%</span>
+          <span>AMÉLIORER → ×{formatNumber(nextMult)}</span>
           <span style={{ fontFamily:'var(--f-num)', color:'#4ade80' }}>{formatNumber(nextCost)} 🪙</span>
         </button>
       )}
@@ -234,13 +243,14 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
 
 // ── PAGE ──────────────────────────────────────────────────────────────────
 export function UpgradesPage() {
-  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilters, inventory, sellItem } = useGameStore(useShallow(s => ({
+  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilters, charMastery, inventory, sellItem } = useGameStore(useShallow(s => ({
     pixelCoins: s.pixelCoins,
     nekoGems: s.nekoGems,
     getTotalDps: s.getTotalDps,
     collection: s.collection,
     equippedTeam: s.equippedTeam,
     collectionFilters: s.collectionFilters,
+    charMastery: s.charMastery,
     inventory: s.inventory,
     sellItem: s.sellItem,
   })));
@@ -251,7 +261,7 @@ export function UpgradesPage() {
     const bRarity = getCharacterById(parseInstanceKey(b).templateId)?.rarity ?? 'C';
     return RARITY_PRIORITY[aRarity] - RARITY_PRIORITY[bRarity];
   });
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const universeOptions = (Array.from(new Set(ownedIds.map(id => getCharacterById(parseInstanceKey(id).templateId)?.universe).filter(Boolean))) as string[]).sort();
   const filteredIds = ownedIds.filter(id => {
     const tpl = getCharacterById(parseInstanceKey(id).templateId);
@@ -264,10 +274,9 @@ export function UpgradesPage() {
     return compareCharacters(
       { tpl: getCharacterById(parseInstanceKey(a).templateId)!, owned: collection[a] ?? null },
       { tpl: getCharacterById(parseInstanceKey(b).templateId)!, owned: collection[b] ?? null },
-      collectionFilters.sortKey, collectionFilters.sortReversed,
+      collectionFilters.sortKey, collectionFilters.sortReversed, charMastery,
     );
   });
-  useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
 
   return (

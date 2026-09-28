@@ -29,7 +29,7 @@ function combinedReward(levels: Achievement[]): string {
   return parts.join(' + ') || '—';
 }
 
-interface Props {
+export interface AchievementCardProps {
   entry: AchievementEntry;
   progress: Record<string, number>;
   unlocked: Record<string, boolean>;
@@ -40,7 +40,22 @@ interface Props {
   onRevealed: (ids: string[]) => void;
 }
 
-export const AchievementCard = memo(function AchievementCard({ entry, progress, unlocked, claimed, revealed, index, onClaim, onRevealed }: Props) {
+/**
+ * Comparateur du memo : les maps progress/unlocked/claimed sont réallouées à
+ * chaque progression de N'IMPORTE QUEL succès (plusieurs fois par seconde en
+ * combat) — on ne re-rend la carte que si les valeurs de SES niveaux changent.
+ */
+export function sameCardProps(prev: AchievementCardProps, next: AchievementCardProps): boolean {
+  if (prev.entry !== next.entry || prev.index !== next.index || prev.revealed !== next.revealed
+    || prev.onClaim !== next.onClaim || prev.onRevealed !== next.onRevealed) return false;
+  for (const { id } of next.entry.levels) {
+    if (prev.progress[id] !== next.progress[id] || prev.unlocked[id] !== next.unlocked[id]
+      || prev.claimed[id] !== next.claimed[id]) return false;
+  }
+  return true;
+}
+
+export const AchievementCard = memo(function AchievementCard({ entry, progress, unlocked, claimed, revealed, index, onClaim, onRevealed }: AchievementCardProps) {
   const [bursting, setBursting] = useState(false);
   const [showLevels, setShowLevels] = useState(false);
   const { levels, series } = entry;
@@ -76,7 +91,7 @@ export const AchievementCard = memo(function AchievementCard({ entry, progress, 
 
   const cls = [
     'ach-card',
-    st.allDone ? 'is-done' : st.doneCount > 0 ? 'is-partial' : 'is-locked',
+    st.allDone ? 'is-done' : st.doneCount > 0 ? 'is-partial' : 'is-todo',
     st.claimable.length > 0 && 'is-claimable',
     concealed && 'is-hidden',
     revealing && 'is-revealing',
@@ -143,7 +158,7 @@ export const AchievementCard = memo(function AchievementCard({ entry, progress, 
 
         <div className="ach-prog">
           <div className="ach-prog__track">
-            <div className="ach-prog__fill" style={{ width: `${curHidden ? 0 : pct}%` }} />
+            <div className={`ach-prog__fill${curHidden || pct <= 0 ? ' is-empty' : ''}`} style={{ width: `${curHidden ? 0 : pct}%` }} />
           </div>
           <span className="ach-prog__num">
             {curHidden ? '? / ?' : `${formatAchValue(cur, st.allDone ? cur.target : (progress[cur.id] ?? 0))} / ${formatAchValue(cur, cur.target)}`}
@@ -157,14 +172,16 @@ export const AchievementCard = memo(function AchievementCard({ entry, progress, 
             </button>
           ) : (
             <span className={`ach-reward${st.allDone ? ' is-claimed' : ''}`}>
-              {st.allDone ? '✓ Tout reçu' : `🎁 ${curHidden ? '???' : rewardLabel(cur)}`}
+              {st.allDone ? '✓ Validé' : `🎁 ${curHidden ? '???' : rewardLabel(cur)}`}
             </span>
           )}
-          <span className="ach-state" style={{ color: st.allDone ? '#4ade80' : st.status === 'progress' ? 'var(--purple-glow)' : 'var(--text-muted)' }}>
-            {st.allDone ? '🔓 DÉBLOQUÉ' : st.status === 'progress' ? `${Math.floor(pct)} %` : '🔒 VERROUILLÉ'}
-          </span>
+          {!st.allDone && (
+            <span className="ach-state" style={{ color: pct > 0 ? 'var(--purple-glow)' : 'var(--text-muted)' }}>
+              {Math.floor(pct)} %
+            </span>
+          )}
         </div>
       </div>
     </div>
   );
-});
+}, sameCardProps);

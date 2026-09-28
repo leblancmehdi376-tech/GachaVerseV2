@@ -23,6 +23,7 @@ import { UltimateEffect } from '@/lib/game/ultimates';
 import { Affinity } from '@/lib/game/affinities';
 import { Anomaly } from '@/lib/game/anomalies';
 import { BigNum } from '@/lib/game/bignum';
+import type { GoldGainBreakdown } from './gameStoreHelpers';
 
 export interface Quest {
   id: string; label: string; icon: string;
@@ -86,6 +87,8 @@ export interface CharacterSlice {
   evolveHero: () => void;
   upgradeGold: () => void;
   getGoldMultiplier: () => BigNum;
+  /** Détail de getGoldMultiplier (même calcul) : chaque source de bonus d'or. */
+  getGoldBreakdown: () => GoldGainBreakdown;
   getGoldUpgradeCost: () => BigNum;
   levelUpCharacter: (templateId: string) => void;
   /** Monte jusqu'à `count` niveaux (s'arrête dès qu'un niveau n'est plus payable), en une seule mise à jour. */
@@ -108,17 +111,17 @@ export interface DpsBreakdownChar {
   templateId: string;
   name: string;
   dps: BigNum;            // contribution finale au DPS total (somme = total)
-  ownDps: BigNum;         // DPS avec ses seuls bonus propres (maîtrise, équipement, ultime perso, type), hors synergies et bonus d'équipe
+  ownDps: BigNum;         // DPS avec ses bonus propres (maîtrise, équipement, synergies, ultime perso, type), hors bonus d'équipe
   equipMult: number;      // équipement
   masteryMult: number;    // maîtrise du personnage
   synergyMult: number;    // synergies d'univers (+ boost d'anomalie de synergie)
+  synergies: { label: string; color: string; global: boolean }[]; // synergies qui s'appliquent à CE perso
   selfUltMult: number;    // ultime personnel actif
   typeMult: number;       // avantage/désavantage de type vs l'ennemi (+ anomalies de type)
 }
 export interface DpsBreakdown {
   total: BigNum;
   chars: DpsBreakdownChar[];
-  synergies: { label: string; color: string; bonusPct: number; global: boolean }[];
   teamUltMult: number;    // ultimes qui boostent toute l'équipe
   boostMult: number;      // boost DPS de la boutique
   cohesionMult: number;

@@ -926,6 +926,44 @@ export function computeActiveSynergies(
   return active;
 }
 
+export interface SynergyProgress {
+  def: SynergyDef;
+  count: number;
+  members: string[];
+  /** Palier actuellement appliqué (le plus haut atteint), null si aucun. */
+  active: SynergyThreshold | null;
+  /** Paliers atteignables avec la taille de l'équipe, du plus bas au plus haut. */
+  thresholds: SynergyThreshold[];
+}
+
+/**
+ * Toutes les synergies entamées par l'équipe (dès 1 membre d'un univers qui
+ * en possède une) : palier actif éventuel + paliers encore à débloquer.
+ * Utilisé par la fenêtre de détail des synergies en combat.
+ */
+export function computeSynergyProgress(
+  equippedTeam: (string | null)[]
+): SynergyProgress[] {
+  const byUniverse = new Map<string, string[]>();
+  for (const id of equippedTeam) {
+    if (!id) continue;
+    const universe = getCharacterById(parseInstanceKey(id).templateId)?.universe;
+    if (!universe || !SYNERGY_BY_UNIVERSE.has(universe)) continue;
+    byUniverse.set(universe, [...(byUniverse.get(universe) ?? []), id]);
+  }
+
+  const out: SynergyProgress[] = [];
+  for (const [universe, members] of byUniverse) {
+    const def = SYNERGY_BY_UNIVERSE.get(universe)!;
+    const thresholds = def.thresholds.filter(t => t.count <= equippedTeam.length);
+    if (thresholds.length === 0) continue;
+    const active = [...thresholds].reverse().find(t => members.length >= t.count) ?? null;
+    out.push({ def, count: members.length, members, active, thresholds });
+  }
+  // Synergies actives d'abord, puis les plus proches d'un palier.
+  return out.sort((a, b) => Number(!!b.active) - Number(!!a.active) || b.count - a.count);
+}
+
 export function calcDpsWithSynergies(
   templateId: string,
   baseDps: BigNum,

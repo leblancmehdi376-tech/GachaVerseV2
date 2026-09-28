@@ -12,7 +12,7 @@ import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { computeCohesion } from '@/lib/game/cohesion';
-import { getGoldChestCost, getGoldGainMultiplier, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
+import { getGoldChestCost, getGoldGainBreakdown, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, CharacterSlice, DpsBreakdownChar } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnDivRatio, bnGte, bnMulScalar, bnSub, bnToNumber, type BigNum } from '@/lib/game/bignum';
 import { addStats } from '@/lib/game/achievementStats';
@@ -63,11 +63,13 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     }));
   },
 
-  getGoldMultiplier: () => {
+  getGoldMultiplier: () => get().getGoldBreakdown().total,
+
+  getGoldBreakdown: () => {
     const s = get();
-    return getGoldGainMultiplier({
+    return getGoldGainBreakdown({
       goldUpgradeLevel: s.goldUpgradeLevel ?? 0,
-      activeTitle: s.activeTitle,
+      unlockedTitles: s.unlockedTitles ?? [],
       ultActiveUlts: s.ultActiveUlts,
       goldBoostEndsAt: s.goldBoostEndsAt,
       prestigeBonusLevels: s.prestigeBonusLevels,
@@ -249,9 +251,15 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       chars.push({
         key: id, templateId: pureId, name: tpl.name,
         dps: bnMulScalar(charDps, globalMult),
-        ownDps: bnMulScalar(dpsWithEquip, (ultMult / teamUltMult) * typeMult),
+        ownDps: bnMulScalar(withSyn, (ultMult / teamUltMult) * typeMult),
         equipMult, masteryMult,
         synergyMult: bnDivRatio(withSyn, dpsWithEquip) || 1,
+        // Même règle que calcDpsWithSynergies : bonus d'univers pour les persos
+        // de l'univers, bonus global pour toute l'équipe.
+        synergies: activeSynergies.flatMap(syn => [
+          ...(syn.def.universe === tpl.universe && syn.threshold.dpsBonus > 0 ? [{ label: syn.def.label, color: syn.def.color, global: false }] : []),
+          ...(syn.threshold.globalBonus > 0 ? [{ label: syn.def.label, color: syn.def.color, global: true }] : []),
+        ]),
         selfUltMult: ultMult / teamUltMult,
         typeMult,
       });
@@ -260,10 +268,6 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     return {
       total: bnMulScalar(teamDps, globalMult),
       chars,
-      synergies: activeSynergies.flatMap(syn => [
-        ...(syn.threshold.dpsBonus > 0 ? [{ label: syn.def.label, color: syn.def.color, bonusPct: syn.threshold.dpsBonus, global: false }] : []),
-        ...(syn.threshold.globalBonus > 0 ? [{ label: syn.def.label, color: syn.def.color, bonusPct: syn.threshold.globalBonus, global: true }] : []),
-      ]),
       teamUltMult, boostMult, cohesionMult, prestigeMult,
       anomalyMult: anomalyBonuses.globalDpsMult,
       eventMult: get().getEventDpsMult(),

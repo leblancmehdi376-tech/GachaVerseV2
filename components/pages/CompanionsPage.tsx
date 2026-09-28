@@ -508,7 +508,7 @@ export function CompanionsPage() {
     .sort(([, a], [, b]) => compareCharacters(
       { tpl: getCharacterById(a.templateId)!, owned: a },
       { tpl: getCharacterById(b.templateId)!, owned: b },
-      collectionFilters.sortKey, collectionFilters.sortReversed,
+      collectionFilters.sortKey, collectionFilters.sortReversed, charMastery,
     ));
 
   const ownedEquipment = Object.entries(equipmentInventory).filter(([, qty]) => qty > 0);

@@ -7,7 +7,7 @@ import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { calcCharDps } from '@/lib/game/formulas';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
-import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
+import { getTotalTitleGoldBonusPct } from '@/lib/game/titles';
 import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, MAX_SHOWCASED_TROPHIES, TIER_META, getAchievementTier } from '@/lib/game/achievements';
 import { tierVars } from '@/components/pages/achievements/achievementUi';
 import { PageScroll } from '@/components/ui/Page';
@@ -110,7 +110,7 @@ export function ProfilePage() {
                 « {activeTitle} »
               </span>
               <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:'12px', color:'var(--gold-hi)', background:'rgba(0,0,0,0.25)', borderRadius:'4px', padding:'1px 6px' }}>
-                🪙 +{TITLE_GOLD_BONUS_PCT[activeTitle] ?? 0}%
+                🪙 +{getTotalTitleGoldBonusPct(unlockedTitles)}%
               </span>
             </div>
 

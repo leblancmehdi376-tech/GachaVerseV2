@@ -12,7 +12,7 @@ import { toast } from '@/hooks/useToast';
 import {
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
   OFFLINE_MULT_COSTS, OFFLINE_CAP_COSTS, OFFLINE_MIN_SECONDS, MOB_GEM_DROP_CHANCE,
-  broadcastLocalState, bumpCoinQuests, runPeakPalierOf, getPrestigeBonuses,
+  broadcastLocalState, bumpCoinQuests, runPeakPalierOf,
   requestUrgentSaveAndWait, requestUrgentSave,
 } from '../gameStoreHelpers';
 import type { GameStore, MetaProgressionActions, OfflineGain } from '../gameStore.types';
@@ -39,9 +39,8 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     const s = get();
     const enemy = s.currentEnemy;
     if (!enemy) return BN_ZERO;
-    const goldMult = s.getGoldMultiplier();
-    const coinMult = getPrestigeBonuses(s.prestigeBonusLevels, s.prestigeRankRecoveryLevel).coinsMult;
-    const coinsPerKill = bnMulScalar(bnMul(enemy.pixelCoinsReward, goldMult), coinMult);
+    const goldMult = s.getGoldMultiplier(); // inclut déjà le prestige (voir getGoldGainMultiplier)
+    const coinsPerKill = bnMul(enemy.pixelCoinsReward, goldMult);
     return bnMulScalar(coinsPerKill, s.getOfflineKillsPerHour());
   },
 

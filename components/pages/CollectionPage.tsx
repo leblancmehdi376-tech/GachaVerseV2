@@ -11,7 +11,7 @@ import { calcCharDps } from '@/lib/game/formulas';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
-import { COLLECTION_RARITY_ORDER, compareCharacters, matchesCharacterFilters, type CollectionFilterState } from '@/lib/game/collectionFilters';
+import { COLLECTION_RARITY_ORDER, compareCharacters, matchesCharacterFilters, type CharMasteryMap, type CollectionFilterState } from '@/lib/game/collectionFilters';
 import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
@@ -42,8 +42,8 @@ export function matchesCompadexFilters(entry: CollectionEntry, f: CollectionFilt
   return matchesCharacterFilters(entry.tpl, f);
 }
 
-export function compareCompadexEntries(a: CollectionEntry, b: CollectionEntry, f: CollectionFilterState): number {
-  return compareCharacters(a, b, f.sortKey, f.sortReversed);
+export function compareCompadexEntries(a: CollectionEntry, b: CollectionEntry, f: CollectionFilterState, charMastery?: CharMasteryMap): number {
+  return compareCharacters(a, b, f.sortKey, f.sortReversed, charMastery);
 }
 
 // Composant au scope module (pas défini dans le corps de CollectionPage) :
@@ -199,7 +199,7 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 };
 
 export function CollectionPage() {
-  const { collection, collectionFilters, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore();
+  const { collection, collectionFilters, charMastery, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore();
   const [view, setView] = useState<'characters' | 'equipment'>('characters');
   const [detailKey, setDetailKey] = useState<string | null>(null);
 
@@ -236,8 +236,8 @@ export function CollectionPage() {
 
   // ── Tri ─────────────────────────────────────────────────────────────────
   const sorted = useMemo(() =>
-    [...filtered].sort((a, b) => compareCompadexEntries(a, b, collectionFilters)),
-  [filtered, collectionFilters]);
+    [...filtered].sort((a, b) => compareCompadexEntries(a, b, collectionFilters, charMastery)),
+  [filtered, collectionFilters, charMastery]);
 
   // ── Groupage par rareté (uniquement en mode rarity) ─────────────────────
   const grouped = useMemo(() => {

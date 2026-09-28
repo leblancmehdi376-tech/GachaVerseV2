@@ -6,7 +6,7 @@ import {
 } from '@/lib/game/achievements';
 import { formatNumber } from '@/lib/game/format';
 
-export type AchStatus = 'claimable' | 'done' | 'progress' | 'locked';
+export type AchStatus = 'claimable' | 'done' | 'progress' | 'todo';
 
 /** Variables CSS d'accent (--acc/--glow) d'un succès, selon son rang. */
 export function tierVars(a: Achievement): CSSProperties {
@@ -33,7 +33,7 @@ export function formatAchValue(a: Achievement, v: number): string {
 
 export function getStatus(done: boolean, claimed: boolean, progress: number): AchStatus {
   if (done) return claimed ? 'done' : 'claimable';
-  return progress > 0 ? 'progress' : 'locked';
+  return progress > 0 ? 'progress' : 'todo';
 }
 
 export interface EntryState {
@@ -63,7 +63,7 @@ export function getEntryState(
   const curRatio = allDone ? 0 : Math.min(1, (progress[current.id] ?? 0) / current.target);
   const status: AchStatus = claimable.length > 0 ? 'claimable'
     : allDone ? 'done'
-    : doneCount > 0 || curRatio > 0 ? 'progress' : 'locked';
+    : doneCount > 0 || curRatio > 0 ? 'progress' : 'todo';
   return { status, current, currentIdx, doneCount, allDone, claimable, ratio: (doneCount + curRatio) / levels.length };
 }
 
