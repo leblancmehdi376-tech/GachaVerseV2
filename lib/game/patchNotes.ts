@@ -20,6 +20,16 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Détail du DPS plus lisible',
+    changes: [
+      "Chaque compagnon affiche maintenant sa **part du DPS total en %** au lieu de son DPS brut.",
+      "Les bonus de **maîtrise**, **équipement**, **ultime** et **type** sont affichés **sous chaque compagnon**.",
+      "Le bonus d'**équipement** est affiché en **multiplicateur** (ex : **×1.25**).",
+      "Nouveau **sous-total compagnons** : le DPS de tes compagnons avec leurs seuls bonus perso, avant synergies et bonus d'équipe.",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Nouveaux filtres de collection',
     changes: [
       "Les filtres du **Compadex**, des **Compagnons** et des **Améliorations** ont été entièrement redessinés.",

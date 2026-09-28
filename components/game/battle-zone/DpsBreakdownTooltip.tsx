@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
+import { BN_ZERO, bnAdd, bnDivRatio, bnIsZero } from '@/lib/game/bignum';
 import { getCharacterById } from '@/lib/game/characters';
 import { RARITY_CONFIG } from '@/types/game';
 import type { DpsBreakdown } from '@/store/gameStore.types';
@@ -13,6 +14,11 @@ const REFRESH_MS = 1000;
 function pct(mult: number): string {
   const v = Math.round((mult - 1) * 1000) / 10;
   return `${v >= 0 ? '+' : '−'}${Math.abs(v)} %`;
+}
+
+// Multiplicateur lisible : 1.25 → "×1.25", 3 → "×3".
+function mul(mult: number): string {
+  return `×${Math.round(mult * 100) / 100}`;
 }
 
 function Row({ label, value, color, sub = false }: { label: ReactNode; value: ReactNode; color?: string; sub?: boolean }) {
@@ -26,13 +32,7 @@ function Row({ label, value, color, sub = false }: { label: ReactNode; value: Re
 
 function BreakdownContent({ b }: { b: DpsBreakdown }) {
   const bonus = (mult: number) => (mult >= 1 ? '#4ade80' : '#f87171');
-  const perChar: { key: string; label: string; mult: number }[] = [];
-  for (const c of b.chars) {
-    if (c.masteryMult !== 1) perChar.push({ key: `${c.key}-m`, label: `Maîtrise ${c.name}`, mult: c.masteryMult });
-    if (c.equipMult !== 1)   perChar.push({ key: `${c.key}-e`, label: `Équipement ${c.name}`, mult: c.equipMult });
-    if (c.selfUltMult !== 1) perChar.push({ key: `${c.key}-u`, label: `Ultime ${c.name}`, mult: c.selfUltMult });
-    if (c.typeMult !== 1)    perChar.push({ key: `${c.key}-t`, label: `${c.typeMult > 1 ? 'Avantage' : 'Désavantage'} de type ${c.name}`, mult: c.typeMult });
-  }
+  const charsDps = b.chars.reduce((s, c) => bnAdd(s, c.dps), BN_ZERO);
   const team: { key: string; label: string; mult: number }[] = [
     { key: 'coh', label: "Cohésion d'équipe", mult: b.cohesionMult },
     { key: 'pre', label: 'DPS Prestige', mult: b.prestigeMult },
@@ -51,18 +51,31 @@ function BreakdownContent({ b }: { b: DpsBreakdown }) {
         <div className="dps-tip__section">
           {b.chars.map(c => {
             const tpl = getCharacterById(c.templateId);
+            const share = bnIsZero(charsDps) ? 0 : Math.round(bnDivRatio(c.dps, charsDps) * 1000) / 10;
             return (
-              <Row key={c.key}
-                label={<><span className="dps-tip__dot" style={{ background: tpl ? RARITY_CONFIG[tpl.rarity].color : '#fff' }} />{c.name}</>}
-                value={`${formatNumber(c.dps)} DPS`} color="var(--text)" />
+              <div key={c.key} className="dps-tip__char">
+                <Row
+                  label={<><span className="dps-tip__dot" style={{ background: tpl ? RARITY_CONFIG[tpl.rarity].color : '#fff' }} />{c.name}</>}
+                  value={`${share} %`} color="var(--text)" />
+                {c.masteryMult !== 1 && <Row sub label="Maîtrise" value={pct(c.masteryMult)} color={bonus(c.masteryMult)} />}
+                {c.equipMult !== 1 && <Row sub label="Équipement" value={mul(c.equipMult)} color={bonus(c.equipMult)} />}
+                {c.selfUltMult !== 1 && <Row sub label="Ultime" value={pct(c.selfUltMult)} color={bonus(c.selfUltMult)} />}
+                {c.typeMult !== 1 && <Row sub label={`${c.typeMult > 1 ? 'Avantage' : 'Désavantage'} de type`} value={pct(c.typeMult)} color={bonus(c.typeMult)} />}
+              </div>
             );
           })}
         </div>
       )}
 
-      {(perChar.length > 0 || b.synergies.length > 0 || team.length > 0) && (
+      {b.chars.length > 0 && (
+        <div className="dps-tip__subtotal">
+          <span>Sous-total compagnons</span>
+          <span>{formatNumber(b.chars.reduce((s, c) => bnAdd(s, c.ownDps), BN_ZERO))} DPS</span>
+        </div>
+      )}
+
+      {(b.synergies.length > 0 || team.length > 0) && (
         <div className="dps-tip__section">
-          {perChar.map(x => <Row key={x.key} sub label={x.label} value={pct(x.mult)} color={bonus(x.mult)} />)}
           {b.synergies.map(s => (
             <Row key={`${s.label}-${s.global}`} sub
               label={<>Synergie <span style={{ color: s.color }}>{s.label}</span>{s.global ? ' (toute l\'équipe)' : ''}</>}

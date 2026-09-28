@@ -249,6 +249,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       chars.push({
         key: id, templateId: pureId, name: tpl.name,
         dps: bnMulScalar(charDps, globalMult),
+        ownDps: bnMulScalar(dpsWithEquip, (ultMult / teamUltMult) * typeMult),
         equipMult, masteryMult,
         synergyMult: bnDivRatio(withSyn, dpsWithEquip) || 1,
         selfUltMult: ultMult / teamUltMult,

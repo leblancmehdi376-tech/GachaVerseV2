@@ -108,6 +108,7 @@ export interface DpsBreakdownChar {
   templateId: string;
   name: string;
   dps: BigNum;            // contribution finale au DPS total (somme = total)
+  ownDps: BigNum;         // DPS avec ses seuls bonus propres (maîtrise, équipement, ultime perso, type), hors synergies et bonus d'équipe
   equipMult: number;      // équipement
   masteryMult: number;    // maîtrise du personnage
   synergyMult: number;    // synergies d'univers (+ boost d'anomalie de synergie)
