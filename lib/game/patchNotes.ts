@@ -20,6 +20,20 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Nouvelle activité : GachaDle',
+    changes: [
+      "Nouvelle page **GachaDle** dans **Activités** : devine le personnage mystère !",
+      "À chaque essai, la **rareté**, le **type** et l'**univers** s'affichent en **vert** (correct) ou **rouge** (faux).",
+      "Nouvelle case **Genre** : masculin, féminin, mixte (duo) ou autre (créatures, robots, objets...).",
+      "Le **type** passe en **orange** quand il est voisin de celui du mystère dans le cycle des types (il le bat ou se fait battre par lui).",
+      "Nouvelle case **Formes** : le nombre de formes du personnage (1 s'il n'évolue pas).",
+      "Pour la rareté et les formes, une flèche **▲/▼** indique si le mystère a une valeur plus haute ou plus basse.",
+      "En tapant un nom, des **propositions** apparaissent au fur et à mesure (flèches + Entrée pour choisir).",
+      "**Défi du jour** : le même personnage pour tout le monde, renouvelé chaque jour. **Partie libre** : autant de parties que tu veux.",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Nouveaux filtres de collection',
     changes: [
       "Les filtres du **Compadex**, des **Compagnons** et des **Améliorations** ont été entièrement redessinés.",

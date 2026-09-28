@@ -33,7 +33,7 @@ const SECTION_LABEL: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: '11p
 // ─── Briques ──────────────────────────────────────────────────────────────
 
 /** Icône de synergie de l'univers (sprite, repli sur l'emoji), ou 🌐 sans synergie. */
-function UniverseIcon({ universe, size = 16 }: { universe: string | 'all'; size?: number }) {
+export function UniverseIcon({ universe, size = 16 }: { universe: string | 'all'; size?: number }) {
   const def = universe === 'all' ? undefined : SYNERGIES.find(s => s.universe === universe);
   const [broken, setBroken] = useState(false);
   const box: CSSProperties = { width: size, height: size, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.75 };

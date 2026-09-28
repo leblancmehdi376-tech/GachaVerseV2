@@ -23,6 +23,7 @@ import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
 import { PrestigePage } from '@/components/pages/PrestigePage';
 import { MinePage } from '@/components/pages/MinePage';
 import { AnomaliePage } from '@/components/pages/AnomaliePage';
+import { GachaDlePage } from '@/components/pages/GachaDlePage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
 import { UltAnimation } from '@/components/game/UltAnimation';
@@ -55,7 +56,7 @@ import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
 import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
 import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie' | 'gachadle';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -82,6 +83,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'ACTIVITÉS', items: [
     { id:'raids',        label:'RAIDS',           accent:'#fbbf24'            },
     { id:'expeditions',  label:'EXPÉDITIONS',     accent:'#fb923c'            },
+    { id:'gachadle',     label:'GACHADLE',        accent:'#38bdf8'            },
   ]},
   { title:'ÉCONOMIE', items: [
     { id:'gacha',        label:'GACHA',           accent:'var(--cyan-hi)'       },
@@ -481,6 +483,7 @@ export function GameLayout() {
                   {page === 'prestige'    && <PrestigePage />}
                   {page === 'mine'        && <MinePage />}
                   {page === 'anomalie'    && <AnomaliePage />}
+                  {page === 'gachadle'    && <GachaDlePage />}
                   {page === 'profile'     && <ProfilePage />}
                 </PageTransition>
               </div>
