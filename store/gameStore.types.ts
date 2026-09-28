@@ -10,6 +10,7 @@
 // à jour pour que resetGame() (qui fait set(makeInitial())) réinitialise bien
 // TOUT l'état d'un coup. Les fichiers slices/*.ts, eux, n'exportent que des
 // actions (aucune valeur par défaut), pour ne jamais diverger de makeInitial().
+import type { CollectionFilterState } from '@/lib/game/collectionFilters';
 import type { CohesionResult } from '@/lib/game/cohesion';
 import {
   GameState, EquipmentSlot, Rarity,
@@ -167,18 +168,15 @@ export interface GachaState {
   // côté Prestige) : jamais consommé/supprimé, plafonné par le niveau du
   // bonus à la ré-obtention (voir addToCollection).
   historicalMaxRank: Record<string, number>;
-  // Filtres de collection persistants entre les pages / onglets
-  collectionFilter: string;
-  collectionUniverse: string | 'all';
-  collectionAffinity: string;
-  collectionSort: string;
+  // Filtres de collection partagés entre les pages (en mémoire, non persistés)
+  collectionFilters: CollectionFilterState;
   // Boutique — achat d'un perso de raid contre ses pièces (voir lib/game/raidBoss.ts)
   // Nombre d'achats déjà effectués par boss : le prix (getRaidCharacterCost)
   // augmente de 10% à chaque achat.
   raidCharacterPurchases: Record<string, number>;
 }
 export interface GachaActions {
-  setCollectionFilters: (patch: { filter?: string; universe?: string | 'all'; affinity?: string; sort?: string }) => void;
+  setCollectionFilters: (patch: Partial<CollectionFilterState>) => void;
   // Coûts en gemmes après réduction des anomalies "Réduc. Coût Gacha" (arrondis).
   getGachaCosts: () => { single: number; multi10: number; multi100: number };
   pullSingle: (bannerId?: BannerId) => { templateId: string; edition: CardEdition } | null;

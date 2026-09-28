@@ -12,13 +12,14 @@ import { calcCharDps } from '@/lib/game/formulas';
 import { EQUIPMENT_SLOT_LABELS, EQUIPMENT_SLOTS, RARITY_CONFIG, type CharacterTemplate, type EquipmentSlot, type OwnedCharacter } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
 import { getAffinityForId } from '@/lib/game/affinities';
-import { bnCompare, bnMulScalar, type BigNum } from '@/lib/game/bignum';
+import { bnMulScalar, type BigNum } from '@/lib/game/bignum';
 import { AffinityBadge } from '@/components/ui/AffinityBadge';
 import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { CollectionFilters, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
+import { CollectionFilters } from '@/components/ui/CollectionFilters';
+import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
 import { RARITY_GATES } from '@/lib/game/gacha';
 
 export const RARITY_PRIORITY: Record<string, number> = {
@@ -33,36 +34,6 @@ export function getEquipScore(def: EquipmentDef, templateId: string): number {
 
 export function hasEquippedItems(owned: OwnedCharacter): boolean {
   return Object.values(owned.equippedItems ?? {}).some(id => !!id);
-}
-
-export function matchesCollectionFilters(
-  tpl: CharacterTemplate,
-  filter: CollectionFilterMode,
-  universe: string | 'all',
-  affinity: CollectionAffinityMode,
-): boolean {
-  if (filter === 'missing') return false;
-  if (universe !== 'all' && tpl.universe !== universe) return false;
-  if (affinity !== 'all' && getAffinityForId(tpl.id) !== affinity) return false;
-  if (filter !== 'all' && filter !== 'owned' && tpl.rarity !== filter) return false;
-  return true;
-}
-
-export function compareCollectionEntries(
-  [, a]: [string, OwnedCharacter], [, b]: [string, OwnedCharacter], sort: CollectionSortMode,
-): number {
-  const aTpl = getCharacterById(a.templateId)!;
-  const bTpl = getCharacterById(b.templateId)!;
-  switch (sort) {
-    case 'rarity':
-      return (RARITY_PRIORITY[aTpl.rarity] ?? 9) - (RARITY_PRIORITY[bTpl.rarity] ?? 9);
-    case 'dps_desc':
-      return bnCompare(calcCharDps(bTpl, b), calcCharDps(aTpl, a));
-    case 'dps_asc':
-      return bnCompare(calcCharDps(aTpl, a), calcCharDps(bTpl, b));
-    default:
-      return aTpl.name.localeCompare(bTpl.name);
-  }
 }
 
 // ── Petits blocs réutilisés ────────────────────────────────────────────────
@@ -514,26 +485,13 @@ export function CompanionsPage() {
     equipmentInventory,
     equipItem,
     unequipItem,
-    collectionFilter,
-    collectionUniverse,
-    collectionAffinity,
-    collectionSort,
-    setCollectionFilters,
+    collectionFilters,
     getTeamCohesion,
     charMastery,
   } = useGameStore();
 
   const [selSlot, setSelSlot] = useState<number | null>(null);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-
-  const filter = collectionFilter as CollectionFilterMode;
-  const universe = collectionUniverse as string | 'all';
-  const affinity = collectionAffinity as CollectionAffinityMode;
-  const sort = collectionSort as CollectionSortMode;
-  const setFilter = (next: CollectionFilterMode) => setCollectionFilters({ filter: next });
-  const setUniverse = (next: string | 'all') => setCollectionFilters({ universe: next });
-  const setAffinity = (next: CollectionAffinityMode) => setCollectionFilters({ affinity: next });
-  const setSort = (next: CollectionSortMode) => setCollectionFilters({ sort: next });
 
   const owned = Object.entries(collection).sort(([, a], [, b]) => {
     const aRarity = getCharacterById(a.templateId)?.rarity ?? 'C';
@@ -545,9 +503,13 @@ export function CompanionsPage() {
   const filteredCollection = owned
     .filter(([, ownedChar]) => {
       const tpl = getCharacterById(ownedChar.templateId);
-      return !!tpl && matchesCollectionFilters(tpl, filter, universe, affinity);
+      return !!tpl && matchesCharacterFilters(tpl, collectionFilters);
     })
-    .sort((a, b) => compareCollectionEntries(a, b, sort));
+    .sort(([, a], [, b]) => compareCharacters(
+      { tpl: getCharacterById(a.templateId)!, owned: a },
+      { tpl: getCharacterById(b.templateId)!, owned: b },
+      collectionFilters.sortKey, collectionFilters.sortReversed,
+    ));
 
   const ownedEquipment = Object.entries(equipmentInventory).filter(([, qty]) => qty > 0);
 
@@ -697,17 +659,7 @@ export function CompanionsPage() {
             </div>
           </div>
 
-          <CollectionFilters
-            filter={filter}
-            onFilterChange={setFilter}
-            universe={universe}
-            onUniverseChange={setUniverse}
-            affinity={affinity}
-            onAffinityChange={setAffinity}
-            sort={sort}
-            onSortChange={setSort}
-            universes={universeOptions}
-          />
+          <CollectionFilters universes={universeOptions} />
 
           {filteredCollection.length === 0 ? (
             <div className="companion-empty">

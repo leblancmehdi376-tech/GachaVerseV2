@@ -11,9 +11,9 @@ import { getPalierDrop, EXPEDITION_DEFS } from '@/lib/game/expeditions';
 import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { parseInstanceKey } from '@/lib/game/editions';
-import { getAffinityForId } from '@/lib/game/affinities';
-import { CollectionFilters, type CollectionAffinityMode, type CollectionFilterMode, type CollectionSortMode } from '@/components/ui/CollectionFilters';
-import { BN_ZERO, bnCompare, bnGte, bnLt, bnToNumber } from '@/lib/game/bignum';
+import { CollectionFilters } from '@/components/ui/CollectionFilters';
+import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
+import { bnGte, bnLt, bnToNumber } from '@/lib/game/bignum';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
 
 const RARITY_PRIORITY: Record<string, number> = {
@@ -234,17 +234,13 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
 
 // ── PAGE ──────────────────────────────────────────────────────────────────
 export function UpgradesPage() {
-  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilter, collectionUniverse, collectionAffinity, collectionSort, setCollectionFilters, inventory, sellItem } = useGameStore(useShallow(s => ({
+  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilters, inventory, sellItem } = useGameStore(useShallow(s => ({
     pixelCoins: s.pixelCoins,
     nekoGems: s.nekoGems,
     getTotalDps: s.getTotalDps,
     collection: s.collection,
     equippedTeam: s.equippedTeam,
-    collectionFilter: s.collectionFilter,
-    collectionUniverse: s.collectionUniverse,
-    collectionAffinity: s.collectionAffinity,
-    collectionSort: s.collectionSort,
-    setCollectionFilters: s.setCollectionFilters,
+    collectionFilters: s.collectionFilters,
     inventory: s.inventory,
     sellItem: s.sellItem,
   })));
@@ -256,40 +252,20 @@ export function UpgradesPage() {
     return RARITY_PRIORITY[aRarity] - RARITY_PRIORITY[bRarity];
   });
   const [mounted, setMounted] = useState(false);
-  const filter = collectionFilter as CollectionFilterMode;
-  const universe = collectionUniverse as string | 'all';
-  const affinity = collectionAffinity as CollectionAffinityMode;
-  const sort = collectionSort as CollectionSortMode;
-  const setFilter = (next: CollectionFilterMode) => setCollectionFilters({ filter: next });
-  const setUniverse = (next: string | 'all') => setCollectionFilters({ universe: next });
-  const setAffinity = (next: CollectionAffinityMode) => setCollectionFilters({ affinity: next });
-  const setSort = (next: CollectionSortMode) => setCollectionFilters({ sort: next });
   const universeOptions = (Array.from(new Set(ownedIds.map(id => getCharacterById(parseInstanceKey(id).templateId)?.universe).filter(Boolean))) as string[]).sort();
   const filteredIds = ownedIds.filter(id => {
     const tpl = getCharacterById(parseInstanceKey(id).templateId);
-    if (!tpl) return false;
-    const matchesAffinity = affinity === 'all' ? true : getAffinityForId(tpl.id) === affinity;
-    if (filter === 'all') return (universe === 'all' ? true : tpl.universe === universe) && matchesAffinity;
-    if (filter === 'owned') return matchesAffinity;
-    if (filter === 'missing') return false;
-    if (universe !== 'all' && tpl.universe !== universe) return false;
-    return tpl.rarity === filter && matchesAffinity;
+    return !!tpl && matchesCharacterFilters(tpl, collectionFilters);
   }).sort((a, b) => {
     // Personnages déjà équipés en priorité, avant tout autre critère de tri.
     const aEquipped = equippedSet.has(a);
     const bEquipped = equippedSet.has(b);
     if (aEquipped !== bEquipped) return aEquipped ? -1 : 1;
-
-    const aTpl = getCharacterById(parseInstanceKey(a).templateId)!;
-    const bTpl = getCharacterById(parseInstanceKey(b).templateId)!;
-    const aOwned = collection[a];
-    const bOwned = collection[b];
-    if (sort === 'rarity') {
-      return (RARITY_PRIORITY[aTpl.rarity] ?? 9) - (RARITY_PRIORITY[bTpl.rarity] ?? 9);
-    }
-    if (sort === 'dps_desc') return bnCompare(bOwned ? calcCharDps(bTpl, bOwned) : BN_ZERO, aOwned ? calcCharDps(aTpl, aOwned) : BN_ZERO);
-    if (sort === 'dps_asc') return bnCompare(aOwned ? calcCharDps(aTpl, aOwned) : BN_ZERO, bOwned ? calcCharDps(bTpl, bOwned) : BN_ZERO);
-    return aTpl.name.localeCompare(bTpl.name);
+    return compareCharacters(
+      { tpl: getCharacterById(parseInstanceKey(a).templateId)!, owned: collection[a] ?? null },
+      { tpl: getCharacterById(parseInstanceKey(b).templateId)!, owned: collection[b] ?? null },
+      collectionFilters.sortKey, collectionFilters.sortReversed,
+    );
   });
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
@@ -390,17 +366,7 @@ export function UpgradesPage() {
         {ownedIds.length > 0 && (
           <div>
             <SectionHead color="var(--cyan)">ALLIÉS ({ownedIds.length})</SectionHead>
-            <CollectionFilters
-              filter={filter}
-              onFilterChange={setFilter}
-              universe={universe}
-              onUniverseChange={setUniverse}
-              affinity={affinity}
-              onAffinityChange={setAffinity}
-              sort={sort}
-              onSortChange={setSort}
-              universes={universeOptions}
-            />
+            <CollectionFilters universes={universeOptions} />
             <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
               {filteredIds.map(id => <CharCard key={id} templateId={id} />)}
             </div>

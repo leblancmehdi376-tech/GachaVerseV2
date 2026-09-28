@@ -21,10 +21,7 @@ const INTENTIONALLY_TRANSIENT_FIELDS = new Set([
   // voir partialize dans gameStore.ts et getSerializableState ci-dessus)
   'eventDpsMult',        // buff temporaire d'événement aléatoire (courte durée, faible enjeu)
   'eventDpsMultEndsAt',
-  'collectionFilter',    // préférence d'affichage de la page Collection, pas de la progression
-  'collectionUniverse',
-  'collectionAffinity',
-  'collectionSort',
+  'collectionFilters',   // préférence d'affichage des listes de persos, pas de la progression
   // Fusionnés depuis les anciens achievementStore/ultimateStore (voir Phase 2
   // du refacto stores) — n'étaient déjà pas cloud-synchronisés avant fusion.
   'achievementProgress', // jamais cloud-sync, seulement local (voir gameStore.ts partialize)
