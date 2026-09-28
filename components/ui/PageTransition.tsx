@@ -10,6 +10,7 @@ type Phase = 'idle' | 'out' | 'in';
 
 export function PageTransition({ pageKey, children }: Props) {
   const [displayKey, setDisplayKey]       = useState(pageKey);
+  // Snapshot de l'ancienne page, affiché pendant le fondu sortant.
   const [displayChildren, setDisplayChildren] = useState(children);
   const [phase, setPhase]                 = useState<Phase>('idle');
   const prevKeyRef                        = useRef(pageKey);
@@ -36,13 +37,9 @@ export function PageTransition({ pageKey, children }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageKey]);
 
-  // Keep children fresh when in idle state
-  useEffect(() => {
-    if (phase === 'idle') {
-      setDisplayChildren(children);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [children, phase]);
+  // Tant que la page affichée est la page courante, on rend les children à
+  // jour ; pendant le fondu sortant (clé pas encore basculée), l'ancienne page.
+  const shownChildren = displayKey === pageKey ? children : displayChildren;
 
   return (
     <div
@@ -64,7 +61,7 @@ export function PageTransition({ pageKey, children }: Props) {
         willChange: 'opacity, transform',
       }}
     >
-      {displayChildren}
+      {shownChildren}
     </div>
   );
 }

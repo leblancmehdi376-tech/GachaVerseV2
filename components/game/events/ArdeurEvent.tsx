@@ -12,13 +12,13 @@ import {
 export function ArdeurEvent() {
   const end             = useRandomEventStore(s => s.end);
   const setEventDpsMult = useGameStore(s => s.setEventDpsMult);
-  const [, setHeat] = useState(0);              // force un re-render à chaque tick (valeur lue via heatRef)
+  const [heat, setHeat] = useState(0);           // copie de heatRef pour le rendu (mise à jour à chaque tick)
   const [timeLeft, setTimeLeft] = useState(ARDEUR_DURATION_MS);
   const heatRef = useRef(0);
   const peakRef = useRef(0);
   const joinedRef = useRef(false);
 
-  const mult = 1 + (ARDEUR_MAX_MULT - 1) * heatRef.current;
+  const mult = 1 + (ARDEUR_MAX_MULT - 1) * heat;
 
   useEffect(() => {
     const start = Date.now();
@@ -51,8 +51,8 @@ export function ArdeurEvent() {
     if (!joinedRef.current) { joinedRef.current = true; useGameStore.getState().addStat(STAT.eventsJoined); }
   };
 
-  const pct = Math.round(heatRef.current * 100);
-  const hot = heatRef.current > 0.75;
+  const pct = Math.round(heat * 100);
+  const hot = heat > 0.75;
 
   return (
     <div style={{ position:'absolute', inset:0, zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:14, background:'rgba(3,2,10,0.4)' }}>
@@ -70,7 +70,7 @@ export function ArdeurEvent() {
         style={{ width:150, height:150, borderRadius:'50%', border:`3px solid ${hot ? '#fbbf24' : '#fb923c'}`, cursor:'pointer',
           background:`radial-gradient(circle at 50% 35%, ${hot ? '#fbbf24' : '#fb923c'}, #b45309)`, color:'#fff',
           fontFamily:'var(--f-title)', fontWeight:900, fontSize:22.7, letterSpacing:1,
-          boxShadow:`0 0 ${20 + pct*0.4}px rgba(251,146,60,0.7)`, transform:`scale(${1 + heatRef.current*0.08})`, transition:'transform 0.05s' }}>
+          boxShadow:`0 0 ${20 + pct*0.4}px rgba(251,146,60,0.7)`, transform:`scale(${1 + heat*0.08})`, transition:'transform 0.05s' }}>
         FRAPPE !
       </button>
 

@@ -20,6 +20,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Maj v2.6.2',
+    changes: [
+      "**Optimisation des performances**.",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Maj v2.6.1',
     sections: [
       {

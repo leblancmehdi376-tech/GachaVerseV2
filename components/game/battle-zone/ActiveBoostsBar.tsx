@@ -1,22 +1,18 @@
 'use client';
-import { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
+import { useNow } from '@/hooks/useNow';
 
 // ── Barre des boosts BossCrown actifs (+20% DPS / +20% Or) ───────────────
 export function ActiveBoostsBar() {
   const { dpsBoostEndsAt, goldBoostEndsAt, isDpsBoostActive, isGoldBoostActive } = useGameStore();
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useNow();
 
   const dpsActive  = isDpsBoostActive();
   const goldActive = isGoldBoostActive();
   if (!dpsActive && !goldActive) return null;
 
   const fmt = (endsAt: number) => {
-    const s = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    const s = Math.max(0, Math.ceil((endsAt - now) / 1000));
     return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
   };
 

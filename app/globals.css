@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Press+Start+2P&family=Nanum+Brush+Script&display=swap');
+/* Polices Google chargées via <link> dans app/layout.tsx (plus rapide qu'un @import CSS). */
 @import "tailwindcss";
 
 /* ════════════════════════════════════════════════════════════════

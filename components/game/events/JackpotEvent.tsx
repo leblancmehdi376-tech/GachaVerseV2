@@ -145,6 +145,8 @@ export function JackpotEvent() {
     if (spinIv.current) clearInterval(spinIv.current);
     if (autoCloseTimeout.current) clearTimeout(autoCloseTimeout.current);
     closeEvent();
+  // Démontage uniquement : closeEvent ne dépend que de refs et de `end` (stable, zustand).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 

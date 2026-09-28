@@ -36,6 +36,7 @@ const BROADCAST_CHANNEL = typeof window !== 'undefined' ? new BroadcastChannel('
 export function broadcastLocalState() {
   if (typeof window === 'undefined') return;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
     const { useGameStore } = require('@/store/gameStore');
     const s = useGameStore.getState();
     const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory };
@@ -49,6 +50,7 @@ if (BROADCAST_CHANNEL) {
     if (event.data?.type === 'PULL_SYNC') {
       const { nekoGems, collection, equipmentInventory } = event.data.data;
       try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
         const { useGameStore } = require('@/store/gameStore');
         useGameStore.setState({ nekoGems, collection, equipmentInventory });
       } catch { /* ignore */ }
@@ -279,6 +281,7 @@ export function getActiveCoinMultiplier(ultActiveUlts: ActiveUlt[]): number {
 // fichier), un import statique créerait un cycle.
 export function requestUrgentSave(reason = 'urgent') {
   if (typeof window === 'undefined') return;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
   try { require('@/lib/firebase/cloudSaveSync').requestUrgentSave(reason); } catch { /* ignore */ }
 }
 
@@ -288,6 +291,7 @@ export function requestUrgentSave(reason = 'urgent') {
 // collection d'avant-prestige (voir doPrestige, seul appelant).
 export async function requestUrgentSaveAndWait(reason: string): Promise<boolean> {
   if (typeof window === 'undefined') return false;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
   try { return await require('@/lib/firebase/cloudSaveSync').saveUrgentNow(reason); } catch { return false; }
 }
 

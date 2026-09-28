@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { formatNumber } from '@/lib/game/format';
@@ -31,9 +31,14 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const [giftLoading,  setGiftLoading]  = useState(false);
   const [giftFeedback, setGiftFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  useEffect(() => {
+  // Resynchronise le champ si le pseudo change dans le store (ex: chargé depuis
+  // Firestore) — fait pendant le rendu plutôt que dans un effet, pour éviter un
+  // rendu intermédiaire avec l'ancienne valeur.
+  const [prevUsername, setPrevUsername] = useState(username);
+  if (username !== prevUsername) {
+    setPrevUsername(username);
     setNameInput(username);
-  }, [username]);
+  }
 
   const handleSaveName = async () => {
     const finalName = nameInput.trim().slice(0, 20);

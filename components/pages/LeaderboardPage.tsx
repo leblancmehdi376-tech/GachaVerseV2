@@ -71,8 +71,13 @@ export function LeaderboardPage() {
   // rafraîchir manuellement via le bouton.
   useEffect(() => { loadEntries(); }, []);
 
-  // Sync input si le username change dans le store (ex: chargé depuis Firestore)
-  useEffect(() => { setNameInput(username || ''); }, [username]);
+  // Sync input si le username change dans le store (ex: chargé depuis Firestore),
+  // fait pendant le rendu plutôt que dans un effet (pas de rendu intermédiaire).
+  const [prevUsername, setPrevUsername] = useState(username);
+  if (username !== prevUsername) {
+    setPrevUsername(username);
+    setNameInput(username || '');
+  }
 
   const handleSaveName = async () => {
     const final = nameInput.trim().slice(0, 20);

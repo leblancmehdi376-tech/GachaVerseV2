@@ -85,7 +85,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     set({ dailyShop: { dayKey: today, characterIds: generateDailyShopCharacters(runPeakPalierOf(get())), purchased: [], rerollCount: 0 } });
   },
   rerollDailyShop: () => {
-    const { dailyShop, voidOrbs } = get();
+    const { voidOrbs } = get();
     const cost = getRerollShopCost();
     if (voidOrbs < cost) return;
     set(state => ({

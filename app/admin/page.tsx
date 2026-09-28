@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { getAllUsers, approveUser, findUsernameMismatches, applyUsernameSync, PlayerRow, UsernameMismatch } from '@/lib/firebase/accessRequests';
@@ -155,9 +156,9 @@ export default function AdminPage() {
   return (
     <div style={{ height: '100vh', overflowY: 'auto', background: '#050410', padding: '32px 20px', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.45)', fontSize: 12.4, textDecoration: 'none', marginBottom: 16 }}>
+        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.45)', fontSize: 12.4, textDecoration: 'none', marginBottom: 16 }}>
           ← Retour
-        </a>
+        </Link>
         <h1 style={{ color: '#a78bfa', fontSize: 22.7, fontWeight: 900, marginBottom: 6 }}>🛡️ Panel admin</h1>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.4, marginBottom: 8 }}>
           {pending.length} demande(s) en attente · {approvedList.length} compte(s) déjà validé(s)

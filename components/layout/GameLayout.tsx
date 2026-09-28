@@ -176,7 +176,6 @@ export function GameLayout() {
   // charge ensuite d'afficher le bon onglet et de surligner la carte).
   useEffect(() => {
     if (focusedExpeditionId) goToPage('expeditions');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedExpeditionId]);
 
   const cfg = getPalierConfig(palier);

@@ -39,6 +39,29 @@ export function fmtDur(s: number): string {
   return h > 0 ? (m > 0 ? `${h}h ${m}min` : `${h}h`) : (m > 0 ? `${m}min` : `${s}s`);
 }
 
+// Ligne d'amélioration des gains hors-ligne. Déclarée au niveau module (et non
+// dans le rendu de ProfilePage) pour ne pas être remontée à chaque render.
+function UpgradeRow({ icon, label, current, next, cost, bossCrowns, onBuy }: { icon:string; label:string; current:string; next:string|null; cost:number|null; bossCrowns:number; onBuy:()=>void }) {
+  const affordable = cost !== null && bossCrowns >= cost;
+  const maxed = cost === null;
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 14px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'10px' }}>
+      <span style={{ fontSize:'20.6px' }}>{icon}</span>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text)' }}>{label}</div>
+        <div style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', color:'var(--text-sub)', marginTop:'2px' }}>
+          <span style={{ color:'var(--green)' }}>{current}</span>{next && !maxed && <span style={{ color:'var(--text-dim)' }}> → {next}</span>}
+        </div>
+      </div>
+      <button onClick={onBuy} disabled={maxed || !affordable}
+        className={affordable ? 'btn-primary' : 'btn-secondary'}
+        style={{ padding:'8px 14px', fontSize:'12.4px', opacity: maxed ? 0.5 : 1, cursor: maxed||!affordable ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}>
+        {maxed ? 'MAX' : <>👑 {cost}</>}
+      </button>
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const store = useGameStore();
   const {
@@ -270,27 +293,6 @@ export function ProfilePage() {
           const nextCapH  = OFFLINE_CAP_TIERS_H[capLvl + 1];
           const last      = store.lastOfflineGain;
 
-          const UpgradeRow = ({ icon, label, current, next, cost, onBuy }: { icon:string; label:string; current:string; next:string|null; cost:number|null; onBuy:()=>void }) => {
-            const affordable = cost !== null && bossCrowns >= cost;
-            const maxed = cost === null;
-            return (
-              <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 14px', background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'10px' }}>
-                <span style={{ fontSize:'20.6px' }}>{icon}</span>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text)' }}>{label}</div>
-                  <div style={{ fontFamily:'var(--f-num)', fontSize:'12.4px', color:'var(--text-sub)', marginTop:'2px' }}>
-                    <span style={{ color:'var(--green)' }}>{current}</span>{next && !maxed && <span style={{ color:'var(--text-dim)' }}> → {next}</span>}
-                  </div>
-                </div>
-                <button onClick={onBuy} disabled={maxed || !affordable}
-                  className={affordable ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding:'8px 14px', fontSize:'12.4px', opacity: maxed ? 0.5 : 1, cursor: maxed||!affordable ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}>
-                  {maxed ? 'MAX' : <>👑 {cost}</>}
-                </button>
-              </div>
-            );
-          };
-
           return (
             <div className="panel panel--gold" style={{ padding:'18px 20px' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px' }}>
@@ -318,8 +320,8 @@ export function ProfilePage() {
 
               {/* Améliorations */}
               <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
-                <UpgradeRow icon="📈" label="Multiplicateur hors-ligne" current={`×${offMult.toFixed(2)}`} next={nextMult ? `×${nextMult.toFixed(2)}` : null} cost={multCost} onBuy={store.upgradeOfflineMult} />
-                <UpgradeRow icon="⏳" label="Durée max hors-ligne"     current={`${offCapH}h`}          next={nextCapH ? `${nextCapH}h` : null}       cost={capCost}  onBuy={store.upgradeOfflineCap} />
+                <UpgradeRow icon="📈" label="Multiplicateur hors-ligne" current={`×${offMult.toFixed(2)}`} next={nextMult ? `×${nextMult.toFixed(2)}` : null} cost={multCost} bossCrowns={bossCrowns} onBuy={store.upgradeOfflineMult} />
+                <UpgradeRow icon="⏳" label="Durée max hors-ligne"     current={`${offCapH}h`}          next={nextCapH ? `${nextCapH}h` : null}       cost={capCost}  bossCrowns={bossCrowns} onBuy={store.upgradeOfflineCap} />
               </div>
             </div>
           );

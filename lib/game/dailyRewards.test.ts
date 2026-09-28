@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DAILY_REWARDS, DAILY_REWARD_TITLES, getDailyRewardDay } from './dailyRewards';
+import { DAILY_REWARD_TITLES, getDailyRewardDay } from './dailyRewards';
 import { TITLE_GOLD_BONUS_PCT } from './titles';
 
 describe('DAILY_REWARD_TITLES — titres du calendrier de connexion (jours 7 et 28)', () => {

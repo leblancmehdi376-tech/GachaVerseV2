@@ -395,7 +395,7 @@ export function MarketplacePage() {
                       {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
                     </div>
                     <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color: l.status==='active'?'var(--text-muted)':l.status==='sold'?'#4ade80':'#6b7280' }}>
-                      {l.status === 'active' ? '🟢 En vente' : l.status === 'sold' && !(l as any).claimed ? `✅ Vendu à ${l.soldToName}` : l.status === 'sold' ? '💰 Encaissé' : '❌ Annulé'}
+                      {l.status === 'active' ? '🟢 En vente' : l.status === 'sold' && !l.claimed ? `✅ Vendu à ${l.soldToName}` : l.status === 'sold' ? '💰 Encaissé' : '❌ Annulé'}
                     </div>
                   </div>
                   <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'15.5px', color:'var(--text-sub)', textAlign:'right', whiteSpace:'nowrap' }}>
@@ -407,7 +407,7 @@ export function MarketplacePage() {
                         Annuler
                       </button>
                     )}
-                    {l.status === 'sold' && !(l as any).claimed && (
+                    {l.status === 'sold' && !l.claimed && (
                       <button onClick={() => handleClaim(l)} style={{ padding:'6px 12px', borderRadius:'6px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>
                         Encaisser
                       </button>
