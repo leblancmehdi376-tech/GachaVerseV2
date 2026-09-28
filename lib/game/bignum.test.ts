@@ -101,6 +101,23 @@ describe('bnFormat', () => {
     expect(bnFormat(bnPow(10, 309))).toBe('1ab');
   });
 
+  it('notation alphabétique : une lettre de plus tous les 3 de puissance (A, …, Z, AA, …, ZZ, AAA)', () => {
+    setNumberNotation('alphabetic');
+    try {
+      expect(bnFormat(bnFromNumber(42))).toBe('42');
+      expect(bnFormat(bnFromNumber(1500))).toBe('1.5A');
+      expect(bnFormat(bnPow(10, 6))).toBe('1B');
+      expect(bnFormat(bnPow(10, 78))).toBe('1Z');
+      expect(bnFormat(bnPow(10, 81))).toBe('1AA');
+      expect(bnFormat(bnPow(10, 84))).toBe('1AB');
+      expect(bnFormat(bnPow(10, 3 * 702))).toBe('1ZZ');
+      expect(bnFormat(bnPow(10, 3 * 703))).toBe('1AAA');
+      expect(bnFormat(bnPow(10, 3 * 704))).toBe('1AAB');
+    } finally {
+      setNumberNotation('suffix');
+    }
+  });
+
   it('passe en notation scientifique si le joueur la choisit', () => {
     setNumberNotation('scientific');
     try {

@@ -141,9 +141,20 @@ const SUFFIXES = [
 // Notation choisie par le joueur (Paramètres → Affichage des nombres).
 // Pilotée par store/displaySettingsStore.ts ; module-level pour que
 // bnFormat reste une fonction pure appelable partout sans hook.
-export type NumberNotation = 'suffix' | 'scientific';
+export type NumberNotation = 'suffix' | 'scientific' | 'alphabetic';
 let numberNotation: NumberNotation = 'suffix';
 export function setNumberNotation(n: NumberNotation) { numberNotation = n; }
+
+// Notation alphabétique (façon Blocky Block) : une lettre de plus tous les
+// 3 de puissance — 1e3 = A, 1e6 = B, … 1e78 = Z, 1e81 = AA, AB, … ZZ, AAA…
+// (numérotation bijective en base 26, donc sans limite de longueur).
+function alphabeticSuffix(idx: number): string {
+  let s = '';
+  for (let n = idx; n > 0; n = Math.floor((n - 1) / 26)) {
+    s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
+  }
+  return s;
+}
 
 export function bnFormat(b: BigNum): string {
   if (b.mantissa === 0) return '0';
@@ -151,11 +162,12 @@ export function bnFormat(b: BigNum): string {
   if (numberNotation === 'scientific' && suffixIdx > 0) {
     return `${b.mantissa.toFixed(2)}e${b.exponent}`;
   }
-  if (suffixIdx >= 0 && suffixIdx < SUFFIXES.length) {
+  const alphabetic = numberNotation === 'alphabetic' && suffixIdx > 0;
+  if (alphabetic || (suffixIdx >= 0 && suffixIdx < SUFFIXES.length)) {
     const scaledExp = b.exponent - suffixIdx * 3;
     const display = b.mantissa * Math.pow(10, scaledExp);
     const formatted = display >= 100 ? Math.round(display).toString() : display.toFixed(1).replace(/\.0$/, '');
-    return formatted + SUFFIXES[suffixIdx];
+    return formatted + (alphabetic ? alphabeticSuffix(suffixIdx) : SUFFIXES[suffixIdx]);
   }
   if (suffixIdx < 0) return Math.floor(bnToNumber(b)).toString(); // < 1000, pas de suffixe
   return `${b.mantissa.toFixed(2)}e${b.exponent}`;

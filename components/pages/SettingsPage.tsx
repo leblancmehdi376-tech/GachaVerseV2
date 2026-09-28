@@ -294,6 +294,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
             {([
               { k:'suffix'     as const, label:'Unités',      example:'1.5Qa · 3.2Vg' },
               { k:'scientific' as const, label:'Scientifique', example:'1.50e15' },
+              { k:'alphabetic' as const, label:'Alphabétique (Blocky Block)', example:'1.5E · 3.2AA' },
             ]).map(o => {
               const active = numberNotation === o.k;
               return (

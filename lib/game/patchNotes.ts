@@ -20,6 +20,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Maj v2.6.6',
+    changes: [
+      "Nouvelle **notation alphabétique** dans les **Paramètres**, spécialement pour **Blocky Block** !",
+      "Une lettre de plus tous les **3 de puissance** : **A** (10^3), **B** (10^6)... **Z**, puis **AA**, **AB**... **ZZ**, puis **AAA**, **AAB**...",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Maj v2.6.5',
     changes: [
       "**Rokoul & Ayro** : ses évolutions affichent désormais son visuel de base au lieu d'une carte vide, en attendant leurs illustrations.",
