@@ -104,6 +104,9 @@ const makeInitial = () => ({
   achievementsClaimed: {} as Record<string, boolean>,
   activeTitle: 'Novice',
   unlockedTitles: ['Novice'] as string[],
+  achievementStats: {} as Record<string, number>,
+  charMastery: {} as GameStore['charMastery'],
+  showcasedTrophies: [] as string[],
   // ── Prestige ──
   prestigeLevel: 0,
   prestigeTokens: 0,
@@ -383,6 +386,7 @@ export const useGameStore = create<GameStore>()(
         // (voir INTENTIONALLY_TRANSIENT_FIELDS dans hooks/useCloudSave.test.ts).
         achievementProgress:s.achievementProgress, achievementUnlocked:s.achievementUnlocked,
         achievementsClaimed:s.achievementsClaimed, activeTitle:s.activeTitle, unlockedTitles:s.unlockedTitles,
+        achievementStats:s.achievementStats ?? {}, charMastery:s.charMastery ?? {}, showcasedTrophies:s.showcasedTrophies ?? [],
         prestigeLevel:s.prestigeLevel, prestigeTokens:s.prestigeTokens,
         prestigeBonusLevels:s.prestigeBonusLevels, prestigeRankRecoveryLevel:s.prestigeRankRecoveryLevel,
         ultCooldowns:s.ultCooldowns,

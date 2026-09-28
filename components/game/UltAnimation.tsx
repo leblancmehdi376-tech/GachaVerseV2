@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
+import { useNow } from '@/hooks/useNow';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
 
@@ -13,13 +13,8 @@ export function UltAnimation() {
 // ── Barre effets actifs dans la zone de combat ────────────────────────────
 export function ActiveUltsBar() {
   const activeUlts = useGameStore(s => s.ultActiveUlts);
-  const [, setTick] = useState(0);
-
   // Refresh chaque seconde pour le timer
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useNow();
 
   if (activeUlts.length === 0) return null;
 
@@ -31,7 +26,7 @@ export function ActiveUltsBar() {
       {activeUlts.map(a => {
         const adef = getUltimateDef(parseInstanceKey(a.templateId).templateId);
         if (!adef) return null;
-        const remaining = Math.max(0, Math.round((a.endsAt - Date.now()) / 1000));
+        const remaining = Math.max(0, Math.round((a.endsAt - now) / 1000));
         const pct = (remaining / adef.duration) * 100;
         return (
           <div key={a.templateId} style={{

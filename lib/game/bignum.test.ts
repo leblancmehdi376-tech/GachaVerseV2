@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   bnFromNumber, bnToNumber, bnPow, bnMulScalar, bnMul, bnAdd, bnSub,
-  bnCompare, bnGte, bnLt, bnIsZero, bnDivRatio, bnLog10, bnFormat, coerceBigNum,
+  bnCompare, bnGte, bnLt, bnIsZero, bnDivRatio, bnLog10, bnFormat, coerceBigNum, setNumberNotation,
 } from './bignum';
 
 describe('bnFromNumber / bnToNumber', () => {
@@ -30,7 +30,8 @@ describe('bnPow — le coeur du correctif (remplace Math.pow, ne déborde jamais
     expect(Number.isFinite(result.mantissa)).toBe(true);
     expect(Number.isFinite(result.exponent)).toBe(true);
     expect(bnFormat(result)).not.toBe('0');
-    expect(bnFormat(result)).toMatch(/e\d+$/); // notation scientifique au-delà du plafond des suffixes
+    expect(bnFormat(result)).toMatch(/[a-z]{2}$/); // ~1e318 : suffixe alphabétique (aa, ab...) au-delà de Ce
+    expect(bnFormat(bnPow(10, 3000))).toMatch(/e\d+$/); // notation scientifique au-delà du plafond des suffixes
   });
 });
 
@@ -89,6 +90,42 @@ describe('bnFormat', () => {
   it('utilise les suffixes existants pour les valeurs usuelles', () => {
     expect(bnFormat(bnFromNumber(1500))).toBe('1.5K');
     expect(bnFormat(bnFromNumber(0))).toBe('0');
+  });
+
+  it('utilise les nouvelles unités au-delà de No (1e30)', () => {
+    expect(bnFormat(bnPow(10, 33))).toBe('1Dc');
+    expect(bnFormat(bnPow(10, 36))).toBe('1UDc');
+    expect(bnFormat(bnPow(10, 63))).toBe('1Vg');
+    expect(bnFormat(bnPow(10, 303))).toBe('1Ce');
+    expect(bnFormat(bnPow(10, 306))).toBe('1aa');
+    expect(bnFormat(bnPow(10, 309))).toBe('1ab');
+  });
+
+  it('notation alphabétique : une lettre de plus tous les 3 de puissance (A, …, Z, AA, …, ZZ, AAA)', () => {
+    setNumberNotation('alphabetic');
+    try {
+      expect(bnFormat(bnFromNumber(42))).toBe('42');
+      expect(bnFormat(bnFromNumber(1500))).toBe('1.5A');
+      expect(bnFormat(bnPow(10, 6))).toBe('1B');
+      expect(bnFormat(bnPow(10, 78))).toBe('1Z');
+      expect(bnFormat(bnPow(10, 81))).toBe('1AA');
+      expect(bnFormat(bnPow(10, 84))).toBe('1AB');
+      expect(bnFormat(bnPow(10, 3 * 702))).toBe('1ZZ');
+      expect(bnFormat(bnPow(10, 3 * 703))).toBe('1AAA');
+      expect(bnFormat(bnPow(10, 3 * 704))).toBe('1AAB');
+    } finally {
+      setNumberNotation('suffix');
+    }
+  });
+
+  it('passe en notation scientifique si le joueur la choisit', () => {
+    setNumberNotation('scientific');
+    try {
+      expect(bnFormat(bnFromNumber(1500))).toBe('1.50e3');
+      expect(bnFormat(bnFromNumber(42))).toBe('42');
+    } finally {
+      setNumberNotation('suffix');
+    }
   });
 });
 

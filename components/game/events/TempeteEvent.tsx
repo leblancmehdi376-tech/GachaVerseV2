@@ -6,6 +6,7 @@ import {
   TEMPETE_MULT_MIN, TEMPETE_MULT_MAX,
 } from '@/store/randomEventStore';
 import { bnMulScalar } from '@/lib/game/bignum';
+import { STAT, EV_PERFECT } from '@/lib/game/achievements';
 
 interface Orb { id: number; x: number; y: number; mult: number; born: number; }
 
@@ -22,6 +23,7 @@ export function TempeteEvent() {
   const getTotalDps = useGameStore(s => s.getTotalDps);
   const [orb, setOrb] = useState<Orb | null>(null);   // UNE seule orbe à la fois
   const spawnedRef = useRef(0);
+  const poppedRef = useRef(0);
   const nextId = useRef(1);
 
   useEffect(() => {
@@ -41,6 +43,10 @@ export function TempeteEvent() {
   const pop = (o: Orb) => {
     setOrb(cur => (cur && cur.id === o.id ? null : cur));
     dealInstant(bnMulScalar(getTotalDps(), o.mult));
+    poppedRef.current += 1;
+    const g = useGameStore.getState();
+    if (poppedRef.current === 1) g.addStat(STAT.eventsJoined);
+    if (poppedRef.current === TEMPETE_ORBES) g.discover(EV_PERFECT.tempete);
   };
 
   return (

@@ -1,10 +1,10 @@
 'use client';
 
-// Barre de filtres repliable partagée par Compadex / Compagnons / Améliorations.
+// Barre de filtres repliable partagée par Compadex / Compagnons / Améliorations / Maîtrise.
 // Fermée : recherche, pastilles des filtres actifs et tri. Le bouton FILTRES
 // déplie le panneau complet. Recliquer un choix actif le retire ; aucun choix
 // = « tous ». La sélection vit dans le store (collectionFilters), donc elle est
-// commune aux trois pages et survit aux changements de page.
+// commune à toutes ces pages et survit aux changements de page.
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useGameStore } from '@/store/gameStore';
@@ -19,9 +19,10 @@ import {
 const SORTS: { key: CollectionSortKey; label: string; natural: string; reversed: string }[] = [
   { key: 'rarity', label: 'RARETÉ', natural: 'Plus rares d’abord',  reversed: 'Plus communs d’abord' },
   { key: 'dps',    label: 'DPS',    natural: 'Plus forts d’abord',  reversed: 'Plus faibles d’abord' },
+  { key: 'mastery', label: 'MAÎTRISE', natural: 'Plus maîtrisés d’abord', reversed: 'Moins maîtrisés d’abord' },
   { key: 'name',   label: 'NOM',    natural: 'A → Z',               reversed: 'Z → A' },
 ];
-const SORT_W = 62;
+const SORT_W = 68;
 
 const STATUSES: { key: Exclude<CollectionStatus, 'all'>; label: string; color: string; glow: string }[] = [
   { key: 'owned',   label: '✓ POSSÉDÉS',  color: '#4ade80', glow: '#16a34a' },
@@ -147,7 +148,7 @@ function UniverseRow({ universe, label, on, onClick }: { universe: string | 'all
   );
 }
 
-function SearchIcon() {
+export function SearchIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--purple-glow)" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
       <circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" />

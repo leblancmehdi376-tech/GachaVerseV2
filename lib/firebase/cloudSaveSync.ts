@@ -7,7 +7,7 @@ import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
 import { migrateLegacyRaidQuestIds } from '@/store/gameStoreHelpers';
 import { migrateLegacyDrops } from '@/lib/game/expeditions';
 import type { Quest } from '@/store/gameStore.types';
-import { ACHIEVEMENTS } from '@/lib/game/achievements';
+import { ACHIEVEMENT_BY_ID, type CharMastery } from '@/lib/game/achievements';
 
 // Logique pure/orchestration de la synchro cloud (indépendante de React) —
 // voir hooks/useCloudSave.ts, qui ne garde que le wiring useEffect/useState
@@ -91,6 +91,13 @@ export function getSerializableState() {
     // avec son bonus d'or actif.
     unlockedTitles: s.unlockedTitles,
     activeTitle:    s.activeTitle,
+    // Statistiques de succès (temps de jeu, défis, secrets...) et maîtrise
+    // par personnage — non dérivables des autres stats, donc synchronisées
+    // (fusion "max par clé", voir mergeMonotonicState). La vitrine de
+    // trophées est une préférence d'affichage : "dernier gagne".
+    achievementStats:  s.achievementStats ?? {},
+    charMastery:       s.charMastery ?? {},
+    showcasedTrophies: s.showcasedTrophies ?? [],
     // Expéditions et forge.
     expeditionActive:         s.expeditionActive,
     expeditionDropInventory:  s.expeditionDropInventory,
@@ -156,6 +163,7 @@ export function mergeMonotonicState(
 ): {
   achievementsClaimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string;
   compadexCharactersSeen: Record<string, true>; compadexEquipmentSeen: Record<string, true>;
+  achievementStats: Record<string, number>; charMastery: Record<string, CharMastery>;
   dleQuestsClaimed: string[];
 } {
   const current = useGameStore.getState();
@@ -171,7 +179,7 @@ export function mergeMonotonicState(
     // le reset (fenêtre entre le reset local et la confirmation du push
     // Firestore post-Prestige). Un id inconnu reste inclus par défaut, comme
     // avant ce correctif.
-    const achiev = ACHIEVEMENTS.find(a => a.id === id);
+    const achiev = ACHIEVEMENT_BY_ID.get(id);
     if (achiev?.resetsOnPrestige) continue;
     achievementsClaimed[id] = true;
   }
@@ -187,12 +195,34 @@ export function mergeMonotonicState(
   const remoteEquip = remote?.compadexEquipmentSeen as Record<string, unknown> | undefined;
   if (remoteEquip) for (const id of Object.keys(remoteEquip)) compadexEquipmentSeen[id] = true;
 
+  // Statistiques de succès : max par clé. Quelques clés ne sont pas
+  // strictement croissantes (série de victoires en cours, dernier palier
+  // raté) — un remote en retard peut au pire les surévaluer légèrement, sans
+  // jamais faire perdre un succès déjà obtenu.
+  const achievementStats: Record<string, number> = { ...(current.achievementStats ?? {}) };
+  const remoteStats = remote?.achievementStats as Record<string, unknown> | undefined;
+  if (remoteStats) for (const [k, v] of Object.entries(remoteStats)) {
+    if (typeof v === 'number' && Number.isFinite(v) && v > (achievementStats[k] ?? 0)) achievementStats[k] = v;
+  }
+  const charMastery: Record<string, CharMastery> = { ...(current.charMastery ?? {}) };
+  const remoteMastery = remote?.charMastery as Record<string, Partial<CharMastery>> | undefined;
+  if (remoteMastery) for (const [id, r] of Object.entries(remoteMastery)) {
+    if (!r || typeof r !== 'object') continue;
+    const l = charMastery[id] ?? { k: 0, w: 0, lv: 0, f: 0 };
+    charMastery[id] = {
+      k:  Math.max(l.k,  Number(r.k)  || 0),
+      w:  Math.max(l.w,  Number(r.w)  || 0),
+      lv: Math.max(l.lv, Number(r.lv) || 0),
+      f:  Math.max(l.f,  Number(r.f)  || 0),
+    };
+  }
+
   const dleQuestsClaimed = new Set<string>(current.dleQuestsClaimed ?? []);
   const remoteDle = remote?.dleQuestsClaimed as string[] | undefined;
   if (Array.isArray(remoteDle)) for (const id of remoteDle) dleQuestsClaimed.add(id);
 
   return {
-    achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen,
+    achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen, achievementStats, charMastery,
     dleQuestsClaimed: Array.from(dleQuestsClaimed),
   };
 }
@@ -235,6 +265,8 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   delete data.activeTitle;
   delete data.compadexCharactersSeen;
   delete data.compadexEquipmentSeen;
+  delete data.achievementStats;
+  delete data.charMastery;
   delete data.dleQuestsClaimed;
 
   // Migration BigNum : une sauvegarde cloud écrite par une version antérieure

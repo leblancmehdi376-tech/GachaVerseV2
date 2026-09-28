@@ -3,12 +3,17 @@
 // require() différés qui évitaient un cycle d'import avec gameStore ne sont
 // plus nécessaires : tout passe par get()/set() sur le même store.
 import type { StateCreator } from 'zustand';
-import { ACHIEVEMENTS } from '@/lib/game/achievements';
+import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, MAX_SHOWCASED_TROPHIES } from '@/lib/game/achievements';
+import { addStats, maxStats, gachaStatsPatch } from '@/lib/game/achievementStats';
+import { getCharacterById } from '@/lib/game/characters';
+import { parseInstanceKey } from '@/lib/game/editions';
 import { toast } from '@/hooks/useToast';
+import { useAchievementFxStore } from '../achievementFxStore';
+import { runPeakPalierOf } from '../gameStoreHelpers';
 import type { GameStore, AchievementActions } from '../gameStore.types';
 
 export const createAchievementSlice: StateCreator<GameStore, [], [], AchievementActions> = (set, get) => ({
-  getAchievement: (id) => ACHIEVEMENTS.find(a => a.id === id),
+  getAchievement: (id) => ACHIEVEMENT_BY_ID.get(id),
   getProgress:    (id) => get().achievementProgress[id] ?? 0,
   isUnlocked:     (id) => !!get().achievementUnlocked[id],
   isClaimed:      (id) => !!get().achievementsClaimed[id],
@@ -23,7 +28,7 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
   ),
 
   setProgress: (id, value) => {
-    const achiev = ACHIEVEMENTS.find(a => a.id === id);
+    const achiev = ACHIEVEMENT_BY_ID.get(id);
     if (!achiev) return;
     const already = get().achievementUnlocked[id];
     const prev    = get().achievementProgress[id] ?? 0;
@@ -62,18 +67,17 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
       return patch;
     });
 
-    // Notification de déblocage — la récompense elle-même n'est créditée
-    // que via le bouton RÉCUP (claimAchievement), pas automatiquement ici.
+    // Bannière animée de déblocage (voir AchievementUnlockBanner) — la
+    // récompense elle-même n'est créditée que via le bouton RÉCUP
+    // (claimAchievement), pas automatiquement ici.
     if (done && !already) {
-      if (!get().suppressToasts) {
-        toast.levelup(`🏆 ${achiev.name}`, 'Récompense disponible — clique sur RÉCUP !');
-      }
+      if (!get().suppressToasts) useAchievementFxStore.getState().push(id);
     }
   },
 
   // Réclame la récompense d'un succès débloqué (bouton RÉCUP côté UI).
   claimAchievement: (id) => {
-    const achiev = ACHIEVEMENTS.find(a => a.id === id);
+    const achiev = ACHIEVEMENT_BY_ID.get(id);
     const already = get().achievementsClaimed[id];
     if (!achiev || !get().achievementUnlocked[id] || already) return;
 
@@ -99,6 +103,71 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
       toast.levelup(`✅ Récompense reçue`, rewardMsg || achiev.description);
     }
   },
+
+  // Réclame plusieurs récompenses d'un coup (tous les niveaux débloqués d'une
+  // série, ou tout ce qui est en attente) — un seul set() et un seul toast
+  // récapitulatif, plutôt qu'un claimAchievement par succès.
+  claimAchievements: (candidateIds) => {
+    const s = get();
+    const pool = candidateIds ?? ACHIEVEMENTS.map(a => a.id);
+    const ids = pool.filter(id => ACHIEVEMENT_BY_ID.has(id) && s.achievementUnlocked[id] && !s.achievementsClaimed[id]);
+    if (ids.length === 0) return 0;
+    let gems = 0;
+    const titles = new Set(s.unlockedTitles);
+    const claimed = { ...s.achievementsClaimed };
+    for (const id of ids) {
+      const r = ACHIEVEMENT_BY_ID.get(id)!.reward;
+      claimed[id] = true;
+      if (r?.type === 'gems' && typeof r.value === 'number') gems += r.value;
+      if (r?.type === 'title' && typeof r.value === 'string') titles.add(r.value);
+    }
+    set(st => ({ achievementsClaimed: claimed, unlockedTitles: Array.from(titles), nekoGems: st.nekoGems + gems }));
+    if (!get().suppressToasts) {
+      toast.levelup(`✅ ${ids.length} récompense${ids.length > 1 ? 's' : ''} reçue${ids.length > 1 ? 's' : ''}`, gems > 0 ? `+${gems} 💎` : undefined);
+    }
+    return ids.length;
+  },
+  claimAllAchievements: () => get().claimAchievements(),
+
+  // ── Statistiques de succès (achievementStats) ──────────────────────────
+  addStat: (key, by = 1) => {
+    if (!by) return;
+    set(s => ({ achievementStats: addStats(s.achievementStats, { [key]: by }) }));
+  },
+  maxStat: (key, value) => {
+    const next = maxStats(get().achievementStats, { [key]: value });
+    if (next) set({ achievementStats: next });
+  },
+  discover: (key) => get().maxStat(key, 1),
+
+  recordGachaResults: (templateIds, isEventBanner) => {
+    if (templateIds.length === 0) return;
+    set(s => ({ achievementStats: gachaStatsPatch(s.achievementStats, templateIds, runPeakPalierOf(s), isEventBanner) }));
+  },
+
+  // Plus haut niveau / plus haute forme jamais atteints par personnage (toutes
+  // éditions confondues) — n'écrit que si quelque chose a réellement augmenté.
+  recordMasteryLevels: () => {
+    const s = get();
+    let next: GameStore['charMastery'] | null = null;
+    for (const [key, owned] of Object.entries(s.collection)) {
+      const id = parseInstanceKey(key).templateId;
+      if (!getCharacterById(id)) continue;
+      const cur = (next ?? s.charMastery)[id] ?? { k: 0, w: 0, lv: 0, f: 0 };
+      if (owned.level <= cur.lv && owned.currentForm <= cur.f) continue;
+      next ??= { ...s.charMastery };
+      next[id] = { ...cur, lv: Math.max(cur.lv, owned.level), f: Math.max(cur.f, owned.currentForm) };
+    }
+    if (next) set({ charMastery: next });
+  },
+
+  // ── Vitrine de trophées (profil) ────────────────────────────────────────
+  toggleShowcasedTrophy: (id) => set(s => {
+    if (s.showcasedTrophies.includes(id)) return { showcasedTrophies: s.showcasedTrophies.filter(t => t !== id) };
+    if (!s.achievementUnlocked[id] || s.showcasedTrophies.length >= MAX_SHOWCASED_TROPHIES) return s;
+    return { showcasedTrophies: [...s.showcasedTrophies, id] };
+  }),
+  setShowcasedTrophies: (ids) => set({ showcasedTrophies: ids.slice(0, MAX_SHOWCASED_TROPHIES) }),
 
   bumpProgress: (id, by = 1) => {
     const current = get().achievementProgress[id] ?? 0;

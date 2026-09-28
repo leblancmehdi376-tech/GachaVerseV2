@@ -10,7 +10,7 @@ import type { GameState } from '@/types/game';
 function baseInputs(overrides: Partial<GoldGainMultiplierInputs> = {}): GoldGainMultiplierInputs {
   return {
     goldUpgradeLevel: 0,
-    activeTitle: '',
+    unlockedTitles: [],
     ultActiveUlts: [],
     goldBoostEndsAt: 0,
     prestigeBonusLevels: initialBonusLevels(),
@@ -34,8 +34,13 @@ describe('getGoldGainMultiplier — source unique du multiplicateur d\'or', () =
   });
 
   it('applique le bonus de titre seul', () => {
-    const mult = bnToNumber(getGoldGainMultiplier(baseInputs({ activeTitle: 'Novice' }))); // +5%
+    const mult = bnToNumber(getGoldGainMultiplier(baseInputs({ unlockedTitles: ['Novice'] }))); // +5%
     expect(mult).toBeCloseTo(1.05);
+  });
+
+  it('cumule les bonus de tous les titres débloqués', () => {
+    const mult = bnToNumber(getGoldGainMultiplier(baseInputs({ unlockedTitles: ['Novice', 'Shadow Monarch', 'Novice'] }))); // +5% +8%, doublon ignoré
+    expect(mult).toBeCloseTo(1.13);
   });
 
   it('applique le bonus de prestige (passif Golds, +10%/niveau)', () => {
@@ -65,7 +70,7 @@ describe('getGoldGainMultiplier — source unique du multiplicateur d\'or', () =
     const levels: PrestigeBonusLevels = { ...initialBonusLevels(), gold: 2 }; // ×1.2
     const mult = bnToNumber(getGoldGainMultiplier({
       goldUpgradeLevel: 1,                 // coffre ×1.2
-      activeTitle: 'Novice',               // ×1.05
+      unlockedTitles: ['Novice'],          // ×1.05
       ultActiveUlts: [coinUlt(1.5)],        // ×1.5
       goldBoostEndsAt: Date.now() + 60_000, // boost boutique actif
       prestigeBonusLevels: levels,          // ×1.2
@@ -84,7 +89,7 @@ describe('resolveEnemyDeath — le gain réel de golds au kill utilise TOUS les 
   function makeState(overrides: Partial<GameState> = {}): GameState & {
     quests: []; weeklyQuests: []; raidQuests: [];
     prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number;
-    activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[];
+    unlockedTitles: string[]; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[];
   } {
     const enemy = generateEnemy(1, 1);
     return {
@@ -94,7 +99,7 @@ describe('resolveEnemyDeath — le gain réel de golds au kill utilise TOUS les 
       quests: [], weeklyQuests: [], raidQuests: [],
       prestigeBonusLevels: initialBonusLevels(),
       prestigeRankRecoveryLevel: 0,
-      activeTitle: '',
+      unlockedTitles: [],
       ultActiveUlts: [],
       ownedAnomalies: [],
       // wave=1 (≠10) évite le passage boss/farm de resolveEnemyDeath, qui ne
@@ -110,7 +115,7 @@ describe('resolveEnemyDeath — le gain réel de golds au kill utilise TOUS les 
     } as unknown as GameState & {
       quests: []; weeklyQuests: []; raidQuests: [];
       prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number;
-      activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[];
+      unlockedTitles: string[]; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[];
     };
   }
 

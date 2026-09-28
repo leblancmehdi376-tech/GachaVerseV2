@@ -7,6 +7,10 @@
 // achievementSlice.ts, qui lui EST importé par gameStore.ts et ne peut donc
 // pas importer useGameStore statiquement.
 import { useGameStore } from '@/store/gameStore';
+import {
+  ACHIEVEMENTS, WORLD_TOTAL, computeDerivedStats, getMasteryMilestones, getMasteryPct, type CharMastery,
+} from '@/lib/game/achievements';
+import { getCharacterById } from '@/lib/game/characters';
 
 // "Vaincre X boss" (first_boss, bosses_5/20/100) : compte TOUS les boss vaincus,
 // re-farm inclus. Ne pas confondre avec les couronnes (crowns_50), qui elles
@@ -15,9 +19,11 @@ export function trackBossKills(totalBossKills: number) {
   const s = useGameStore.getState();
   s.setProgress('first_boss', Math.min(totalBossKills, 1));
   s.setProgress('bosses_5',   Math.min(totalBossKills, 5));
+  s.setProgress('bosses_10',  Math.min(totalBossKills, 10));
   s.setProgress('bosses_20',  Math.min(totalBossKills, 20));
   s.setProgress('bosses_67',  Math.min(totalBossKills, 67));
   s.setProgress('bosses_100', Math.min(totalBossKills, 100));
+  s.setProgress('bosses_1000', Math.min(totalBossKills, 1000));
 }
 
 export function trackBossCrowns(totalBossCrownsEarned: number) {
@@ -26,16 +32,20 @@ export function trackBossCrowns(totalBossCrownsEarned: number) {
 
 export function trackPalier(palier: number) {
   const s = useGameStore.getState();
+  s.setProgress('explore_zone_1', Math.min(palier, 2));
   s.setProgress('palier_5',  Math.min(palier, 5));
   s.setProgress('palier_10', Math.min(palier, 10));
   s.setProgress('palier_15', Math.min(palier, 15));
   s.setProgress('palier_20', Math.min(palier, 20));
   s.setProgress('palier_40', Math.min(palier, 40));
+  s.setProgress('explore_zone_all', Math.min(palier, WORLD_TOTAL));
 }
 
 export function trackCoins(coins: number) {
   const s = useGameStore.getState();
+  s.setProgress('coins_1k',   Math.min(coins, 1000));
   s.setProgress('coins_100k', Math.min(coins, 100000));
+  s.setProgress('coins_1m',   Math.min(coins, 1000000));
   s.setProgress('coins_10m',  Math.min(coins, 10000000));
   s.setProgress('coins_1b',   Math.min(coins, 1000000000));
   s.setProgress('coins_10b',  Math.min(coins, 10000000000));
@@ -45,6 +55,7 @@ export function trackCoins(coins: number) {
 export function trackDps(dps: number) {
   const s = useGameStore.getState();
   s.setProgress('dps_1000', Math.min(dps, 1000));
+  s.setProgress('dps_100k', Math.min(dps, 100000));
   s.setProgress('dps_1m',   Math.min(dps, 1000000));
   s.setProgress('dps_100m', Math.min(dps, 100000000));
   s.setProgress('dps_1b',   Math.min(dps, 1000000000));
@@ -53,9 +64,11 @@ export function trackDps(dps: number) {
 export function trackCollection(ownedCount: number, hasLegendary: boolean, hasTranscendant: boolean, totalPool: number, transcendantCount: number = hasTranscendant ? 1 : 0) {
   const s = useGameStore.getState();
   s.setProgress('collect_1',  Math.min(ownedCount, 1));
+  s.setProgress('collect_10', Math.min(ownedCount, 10));
   s.setProgress('collect_5',  Math.min(ownedCount, 50));
   s.setProgress('collect_15', Math.min(ownedCount, 100));
   s.setProgress('collect_30', Math.min(ownedCount, 150));
+  s.setProgress('collect_250', Math.min(ownedCount, 250));
   s.setProgress('collect_all', ownedCount >= totalPool ? 999 : ownedCount);
   if (hasLegendary)     s.setProgress('legendary_1',     1);
   if (hasTranscendant)  s.setProgress('transcendant_1',  1);
@@ -192,4 +205,59 @@ export function trackDleQuests(doneCount: number) {
 
 export function trackCompadexBoth(charComplete: boolean, equipComplete: boolean) {
   useGameStore.getState().setProgress('compadex_both_100', (charComplete ? 1 : 0) + (equipComplete ? 1 : 0));
+}
+
+// ── Nouveaux succès (refonte des 10 catégories) ────────────────────────────
+
+/** Tous les succès adossés à une clé de achievementStats (champ `stat`). */
+const STAT_ACHIEVEMENTS = ACHIEVEMENTS.filter(a => a.stat);
+export function trackAchievementStats(stats: Record<string, number>) {
+  const s = useGameStore.getState();
+  const derived = computeDerivedStats(stats);
+  for (const a of STAT_ACHIEVEMENTS) {
+    s.setProgress(a.id, Math.min(derived[a.stat!] ?? 0, a.target));
+  }
+}
+
+/** Maîtrise : chaque succès est validé dès qu'UN personnage l'atteint. */
+export function trackMastery(charMastery: Record<string, CharMastery>) {
+  const s = useGameStore.getState();
+  let lv = 0, k = 0, w = 0, full = 0;
+  for (const [id, m] of Object.entries(charMastery)) {
+    const tpl = getCharacterById(id);
+    if (!tpl) continue;
+    lv = Math.max(lv, m.lv); k = Math.max(k, m.k); w = Math.max(w, m.w);
+    if (getMasteryPct(getMasteryMilestones(m, tpl.rarity)) >= 100) full++;
+  }
+  s.setProgress('mastery_lv_10',  Math.min(lv, 10));
+  s.setProgress('mastery_lv_50',  Math.min(lv, 50));
+  s.setProgress('mastery_lv_100', Math.min(lv, 100));
+  s.setProgress('mastery_fights_100',  Math.min(k, 100));
+  s.setProgress('mastery_fights_500',  Math.min(k, 500));
+  s.setProgress('mastery_fights_1000', Math.min(k, 1000));
+  s.setProgress('mastery_wins_100', Math.min(w, 100));
+  s.setProgress('mastery_full_1', Math.min(full, 1));
+  s.setProgress('mastery_full_5', Math.min(full, 5));
+}
+
+/**
+ * Raretés et exclusivités vues au moins une fois (Compadex, à vie) : 5★
+ * Légendaire+, 6★ Mythique+, personnage exclusif (hors gacha).
+ */
+export function trackSeenRarities(hasLegendary: boolean, hasMythic: boolean, hasExclusive: boolean) {
+  const s = useGameStore.getState();
+  if (hasLegendary) s.setProgress('legendary_1', 1);
+  if (hasMythic)    s.setProgress('mythic_1', 1);
+  if (hasExclusive) s.setProgress('event_exclusive', 1);
+}
+
+/** Licence (univers) ou rareté entièrement possédée dans la collection actuelle. */
+export function trackCompleteSets(universeComplete: boolean, rarityComplete: boolean) {
+  const s = useGameStore.getState();
+  if (universeComplete) s.setProgress('universe_complete', 1);
+  if (rarityComplete)   s.setProgress('rarity_complete', 1);
+}
+
+export function trackGemsSpent(totalGemsSpent: number) {
+  useGameStore.getState().setProgress('gems_spent_10k', Math.min(totalGemsSpent, 10000));
 }

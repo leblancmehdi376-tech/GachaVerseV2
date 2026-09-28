@@ -30,6 +30,8 @@ function ensureGtag(): boolean {
   }
   try {
     window.dataLayer = window.dataLayer || [];
+    // gtag.js exige l'objet `arguments` brut (pas un tableau issu d'un rest param).
+    // eslint-disable-next-line prefer-rest-params
     window.gtag = window.gtag || function gtag() { window.dataLayer!.push(arguments); };
     window.gtag('js', new Date());
     window.gtag('config', MEASUREMENT_ID);

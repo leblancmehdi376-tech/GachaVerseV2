@@ -1,5 +1,7 @@
 'use client';
-import { useMemo, useState, type CSSProperties } from 'react';
+import { memo, useMemo, useState, type CSSProperties } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { useProgressiveCount } from '@/hooks/useProgressiveCount';
 import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL, getCharFormName } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
@@ -11,7 +13,7 @@ import { calcCharDps } from '@/lib/game/formulas';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
-import { COLLECTION_RARITY_ORDER, compareCharacters, matchesCharacterFilters, type CollectionFilterState } from '@/lib/game/collectionFilters';
+import { COLLECTION_RARITY_ORDER, compareCharacters, matchesCharacterFilters, type CharMasteryMap, type CollectionFilterState } from '@/lib/game/collectionFilters';
 import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
@@ -42,16 +44,17 @@ export function matchesCompadexFilters(entry: CollectionEntry, f: CollectionFilt
   return matchesCharacterFilters(entry.tpl, f);
 }
 
-export function compareCompadexEntries(a: CollectionEntry, b: CollectionEntry, f: CollectionFilterState): number {
-  return compareCharacters(a, b, f.sortKey, f.sortReversed);
+export function compareCompadexEntries(a: CollectionEntry, b: CollectionEntry, f: CollectionFilterState, charMastery?: CharMasteryMap): number {
+  return compareCharacters(a, b, f.sortKey, f.sortReversed, charMastery);
 }
 
 // Composant au scope module (pas défini dans le corps de CollectionPage) :
-// sinon chaque tick du jeu (tickDps re-render CollectionPage via useGameStore)
-// recréerait une nouvelle identité de fonction CharCard, forçant React à
-// démonter/remonter toutes les cartes à chaque tick — d'où le clignotement
-// perçu quand on laisse la souris dessus assez longtemps pour subir plusieurs ticks.
-const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => void }) => {
+// sinon chaque rendu de CollectionPage recréerait une nouvelle identité de
+// fonction CharCard, forçant React à démonter/remonter toutes les cartes.
+// Mémoïsé (entry stable tant que la collection ne change pas, onSelect =
+// setState stable) : les ~500 cartes ne se re-rendent plus à chaque rendu.
+const CharCard = memo(function CharCard({ entry, onSelect }: { entry: CollectionEntry; onSelect: (key: string) => void }) {
+  const onClick = () => onSelect(entry.key);
   const { tpl, owned, seen } = entry;
   const cfg2  = RARITY_CONFIG[tpl.rarity];
   const ult   = getUltimateDef(tpl.id);
@@ -99,7 +102,7 @@ const CharCard = ({ entry, onClick }: { entry: CollectionEntry; onClick: () => v
       </div>
     </div>
   );
-};
+});
 
 // Modale de détail : type (affinité), DPS de base, nb de formes, description —
 // tout ce qui n'a pas la place sur la carte compacte de la grille.
@@ -199,7 +202,16 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 };
 
 export function CollectionPage() {
-  const { collection, collectionFilters, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore();
+  // Sélecteur ciblé : sans lui, la page (et ses ~500 cartes) se re-rendait à
+  // chaque tick de combat.
+  const { collection, collectionFilters, charMastery, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore(useShallow(s => ({
+    collection: s.collection,
+    collectionFilters: s.collectionFilters,
+    charMastery: s.charMastery,
+    compadexCharactersSeen: s.compadexCharactersSeen,
+    compadexEquipmentSeen: s.compadexEquipmentSeen,
+    equipmentInventory: s.equipmentInventory,
+  })));
   const [view, setView] = useState<'characters' | 'equipment'>('characters');
   const [detailKey, setDetailKey] = useState<string | null>(null);
 
@@ -236,8 +248,11 @@ export function CollectionPage() {
 
   // ── Tri ─────────────────────────────────────────────────────────────────
   const sorted = useMemo(() =>
-    [...filtered].sort((a, b) => compareCompadexEntries(a, b, collectionFilters)),
-  [filtered, collectionFilters]);
+    [...filtered].sort((a, b) => compareCompadexEntries(a, b, collectionFilters, charMastery)),
+  [filtered, collectionFilters, charMastery]);
+
+  // Rendu progressif des ~500 cartes (voir useProgressiveCount).
+  const cardLimit = useProgressiveCount(sorted.length);
 
   // ── Groupage par rareté (uniquement en mode rarity) ─────────────────────
   const grouped = useMemo(() => {
@@ -315,9 +330,11 @@ export function CollectionPage() {
 
             {grouped ? (
               // Vue groupée par rareté (plus rares d'abord, sauf tri inversé)
-              (collectionFilters.sortReversed ? RARITY_ORDER : RARITY_ORDER.slice().reverse()).map(r => {
+              (() => { let budget = cardLimit; return (collectionFilters.sortReversed ? RARITY_ORDER : RARITY_ORDER.slice().reverse()).map(r => {
                 const list = grouped.get(r) ?? [];
-                if (list.length === 0) return null;
+                if (list.length === 0 || budget <= 0) return null;
+                const shown = list.slice(0, budget);
+                budget -= shown.length;
                 const cfg2 = RARITY_CONFIG[r];
                 const uniqueOwned = new Set(list.filter(e => e.seen).map(e => e.tpl.id)).size;
                 const uniqueTotal = new Set(list.map(e => e.tpl.id)).size;
@@ -328,15 +345,15 @@ export function CollectionPage() {
                       <span style={{ color:'var(--text-dim)', fontFamily:'var(--f-num)' }}>({uniqueOwned}/{uniqueTotal})</span>
                     </div>
                     <div className="collection-grid">
-                      {list.map(entry => <CharCard key={entry.key} entry={entry} onClick={() => setDetailKey(entry.key)} />)}
+                      {shown.map(entry => <CharCard key={entry.key} entry={entry} onSelect={setDetailKey} />)}
                     </div>
                   </div>
                 );
-              })
+              }); })()
             ) : (
               // Vue plate (tri DPS ou nom)
               <div className="collection-grid">
-                {sorted.map(entry => <CharCard key={entry.key} entry={entry} onClick={() => setDetailKey(entry.key)} />)}
+                {sorted.slice(0, cardLimit).map(entry => <CharCard key={entry.key} entry={entry} onSelect={setDetailKey} />)}
               </div>
             )}
           </>

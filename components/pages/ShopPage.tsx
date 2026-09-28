@@ -15,6 +15,7 @@ import { getEquipmentDef, getItemDef, rollEquipmentChest, ChestTier } from '@/li
 import { LootReelPopup, LootReelItem, buildReel } from '@/components/ui/LootReelPopup';
 import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
 import { makeInstanceKey } from '@/lib/game/editions';
+import { useNow } from '@/hooks/useNow';
 
 export function isCharacterOwned(collection: Record<string, unknown>, templateId: string): boolean {
   return (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(templateId, ed)]);
@@ -81,20 +82,18 @@ export function ShopPage() {
   } = useGameStore();
   const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useGameStore();
 
-  const [, setTick] = useState(0);
+  const now = useNow();
   const [chestResult, setChestResult] = useState<{ itemId: string; tier: ChestTier } | null>(null);
   const [starterResult, setStarterResult] = useState<{ templateId: string; edition: CardEdition } | null>(null);
   const [showRerollConfirm, setShowRerollConfirm] = useState(false);
   useEffect(() => {
     ensureDailyShop();
-    const id = setInterval(() => setTick(t => t + 1), 1000);
-    return () => clearInterval(id);
   }, [ensureDailyShop]);
 
   const dpsActive  = isDpsBoostActive();
   const goldActive = isGoldBoostActive();
   const starterAvailable = isStarterPackAvailable();
-  const starterTimeLeft  = (LAUNCH_TIMESTAMP + STARTER_PACK_WINDOW_MS) - Date.now();
+  const starterTimeLeft  = (LAUNCH_TIMESTAMP + STARTER_PACK_WINDOW_MS) - now;
 
   return (
     <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
@@ -187,7 +186,7 @@ export function ShopPage() {
                 </div>
                 {b.active && (
                   <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:b.color }}>
-                    ✓ ACTIF — {formatDuration(b.endsAt - Date.now())} restant
+                    ✓ ACTIF — {formatDuration(b.endsAt - now)} restant
                   </div>
                 )}
                 <button onClick={b.buy} disabled={bossCrowns < BOOST_COST_CROWNS}

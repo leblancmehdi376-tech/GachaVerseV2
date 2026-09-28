@@ -3,7 +3,8 @@ import { db } from './config';
 import { logger } from '../logger';
 import { logFirestoreOp } from './telemetry';
 import { bnCompare, coerceBigNum, type BigNum } from '@/lib/game/bignum';
-import { parseInstanceKey } from '@/lib/game/editions';
+import { parseInstanceKey, type CardEdition } from '@/lib/game/editions';
+import { ACHIEVEMENT_BY_ID } from '@/lib/game/achievements';
 
 export interface LeaderboardEntry {
   uid: string;
@@ -22,6 +23,65 @@ export interface LeaderboardEntry {
   // Firestore supplémentaire, juste des champs en plus extraits du même doc.
   selectedAvatarChampionId: string | null;
   avatarFormIndex: number;
+  // Profil public (popup au clic dans le classement) — même principe : tout
+  // est extrait du doc `saves/{uid}` déjà lu, zéro lecture en plus.
+  profile: LeaderboardProfile;
+}
+
+export interface LeaderboardTeamMember {
+  templateId: string;
+  formIndex: number;
+  edition: CardEdition;
+  level: number;
+}
+
+export interface LeaderboardProfile {
+  palier: number;
+  team: LeaderboardTeamMember[];
+  showcasedTrophies: string[];
+  achievementsCount: number;
+  titlesCount: number;
+  ownedCharCount: number;
+  totalKills: number;
+  totalBossKills: number;
+  totalGachaPulls: number;
+}
+
+function num(v: unknown): number {
+  return typeof v === 'number' && Number.isFinite(v) ? v : 0;
+}
+
+// Extrait le profil public d'un doc `saves/{uid}` (voir getSerializableState).
+export function extractProfile(data: Record<string, unknown>): LeaderboardProfile {
+  const collection = (data.collection && typeof data.collection === 'object')
+    ? data.collection as Record<string, { currentForm?: number; level?: number }>
+    : {};
+  const team: LeaderboardTeamMember[] = [];
+  if (Array.isArray(data.equippedTeam)) {
+    for (const key of data.equippedTeam) {
+      if (typeof key !== 'string') continue;
+      const { templateId, edition } = parseInstanceKey(key);
+      const owned = collection[key];
+      team.push({ templateId, edition, formIndex: owned?.currentForm ?? 0, level: owned?.level ?? 0 });
+    }
+  }
+  const ownedTemplates = new Set(Object.keys(collection).map(k => parseInstanceKey(k).templateId));
+  const claimed = (data.achievementsClaimed && typeof data.achievementsClaimed === 'object')
+    ? data.achievementsClaimed as Record<string, unknown>
+    : {};
+  return {
+    palier: num(data.palier),
+    team,
+    showcasedTrophies: Array.isArray(data.showcasedTrophies)
+      ? data.showcasedTrophies.filter((id): id is string => typeof id === 'string')
+      : [],
+    achievementsCount: Object.entries(claimed).filter(([id, v]) => v && ACHIEVEMENT_BY_ID.has(id)).length,
+    titlesCount: Array.isArray(data.unlockedTitles) ? data.unlockedTitles.length : 0,
+    ownedCharCount: ownedTemplates.size,
+    totalKills: num(data.totalKills),
+    totalBossKills: num(data.totalBossKills),
+    totalGachaPulls: num(data.totalGachaPulls),
+  };
 }
 
 export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEntry[]> {
@@ -66,6 +126,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
         username: typeof data.username === 'string' && data.username.trim() ? data.username : 'Joueur',
         palier, maxPalierReached, wave, pixelCoins, score, totalDps, prestigeLevel, activeTitle,
         selectedAvatarChampionId, avatarFormIndex,
+        profile: extractProfile(data),
       };
     });
 

@@ -1,17 +1,19 @@
 // Filtres & tri partagés par les listes de personnages (Compadex, Compagnons,
-// Améliorations). Une seule sélection pour les trois pages, gardée dans le
+// Améliorations, Maîtrise). Une seule sélection pour les trois pages, gardée dans le
 // store (en mémoire) : elle survit aux changements de page, pas au reload.
 
 import type { CharacterTemplate, OwnedCharacter, Rarity } from '@/types/game';
 import { getAffinityForId, type Affinity } from './affinities';
 import { calcCharDps } from './formulas';
 import { BN_ZERO, bnCompare } from './bignum';
+import { getMasteryMilestones, getMasteryPct, type CharMastery } from './achievements';
 
 /** Ordre croissant C → T (affichage des boutons de rareté). */
 export const COLLECTION_RARITY_ORDER: Rarity[] = ['C', 'U', 'R', 'E', 'L', 'M', 'S', 'CO', 'P', 'T'];
 
 export type CollectionStatus = 'all' | 'owned' | 'missing';
-export type CollectionSortKey = 'rarity' | 'dps' | 'name';
+export type CollectionSortKey = 'rarity' | 'dps' | 'mastery' | 'name';
+export type CharMasteryMap = Record<string, CharMastery>;
 
 export interface CollectionFilterState {
   /** Compadex uniquement (les autres pages ne listent que des persos possédés). */
@@ -20,7 +22,7 @@ export interface CollectionFilterState {
   universe: string | 'all';
   affinity: Affinity | 'all';
   sortKey: CollectionSortKey;
-  /** false = ordre naturel (plus rare / plus fort d'abord, noms A→Z). */
+  /** false = ordre naturel (plus rare / plus fort / plus maîtrisé d'abord, noms A→Z). */
   sortReversed: boolean;
   search: string;
 }
@@ -57,13 +59,32 @@ export interface SortableCharacter {
   owned: OwnedCharacter | null;
 }
 
+// % de maîtrise mis en cache par objet charMastery (immuable dans le store) :
+// un tri appelle le comparateur n·log n fois, inutile de recalculer à chaque fois.
+const masteryCache = new WeakMap<CharMasteryMap, Map<string, number>>();
+
+/** Pourcentage de maîtrise (0-100) d'un personnage, 0 s'il n'a jamais joué. */
+export function getCharMasteryPct(charMastery: CharMasteryMap, tpl: CharacterTemplate): number {
+  let byId = masteryCache.get(charMastery);
+  if (!byId) masteryCache.set(charMastery, byId = new Map());
+  let pct = byId.get(tpl.id);
+  if (pct === undefined) {
+    pct = charMastery[tpl.id] ? getMasteryPct(getMasteryMilestones(charMastery[tpl.id], tpl.rarity)) : 0;
+    byId.set(tpl.id, pct);
+  }
+  return pct;
+}
+
 /**
  * Critère principal selon `sortKey` (inversé si `reversed`), puis nom A→Z en
  * départage — sauf en tri par nom, où l'inversion porte sur le nom lui-même.
+ * `charMastery` n'est requis que pour le tri par maîtrise.
  */
-export function compareCharacters(a: SortableCharacter, b: SortableCharacter, sortKey: CollectionSortKey, reversed: boolean): number {
+export function compareCharacters(a: SortableCharacter, b: SortableCharacter, sortKey: CollectionSortKey, reversed: boolean, charMastery: CharMasteryMap = {}): number {
   let primary = 0;
-  if (sortKey === 'rarity') {
+  if (sortKey === 'mastery') {
+    primary = getCharMasteryPct(charMastery, b.tpl) - getCharMasteryPct(charMastery, a.tpl);
+  } else if (sortKey === 'rarity') {
     primary = (RARITY_RANK[b.tpl.rarity] ?? 0) - (RARITY_RANK[a.tpl.rarity] ?? 0);
   } else if (sortKey === 'dps') {
     primary = bnCompare(

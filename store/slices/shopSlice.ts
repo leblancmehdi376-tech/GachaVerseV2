@@ -12,6 +12,7 @@ import {
 import { bumpCoinQuests, getGoldChestMultiplier, requestUrgentSave, resolveEnemyDeath, runPeakPalierOf } from '../gameStoreHelpers';
 import type { GameStore, ShopActions } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnIsZero, bnSub, bnToNumber, type BigNum } from '@/lib/game/bignum';
+import { STAT } from '@/lib/game/achievements';
 
 export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (set, get) => ({
   // ─── Boutique : BossCrown (boosts + gemmes) ─────────────────────────
@@ -24,6 +25,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
       bossCrowns: state.bossCrowns - BOOST_COST_CROWNS,
       dpsBoostEndsAt: Math.max(Date.now(), state.dpsBoostEndsAt) + BOOST_DURATION_MS,
     }));
+    get().addStat(STAT.shopPurchases);
   },
   buyGoldBoost: () => {
     if (get().bossCrowns < BOOST_COST_CROWNS) return;
@@ -31,6 +33,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
       bossCrowns: state.bossCrowns - BOOST_COST_CROWNS,
       goldBoostEndsAt: Math.max(Date.now(), state.goldBoostEndsAt) + BOOST_DURATION_MS,
     }));
+    get().addStat(STAT.shopPurchases);
   },
 
   // ─── API générique pour les événements aléatoires ─────────────────
@@ -65,12 +68,14 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     const pack = CROWN_GEM_PACKS.find(p => p.id === packId);
     if (!pack || get().bossCrowns < pack.crowns) return;
     set(state => ({ bossCrowns: state.bossCrowns - pack.crowns, nekoGems: state.nekoGems + pack.gems }));
+    get().addStat(STAT.shopPurchases);
   },
   buyGoldWithGems: (packId) => {
     const pack = GEM_GOLD_PACKS.find(p => p.id === packId);
     if (!pack || get().nekoGems < pack.gems) return;
     const scaledCoins = getGoldPackCoins(pack, get().palier, getGoldChestMultiplier(get().goldUpgradeLevel ?? 0));
     set(state => ({ nekoGems: state.nekoGems - pack.gems, pixelCoins: bnAdd(state.pixelCoins, scaledCoins), totalGemsSpent: (state.totalGemsSpent ?? 0) + pack.gems }));
+    get().addStat(STAT.shopPurchases);
   },
 
   // ─── Boutique : Orbe du Néant (persos + gemmes) ─────────────────────
@@ -80,7 +85,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     set({ dailyShop: { dayKey: today, characterIds: generateDailyShopCharacters(runPeakPalierOf(get())), purchased: [], rerollCount: 0 } });
   },
   rerollDailyShop: () => {
-    const { dailyShop, voidOrbs } = get();
+    const { voidOrbs } = get();
     const cost = getRerollShopCost();
     if (voidOrbs < cost) return;
     set(state => ({
@@ -102,11 +107,13 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
       dailyShop: { ...state.dailyShop, purchased: [...state.dailyShop.purchased, templateId] },
     }));
     get().addToCollection(templateId);
+    get().addStat(STAT.shopPurchases);
   },
   buyGemsWithOrbs: (packId) => {
     const pack = ORB_GEM_PACKS.find(p => p.id === packId);
     if (!pack || get().voidOrbs < pack.orbs) return;
     set(state => ({ voidOrbs: state.voidOrbs - pack.orbs, nekoGems: state.nekoGems + pack.gems }));
+    get().addStat(STAT.shopPurchases);
   },
 
   buyEquipmentChest: (tier) => {
@@ -121,6 +128,7 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
         [itemId]: (state.equipmentInventory[itemId] ?? 0) + 1,
       },
     }));
+    get().addStat(STAT.shopPurchases);
     requestUrgentSave('shop');
     return itemId;
   },

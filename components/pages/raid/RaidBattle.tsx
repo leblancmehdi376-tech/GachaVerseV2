@@ -12,12 +12,13 @@ import { CompanionSelector } from './CompanionSelector';
 import { RaidBg, BossSprite } from './RaidSprites';
 import { DropPopup } from './DropPopup';
 import { bnDivRatio, bnIsZero, bnMulScalar, bnSub, type BigNum } from '@/lib/game/bignum';
+import { STAT } from '@/lib/game/achievements';
 
 export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
-  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setRaidBossFight } = useGameStore();
+  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, charMastery, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setRaidBossFight } = useGameStore();
 
   const boss = useMemo(() => RAID_BOSSES.find(b => b.id === bossId) ?? RAID_BOSSES[0], [bossId]);
-  const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection), [equippedTeam, collection]);
+  const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection, charMastery), [equippedTeam, collection, charMastery]);
 
   // Combat déjà en cours pour CE boss (ex: retour depuis un autre onglet de
   // l'appli — voir raidBossFight dans le store) : on reprend sa progression
@@ -103,6 +104,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           nekoGems: s.nekoGems + gemsGained,
           bossCrowns: s.bossCrowns + crownsGained,
           totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + crownsGained,
+          achievementStats: { ...s.achievementStats, [STAT.raidBossKills]: (s.achievementStats[STAT.raidBossKills] ?? 0) + 1 },
         };
       });
       for (const r of results) {

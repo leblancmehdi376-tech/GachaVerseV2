@@ -124,16 +124,50 @@ export function coerceBigNum(x: unknown): BigNum {
   return ZERO;
 }
 
-const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qt', 'Sx', 'Sp', 'Oc', 'No'];
+// Suffixes courts jusqu'à 1e303 : K…No (1e30), puis Décillion (Dc, 1e33),
+// Vigintillion (Vg, 1e63)... jusqu'à Nonagintillion (Nog), puis Centillion
+// (Ce). Au-delà, suffixes alphabétiques aa, ab, … zz (jusqu'à ~1e2331), puis
+// notation scientifique en dernier recours.
+const SUFFIX_UNITS = ['', 'U', 'D', 'T', 'Qa', 'Qt', 'Sx', 'Sp', 'Oc', 'No'];
+const SUFFIX_TENS  = ['Dc', 'Vg', 'Tg', 'Qag', 'Qtg', 'Sxg', 'Spg', 'Ocg', 'Nog'];
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+const SUFFIXES = [
+  '', 'K', 'M', 'B', 'T', 'Qa', 'Qt', 'Sx', 'Sp', 'Oc', 'No',
+  ...SUFFIX_TENS.flatMap(t => SUFFIX_UNITS.map(u => u + t)),
+  'Ce',
+  ...[...ALPHABET].flatMap(a => [...ALPHABET].map(b => a + b)),
+];
+
+// Notation choisie par le joueur (Paramètres → Affichage des nombres).
+// Pilotée par store/displaySettingsStore.ts ; module-level pour que
+// bnFormat reste une fonction pure appelable partout sans hook.
+export type NumberNotation = 'suffix' | 'scientific' | 'alphabetic';
+let numberNotation: NumberNotation = 'suffix';
+export function setNumberNotation(n: NumberNotation) { numberNotation = n; }
+
+// Notation alphabétique (façon Blocky Block) : une lettre de plus tous les
+// 3 de puissance — 1e3 = A, 1e6 = B, … 1e78 = Z, 1e81 = AA, AB, … ZZ, AAA…
+// (numérotation bijective en base 26, donc sans limite de longueur).
+function alphabeticSuffix(idx: number): string {
+  let s = '';
+  for (let n = idx; n > 0; n = Math.floor((n - 1) / 26)) {
+    s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
+  }
+  return s;
+}
 
 export function bnFormat(b: BigNum): string {
   if (b.mantissa === 0) return '0';
   const suffixIdx = Math.floor(b.exponent / 3);
-  if (suffixIdx >= 0 && suffixIdx < SUFFIXES.length) {
+  if (numberNotation === 'scientific' && suffixIdx > 0) {
+    return `${b.mantissa.toFixed(2)}e${b.exponent}`;
+  }
+  const alphabetic = numberNotation === 'alphabetic' && suffixIdx > 0;
+  if (alphabetic || (suffixIdx >= 0 && suffixIdx < SUFFIXES.length)) {
     const scaledExp = b.exponent - suffixIdx * 3;
     const display = b.mantissa * Math.pow(10, scaledExp);
     const formatted = display >= 100 ? Math.round(display).toString() : display.toFixed(1).replace(/\.0$/, '');
-    return formatted + SUFFIXES[suffixIdx];
+    return formatted + (alphabetic ? alphabeticSuffix(suffixIdx) : SUFFIXES[suffixIdx]);
   }
   if (suffixIdx < 0) return Math.floor(bnToNumber(b)).toString(); // < 1000, pas de suffixe
   return `${b.mantissa.toFixed(2)}e${b.exponent}`;

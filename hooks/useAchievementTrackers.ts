@@ -3,7 +3,10 @@ import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { bnToNumber } from '@/lib/game/bignum';
-import { CHARACTER_POOL } from '@/lib/game/characters';
+import { CHARACTER_POOL, GACHA_EXCLUDED_IDS } from '@/lib/game/characters';
+import { EGG } from '@/lib/game/achievements';
+import { SSR_RARITIES } from '@/lib/game/achievementStats';
+import type { Rarity } from '@/types/game';
 import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { makeInstanceKey } from '@/lib/game/editions';
@@ -15,7 +18,20 @@ import {
   trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige,
   trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax,
   trackCompadexCharacters, trackCompadexEquipment, trackCompadexBoth, trackDleQuests,
+  trackAchievementStats, trackMastery, trackSeenRarities, trackCompleteSets, trackGemsSpent,
 } from '@/store/achievementTrackers';
+
+// Personnages "collectionnables" (hors héros), groupés par licence et par
+// rareté — pour les succès "Licence complète" / "Rareté complète". Une
+// licence de moins de 3 personnages ne compte pas (trop triviale).
+const COLLECTIBLE = CHARACTER_POOL.filter(c => !c.isHero);
+const UNIVERSE_SETS = Object.values(COLLECTIBLE.reduce<Record<string, string[]>>((acc, c) => {
+  (acc[c.universe ?? '?'] ??= []).push(c.id); return acc;
+}, {})).filter(ids => ids.length >= 3);
+const RARITY_SETS = Object.values(COLLECTIBLE.reduce<Record<string, string[]>>((acc, c) => {
+  (acc[c.rarity] ??= []).push(c.id); return acc;
+}, {}));
+const MYTHIC_PLUS: Rarity[] = ['M', 'S', 'CO', 'P', 'T'];
 
 // Synchronise en continu les compteurs de jeu vers le store de succès —
 // purement des effets de bord, aucun rendu. Extrait de GameLayout.tsx.
@@ -52,7 +68,16 @@ export function useAchievementTrackers() {
   const unlockedTitlesCount = useGameStore(s => s.unlockedTitles.length);
   const compadexCharactersSeen = useGameStore(s => s.compadexCharactersSeen);
   const compadexEquipmentSeen = useGameStore(s => s.compadexEquipmentSeen);
+  const achievementStats = useGameStore(s => s.achievementStats);
+  const charMastery = useGameStore(s => s.charMastery);
+  const totalGemsSpent = useGameStore(s => s.totalGemsSpent);
   const dleQuestsDone = useGameStore(s => countDleQuestsDone(getDleStats(s)));
+
+  useEffect(() => { trackAchievementStats(achievementStats ?? {}); }, [achievementStats]);
+  useEffect(() => { trackMastery(charMastery ?? {}); }, [charMastery]);
+  useEffect(() => { trackGemsSpent(totalGemsSpent ?? 0); }, [totalGemsSpent]);
+  // Secret "Six-Seven" : posséder exactement 67 Neko-Gemmes.
+  useEffect(() => { if (nekoGems === 67) useGameStore.getState().discover(EGG.sixSeven); }, [nekoGems]);
 
   useEffect(() => { trackBossKills(totalBossKills); }, [totalBossKills]);
   useEffect(() => { trackBossCrowns(totalBossCrownsEarned); }, [totalBossCrownsEarned]);
@@ -107,6 +132,14 @@ export function useAchievementTrackers() {
     const count7Star = new Set(instances.filter(o => o.rank >= 7).map(o => o.templateId)).size;
     const fullTeamRank7 = equippedTeam.length === 4 && equippedTeam.every(id => id && col[id]?.rank >= 7);
     trackRank7(count7Star, fullTeamRank7);
+
+    const ownedIds = new Set(owned.map(c => c.id));
+    trackCompleteSets(
+      UNIVERSE_SETS.some(ids => ids.every(id => ownedIds.has(id))),
+      RARITY_SETS.some(ids => ids.every(id => ownedIds.has(id))),
+    );
+    // Maîtrise : plus haut niveau/forme jamais atteints par personnage.
+    useGameStore.getState().recordMasteryLevels();
   }, [col, equippedTeam]);
 
   useEffect(() => {
@@ -115,5 +148,12 @@ export function useAchievementTrackers() {
     trackCompadexCharacters(charSeenCount);
     trackCompadexEquipment(equipSeenCount);
     trackCompadexBoth(charSeenCount >= CHARACTER_POOL.length, equipSeenCount >= Object.keys(EQUIPMENT_DEFS).length);
+
+    const seen = CHARACTER_POOL.filter(c => compadexCharactersSeen[c.id]);
+    trackSeenRarities(
+      seen.some(c => SSR_RARITIES.includes(c.rarity)),
+      seen.some(c => MYTHIC_PLUS.includes(c.rarity)),
+      seen.some(c => GACHA_EXCLUDED_IDS.has(c.id)),
+    );
   }, [compadexCharactersSeen, compadexEquipmentSeen]);
 }

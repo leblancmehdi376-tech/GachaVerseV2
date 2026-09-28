@@ -17,12 +17,13 @@ import {
 } from '@/types/game';
 import { CardEdition } from '@/lib/game/editions';
 import type { BannerId } from '@/lib/game/gacha';
-import { Achievement } from '@/lib/game/achievements';
+import { Achievement, CharMastery } from '@/lib/game/achievements';
 import { PrestigeBonusLevels, PrestigeBonusType } from '@/lib/game/prestige';
 import { UltimateEffect } from '@/lib/game/ultimates';
 import { Affinity } from '@/lib/game/affinities';
 import { Anomaly } from '@/lib/game/anomalies';
 import { BigNum } from '@/lib/game/bignum';
+import type { GoldGainBreakdown } from './gameStoreHelpers';
 
 export interface Quest {
   id: string; label: string; icon: string;
@@ -86,17 +87,47 @@ export interface CharacterSlice {
   evolveHero: () => void;
   upgradeGold: () => void;
   getGoldMultiplier: () => BigNum;
+  /** Détail de getGoldMultiplier (même calcul) : chaque source de bonus d'or. */
+  getGoldBreakdown: () => GoldGainBreakdown;
   getGoldUpgradeCost: () => BigNum;
   levelUpCharacter: (templateId: string) => void;
   /** Monte jusqu'à `count` niveaux (s'arrête dès qu'un niveau n'est plus payable), en une seule mise à jour. */
   levelUpCharacterN: (templateId: string, count: number) => void;
   evolveCharacter: (templateId: string) => void;
   getTotalDps: () => BigNum;
+  /** Détail de getTotalDps (même calcul) : contribution de chaque perso et bonus appliqués. */
+  getDpsBreakdown: () => DpsBreakdown;
   // Cohésion d'équipe (combat de l'accueil uniquement) — voir lib/game/cohesion.ts
   getTeamCohesion: () => CohesionResult;
   getCharDpsBreakdown: (templateId: string) => { base: BigNum; typeMult: number; final: BigNum };
   equipCharacter: (id: string, slot: number) => void;
   unequipCharacter: (slot: number) => void;
+}
+
+// Détail du DPS d'équipe affiché au survol du DPS (combat de l'accueil).
+// Les multiplicateurs sont exprimés en facteur (1.2 = +20 %).
+export interface DpsBreakdownChar {
+  key: string;            // clé de collection (instance)
+  templateId: string;
+  name: string;
+  dps: BigNum;            // contribution finale au DPS total (somme = total)
+  ownDps: BigNum;         // DPS avec ses bonus propres (maîtrise, équipement, synergies, ultime perso, type), hors bonus d'équipe
+  equipMult: number;      // équipement
+  masteryMult: number;    // maîtrise du personnage
+  synergyMult: number;    // synergies d'univers (+ boost d'anomalie de synergie)
+  synergies: { label: string; color: string; global: boolean }[]; // synergies qui s'appliquent à CE perso
+  selfUltMult: number;    // ultime personnel actif
+  typeMult: number;       // avantage/désavantage de type vs l'ennemi (+ anomalies de type)
+}
+export interface DpsBreakdown {
+  total: BigNum;
+  chars: DpsBreakdownChar[];
+  teamUltMult: number;    // ultimes qui boostent toute l'équipe
+  boostMult: number;      // boost DPS de la boutique
+  cohesionMult: number;
+  prestigeMult: number;
+  anomalyMult: number;    // anomalies "DPS global"
+  eventMult: number;      // événement aléatoire (Ardeur…) — appliqué aux dégâts, hors total affiché
 }
 
 // ─── Équipement : inventaire d'objets, équipement, fusion ──────────────────
@@ -258,6 +289,16 @@ export interface AchievementState {
   achievementsClaimed: Record<string, boolean>;
   activeTitle: string;
   unlockedTitles: string[];
+  // Compteurs et drapeaux de succès permanents (jamais remis à zéro au
+  // Prestige) : temps de jeu, séries, défis, secrets découverts... — clés
+  // listées dans lib/game/achievements.ts (STAT/EGG/CHAL/EV_PERFECT/page:*).
+  // Synchronisés cloud avec une fusion "max par clé" (mergeMonotonicState).
+  achievementStats: Record<string, number>;
+  // Maîtrise par personnage (templateId pur, toutes éditions confondues) —
+  // voir CharMastery. Même règle de synchro (max par champ).
+  charMastery: Record<string, CharMastery>;
+  // Succès mis en avant sur le profil (page Trophées), dans l'ordre choisi.
+  showcasedTrophies: string[];
 }
 export interface AchievementActions {
   setProgress: (id: string, value: number) => void;
@@ -269,7 +310,19 @@ export interface AchievementActions {
   isUnlocked: (id: string) => boolean;
   isClaimed: (id: string) => boolean;
   claimAchievement: (id: string) => void;
+  /** Réclame les récompenses en attente parmi `ids` (toutes si absent) ; renvoie le nombre réclamé. */
+  claimAchievements: (ids?: string[]) => number;
+  /** Réclame toutes les récompenses en attente ; renvoie le nombre de succès réclamés. */
+  claimAllAchievements: () => number;
   unlockedCount: () => number;
+  addStat: (key: string, by?: number) => void;
+  maxStat: (key: string, value: number) => void;
+  /** Marque un secret/une découverte (clé EGG.*, page:*, ev:*) comme trouvé. */
+  discover: (key: string) => void;
+  recordGachaResults: (templateIds: string[], isEventBanner: boolean) => void;
+  recordMasteryLevels: () => void;
+  toggleShowcasedTrophy: (id: string) => void;
+  setShowcasedTrophies: (ids: string[]) => void;
   resetPrestigeAchievements: () => void;
 }
 export type AchievementSlice = AchievementState & AchievementActions;

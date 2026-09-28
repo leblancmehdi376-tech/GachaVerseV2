@@ -9,6 +9,7 @@ import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { broadcastLocalState, requestUrgentSave, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
 import type { GameStore, GachaActions } from '../gameStore.types';
+import { STAT } from '@/lib/game/achievements';
 
 // Jetons d'Anomalie : 1 tous les 100 tirages gacha CUMULÉS (à vie, jamais
 // remis à zéro par le Prestige — même compteur que totalGachaPulls). On
@@ -41,6 +42,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
     const id = rollCharacter(runPeakPalierOf(get()), bannerId);
     const edition = get().addToCollection(id);
+    get().recordGachaResults([id], bannerId === 'vol2');
     get().bumpQuestProgress('d_gacha', 1);
     get().bumpQuestProgress('w_gacha', 1);
     set(s => {
@@ -57,6 +59,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
     const ids = rollMulti(runPeakPalierOf(get()), bannerId);
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
+    get().recordGachaResults(ids, bannerId === 'vol2');
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);
     set(s => {
@@ -73,6 +76,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
     const ids = rollMulti100(runPeakPalierOf(get()), bannerId);
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
+    get().recordGachaResults(ids, bannerId === 'vol2');
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);
     set(s => {
@@ -151,6 +155,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
       inventory: { ...state.inventory, [boss.coinItemId]: owned - cost },
       raidCharacterPurchases: { ...state.raidCharacterPurchases, [bossId]: purchases + 1 },
     }));
+    get().addStat(STAT.shopPurchases);
     get().addToCollection(boss.characterId);
     return true;
   },

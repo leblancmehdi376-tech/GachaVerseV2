@@ -13,7 +13,12 @@ import { useGameStore } from '@/store/gameStore';
 // quêtes localement, et ce reset est ensuite re-synchronisé vers le cloud en
 // écrasant la progression réelle.
 export function useGameHydration(cloudLoaded: boolean): boolean {
-  const { ensureDailyQuests, ensureWeeklyQuests, ensureDailyReward } = useGameStore();
+  // Sélecteurs ciblés (actions = références stables) : un useGameStore() sans
+  // sélecteur abonnerait GameLayout à TOUT le store et re-rendrait l'appli
+  // entière à chaque tick de combat.
+  const ensureDailyQuests  = useGameStore(s => s.ensureDailyQuests);
+  const ensureWeeklyQuests = useGameStore(s => s.ensureWeeklyQuests);
+  const ensureDailyReward  = useGameStore(s => s.ensureDailyReward);
   const [hasHydrated, setHasHydrated] = useState(() => useGameStore.persist?.hasHydrated?.() ?? false);
 
   useEffect(() => {

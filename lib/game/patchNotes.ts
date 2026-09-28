@@ -67,19 +67,110 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     ],
   },
   {
-    date: '28/09/2026',
-    title: 'Nouveaux filtres de collection',
+    date: '29/09/2026',
+    title: 'Maj v2.6.8',
     changes: [
-      "Les filtres du **Compadex**, des **Compagnons** et des **Améliorations** ont été entièrement redessinés.",
-      "Nouvelle **barre de recherche** : tape le nom d'un personnage ou d'un univers (accents et majuscules ignorés).",
-      "Les filtres actifs s'affichent en **pastilles** à côté de la recherche, et un ✕ les retire en un clic.",
-      "Le bouton **FILTRES** déplie le panneau complet : raretés et types aux couleurs du jeu, types avec leur icône.",
-      "Les **univers** sont maintenant dans un menu déroulant avec recherche, et chacun affiche son **icône de synergie**.",
-      "**Recliquer** sur un filtre actif le retire. Sans filtre, tout est affiché.",
-      "Nouveau **tri** RARETÉ / DPS / NOM avec un bouton **↑↓** pour inverser l'ordre.",
-      "Le filtre **Possédés / Manquants** n'apparaît plus que dans le Compadex, avec le même style que les raretés.",
-      "**Manquants** est maintenant signalé par une **croix rouge ❌** au lieu du cadenas.",
-      "Tes filtres sont gardés quand tu changes de page.",
+      "Nouveau cadrage de la carte **Makima — Démon de la Domination** : image dézoomée et recentrée, le visage est maintenant visible en entier.",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Maj v2.6.7',
+    changes: [
+      "Le **pourcentage de maîtrise** ne compte plus que les paliers **validés** et le **palier suivant** de chaque catégorie.",
+      "Exemple : au **niveau 1300**, les paliers 500, 1000 et 1500 comptent, mais pas 2000 et plus tant que 1500 n'est pas validé.",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Maj v2.6.6',
+    changes: [
+      "Nouvelle **notation alphabétique** dans les **Paramètres**, spécialement pour **Blocky Block** !",
+      "Une lettre de plus tous les **3 de puissance** : **A** (10^3), **B** (10^6)... **Z**, puis **AA**, **AB**... **ZZ**, puis **AAA**, **AAB**...",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Maj v2.6.5',
+    changes: [
+      "**Rokoul & Ayro** : ses évolutions affichent désormais son visuel de base au lieu d'une carte vide, en attendant leurs illustrations.",
+      "Même correctif pour tout perso dont une **évolution n'a pas encore d'illustration**.",
+      "**Cliquer sur la bande pour accélérer** fonctionne de nouveau lors des tirages de **Prestige** et de l'ouverture des **coffres d'équipement**.",
+      "**Nouvelles unités** pour les très grands nombres : après **No**, place à **Dc**, **UDc**, **Vg**... jusqu'à **Ce** (10^303), puis **aa**, **ab**...",
+      "Nouvelle option dans les **Paramètres** : afficher les nombres en **notation scientifique** (ex : **1.50e15**).",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Maj v2.6.4',
+    changes: [
+      "**Ardeur** : le boost plafonnait à **×1.98** à cause d'un bug, le **×2** est désormais atteignable.",
+      "**Ardeur** : une fois la jauge pleine, elle **reste au max** tant que tu continues de frapper.",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Maj v2.6.3',
+    changes: [
+      "**Navigation plus réactive** : changer de page répond jusqu'à **3x plus vite**.",
+      "Le jeu consomme **~40 % de processeur en moins** pendant le combat.",
+      "Le fond et l'ennemi sont préchargés pendant l'écran de chargement : **arrivée en jeu plus rapide**.",
+      "**Compadex** et **Profil** s'ouvrent sans gel, même avec une très grande collection.",
+      "Les pages **Compadex**, **Profil** et **Équipement** ne se recalculent plus à chaque seconde de combat.",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Maj v2.6.2',
+    changes: [
+      "**Optimisation des performances**.",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Maj v2.6.1',
+    sections: [
+      {
+        icon: '🏆',
+        title: 'Succès',
+        changes: [
+          "Page **Succès** refaite : **10 catégories**, rangs **Bronze à Platine**, cartes **à niveaux** avec récompense à chaque palier.",
+          "**65 nouveaux succès**, dont des succès **secrets**, et **4 nouveaux titres**.",
+          "Recherche, tri et filtres revus, bouton **Tout récupérer**. Ta progression est **conservée**.",
+        ],
+      },
+      {
+        icon: '🎖️',
+        title: 'Maîtrise & Trophées',
+        changes: [
+          "Nouvelle **Maîtrise** par personnage : jusqu'à **+20 % de DPS**, conservée après un **Prestige**.",
+          "Nouvelle **vitrine de Trophées** (5 succès) sur ton profil.",
+          "Clique sur un joueur du **Classement** pour voir son **profil**.",
+        ],
+      },
+      {
+        icon: '📊',
+        title: 'Combat & or',
+        changes: [
+          "Survole ton **DPS**, le **BUTIN** ou les **SYNERGIES** en combat pour voir le **détail de chaque bonus**.",
+          "Le **bonus d'or** de **tous tes titres débloqués** s'additionne désormais.",
+        ],
+      },
+      {
+        icon: '🔍',
+        title: 'Filtres de collection',
+        changes: [
+          "Filtres du **Compadex**, des **Compagnons** et des **Améliorations** redessinés : recherche, pastilles, tri **RARETÉ / DPS / NOM / MAÎTRISE**.",
+        ],
+      },
+      {
+        icon: '🐛',
+        title: 'Corrections',
+        changes: [
+          "Le **bonus d'or du prestige** n'est plus compté deux fois **hors-ligne**.",
+          "Page **Succès** plus fluide pendant les combats.",
+        ],
+      },
     ],
   },
   {

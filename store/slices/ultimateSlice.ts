@@ -61,11 +61,18 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
 
   tickUlt: () => {
     set(s => {
-      const newCds: Record<string, number> = {};
-      for (const [id, cd] of Object.entries(s.ultCooldowns)) newCds[id] = Math.max(0, cd - 1);
+      // On ne renvoie de nouvelles références que si quelque chose change
+      // réellement : sinon chaque tick réveillerait tous les abonnés
+      // (barre des ultis, cartes alliées…) et réécrirait la sauvegarde locale.
+      const patch: Partial<Pick<GameStore, 'ultCooldowns' | 'ultActiveUlts'>> = {};
+      if (Object.values(s.ultCooldowns).some(cd => cd > 0)) {
+        const newCds: Record<string, number> = {};
+        for (const [id, cd] of Object.entries(s.ultCooldowns)) newCds[id] = Math.max(0, cd - 1);
+        patch.ultCooldowns = newCds;
+      }
       const now = Date.now();
-      const ultActiveUlts = s.ultActiveUlts.filter(a => a.endsAt > now);
-      return { ultCooldowns: newCds, ultActiveUlts };
+      if (s.ultActiveUlts.some(a => a.endsAt <= now)) patch.ultActiveUlts = s.ultActiveUlts.filter(a => a.endsAt > now);
+      return patch;
     });
     // Filet si le setTimeout de fin d'ulti a été retardé (onglet throttlé…).
     get().launchNextQueuedUlt();

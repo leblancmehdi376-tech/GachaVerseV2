@@ -1,10 +1,13 @@
 'use client';
 import { formatNumber } from '@/lib/game/format';
-import { computeActiveSynergies } from '@/lib/game/synergies';
+import { computeActiveSynergies, computeSynergyProgress } from '@/lib/game/synergies';
 import { bnFromNumber, bnGt, bnMul, type BigNum } from '@/lib/game/bignum';
 import type { Enemy } from '@/types/game';
 import { AllyCard } from './AllyCard';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
+import { DpsBreakdownTooltip } from './DpsBreakdownTooltip';
+import { GoldBreakdownTooltip } from './GoldBreakdownTooltip';
+import { SynergyBreakdownTooltip } from './SynergyBreakdownTooltip';
 
 const ONE = bnFromNumber(1);
 
@@ -19,6 +22,9 @@ export function TeamBar({
   retreatFromBoss: () => void; challengeBoss: () => void;
 }) {
   const syns = computeActiveSynergies(equippedTeam);
+  // Section visible dès qu'une synergie est entamée (1 membre suffit), pour
+  // pouvoir consulter les paliers atteignables même sans synergie active.
+  const hasSynergyProgress = syns.length > 0 || computeSynergyProgress(equippedTeam).length > 0;
   // `goldMult` regroupe TOUS les boosts d'or (coffre, titre, ult, boost
   // boutique, prestige, anomalies — voir getGoldGainMultiplier), pour que ce
   // "vrai" montant entre parenthèses corresponde à ce qui sera réellement
@@ -89,10 +95,17 @@ export function TeamBar({
             un seul cadre avec séparateurs internes, plutôt que des boîtes
             bordées séparées (moins de cadres empilés, hauteur cohérente). */}
         <div style={{ display:'flex', alignItems:'stretch', background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, overflow:'hidden', flexShrink:0, alignSelf:'flex-end' }}>
-          {syns.length > 0 && (
-            <div style={{ display:'flex', gap:6, alignItems:'center', padding:'0 12px', borderRight:'1px solid rgba(255,255,255,0.07)' }}>
+          {/* Synergies — détail des paliers (actifs / atteignables) au survol (voir SynergyBreakdownTooltip) */}
+          {hasSynergyProgress && (
+            <div style={{ padding:'7px 12px', borderRight:'1px solid rgba(255,255,255,0.07)' }}>
+            <SynergyBreakdownTooltip>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
+            <div style={{ display:'flex', gap:6, alignItems:'center', minHeight:16 }}>
+              {syns.length === 0 && (
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:12, color:'rgba(255,255,255,0.3)', whiteSpace:'nowrap' }}>Aucune active</span>
+              )}
               {syns.map(s => (
-                <div key={s.def.id} title={`${s.def.label} — ${s.threshold.label}`}
+                <div key={s.def.id}
                   style={{ display:'flex', alignItems:'center', gap:4 }}>
                   <div style={{ width:16, height:16, flexShrink:0 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -106,25 +119,31 @@ export function TeamBar({
                 </div>
               ))}
             </div>
+            </SynergyBreakdownTooltip>
+            </div>
           )}
 
-          {/* Butin de l'ennemi courant */}
+          {/* Butin de l'ennemi courant — détail de l'or au survol (voir GoldBreakdownTooltip) */}
           <div style={{ padding:'7px 14px', textAlign:'right', borderRight:'1px solid rgba(255,255,255,0.07)' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN</div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
-              +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
-              {realGold && <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
-            </div>
+            <GoldBreakdownTooltip>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
+                +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
+                {realGold && <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
+              </div>
+            </GoldBreakdownTooltip>
             {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
             <div style={{ fontFamily:'var(--f-ui)', fontSize:11.4, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>
 
-          {/* DPS d'équipe */}
+          {/* DPS d'équipe — détail au survol (voir DpsBreakdownTooltip) */}
           <div style={{ padding:'7px 14px', textAlign:'right' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS</div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
-              {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
-            </div>
+            <DpsBreakdownTooltip>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
+                {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
+              </div>
+            </DpsBreakdownTooltip>
             <div style={{ marginTop:3 }}><CohesionBadge /></div>
           </div>
         </div>

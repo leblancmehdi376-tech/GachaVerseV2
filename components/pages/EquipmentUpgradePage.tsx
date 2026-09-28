@@ -22,7 +22,10 @@ function specialLabel(n: number): string {
 }
 
 export function EquipmentUpgradePage() {
-  const { equipmentInventory, unlockedEquipRarities, upgradeEquipment } = useGameStore();
+  // Sélecteurs ciblés : sans eux, la page se re-rendait à chaque tick de combat.
+  const equipmentInventory    = useGameStore(s => s.equipmentInventory);
+  const unlockedEquipRarities = useGameStore(s => s.unlockedEquipRarities);
+  const upgradeEquipment      = useGameStore(s => s.upgradeEquipment);
   const [selected, setSelected] = useState<{ slot: EquipmentSlot; rarity: Rarity } | null>(null);
   const [lastResult, setLastResult] = useState<string | null>(null);
 

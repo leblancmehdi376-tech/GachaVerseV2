@@ -21,6 +21,8 @@ Each entry looks like:
 },
 ```
 
+**Versioning**: entries are grouped under a version number in the `title` (e.g. `'Maj v2.6.1'`). When updating the patch notes, bump the **last** number of the most recent version by 1 (e.g. `2.6.9` → `2.6.10`) and create a new entry with that version as title. Only change another digit when the user explicitly asks for it.
+
 Don't hesitate to use the richer display to keep notes easy to read:
 - Wrap key words in `**double asterisks**` to render them in bold (names, numbers, feature names).
 - Keep each line short: one idea per line.

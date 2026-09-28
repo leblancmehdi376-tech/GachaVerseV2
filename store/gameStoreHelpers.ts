@@ -13,6 +13,8 @@ import {
   PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
 } from '@/lib/game/prestige';
 import { Anomaly, calcAnomalyBonuses } from '@/lib/game/anomalies';
+import { killAchievementPatch } from '@/lib/game/achievementStats';
+import type { CharMastery } from '@/lib/game/achievements';
 import type { Quest, ActiveUlt } from './gameStore.types';
 import { type BigNum, bnAdd, bnIsZero, bnMul, bnMulScalar, bnPow, bnToNumber } from '@/lib/game/bignum';
 
@@ -34,6 +36,7 @@ const BROADCAST_CHANNEL = typeof window !== 'undefined' ? new BroadcastChannel('
 export function broadcastLocalState() {
   if (typeof window === 'undefined') return;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
     const { useGameStore } = require('@/store/gameStore');
     const s = useGameStore.getState();
     const snapshot = { nekoGems: s.nekoGems, collection: s.collection, equipmentInventory: s.equipmentInventory };
@@ -47,6 +50,7 @@ if (BROADCAST_CHANNEL) {
     if (event.data?.type === 'PULL_SYNC') {
       const { nekoGems, collection, equipmentInventory } = event.data.data;
       try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
         const { useGameStore } = require('@/store/gameStore');
         useGameStore.setState({ nekoGems, collection, equipmentInventory });
       } catch { /* ignore */ }
@@ -277,6 +281,7 @@ export function getActiveCoinMultiplier(ultActiveUlts: ActiveUlt[]): number {
 // fichier), un import statique créerait un cycle.
 export function requestUrgentSave(reason = 'urgent') {
   if (typeof window === 'undefined') return;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
   try { require('@/lib/firebase/cloudSaveSync').requestUrgentSave(reason); } catch { /* ignore */ }
 }
 
@@ -286,6 +291,7 @@ export function requestUrgentSave(reason = 'urgent') {
 // collection d'avant-prestige (voir doPrestige, seul appelant).
 export async function requestUrgentSaveAndWait(reason: string): Promise<boolean> {
   if (typeof window === 'undefined') return false;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- import différé, casse le cycle d'imports
   try { return await require('@/lib/firebase/cloudSaveSync').saveUrgentNow(reason); } catch { return false; }
 }
 
@@ -328,11 +334,11 @@ export function bumpCoinQuests(quests: Quest[], amount: number): Quest[] {
 
 type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] };
 type PrestigeReadState = { prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number };
-type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[] };
+type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { unlockedTitles: string[]; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[]; achievementStats?: Record<string, number>; charMastery?: Record<string, CharMastery> };
 
 export interface GoldGainMultiplierInputs {
   goldUpgradeLevel: number;
-  activeTitle: string;
+  unlockedTitles: string[];
   ultActiveUlts: ActiveUlt[];
   goldBoostEndsAt: number;
   prestigeBonusLevels: PrestigeBonusLevels;
@@ -340,7 +346,7 @@ export interface GoldGainMultiplierInputs {
   ownedAnomalies: Anomaly[];
 }
 
-// Multiplicateur TOTAL appliqué aux golds gagnés (coffre d'or × titre × ult
+// Multiplicateur TOTAL appliqué aux golds gagnés (coffre d'or × titres débloqués × ult
 // actif × boost temporaire boutique × passif prestige × anomalies).
 // Source de vérité UNIQUE : resolveEnemyDeath (gain réel au kill),
 // getGoldMultiplier (characterSlice, ré-utilisé par UpgradesPage et le calcul
@@ -349,13 +355,34 @@ export interface GoldGainMultiplierInputs {
 // sous-ensemble des boosts (ex: TeamBar n'affichait que le bonus du coffre,
 // sans prestige/anomalie/ult/boost), ce qui sous-affichait/sous-payait l'or réel.
 export function getGoldGainMultiplier(inputs: GoldGainMultiplierInputs): BigNum {
-  const chestMult    = getGoldChestMultiplier(inputs.goldUpgradeLevel ?? 0); // BigNum (non-plafonné, suit maxPalierReached)
-  const titleMult    = getTitleGoldMultiplier(inputs.activeTitle);
-  const ultCoinMult  = getActiveCoinMultiplier(inputs.ultActiveUlts);
-  const boostGoldMult   = Date.now() < inputs.goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
-  const prestigeCoinMult = getPrestigeBonuses(inputs.prestigeBonusLevels, inputs.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
-  const anomalyGoldMult = calcAnomalyBonuses(inputs.ownedAnomalies ?? []).goldGainMult;
-  return bnMulScalar(chestMult, titleMult * ultCoinMult * boostGoldMult * prestigeCoinMult * anomalyGoldMult);
+  return getGoldGainBreakdown(inputs).total;
+}
+
+// Détail de getGoldGainMultiplier (même calcul), affiché au survol du butin
+// (voir GoldBreakdownTooltip). Multiplicateurs en facteur (1.2 = +20 %).
+export interface GoldGainBreakdown {
+  total: BigNum;
+  chestLevel: number;
+  chestMult: BigNum;      // coffre d'or (BigNum, non plafonné)
+  titleMult: number;      // titres débloqués
+  ultMult: number;        // ultimes actifs
+  boostMult: number;      // boost or temporaire (boutique)
+  prestigeMult: number;   // passif prestige × shop "Fortune Ancestrale"
+  anomalyMult: number;    // anomalies
+}
+
+export function getGoldGainBreakdown(inputs: GoldGainMultiplierInputs): GoldGainBreakdown {
+  const chestLevel   = inputs.goldUpgradeLevel ?? 0;
+  const chestMult    = getGoldChestMultiplier(chestLevel); // BigNum (non-plafonné, suit maxPalierReached)
+  const titleMult    = getTitleGoldMultiplier(inputs.unlockedTitles ?? []);
+  const ultMult      = getActiveCoinMultiplier(inputs.ultActiveUlts);
+  const boostMult    = Date.now() < inputs.goldBoostEndsAt ? BOOST_MULTIPLIER : 1;
+  const prestigeMult = getPrestigeBonuses(inputs.prestigeBonusLevels, inputs.prestigeRankRecoveryLevel).coinsMult; // passif +20%/niveau × shop "Fortune Ancestrale"
+  const anomalyMult  = calcAnomalyBonuses(inputs.ownedAnomalies ?? []).goldGainMult;
+  return {
+    total: bnMulScalar(chestMult, titleMult * ultMult * boostMult * prestigeMult * anomalyMult),
+    chestLevel, chestMult, titleMult, ultMult, boostMult, prestigeMult, anomalyMult,
+  };
 }
 
 export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameState & QuestState> {
@@ -366,7 +393,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
 
   const goldMult = getGoldGainMultiplier({
     goldUpgradeLevel: (state as {goldUpgradeLevel?:number}).goldUpgradeLevel ?? 0,
-    activeTitle: state.activeTitle,
+    unlockedTitles: state.unlockedTitles ?? [],
     ultActiveUlts: state.ultActiveUlts,
     goldBoostEndsAt: (state as {goldBoostEndsAt?:number}).goldBoostEndsAt ?? 0,
     prestigeBonusLevels: state.prestigeBonusLevels,
@@ -444,7 +471,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
         )
       : raidQuests;
     const newRunPeak = Math.max(runPeakPalierOf(state), next);
-    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, raidQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1, ...equipDropFields } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] }>;
+    return { ...killAchievementPatch(state, true), pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, raidQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1, ...equipDropFields } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] }>;
   }
   const nw = state.wave + 1;
   const runPeak = runPeakPalierOf(state);
@@ -453,11 +480,12 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     // évité → boucle sur vague 1, le boss ne se déclenche jamais.
     const isFarming = state.palier < runPeak;
     if (isFarming || state.bossAvoided) {
-      return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
+      return { ...killAchievementPatch(state, false), pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
     }
-    return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
+    return { ...killAchievementPatch(state, false), pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
   }
   return {
+    ...killAchievementPatch(state, false),
     pixelCoins:coins,
     nekoGems:gems,
     quests:questsAfterCoins,

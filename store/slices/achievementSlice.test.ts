@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from '@/store/gameStore';
 import { useToastStore } from '@/hooks/useToast';
+import { useAchievementFxStore } from '@/store/achievementFxStore';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 
 function achiev(id: string) {
@@ -11,6 +12,7 @@ describe('achievementSlice — setProgress', () => {
   beforeEach(() => {
     useGameStore.getState().resetGame();
     useToastStore.setState({ toasts: [] });
+    useAchievementFxStore.setState({ queue: [] });
   });
 
   it('ne fait jamais régresser la progression (Math.max)', () => {
@@ -35,22 +37,21 @@ describe('achievementSlice — setProgress', () => {
     expect(useGameStore.getState().getProgress('does_not_exist')).toBe(0);
   });
 
-  it('affiche un toast de déblocage une seule fois, à la première transition vers unlocked', () => {
+  it('affiche la bannière de déblocage une seule fois, à la première transition vers unlocked', () => {
     useGameStore.getState().setProgress('kills_1', 1); // target=1 → débloqué direct
-    expect(useToastStore.getState().toasts).toHaveLength(1);
-    expect(useToastStore.getState().toasts[0].type).toBe('levelup');
+    expect(useAchievementFxStore.getState().queue.map(f => f.id)).toEqual(['kills_1']);
 
     // Rappel après déblocage (ex: re-render du tracker) : pas de doublon.
     useGameStore.getState().setProgress('kills_1', 1);
-    expect(useToastStore.getState().toasts).toHaveLength(1);
+    expect(useAchievementFxStore.getState().queue).toHaveLength(1);
   });
 
-  it("n'affiche aucun toast quand suppressToasts est actif (ex: restauration cloud)", () => {
+  it("n'affiche aucune bannière quand suppressToasts est actif (ex: restauration cloud)", () => {
     useGameStore.setState({ suppressToasts: true });
 
     useGameStore.getState().setProgress('kills_1', 1);
 
-    expect(useToastStore.getState().toasts).toHaveLength(0);
+    expect(useAchievementFxStore.getState().queue).toHaveLength(0);
   });
 });
 

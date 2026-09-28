@@ -7,6 +7,7 @@ import { getTopLeaderboard, updatePlayerScore, LeaderboardEntry } from '@/lib/fi
 import { PageScroll } from '@/components/ui/Page';
 import { AvatarVisual } from '@/components/layout/AvatarVisual';
 import { getCharacterById } from '@/lib/game/characters';
+import { PlayerProfileModal } from '@/components/pages/leaderboard/PlayerProfileModal';
 
 // Chaque appel à getTopLeaderboard coûte ~100 lectures Firestore — sans
 // cooldown, spammer le bouton "Actualiser" spammerait autant d'appels à
@@ -37,6 +38,8 @@ export function LeaderboardPage() {
   const [feedback,  setFeedback]  = useState<{ ok: boolean; msg: string } | null>(null);
   const [saving,    setSaving]    = useState(false);
   const [refreshFeedback, setRefreshFeedback] = useState<string | null>(null);
+  // Popup profil — rendue à partir de l'entrée déjà chargée, aucune lecture Firestore.
+  const [profileUid, setProfileUid] = useState<string | null>(null);
   const lastLoadAtRef = useRef(0);
   const lastSaveNameAtRef = useRef(0);
 
@@ -68,8 +71,13 @@ export function LeaderboardPage() {
   // rafraîchir manuellement via le bouton.
   useEffect(() => { loadEntries(); }, []);
 
-  // Sync input si le username change dans le store (ex: chargé depuis Firestore)
-  useEffect(() => { setNameInput(username || ''); }, [username]);
+  // Sync input si le username change dans le store (ex: chargé depuis Firestore),
+  // fait pendant le rendu plutôt que dans un effet (pas de rendu intermédiaire).
+  const [prevUsername, setPrevUsername] = useState(username);
+  if (username !== prevUsername) {
+    setPrevUsername(username);
+    setNameInput(username || '');
+  }
 
   const handleSaveName = async () => {
     const final = nameInput.trim().slice(0, 20);
@@ -98,6 +106,7 @@ export function LeaderboardPage() {
 
   const myEntry = entries.find(e => e.uid === user?.uid);
   const myRank  = myEntry ? entries.indexOf(myEntry) + 1 : null;
+  const profileIdx = profileUid ? entries.findIndex(e => e.uid === profileUid) : -1;
 
   return (
     <>
@@ -202,9 +211,13 @@ export function LeaderboardPage() {
               {entries.map((entry, idx) => {
                 const isMe = entry.uid === user?.uid;
                 return (
-                  <div key={entry.uid} className="leaderboard-row" style={{
+                  <div key={entry.uid} className="leaderboard-row"
+                    role="button" tabIndex={0} title={`Voir le profil de ${entry.username}`}
+                    onClick={() => setProfileUid(entry.uid)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setProfileUid(entry.uid); } }}
+                    style={{
                     display:'grid', gridTemplateColumns:'48px 1fr auto',
-                    alignItems:'center', gap:'8px',
+                    alignItems:'center', gap:'8px', cursor:'pointer',
                     padding:'12px 16px', borderRadius:'10px',
                     background: isMe ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
                     border: isMe ? '1px solid rgba(168,85,247,0.4)' : '1px solid var(--border)',
@@ -270,6 +283,15 @@ export function LeaderboardPage() {
         </div>
 
     </PageScroll>
+    {profileIdx >= 0 && (
+      <PlayerProfileModal
+        entry={entries[profileIdx]}
+        rank={profileIdx + 1}
+        rankColor={getRankColor(profileIdx)}
+        isMe={entries[profileIdx].uid === user?.uid}
+        onClose={() => setProfileUid(null)}
+      />
+    )}
     </>
   );
 }
