@@ -1,7 +1,7 @@
 'use client';
-import { useMemo, type CSSProperties } from 'react';
+import { memo, useMemo, type CSSProperties } from 'react';
 import { useGameStore, OFFLINE_MULT_TIERS, OFFLINE_CAP_TIERS_H } from '@/store/gameStore';
-import { CHARACTER_POOL } from '@/lib/game/characters';
+import { CHARACTER_POOL, getCharacterById } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { calcCharDps } from '@/lib/game/formulas';
@@ -14,6 +14,7 @@ import { PageScroll } from '@/components/ui/Page';
 import { bnGt, type BigNum } from '@/lib/game/bignum';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
+import { useProgressiveCount } from '@/hooks/useProgressiveCount';
 
 const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
@@ -62,24 +63,87 @@ function UpgradeRow({ icon, label, current, next, cost, bossCrowns, onBuy }: { i
   );
 }
 
+// Sélecteur d'avatar : composant à part, abonné uniquement à la collection et
+// à l'avatar choisi — sinon ses centaines de vignettes étaient re-rendues à
+// chaque tick de combat avec le reste du profil.
+const AvatarPicker = memo(function AvatarPicker({ username }: { username: string }) {
+  const collection = useGameStore(s => s.collection);
+  const selectedAvatarChampionId = useGameStore(s => s.selectedAvatarChampionId);
+  const setSelectedAvatarChampionId = useGameStore(s => s.setSelectedAvatarChampionId);
+  const ownedChars = useMemo(() => getOwnedChars(collection), [collection]);
+  const avatarPickerChars = useMemo(() => {
+    const rarityRank = RARITY_ORDER.slice().reverse();
+    return ownedChars.slice().sort((a, b) => rarityRank.indexOf(a.rarity) - rarityRank.indexOf(b.rarity));
+  }, [ownedChars]);
+  // Rendu progressif des vignettes (plusieurs centaines chez un gros joueur).
+  const shownCount = useProgressiveCount(avatarPickerChars.length);
+  // Forme actuelle par template (1re instance possédée, comme l'ancien find) :
+  // une seule passe au lieu de reparcourir toute la collection pour chaque perso.
+  const formByTemplate = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const [k, owned] of Object.entries(collection)) {
+      const id = parseInstanceKey(k).templateId;
+      if (!m.has(id)) m.set(id, owned?.currentForm ?? 0);
+    }
+    return m;
+  }, [collection]);
+
+  // L'aura (bordure/lueur) reflète le palier max atteint et le nombre de
+  // succès débloqués, voir PlayerAvatar.
+  return (
+    <div className="panel" style={{ padding:'18px 20px' }}>
+      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'14px' }}>AVATAR</div>
+      <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
+        <button onClick={() => setSelectedAvatarChampionId(null)} title="Initiale du pseudo"
+          style={{
+            width:52, height:52, borderRadius:'10px', cursor:'pointer',
+            background:'linear-gradient(135deg,#3b0764,#6d28d9)',
+            border: selectedAvatarChampionId === null ? '2px solid var(--purple-glow)' : '1px solid var(--border)',
+            boxShadow: selectedAvatarChampionId === null ? '0 0 10px rgba(147,51,234,0.5)' : 'none',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontFamily:'var(--f-title)', fontWeight:900, fontSize:'20.6px', color:'#e2d9ff',
+          }}>
+          {username.charAt(0).toUpperCase()}
+        </button>
+        {avatarPickerChars.slice(0, shownCount).map(tpl => {
+          const cfg = RARITY_CONFIG[tpl.rarity];
+          const selected = selectedAvatarChampionId === tpl.id;
+          const currentForm = formByTemplate.get(tpl.id) ?? 0;
+          return (
+            <button key={tpl.id} onClick={() => setSelectedAvatarChampionId(tpl.id)} title={`${tpl.name} (${cfg.label})`}
+              style={{
+                width:52, height:52, borderRadius:'10px', cursor:'pointer', overflow:'hidden', padding:0,
+                border: selected ? `2px solid ${cfg.color}` : `1px solid ${cfg.color}44`,
+                boxShadow: selected ? `0 0 10px ${cfg.glow}` : 'none',
+                display:'flex', alignItems:'center', justifyContent:'center',
+              }}>
+              <CharacterCardThumb templateId={tpl.id} formIndex={currentForm} name={tpl.name} rarity={tpl.rarity} width={52} height={52} />
+            </button>
+          );
+        })}
+      </div>
+      {ownedChars.length === 0 && (
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-muted)', marginTop:'10px' }}>
+          Débloque des personnages pour pouvoir les utiliser comme avatar.
+        </div>
+      )}
+    </div>
+  );
+});
+
 export function ProfilePage() {
   const store = useGameStore();
   const {
     username, pixelCoins, nekoGems, palier, maxPalierReached,
     bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps,
     activeTitle, unlockedCount, unlockedTitles,
-    selectedAvatarChampionId, setSelectedAvatarChampionId, showcasedTrophies,
+    showcasedTrophies,
   } = store;
   const trophies = showcasedTrophies.map(id => ACHIEVEMENT_BY_ID.get(id)).filter(a => a !== undefined);
 
   const cfg = getPalierConfig(palier);
 
   const ownedChars = useMemo(() => getOwnedChars(collection), [collection]);
-
-  const avatarPickerChars = useMemo(() => {
-    const rarityRank = RARITY_ORDER.slice().reverse();
-    return ownedChars.slice().sort((a, b) => rarityRank.indexOf(a.rarity) - rarityRank.indexOf(b.rarity));
-  }, [ownedChars]);
 
   const totalDps = getTotalDps();
 
@@ -88,7 +152,7 @@ export function ProfilePage() {
   const highestDpsChar = useMemo(() => {
     let best: { name: string; dps: BigNum } | null = null;
     for (const [key, owned] of Object.entries(collection)) {
-      const tpl = CHARACTER_POOL.find(c => c.id === parseInstanceKey(key).templateId);
+      const tpl = getCharacterById(parseInstanceKey(key).templateId);
       if (!tpl) continue;
       const dps = calcCharDps(tpl, owned);
       if (!best || bnGt(dps, best.dps)) best = { name: tpl.name, dps };
@@ -176,46 +240,7 @@ export function ProfilePage() {
           )}
         </div>
 
-        {/* Sélecteur d'avatar — l'aura (bordure/lueur) reflète le palier max
-            atteint et le nombre de succès débloqués, voir PlayerAvatar. */}
-        <div className="panel" style={{ padding:'18px 20px' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'14px' }}>AVATAR</div>
-          <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
-            <button onClick={() => setSelectedAvatarChampionId(null)} title="Initiale du pseudo"
-              style={{
-                width:52, height:52, borderRadius:'10px', cursor:'pointer',
-                background:'linear-gradient(135deg,#3b0764,#6d28d9)',
-                border: selectedAvatarChampionId === null ? '2px solid var(--purple-glow)' : '1px solid var(--border)',
-                boxShadow: selectedAvatarChampionId === null ? '0 0 10px rgba(147,51,234,0.5)' : 'none',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontFamily:'var(--f-title)', fontWeight:900, fontSize:'20.6px', color:'#e2d9ff',
-              }}>
-              {username.charAt(0).toUpperCase()}
-            </button>
-            {avatarPickerChars.map(tpl => {
-              const cfg = RARITY_CONFIG[tpl.rarity];
-              const selected = selectedAvatarChampionId === tpl.id;
-              const ownedEntry = Object.entries(collection).find(([k]) => parseInstanceKey(k).templateId === tpl.id);
-              const currentForm = ownedEntry?.[1]?.currentForm ?? 0;
-              return (
-                <button key={tpl.id} onClick={() => setSelectedAvatarChampionId(tpl.id)} title={`${tpl.name} (${cfg.label})`}
-                  style={{
-                    width:52, height:52, borderRadius:'10px', cursor:'pointer', overflow:'hidden', padding:0,
-                    border: selected ? `2px solid ${cfg.color}` : `1px solid ${cfg.color}44`,
-                    boxShadow: selected ? `0 0 10px ${cfg.glow}` : 'none',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                  <CharacterCardThumb templateId={tpl.id} formIndex={currentForm} name={tpl.name} rarity={tpl.rarity} width={52} height={52} />
-                </button>
-              );
-            })}
-          </div>
-          {ownedChars.length === 0 && (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-muted)', marginTop:'10px' }}>
-              Débloque des personnages pour pouvoir les utiliser comme avatar.
-            </div>
-          )}
-        </div>
+        <AvatarPicker username={username} />
 
         {/* Grid de stats */}
         <div>

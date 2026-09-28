@@ -20,6 +20,17 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Maj v2.6.3',
+    changes: [
+      "**Navigation plus réactive** : changer de page répond jusqu'à **3x plus vite**.",
+      "Le jeu consomme **~40 % de processeur en moins** pendant le combat.",
+      "Le fond et l'ennemi sont préchargés pendant l'écran de chargement : **arrivée en jeu plus rapide**.",
+      "**Compadex** et **Profil** s'ouvrent sans gel, même avec une très grande collection.",
+      "Les pages **Compadex**, **Profil** et **Équipement** ne se recalculent plus à chaque seconde de combat.",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Maj v2.6.2',
     changes: [
       "**Optimisation des performances**.",

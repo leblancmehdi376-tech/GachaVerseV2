@@ -1,29 +1,10 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, useTransition } from 'react';
+import { preload } from 'react-dom';
 import { useInstanceLock } from '@/hooks/useInstanceLock';
 import { DuplicateTabScreen } from '@/components/system/DuplicateTabScreen';
 import { SplashScreen } from '@/components/system/SplashScreen';
 import { BattleZone } from '@/components/game/BattleZone';
-import { UpgradesPage } from '@/components/pages/UpgradesPage';
-import { CompanionsPage } from '@/components/pages/CompanionsPage';
-import { GachaPage } from '@/components/pages/GachaPage';
-import { QuestsPage } from '@/components/pages/QuestsPage';
-import { ShopPage } from '@/components/pages/ShopPage';
-import { CollectionPage } from '@/components/pages/CollectionPage';
-import { RaidPage } from '@/components/pages/RaidPage';
-import { SettingsPage } from '@/components/pages/SettingsPage';
-import { LeaderboardPage } from '@/components/pages/LeaderboardPage';
-import { MarketplacePage } from '@/components/pages/MarketplacePage';
-import { ChampionInventoryPage } from '@/components/pages/ChampionInventoryPage';
-import { AchievementsPage } from '@/components/pages/AchievementsPage';
-import { ProfilePage } from '@/components/pages/ProfilePage';
-import { ExpeditionsPage } from '@/components/pages/ExpeditionsPage';
-import { ForgePage } from '@/components/pages/ForgePage';
-import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
-import { PrestigePage } from '@/components/pages/PrestigePage';
-import { MinePage } from '@/components/pages/MinePage';
-import { AnomaliePage } from '@/components/pages/AnomaliePage';
-import { MasteryPage } from '@/components/pages/MasteryPage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
 import { UltAnimation } from '@/components/game/UltAnimation';
@@ -52,12 +33,61 @@ import { PatchNotesModal } from '@/components/layout/PatchNotesModal';
 import { PATCH_NOTES } from '@/lib/game/patchNotes';
 
 import { NAV_ICONS } from '@/components/ui/NavIcons';
+import { getSpriteCandidates } from '@/components/ui/PixelSprite';
+import { getPalierBgCandidates } from '@/components/game/battle-zone/PalierBg';
+import { ENEMY_SPRITES_ASSET_VERSION } from '@/lib/game/enemies';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { BossVictoryScreen } from '@/components/game/BossVictoryScreen';
 import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
 import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
 import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
+
+// Pages chargées à la demande : leur code sort du bundle initial (hydratation
+// plus rapide au lancement), puis est préchargé en arrière-plan une fois le
+// splash terminé pour que le premier clic n'attende pas le réseau.
+const PAGE_LOADERS = {
+  UpgradesPage: () => import('@/components/pages/UpgradesPage').then(m => ({ default: m.UpgradesPage })),
+  CompanionsPage: () => import('@/components/pages/CompanionsPage').then(m => ({ default: m.CompanionsPage })),
+  GachaPage: () => import('@/components/pages/GachaPage').then(m => ({ default: m.GachaPage })),
+  QuestsPage: () => import('@/components/pages/QuestsPage').then(m => ({ default: m.QuestsPage })),
+  ShopPage: () => import('@/components/pages/ShopPage').then(m => ({ default: m.ShopPage })),
+  CollectionPage: () => import('@/components/pages/CollectionPage').then(m => ({ default: m.CollectionPage })),
+  RaidPage: () => import('@/components/pages/RaidPage').then(m => ({ default: m.RaidPage })),
+  SettingsPage: () => import('@/components/pages/SettingsPage').then(m => ({ default: m.SettingsPage })),
+  LeaderboardPage: () => import('@/components/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })),
+  MarketplacePage: () => import('@/components/pages/MarketplacePage').then(m => ({ default: m.MarketplacePage })),
+  ChampionInventoryPage: () => import('@/components/pages/ChampionInventoryPage').then(m => ({ default: m.ChampionInventoryPage })),
+  AchievementsPage: () => import('@/components/pages/AchievementsPage').then(m => ({ default: m.AchievementsPage })),
+  ProfilePage: () => import('@/components/pages/ProfilePage').then(m => ({ default: m.ProfilePage })),
+  ExpeditionsPage: () => import('@/components/pages/ExpeditionsPage').then(m => ({ default: m.ExpeditionsPage })),
+  ForgePage: () => import('@/components/pages/ForgePage').then(m => ({ default: m.ForgePage })),
+  EquipmentUpgradePage: () => import('@/components/pages/EquipmentUpgradePage').then(m => ({ default: m.EquipmentUpgradePage })),
+  PrestigePage: () => import('@/components/pages/PrestigePage').then(m => ({ default: m.PrestigePage })),
+  MinePage: () => import('@/components/pages/MinePage').then(m => ({ default: m.MinePage })),
+  AnomaliePage: () => import('@/components/pages/AnomaliePage').then(m => ({ default: m.AnomaliePage })),
+  MasteryPage: () => import('@/components/pages/MasteryPage').then(m => ({ default: m.MasteryPage })),
+};
+const UpgradesPage = lazy(PAGE_LOADERS.UpgradesPage);
+const CompanionsPage = lazy(PAGE_LOADERS.CompanionsPage);
+const GachaPage = lazy(PAGE_LOADERS.GachaPage);
+const QuestsPage = lazy(PAGE_LOADERS.QuestsPage);
+const ShopPage = lazy(PAGE_LOADERS.ShopPage);
+const CollectionPage = lazy(PAGE_LOADERS.CollectionPage);
+const RaidPage = lazy(PAGE_LOADERS.RaidPage);
+const SettingsPage = lazy(PAGE_LOADERS.SettingsPage);
+const LeaderboardPage = lazy(PAGE_LOADERS.LeaderboardPage);
+const MarketplacePage = lazy(PAGE_LOADERS.MarketplacePage);
+const ChampionInventoryPage = lazy(PAGE_LOADERS.ChampionInventoryPage);
+const AchievementsPage = lazy(PAGE_LOADERS.AchievementsPage);
+const ProfilePage = lazy(PAGE_LOADERS.ProfilePage);
+const ExpeditionsPage = lazy(PAGE_LOADERS.ExpeditionsPage);
+const ForgePage = lazy(PAGE_LOADERS.ForgePage);
+const EquipmentUpgradePage = lazy(PAGE_LOADERS.EquipmentUpgradePage);
+const PrestigePage = lazy(PAGE_LOADERS.PrestigePage);
+const MinePage = lazy(PAGE_LOADERS.MinePage);
+const AnomaliePage = lazy(PAGE_LOADERS.AnomaliePage);
+const MasteryPage = lazy(PAGE_LOADERS.MasteryPage);
 
 type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie' | 'mastery';
 
@@ -133,7 +163,26 @@ export function GameLayout() {
   const isCompactHeader = useIsMobile(1250);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
-  const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
+  // `page` (menu, fil d'ariane) change tout de suite pour un retour visuel
+  // immédiat ; `contentPage` (contenu central, lourd à monter) suit dans une
+  // transition React interruptible, pour ne pas geler le clic.
+  const [contentPage, setContentPage] = useState<Page>('home');
+  const [, startPageTransition] = useTransition();
+  const goToPage = (p: Page) => {
+    setPage(p);
+    setDrawerOpen(false);
+    startPageTransition(() => setContentPage(p));
+  };
+  useEffect(() => {
+    if (!splashDone) return;
+    const prefetch = () => { for (const load of Object.values(PAGE_LOADERS)) load().catch(() => {}); };
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(prefetch, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const t = setTimeout(prefetch, 1500);
+    return () => clearTimeout(t);
+  }, [splashDone]);
   // Exploration : chaque section visitée compte pour "Tour du Propriétaire".
   useEffect(() => { useGameStore.getState().discover(pageStatKey(page)); }, [page]);
   // Passage secret : 7 clics rapides sur le logo.
@@ -179,9 +228,10 @@ export function GameLayout() {
   }, [focusedExpeditionId]);
 
   const cfg = getPalierConfig(palier);
-  const isCombat = COMBAT_PAGES.includes(page);
+  const isCombat = COMBAT_PAGES.includes(contentPage);
   const progressPct = Math.round((wave / 10) * 100);
   const currentNav = NAV.find(n => n.id === page)!;
+  const contentNav = NAV.find(n => n.id === contentPage)!;
 
   // Bloquer les multi-instances
   if (instanceStatus === 'duplicate' || instanceStatus === 'takeover') {
@@ -219,6 +269,12 @@ export function GameLayout() {
 
   // Splash screen au premier chargement
   if (!splashDone) {
+    // Le fond du palier et le sprite de l'ennemi sont les plus gros éléments
+    // affichés à la sortie du splash : on les télécharge pendant l'animation
+    // plutôt qu'après.
+    preload(getPalierBgCandidates(palier)[0], { as: 'image', fetchPriority: 'high' });
+    const enemySprite = useGameStore.getState().currentEnemy?.spritePath;
+    if (enemySprite) preload(getSpriteCandidates(enemySprite, ENEMY_SPRITES_ASSET_VERSION)[0], { as: 'image', fetchPriority: 'high' });
     return <SplashScreen onComplete={() => setSplashDone(true)} />;
   }
 
@@ -358,7 +414,7 @@ export function GameLayout() {
           ] as { id: Page; label: string }[]).map(n => {
             const Icon = NAV_ICONS[n.id];
             return (
-            <button key={n.label} onClick={() => setPage(n.id)}
+            <button key={n.label} onClick={() => goToPage(n.id)}
               style={{ background:'none', border:'1px solid transparent', borderRadius:'8px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', padding: isCompactHeader?'6px 8px':'5px 10px', color:'var(--text-dim)', transition:'all 0.15s', position:'relative' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
@@ -476,33 +532,35 @@ export function GameLayout() {
             <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
               {/* Page header */}
               <div style={{ padding:isMobile?'12px 16px 10px':'16px 28px 12px', borderBottom:'1px solid var(--border)', background:'linear-gradient(180deg,var(--bg-dark),transparent)', flexShrink:0, display:'flex', alignItems:'center', gap:'10px' }}>
-                <div style={{ width:'4px', height:'18px', background:`linear-gradient(180deg,${currentNav.accent??'var(--purple-hi)'},transparent)`, borderRadius:'2px', boxShadow:`0 0 8px ${currentNav.accent??'var(--purple-hi)'}` }} />
-                {(() => { const Icon = NAV_ICONS[currentNav.id]; return Icon ? <span style={{ color: currentNav.accent ?? 'var(--purple-hi)', display:'flex' }}><Icon size={20} color="currentColor" /></span> : null; })()}
-                <span style={{ fontFamily:'var(--f-title)', fontSize:'16.5px', fontWeight:700, color:currentNav.accent??'var(--text)', letterSpacing:'2px' }}>{currentNav.label}</span>
+                <div style={{ width:'4px', height:'18px', background:`linear-gradient(180deg,${contentNav.accent??'var(--purple-hi)'},transparent)`, borderRadius:'2px', boxShadow:`0 0 8px ${contentNav.accent??'var(--purple-hi)'}` }} />
+                {(() => { const Icon = NAV_ICONS[contentNav.id]; return Icon ? <span style={{ color: contentNav.accent ?? 'var(--purple-hi)', display:'flex' }}><Icon size={20} color="currentColor" /></span> : null; })()}
+                <span style={{ fontFamily:'var(--f-title)', fontSize:'16.5px', fontWeight:700, color:contentNav.accent??'var(--text)', letterSpacing:'2px' }}>{contentNav.label}</span>
               </div>
               <div style={{ flex:1, overflow:'hidden' }}>
-                <PageTransition pageKey={page}>
-                  {page === 'upgrades'   && <UpgradesPage />}
-                  {page === 'companions' && <CompanionsPage />}
-                  {page === 'collection' && <CollectionPage />}
-                  {page === 'gacha'      && <GachaPage />}
-                  {page === 'shop'       && <ShopPage />}
-                  {page === 'quests'     && <QuestsPage />}
-                  {page === 'raids'      && <RaidPage />}
-                  {page === 'settings'     && <SettingsPage onForceSave={forceSave} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} />}
-                  {page === 'leaderboard'  && <LeaderboardPage />}
-                  {page === 'marketplace'  && <MarketplacePage />}
-                  {page === 'champions'    && <ChampionInventoryPage />}
-                  {page === 'achievements' && <AchievementsPage />}
-                  {page === 'expeditions' && <ExpeditionsPage />}
-                  {page === 'forge'       && <ForgePage />}
-                  {page === 'equipment'   && <EquipmentUpgradePage />}
-                  {page === 'prestige'    && <PrestigePage />}
-                  {page === 'mine'        && <MinePage />}
-                  {page === 'anomalie'    && <AnomaliePage />}
-                  {page === 'mastery'     && <MasteryPage />}
-                  {page === 'profile'     && <ProfilePage />}
+                <Suspense fallback={null}>
+                <PageTransition pageKey={contentPage}>
+                  {contentPage === 'upgrades'   && <UpgradesPage />}
+                  {contentPage === 'companions' && <CompanionsPage />}
+                  {contentPage === 'collection' && <CollectionPage />}
+                  {contentPage === 'gacha'      && <GachaPage />}
+                  {contentPage === 'shop'       && <ShopPage />}
+                  {contentPage === 'quests'     && <QuestsPage />}
+                  {contentPage === 'raids'      && <RaidPage />}
+                  {contentPage === 'settings'     && <SettingsPage onForceSave={forceSave} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} />}
+                  {contentPage === 'leaderboard'  && <LeaderboardPage />}
+                  {contentPage === 'marketplace'  && <MarketplacePage />}
+                  {contentPage === 'champions'    && <ChampionInventoryPage />}
+                  {contentPage === 'achievements' && <AchievementsPage />}
+                  {contentPage === 'expeditions' && <ExpeditionsPage />}
+                  {contentPage === 'forge'       && <ForgePage />}
+                  {contentPage === 'equipment'   && <EquipmentUpgradePage />}
+                  {contentPage === 'prestige'    && <PrestigePage />}
+                  {contentPage === 'mine'        && <MinePage />}
+                  {contentPage === 'anomalie'    && <AnomaliePage />}
+                  {contentPage === 'mastery'     && <MasteryPage />}
+                  {contentPage === 'profile'     && <ProfilePage />}
                 </PageTransition>
+                </Suspense>
               </div>
             </div>
           )}

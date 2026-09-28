@@ -11,25 +11,14 @@ const DURATION_MS = 2800;
 export function SplashScreen({ onComplete }: Props) {
   const [progress, setProgress]       = useState(0);
   const [phase, setPhase]             = useState<'loading' | 'done'>('loading');
-  const [charVisible, setCharVisible] = useState<boolean[]>(Array(LOGO_CHARS.length).fill(false));
-  const [subtitleIn, setSubtitleIn]   = useState(false);
   const [fadeOut, setFadeOut]         = useState(false);
   const startRef = useRef<number | null>(null);
   const rafRef   = useRef<number>(0);
 
-  // Reveal logo letters one by one
-  useEffect(() => {
-    LOGO_CHARS.forEach((_, i) => {
-      setTimeout(() => {
-        setCharVisible(prev => {
-          const next = [...prev];
-          next[i] = true;
-          return next;
-        });
-      }, 200 + i * 85);
-    });
-    setTimeout(() => setSubtitleIn(true), 200 + LOGO_CHARS.length * 85 + 100);
-  }, []);
+  // Apparition des lettres du logo et du sous-titre : animations CSS
+  // (splashLetterIn / splashSubIn dans globals.css) plutôt que des setTimeout,
+  // pour qu'elles démarrent dès le premier affichage du HTML pré-rendu au lieu
+  // d'attendre le chargement et l'hydratation du JS.
 
   // Progress bar
   useEffect(() => {
@@ -131,9 +120,7 @@ export function SplashScreen({ onComplete }: Props) {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             display: 'inline-block',
-            opacity: charVisible[i] ? 1 : 0,
-            transform: charVisible[i] ? 'translateY(0) scale(1)' : 'translateY(18px) scale(0.85)',
-            transition: 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275)',
+            animation: `splashLetterIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) ${200 + i * 85}ms both`,
           }}>{ch}</span>
         ))}
       </div>
@@ -146,9 +133,7 @@ export function SplashScreen({ onComplete }: Props) {
         letterSpacing: 6,
         color: 'rgba(192,132,252,0.45)',
         marginBottom: 64,
-        opacity: subtitleIn ? 1 : 0,
-        transform: subtitleIn ? 'translateY(0)' : 'translateY(8px)',
-        transition: 'opacity 0.5s ease, transform 0.5s ease',
+        animation: `splashSubIn 0.5s ease ${200 + LOGO_CHARS.length * 85 + 100}ms both`,
       }}>
         IDLE · GACHA · MULTIVERS
       </div>

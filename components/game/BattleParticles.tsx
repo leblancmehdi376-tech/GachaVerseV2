@@ -123,11 +123,12 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
           ctx.fill();
 
           if (p.type === 'ember') {
-            // Small trailing glow
-            ctx.shadowBlur = 6;
-            ctx.shadowColor = `rgba(${p.r},${p.g},${p.b},0.6)`;
+            // Small trailing glow — halo semi-transparent plutôt que
+            // shadowBlur (flou recalculé à chaque dessin, très coûteux).
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.r},${p.g},${p.b},${alpha * 0.25})`;
             ctx.fill();
-            ctx.shadowBlur = 0;
           }
         }
 
