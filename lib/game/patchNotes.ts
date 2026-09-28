@@ -19,6 +19,13 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '29/09/2026',
+    title: 'Maj v2.6.8',
+    changes: [
+      "Nouveau cadrage de la carte **Makima — Démon de la Domination** : image dézoomée et recentrée, le visage est maintenant visible en entier.",
+    ],
+  },
+  {
     date: '28/09/2026',
     title: 'Maj v2.6.7',
     changes: [
