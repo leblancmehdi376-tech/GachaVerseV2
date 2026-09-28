@@ -1320,10 +1320,23 @@ export function getMasteryMilestones(m: CharMastery | undefined, rarity: Rarity 
   });
 }
 
-/** Pourcentage de maîtrise (0-100) : moyenne de l'avancement de chaque palier. */
+const MASTERY_GOAL_KEY = new Map(MASTERY_GOALS.map(g => [g.id, g.key]));
+
+/**
+ * Pourcentage de maîtrise (0-100) : moyenne de l'avancement de chaque palier.
+ * Pour une même stat, seuls les paliers validés et le palier suivant comptent :
+ * au niveau 1300, 500 et 1000 comptent pleinement, 1500 partiellement, et
+ * 2000+ pas du tout tant que 1500 n'est pas validé.
+ */
 export function getMasteryPct(milestones: MasteryMilestone[]): number {
   if (milestones.length === 0) return 0;
-  const sum = milestones.reduce((s, m) => s + Math.min(1, m.value / m.target), 0);
+  const blocked = new Set<string>();
+  const sum = milestones.reduce((s, m) => {
+    const key = MASTERY_GOAL_KEY.get(m.id) ?? m.id;
+    if (blocked.has(key)) return s;
+    if (!m.done) blocked.add(key);
+    return s + Math.min(1, m.value / m.target);
+  }, 0);
   return Math.floor((sum / milestones.length) * 100);
 }
 

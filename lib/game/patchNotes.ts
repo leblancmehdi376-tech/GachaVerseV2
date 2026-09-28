@@ -20,6 +20,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '28/09/2026',
+    title: 'Maj v2.6.7',
+    changes: [
+      "Le **pourcentage de maîtrise** ne compte plus que les paliers **validés** et le **palier suivant** de chaque catégorie.",
+      "Exemple : au **niveau 1300**, les paliers 500, 1000 et 1500 comptent, mais pas 2000 et plus tant que 1500 n'est pas validé.",
+    ],
+  },
+  {
+    date: '28/09/2026',
     title: 'Maj v2.6.6',
     changes: [
       "Nouvelle **notation alphabétique** dans les **Paramètres**, spécialement pour **Blocky Block** !",
