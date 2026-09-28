@@ -4,6 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { useRandomEventStore, JACKPOT_BUTTON_MS } from '@/store/randomEventStore';
 import { formatNumber } from '@/lib/game/format';
 import { BN_ZERO, bnFromNumber, bnMax, bnMul, bnMulScalar, type BigNum } from '@/lib/game/bignum';
+import { STAT, EV_PERFECT, EGG } from '@/lib/game/achievements';
 
 // Symboles de la machine. `weight` = fréquence sur un rouleau.
 // L'OR est exprimé en MULTIPLE du butin d'un mob du palier courant (`coinMult`),
@@ -92,6 +93,7 @@ export function JackpotEvent() {
   const spin = () => {
     if (spinning || done) return;
     setSpinning(true);
+    useGameStore.getState().addStat(STAT.eventsJoined);
     // Résultat : triple d'un symbole tiré au poids (sinon pas de gain).
     const isTriple = Math.random() < 0.45;         // ~45% de chance d'aligner
     const target = pickSymbol();
@@ -110,7 +112,9 @@ export function JackpotEvent() {
           setEventDpsMult(1 / target.malusDivide, MALUS_DURATION_MS);
         } else if (target.bankrupt) {
           useGameStore.setState({ pixelCoins: BN_ZERO });
+          useGameStore.getState().discover(EGG.bankrupt);
         } else {
+          useGameStore.getState().discover(EV_PERFECT.jackpot);
           // Montant calculé UNE SEULE FOIS ici, verrouillé, puis accordé
           // immédiatement — impossible d'attendre pour le faire grimper.
           const coins = coinsFor(target);

@@ -126,6 +126,15 @@ export function IconAchievement({ size = 18, color = 'currentColor' }: IconProps
   );
 }
 
+export function IconMastery({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      <path d="M10 2.5l2.2 4.5 4.8.7-3.5 3.4.8 4.9L10 13.7 5.7 16l.8-4.9L3 7.7l4.8-.7z" />
+      <path d="M7 18h6" />
+    </svg>
+  );
+}
+
 export function IconProfile({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
@@ -243,6 +252,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   quests:       IconScroll,
   raids:        IconStar,
   achievements: IconAchievement,
+  mastery:      IconMastery,
   expeditions:  IconFoldedMap,
   forge:        IconForge,
   equipment:    IconShield,

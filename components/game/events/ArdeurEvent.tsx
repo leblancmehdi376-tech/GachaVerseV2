@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
+import { STAT, EV_PERFECT } from '@/lib/game/achievements';
 import {
   useRandomEventStore, ARDEUR_DURATION_MS, ARDEUR_MAX_MULT, ARDEUR_GAIN_PER_CLICK,
   ARDEUR_DECAY_PER_SEC, ARDEUR_BUFF_MS,
@@ -14,6 +15,8 @@ export function ArdeurEvent() {
   const [, setHeat] = useState(0);              // force un re-render à chaque tick (valeur lue via heatRef)
   const [timeLeft, setTimeLeft] = useState(ARDEUR_DURATION_MS);
   const heatRef = useRef(0);
+  const peakRef = useRef(0);
+  const joinedRef = useRef(false);
 
   const mult = 1 + (ARDEUR_MAX_MULT - 1) * heatRef.current;
 
@@ -33,6 +36,8 @@ export function ArdeurEvent() {
         clearInterval(iv);
         const finalMult = 1 + (ARDEUR_MAX_MULT - 1) * heatRef.current;
         if (heatRef.current > 0.02) setEventDpsMult(finalMult, ARDEUR_BUFF_MS);
+        // Événement réussi parfaitement : jauge poussée au maximum.
+        if (peakRef.current >= 0.99) useGameStore.getState().discover(EV_PERFECT.ardeur);
         end();
       }
     }, 60);
@@ -41,7 +46,9 @@ export function ArdeurEvent() {
 
   const hit = () => {
     heatRef.current = Math.min(1, heatRef.current + ARDEUR_GAIN_PER_CLICK);
+    peakRef.current = Math.max(peakRef.current, heatRef.current);
     setHeat(heatRef.current);
+    if (!joinedRef.current) { joinedRef.current = true; useGameStore.getState().addStat(STAT.eventsJoined); }
   };
 
   const pct = Math.round(heatRef.current * 100);

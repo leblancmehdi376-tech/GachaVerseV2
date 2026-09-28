@@ -1,5 +1,5 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { useGameStore, OFFLINE_MULT_TIERS, OFFLINE_CAP_TIERS_H } from '@/store/gameStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
@@ -8,7 +8,8 @@ import { calcCharDps } from '@/lib/game/formulas';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
 import { TITLE_GOLD_BONUS_PCT } from '@/lib/game/titles';
-import { ACHIEVEMENTS } from '@/lib/game/achievements';
+import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, MAX_SHOWCASED_TROPHIES, TIER_META, getAchievementTier } from '@/lib/game/achievements';
+import { tierVars } from '@/components/pages/achievements/achievementUi';
 import { PageScroll } from '@/components/ui/Page';
 import { bnGt, type BigNum } from '@/lib/game/bignum';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
@@ -44,8 +45,9 @@ export function ProfilePage() {
     username, pixelCoins, nekoGems, palier, maxPalierReached,
     bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps,
     activeTitle, unlockedCount, unlockedTitles,
-    selectedAvatarChampionId, setSelectedAvatarChampionId,
+    selectedAvatarChampionId, setSelectedAvatarChampionId, showcasedTrophies,
   } = store;
+  const trophies = showcasedTrophies.map(id => ACHIEVEMENT_BY_ID.get(id)).filter(a => a !== undefined);
 
   const cfg = getPalierConfig(palier);
 
@@ -125,6 +127,30 @@ export function ProfilePage() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Vitrine de trophées — choisis depuis Succès → Trophées */}
+        <div className="trophy-stage" style={{ padding:'18px 16px 16px' }}>
+          <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:10, flexWrap:'wrap', marginBottom:14 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--gold-hi)', letterSpacing:'2px' }}>🏆 TROPHÉES EXPOSÉS</div>
+            <div style={{ fontFamily:'var(--f-num)', fontSize:12, color:'var(--text-dim)' }}>{trophies.length} / {MAX_SHOWCASED_TROPHIES}</div>
+          </div>
+          {trophies.length === 0 ? (
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)', textAlign:'center', padding:'10px 0' }}>
+              Aucun trophée exposé — choisis tes succès les plus prestigieux dans <strong style={{ color:'var(--gold-hi)' }}>Succès → Trophées</strong>.
+            </div>
+          ) : (
+            <div className="trophy-shelf">
+              {trophies.map((a, i) => (
+                <div key={a.id} className="trophy-slot" style={{ ...tierVars(a), ['--i' as string]: i, minHeight:140, cursor:'default' } as CSSProperties}>
+                  <span className="trophy-slot__icon" style={{ fontSize:32 }}>{a.icon}</span>
+                  <span className="trophy-slot__name">{a.name}</span>
+                  <span className="ach-tier">{TIER_META[getAchievementTier(a)].label}</span>
+                  <span className="trophy-slot__plinth" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Sélecteur d'avatar — l'aura (bordure/lueur) reflète le palier max

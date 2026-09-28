@@ -520,6 +520,7 @@ export function CompanionsPage() {
     collectionSort,
     setCollectionFilters,
     getTeamCohesion,
+    charMastery,
   } = useGameStore();
 
   const [selSlot, setSelSlot] = useState<number | null>(null);
@@ -556,12 +557,12 @@ export function CompanionsPage() {
   const selectedSynergy = selectedTpl ? activeSynergies.find(s => s.def.universe === selectedTpl.universe) ?? null : null;
 
   // DPS affiché = DPS de l'accueil hors bonus globaux : on y applique la cohésion d'équipe.
-  const totalDps = bnMulScalar(calculateEquippedTeamDps(equippedTeam, collection), getTeamCohesion().mult);
+  const totalDps = bnMulScalar(calculateEquippedTeamDps(equippedTeam, collection, charMastery), getTeamCohesion().mult);
 
   const selectedDps = selectedTpl && selectedCharacter ? calcCharDps(selectedTpl, selectedCharacter) : 0;
   const selectedEquipMult = selectedCharacter && selectedTpl ? getEquipmentMultiplier(selectedCharacter, selectedTpl) : 1;
   const selectedDpsWithEquip = selectedCharacter && selectedTpl && selectedCharacterId
-    ? calculateCharacterEquippedDps(selectedCharacterId, selectedCharacter, activeSynergies)
+    ? calculateCharacterEquippedDps(selectedCharacterId, selectedCharacter, activeSynergies, charMastery)
     : 0;
   const selectedUlt = selectedTpl ? getUltimateDef(selectedTpl.id) ?? null : null;
   const selectedAffinity = selectedTpl ? getAffinityForId(selectedTpl.id) : undefined;

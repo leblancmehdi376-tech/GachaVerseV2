@@ -13,21 +13,28 @@ import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { computeCohesion } from '@/lib/game/cohesion';
 import { getGoldChestCost, getGoldGainMultiplier, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
-import type { GameStore, CharacterSlice } from '../gameStore.types';
-import { BN_ZERO, bnAdd, bnGte, bnMulScalar, bnSub, type BigNum } from '@/lib/game/bignum';
+import type { GameStore, CharacterSlice, DpsBreakdownChar } from '../gameStore.types';
+import { BN_ZERO, bnAdd, bnDivRatio, bnGte, bnMulScalar, bnSub, bnToNumber, type BigNum } from '@/lib/game/bignum';
+import { addStats } from '@/lib/game/achievementStats';
+import { STAT, getMasteryDpsMult } from '@/lib/game/achievements';
 import { bumpQuestsIn } from './questSlice';
 
 // Compteurs communs à toute amélioration (quêtes "Améliorer tes personnages"
 // jour/semaine + cumul à vie), sous forme de patch à fusionner dans le set()
 // de l'action : une amélioration = une seule mise à jour du store.
-function upgradeCountersPatch(state: GameStore, count: number): Partial<GameStore> {
+// `spent` : Pixel-Coins dépensés par cette amélioration (succès "Dépenser X").
+function upgradeCountersPatch(state: GameStore, count: number, spent: BigNum): Partial<GameStore> {
   const daily = bumpQuestsIn(state, 'd_upgrade', count);
   const weekly = bumpQuestsIn({
     quests: daily.quests ?? state.quests,
     weeklyQuests: daily.weeklyQuests ?? state.weeklyQuests,
     raidQuests: daily.raidQuests ?? state.raidQuests,
   }, 'w_upgrade', count);
-  return { ...daily, ...weekly, totalUpgradesPerformed: (state.totalUpgradesPerformed ?? 0) + count };
+  return {
+    ...daily, ...weekly,
+    totalUpgradesPerformed: (state.totalUpgradesPerformed ?? 0) + count,
+    achievementStats: addStats(state.achievementStats, { [STAT.coinsSpent]: bnToNumber(spent) }),
+  };
 }
 
 export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlice> = (set, get) => ({
@@ -52,7 +59,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     set(state => ({
       pixelCoins: bnSub(state.pixelCoins, cost),
       goldUpgradeLevel: (state.goldUpgradeLevel ?? 0) + 1,
-      ...upgradeCountersPatch(state, 1),
+      ...upgradeCountersPatch(state, 1, cost),
     }));
   },
 
@@ -85,7 +92,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     set(state => ({
       pixelCoins: bnSub(state.pixelCoins, cost),
       hero: { ...state.hero, level: state.hero.level + 1, xp: 0 },
-      ...upgradeCountersPatch(state, 1),
+      ...upgradeCountersPatch(state, 1, cost),
     }));
   },
 
@@ -99,7 +106,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     set(state => ({
       pixelCoins: bnSub(state.pixelCoins, cost),
       hero: { ...state.hero, currentForm: state.hero.currentForm + 1, level: state.hero.level + 1 },
-      ...upgradeCountersPatch(state, 1),
+      ...upgradeCountersPatch(state, 1, cost),
     }));
   },
 
@@ -132,7 +139,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
         ...state.collection,
         [templateId]: { ...owned, level: owned.level + levels, xp: 0 },
       },
-      ...upgradeCountersPatch(state, levels),
+      ...upgradeCountersPatch(state, levels, bnSub(s.pixelCoins, coins)),
     }));
   },
 
@@ -170,7 +177,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
           ...state.collection,
           [templateId]: { ...owned, currentForm: owned.currentForm + 1, level: owned.level + 1 },
         },
-        ...upgradeCountersPatch(state, 1),
+        ...upgradeCountersPatch(state, 1, cost),
       };
     });
   },
@@ -190,7 +197,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const anomalyBonuses = calcAnomalyBonuses(get().ownedAnomalies);
     const anomalySynMult = 1 + (anomalyBonuses.synergyBoostByUniverse[tpl.universe ?? ''] ?? 0);
 
-    const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
+    // Bonus de maîtrise propre au personnage (+5% à +20%, voir MASTERY_DPS_TIERS).
+    const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id) * getMasteryDpsMult(get().charMastery[pureId], tpl.rarity);
 
     const dpsWithEquip = bnMulScalar(calcCharDps(tpl, owned), equippedMult);
     const withSyn = bnMulScalar(calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies), anomalySynMult);
@@ -204,32 +212,61 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     return { base, typeMult, final: bnMulScalar(base, typeMult) };
   },
 
-  getTotalDps: () => {
-    const { equippedTeam, collection } = get();
+  getTotalDps: () => get().getDpsBreakdown().total,
+
+  getDpsBreakdown: () => {
+    const { equippedTeam, collection, charMastery } = get();
     const activeSynergies = computeActiveSynergies(equippedTeam);
     const boostMult = get().isDpsBoostActive() ? BOOST_MULTIPLIER : 1;
     const prestigeMult = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel).dpsMult; // passif +15%/niveau × shop "Transcendance"
     const anomalyBonuses = calcAnomalyBonuses(get().ownedAnomalies);
     const enemyAffinity = getAffinityForId(get().currentEnemy?.name ?? ''); // type de l'ennemi courant
-    const teamDps = equippedTeam.reduce((total: BigNum, id) => {
-      if (!id) return total;
+    const teamUltMult = get().ultActiveUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
+    const cohesionMult = get().getTeamCohesion().mult; // combat de l'accueil uniquement (pas raids/expéditions)
+    const globalMult = prestigeMult * anomalyBonuses.globalDpsMult * cohesionMult;
+
+    const chars: DpsBreakdownChar[] = [];
+    let teamDps: BigNum = BN_ZERO;
+    for (const id of equippedTeam) {
+      if (!id) continue;
       const owned = collection[id];
       const pureId = parseInstanceKey(id).templateId; // clé composite -> id pur
       const tpl   = getCharacterById(pureId);
-      if (!owned || !tpl) return total;
+      if (!owned || !tpl) continue;
       const baseDps  = calcCharDps(tpl, owned);
-      const equippedMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
-      const dpsWithEquip = bnMulScalar(baseDps, equippedMult);
+      const equipMult = computeEquippedMultiplier(owned.equippedItems, tpl.id);
+      // Bonus de maîtrise propre au personnage (+5% à +20%, voir MASTERY_DPS_TIERS).
+      const masteryMult = getMasteryDpsMult(charMastery[pureId], tpl.rarity);
+      const dpsWithEquip = bnMulScalar(baseDps, equipMult * masteryMult);
       const anomalySynMult = 1 + (anomalyBonuses.synergyBoostByUniverse[tpl.universe ?? ''] ?? 0);
       const withSyn  = bnMulScalar(calcDpsWithSynergies(id, dpsWithEquip, activeSynergies), anomalySynMult);
       const ultMult  = get().getDpsMultiplierFor(id);
       const charAffinity = getAffinityForId(pureId);
       const anomalyTypeMult = 1 + (anomalyBonuses.typeDamageByAffinity[charAffinity] ?? 0);
       const typeMult = getAffinityMultiplier(charAffinity, enemyAffinity) * anomalyTypeMult; // avantage de type + anomalies
-      return bnAdd(total, bnMulScalar(withSyn, ultMult * boostMult * typeMult));
-    }, BN_ZERO);
-    const cohesionMult = get().getTeamCohesion().mult; // combat de l'accueil uniquement (pas raids/expéditions)
-    return bnMulScalar(teamDps, prestigeMult * anomalyBonuses.globalDpsMult * cohesionMult);
+      const charDps = bnMulScalar(withSyn, ultMult * boostMult * typeMult);
+      teamDps = bnAdd(teamDps, charDps);
+      chars.push({
+        key: id, templateId: pureId, name: tpl.name,
+        dps: bnMulScalar(charDps, globalMult),
+        equipMult, masteryMult,
+        synergyMult: bnDivRatio(withSyn, dpsWithEquip) || 1,
+        selfUltMult: ultMult / teamUltMult,
+        typeMult,
+      });
+    }
+
+    return {
+      total: bnMulScalar(teamDps, globalMult),
+      chars,
+      synergies: activeSynergies.flatMap(syn => [
+        ...(syn.threshold.dpsBonus > 0 ? [{ label: syn.def.label, color: syn.def.color, bonusPct: syn.threshold.dpsBonus, global: false }] : []),
+        ...(syn.threshold.globalBonus > 0 ? [{ label: syn.def.label, color: syn.def.color, bonusPct: syn.threshold.globalBonus, global: true }] : []),
+      ]),
+      teamUltMult, boostMult, cohesionMult, prestigeMult,
+      anomalyMult: anomalyBonuses.globalDpsMult,
+      eventMult: get().getEventDpsMult(),
+    };
   },
   // Slot vide (ou perso introuvable) = niveau 0.
   getTeamCohesion: () => {

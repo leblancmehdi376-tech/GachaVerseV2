@@ -19,6 +19,74 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '28/09/2026',
+    title: 'Détail du DPS',
+    changes: [
+      "Passe la souris sur ton **DPS** en combat (ou appuie dessus sur mobile) pour voir **d'où il vient**.",
+      "La fenêtre affiche le DPS de **chaque compagnon** et tous les bonus appliqués : **maîtrise**, équipement, **synergies**, **cohésion d'équipe**, **Prestige**, anomalies, ultimes, avantage de type et boosts.",
+    ],
+  },
+  {
+    date: '28/09/2026',
+    title: 'Refonte des Succès',
+    sections: [
+      {
+        icon: '🏆',
+        title: 'Nouvelle page Succès',
+        changes: [
+          "Les succès sont désormais répartis en **10 catégories** : Progression, Gacha, Collection, Combat, Maîtrise, Économie, Défis, Exploration, Événements et Secrets.",
+          "Nouvel en-tête avec ta **progression globale**, un anneau de complétion et tes succès par rang : **Bronze, Argent, Or, Platine**.",
+          "Les succès d'un même objectif sont regroupés en **une seule carte à niveaux** (ex : Chasse aux Monstres, niveaux 1 à 5), avec une **récompense à chaque niveau**.",
+          "Les succès sont triés en deux sections : **Permanents** (conservés après un Prestige) et **De run** (remis à zéro à chaque Prestige).",
+          "Filtres par état (**à récupérer**, en cours, terminés, verrouillés), recherche et tri.",
+          "Bouton **Tout récupérer** pour réclamer toutes les récompenses en attente d'un coup.",
+          "Une **bannière animée** s'affiche à chaque succès débloqué.",
+          "Ta progression existante est **entièrement conservée**.",
+        ],
+      },
+      {
+        icon: '✨',
+        title: '65 nouveaux succès',
+        changes: [
+          "**Progression** : temps de jeu (1h, 100h, 500h).",
+          "**Gacha** : 6★ Mythique, personnage à moins de **1 %**, 3 SSR d'affilée, exploit miraculeux.",
+          "**Combat** : victoire parfaite, victoire sur le fil, combo de 4 ultimes, boss de raid.",
+          "**Défis** : 10 victoires de boss consécutives, sans ultime, équipe de Communs, en solo, et plus encore.",
+          "**Économie** : Pixel-Coins dépensés, premiers achats et premières ventes.",
+          "**Événements** : participer aux événements, bannière Vol.2, personnages exclusifs.",
+          "Nouveaux titres : **Invaincu**, **Maître Absolu**, **Gardien des Secrets**, **Maître des Festivités**.",
+        ],
+      },
+      {
+        icon: '🎖️',
+        title: 'Maîtrise des personnages',
+        changes: [
+          "Nouvelle page **Maîtrise** : chaque personnage a sa propre progression.",
+          "Paliers de niveau : **500 / 1 000 / 1 500 / 2 000 / 2 500 / 3 000**, identiques pour tous les personnages.",
+          "Paliers de combats (**500 / 2 000 / 5 000**) et de boss vaincus (**3 / 10**) pour un Commun, multipliés selon la rareté : jusqu'à **×4,5** pour un **Transcendant**.",
+          "La maîtrise donne un **bonus de DPS** au personnage lui-même : **+5 %** à 25 %, **+10 %** à 50 %, **+15 %** à 75 % et **+20 %** à 100 %.",
+          "La maîtrise est **conservée après un Prestige**.",
+        ],
+      },
+      {
+        icon: '🏛',
+        title: 'Trophées',
+        changes: [
+          "Nouvel onglet **Trophées** : expose jusqu'à **5 succès** prestigieux dans une vitrine.",
+          "Ta vitrine s'affiche sur ton **profil**.",
+        ],
+      },
+      {
+        icon: '❔',
+        title: 'Secrets',
+        changes: [
+          "Des succès **secrets** se cachent dans le jeu : « ??? », condition inconnue… jusqu'à ce que tu les découvres.",
+          "Ouvre l'œil : certains visiteurs ne font que passer.",
+        ],
+      },
+    ],
+  },
+  {
     date: '27/09/2026',
     title: 'Forge, expéditions & confort',
     sections: [

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useInstanceLock } from '@/hooks/useInstanceLock';
 import { DuplicateTabScreen } from '@/components/system/DuplicateTabScreen';
 import { SplashScreen } from '@/components/system/SplashScreen';
@@ -23,9 +23,13 @@ import { EquipmentUpgradePage } from '@/components/pages/EquipmentUpgradePage';
 import { PrestigePage } from '@/components/pages/PrestigePage';
 import { MinePage } from '@/components/pages/MinePage';
 import { AnomaliePage } from '@/components/pages/AnomaliePage';
+import { MasteryPage } from '@/components/pages/MasteryPage';
 import { AuthModal } from '@/components/layout/AuthModal';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
 import { UltAnimation } from '@/components/game/UltAnimation';
+import { AchievementUnlockBanner } from '@/components/game/AchievementUnlockBanner';
+import { SecretsLayer } from '@/components/game/SecretsLayer';
+import { EGG, pageStatKey } from '@/lib/game/achievements';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { getCompadexProgress } from '@/lib/game/compadex';
@@ -55,7 +59,7 @@ import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
 import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
 import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie' | 'mastery';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -71,6 +75,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
     { id:'champions',    label:'INV. CHAMPIONS',  accent:'#fbbf24'            },
     { id:'equipment',    label:'ÉQUIPEMENT',      accent:'#93c5fd'            },
     { id:'collection',   label:'COMPADEX',        accent:'#60a5fa'            },
+    { id:'mastery',      label:'MAÎTRISE',        accent:'#f472b6'            },
   ]},
   { title:'PROGRESSION', items: [
     { id:'upgrades',     label:'AMÉLIORATIONS',   accent:'var(--gold)'          },
@@ -129,6 +134,19 @@ export function GameLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
   const goToPage = (p: Page) => { setPage(p); setDrawerOpen(false); };
+  // Exploration : chaque section visitée compte pour "Tour du Propriétaire".
+  useEffect(() => { useGameStore.getState().discover(pageStatKey(page)); }, [page]);
+  // Passage secret : 7 clics rapides sur le logo.
+  const logoClicks = useRef<number[]>([]);
+  const [logoFlash, setLogoFlash] = useState(0);
+  const clickLogo = () => {
+    const now = Date.now();
+    logoClicks.current = [...logoClicks.current.filter(t => now - t < 3000), now];
+    if (logoClicks.current.length < 7) return;
+    logoClicks.current = [];
+    useGameStore.getState().discover(EGG.passage);
+    setLogoFlash(now);
+  };
   const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId, dailyRewardClaimedToday, compadexCharactersSeen, compadexEquipmentSeen } = useGameStore(useShallow(s => ({
     pixelCoins: s.pixelCoins,
     nekoGems: s.nekoGems,
@@ -223,6 +241,8 @@ export function GameLayout() {
 
       {/* ══ TOAST NOTIFICATIONS ══════════════════════════════════════════ */}
       <ToastContainer />
+      <AchievementUnlockBanner />
+      <SecretsLayer />
 
       {/* ══ TOP BAR ══════════════════════════════════════════════════════ */}
       <header style={{ height:'56px', flexShrink:0, display:'flex', alignItems:'center', background:'linear-gradient(180deg,#0a0818,var(--bg-dark))', borderBottom:'1px solid var(--border)', padding:isMobile?'0 10px':'0 20px', gap:isMobile?'8px':isCompactHeader?'16px':'22px', zIndex:30, boxShadow:'0 2px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.03)', position:'relative',
@@ -246,7 +266,7 @@ export function GameLayout() {
 
         {/* Logo */}
         <div style={{ width:isMobile?'auto':'200px', flexShrink:0 }}>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:isMobile?'13.5px':'18.5px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
+          <div key={logoFlash} onClick={clickLogo} className={logoFlash ? 'gv-logo-secret' : undefined} style={{ cursor:'default', userSelect:'none', fontFamily:'var(--f-title)', fontSize:isMobile?'13.5px':'18.5px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
             GACHAVERSE
           </div>
           {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'4px', marginTop:'3px' }}>MULTIVERS RPG</div>}
@@ -481,6 +501,7 @@ export function GameLayout() {
                   {page === 'prestige'    && <PrestigePage />}
                   {page === 'mine'        && <MinePage />}
                   {page === 'anomalie'    && <AnomaliePage />}
+                  {page === 'mastery'     && <MasteryPage />}
                   {page === 'profile'     && <ProfilePage />}
                 </PageTransition>
               </div>

@@ -7,6 +7,7 @@ import {
   getSpecialWeaponGroup, pickRandomSpecialWeapon, isSpecialWeaponFusionRarity, SPECIAL_WEAPON_FUSION_COST,
 } from '@/lib/game/items';
 import type { GameStore, EquipmentActions } from '../gameStore.types';
+import { STAT } from '@/lib/game/achievements';
 
 export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActions> = (set, get) => ({
   addItem: (itemId, qty = 1) => set(s => ({
@@ -24,6 +25,7 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
       inventory:  { ...s.inventory, [itemId]: s.inventory[itemId] - toSell },
       nekoGems:   s.nekoGems + gained,
     }));
+    get().addStat(STAT.itemsSold, toSell);
   },
   addEquipment: (equipmentId, qty = 1) => set(s => ({
     equipmentInventory: { ...s.equipmentInventory, [equipmentId]: (s.equipmentInventory[equipmentId] ?? 0) + qty },

@@ -12,6 +12,7 @@ import {
   createListing, buyListing, cancelListing, claimSaleReward,
 } from '@/lib/firebase/marketplace';
 import { bnAdd, bnFromNumber, bnGte, type BigNum } from '@/lib/game/bignum';
+import { STAT } from '@/lib/game/achievements';
 
 const CURRENCY_ICON: Record<ListingCurrency, string> = {
   gems:   '💎',
@@ -140,6 +141,7 @@ export function MarketplacePage() {
     });
 
     if (id) {
+      store.addStat(STAT.itemsSold);
       showMsg(true, 'Annonce publiée !');
       setShowForm(false);
       setFormItemId('');
@@ -175,6 +177,7 @@ export function MarketplacePage() {
     else if (listing.type === 'equipment') store.addEquipment(listing.itemId, 1);
     else store.addToCollection(listing.itemId);
 
+    store.addStat(STAT.shopPurchases);
     showMsg(true, `${getListingLabel(listing)} acheté !`);
     loadMarket();
   };

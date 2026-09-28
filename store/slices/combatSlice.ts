@@ -8,8 +8,10 @@ import { getCharacterById } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { resolveEnemyDeath, runPeakPalierOf } from '../gameStoreHelpers';
+import { addStats, bossFailPatch } from '@/lib/game/achievementStats';
+import { STAT } from '@/lib/game/achievements';
 import type { GameStore, CombatActions } from '../gameStore.types';
-import { BN_ZERO, bnAdd, bnFromNumber, bnGte, bnIsZero, bnMax, bnMulScalar, bnSub } from '@/lib/game/bignum';
+import { BN_ZERO, bnAdd, bnFromNumber, bnGte, bnIsZero, bnMax, bnMulScalar, bnSub, bnToNumber } from '@/lib/game/bignum';
 
 // Idle : plancher de DPS pour qu'un joueur SANS compagnon progresse quand même
 // (lentement) en début de partie. Exprimé en fraction des PV de l'ennemi courant
@@ -74,6 +76,8 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     const state = get();
     if (!state.bossActive && state.wave !== 10) return;
     set({
+      // Fuir un boss en cours casse la série de victoires (défi "Série Invaincue").
+      ...(state.bossActive && bossFailPatch(state)),
       wave:         1,
       bossActive:   false,
       bossTimeLeft: 0,
@@ -150,7 +154,7 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     // Défaite (timer écoulé) : même état qu'une retraite volontaire —
     // bossAvoided:true permet de retenter le boss directement (bouton
     // "⚡ BOSS") au lieu de forcer un reclear complet des vagues 1-9.
-    if (t <= 0) return { bossActive:false, bossTimeLeft:0, bossAvoided:true, wave:1, currentEnemy: generateEnemy(1, state.palier, runPeakPalierOf(state)) };
+    if (t <= 0) return { ...bossFailPatch(state), bossActive:false, bossTimeLeft:0, bossAvoided:true, wave:1, currentEnemy: generateEnemy(1, state.palier, runPeakPalierOf(state)) };
     return { bossTimeLeft: t };
   }),
 
@@ -168,7 +172,12 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
     // Un ulti tourne déjà (ou d'autres attendent) : on stacke, il partira
     // juste après — cooldown démarré seulement au lancement effectif.
     if (s.ultActiveUlts.length > 0 || s.ultQueue.length > 0) {
-      set(st => ({ ultQueue: [...st.ultQueue, { templateId, formIndex }] }));
+      // Combo = ultis actifs + file d'attente (succès "Combo Dévastateur").
+      const combo = s.ultActiveUlts.length + s.ultQueue.length + 1;
+      set(st => ({
+        ultQueue: [...st.ultQueue, { templateId, formIndex }],
+        ...(combo > (st.achievementStats[STAT.ultComboMax] ?? 0) && { achievementStats: { ...st.achievementStats, [STAT.ultComboMax]: combo } }),
+      }));
       return;
     }
     launchUltimate(set, get, templateId, formIndex);
@@ -188,7 +197,7 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
 
   spendPixelCoins: (cost) => {
     if (!bnGte(get().pixelCoins, cost)) return false;
-    set(s => ({ pixelCoins: bnSub(s.pixelCoins, cost) }));
+    set(s => ({ pixelCoins: bnSub(s.pixelCoins, cost), achievementStats: addStats(s.achievementStats, { [STAT.coinsSpent]: bnToNumber(cost) }) }));
     return true;
   },
 

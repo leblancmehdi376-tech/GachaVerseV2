@@ -13,6 +13,8 @@ import {
   PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
 } from '@/lib/game/prestige';
 import { Anomaly, calcAnomalyBonuses } from '@/lib/game/anomalies';
+import { killAchievementPatch } from '@/lib/game/achievementStats';
+import type { CharMastery } from '@/lib/game/achievements';
 import type { Quest, ActiveUlt } from './gameStore.types';
 import { type BigNum, bnAdd, bnIsZero, bnMul, bnMulScalar, bnPow, bnToNumber } from '@/lib/game/bignum';
 
@@ -328,7 +330,7 @@ export function bumpCoinQuests(quests: Quest[], amount: number): Quest[] {
 
 type QuestState = { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] };
 type PrestigeReadState = { prestigeBonusLevels: PrestigeBonusLevels; prestigeRankRecoveryLevel: number };
-type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[] };
+type ResolveEnemyDeathState = GameState & QuestState & PrestigeReadState & { activeTitle: string; ultActiveUlts: ActiveUlt[]; ownedAnomalies: Anomaly[]; achievementStats?: Record<string, number>; charMastery?: Record<string, CharMastery> };
 
 export interface GoldGainMultiplierInputs {
   goldUpgradeLevel: number;
@@ -444,7 +446,7 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
         )
       : raidQuests;
     const newRunPeak = Math.max(runPeakPalierOf(state), next);
-    return { pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, raidQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1, ...equipDropFields } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] }>;
+    return { ...killAchievementPatch(state, true), pixelCoins:coins, nekoGems:gems + passGems, quests:bossQuestUpdate.quests, weeklyQuests:bossQuestUpdate.weeklyQuests, raidQuests:finalEventQuests, wave:1, palier:next, maxPalierReached:Math.max(state.maxPalierReached,next), runPeakPalier:newRunPeak, bossActive:false, bossTimeLeft:0, bossAvoided:false, ultUsedThisFight:[], currentEnemy:generateEnemy(1,next,newRunPeak), bossCrowns: bossCrownsBefore + crownGain, totalBossCrownsEarned: ((state as {totalBossCrownsEarned?:number}).totalBossCrownsEarned ?? 0) + crownGain, lastBossVictory: bossVictory, totalKills: (state.totalKills ?? 0) + 1, totalBossKills: (state.totalBossKills ?? 0) + 1, ...equipDropFields } as Partial<GameState & { quests: Quest[]; weeklyQuests: Quest[]; raidQuests: Quest[] }>;
   }
   const nw = state.wave + 1;
   const runPeak = runPeakPalierOf(state);
@@ -453,11 +455,12 @@ export function resolveEnemyDeath(state: ResolveEnemyDeathState): Partial<GameSt
     // évité → boucle sur vague 1, le boss ne se déclenche jamais.
     const isFarming = state.palier < runPeak;
     if (isFarming || state.bossAvoided) {
-      return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
+      return { ...killAchievementPatch(state, false), pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:1, ultUsedThisFight:[], currentEnemy:generateEnemy(1, state.palier, runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
     }
-    return { pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
+    return { ...killAchievementPatch(state, false), pixelCoins:coins, nekoGems:gems, quests:questsAfterCoins, weeklyQuests, raidQuests, wave:10, bossActive:true, bossTimeLeft:getPalierConfig(state.palier).bossTimerSeconds, ultUsedThisFight:[], currentEnemy:generateEnemy(10,state.palier,runPeak), totalKills: (state.totalKills ?? 0) + 1, ...equipDropFields };
   }
   return {
+    ...killAchievementPatch(state, false),
     pixelCoins:coins,
     nekoGems:gems,
     quests:questsAfterCoins,

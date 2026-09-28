@@ -1,6 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { useGameStore } from '@/store/gameStore';
+import { STAT } from '@/lib/game/achievements';
 
 export type RandomEventType = 'ardeur' | 'tempete' | 'jackpot';
 
@@ -74,6 +75,7 @@ export const useRandomEventStore = create<RandomEventState>((set, get) => ({
   trigger: (type) => {
     if (bossReached()) return;
     set({ active: type });
+    useGameStore.getState().addStat(STAT.eventsSeen);
   },
 
   end: () => { set({ active: null, lastEndedAt: Date.now() }); get().scheduleNext(); },

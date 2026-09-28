@@ -5,6 +5,7 @@ import { bnFromNumber, bnGt, bnMul, type BigNum } from '@/lib/game/bignum';
 import type { Enemy } from '@/types/game';
 import { AllyCard } from './AllyCard';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
+import { DpsBreakdownTooltip } from './DpsBreakdownTooltip';
 
 const ONE = bnFromNumber(1);
 
@@ -119,12 +120,14 @@ export function TeamBar({
             <div style={{ fontFamily:'var(--f-ui)', fontSize:11.4, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>
 
-          {/* DPS d'équipe */}
+          {/* DPS d'équipe — détail au survol (voir DpsBreakdownTooltip) */}
           <div style={{ padding:'7px 14px', textAlign:'right' }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS</div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
-              {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
-            </div>
+            <DpsBreakdownTooltip>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
+                {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
+              </div>
+            </DpsBreakdownTooltip>
             <div style={{ marginTop:3 }}><CohesionBadge /></div>
           </div>
         </div>

@@ -35,6 +35,14 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = Object.fromEntries(
 TITLE_GOLD_BONUS_PCT['Six Seven'] = 6.7;
 TITLE_GOLD_BONUS_PCT['Réincarné'] = 15;
 
+// ── Titres de la refonte des succès (10 catégories) — bonus fixés
+// directement, hors interpolation de TITLE_ORDER (pour ne pas décaler les
+// bonus des titres existants).
+TITLE_GOLD_BONUS_PCT['Maître des Festivités'] = 12;
+TITLE_GOLD_BONUS_PCT['Gardien des Secrets']   = 15;
+TITLE_GOLD_BONUS_PCT['Invaincu']              = 18;
+TITLE_GOLD_BONUS_PCT['Maître Absolu']         = 20;
+
 // ── Titres de connexion journalière — bonus fixé au jour de déblocage ─────
 // Hors interpolation de TITLE_ORDER (pas liés à un succès), voir
 // lib/game/dailyRewards.ts pour le calendrier.
