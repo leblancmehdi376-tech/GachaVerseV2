@@ -33,6 +33,20 @@ describe('GachaDle — défi du jour', () => {
     expect(useGameStore.getState().dleBestStreak).toBe(6);
   });
 
+  it('garde les 2 dernières victoires pour le classement du jour et de la veille', () => {
+    const wrong = (d: string) => DLE_POOL.find(c => c.id !== getDailyTarget(d).id)!.id;
+    useGameStore.getState().submitDleDailyGuess('2026-09-27', wrong('2026-09-27'));
+    win('2026-09-27');
+    win('2026-09-28');
+    win('2026-09-29');
+    expect(useGameStore.getState().dleRecentWins).toEqual([
+      { date: '2026-09-29', guesses: 1 }, { date: '2026-09-28', guesses: 1 },
+    ]);
+    // Un essai raté le lendemain écrase dleDailyGuesses, pas les victoires gardées.
+    useGameStore.getState().submitDleDailyGuess('2026-09-30', wrong('2026-09-30'));
+    expect(useGameStore.getState().dleRecentWins[0]).toEqual({ date: '2026-09-29', guesses: 1 });
+  });
+
   it('la série affichée tombe à 0 après un jour manqué', () => {
     expect(getDleCurrentStreak(4, '2026-09-27', '2026-09-28')).toBe(4);
     expect(getDleCurrentStreak(4, '2026-09-26', '2026-09-28')).toBe(0);
@@ -45,7 +59,7 @@ describe('GachaDle — quêtes', () => {
   beforeEach(() => useGameStore.getState().resetGame());
 
   it('réclame une quête accomplie une seule fois', () => {
-    useGameStore.getState().recordDleFreeWin(4, 'R');
+    useGameStore.setState({ dleGamesWon: 1, dleBestGuesses: 4, dleRaritiesFound: ['R'] });
     const gems = useGameStore.getState().nekoGems;
     const s = useGameStore.getState();
     s.claimDleQuest('dle_guesses_6');

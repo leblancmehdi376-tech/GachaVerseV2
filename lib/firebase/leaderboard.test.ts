@@ -1,8 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updatePlayerScore } from './leaderboard';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { extractDleWins, getLeaderboardEntries, rankByDleGuesses, updatePlayerScore, type LeaderboardEntry } from './leaderboard';
 
 const setDocMock    = vi.fn(async (..._args: unknown[]) => {});
 const updateDocMock = vi.fn(async (..._args: unknown[]) => {});
+const getDocsMock   = vi.fn(async (..._args: unknown[]) => ({
+  docs: [{ id: 'uid1', data: () => ({ username: 'Neko', palier: 3 }) }],
+}));
 
 // doc() renvoie un objet distinguable {col, id} — assez pour vérifier QUEL
 // document (saves/{uid} vs users/{uid}) reçoit quel appel, sans avoir besoin
@@ -13,7 +16,7 @@ vi.mock('firebase/firestore', () => ({
   updateDoc:       (...args: unknown[]) => updateDocMock(...args),
   serverTimestamp: vi.fn(() => 'SERVER_TIMESTAMP'),
   collection:      vi.fn(),
-  getDocs:         vi.fn(),
+  getDocs:         (...args: unknown[]) => getDocsMock(...args),
   query:           vi.fn(),
   limit:           vi.fn(),
 }));
@@ -71,5 +74,74 @@ describe('updatePlayerScore — synchro username entre saves/{uid} et users/{uid
     expect(setDocMock).toHaveBeenCalledTimes(1);
     const savesPatch = setDocMock.mock.calls[0][1] as { username: string };
     expect(savesPatch.username).toBe('Ancien');
+  });
+});
+
+describe('Classement GachaDle', () => {
+  it("lit les victoires récentes (aujourd'hui + hier) depuis dleRecentWins", () => {
+    const { dleWins } = extractDleWins({
+      dleDailyDate: '2026-09-29', dleLastWinDate: '2026-09-29', dleDailyGuesses: ['a', 'b', 'c'],
+      dleRecentWins: [{ date: '2026-09-29', guesses: 3 }, { date: '2026-09-28', guesses: 5 }],
+    });
+    expect(dleWins).toEqual({ '2026-09-29': 3, '2026-09-28': 5 });
+  });
+
+  it("garde la victoire d'hier même quand les essais du jour l'ont écrasée", () => {
+    // Joueur qui a gagné hier en 4 et vient de faire un 1er essai raté aujourd'hui.
+    const { dleWins } = extractDleWins({
+      dleDailyDate: '2026-09-29', dleLastWinDate: '2026-09-28', dleDailyGuesses: ['x'],
+      dleRecentWins: [{ date: '2026-09-28', guesses: 4 }],
+    });
+    expect(dleWins).toEqual({ '2026-09-28': 4 });
+  });
+
+  it('retombe sur les essais du jour pour les saves antérieures à dleRecentWins', () => {
+    expect(extractDleWins({ dleDailyDate: '2026-09-28', dleLastWinDate: '2026-09-28', dleDailyGuesses: ['a', 'b'] }).dleWins)
+      .toEqual({ '2026-09-28': 2 });
+    expect(extractDleWins({ dleDailyDate: '2026-09-29', dleLastWinDate: '2026-09-28', dleDailyGuesses: ['a'] }).dleWins).toEqual({});
+    expect(extractDleWins({}).dleWins).toEqual({});
+  });
+
+  it('trie par essais croissants, ne garde que le jour demandé et partage les rangs ex æquo', () => {
+    const e = (uid: string, dleWins: Record<string, number>) => ({ uid, username: uid, dleWins }) as unknown as LeaderboardEntry;
+    const entries = [
+      e('d', { '2026-09-29': 5 }), e('b', { '2026-09-29': 2 }), e('c', { '2026-09-29': 2, '2026-09-28': 1 }),
+      e('old', { '2026-09-28': 3 }), e('a', { '2026-09-29': 1 }),
+    ];
+    expect(rankByDleGuesses(entries, '2026-09-29').map(r => [r.entry.uid, r.guesses, r.rank]))
+      .toEqual([['a', 1, 1], ['b', 2, 2], ['c', 2, 2], ['d', 5, 4]]);
+    expect(rankByDleGuesses(entries, '2026-09-28').map(r => [r.entry.uid, r.rank])).toEqual([['c', 1], ['old', 2]]);
+  });
+});
+
+describe('getLeaderboardEntries — aucune lecture Firestore en trop', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    getDocsMock.mockClear();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('ne relit jamais rien tout seul, même page ouverte pendant des heures', async () => {
+    await getLeaderboardEntries(true);
+    expect(getDocsMock).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(3 * 3600_000);
+    expect(getDocsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("réutilise le cache pendant 2 min (retour sur la page, changement d'onglet)", async () => {
+    await getLeaderboardEntries(true);
+    await getLeaderboardEntries();
+    await vi.advanceTimersByTimeAsync(119_000);
+    await getLeaderboardEntries();
+    expect(getDocsMock).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(2_000);
+    await getLeaderboardEntries();
+    expect(getDocsMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('relit seulement sur demande explicite (bouton Actualiser)', async () => {
+    await getLeaderboardEntries(true);
+    await getLeaderboardEntries(true);
+    expect(getDocsMock).toHaveBeenCalledTimes(2);
   });
 });

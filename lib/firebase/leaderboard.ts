@@ -26,6 +26,11 @@ export interface LeaderboardEntry {
   // Profil public (popup au clic dans le classement) — même principe : tout
   // est extrait du doc `saves/{uid}` déjà lu, zéro lecture en plus.
   profile: LeaderboardProfile;
+  // Défi GachaDle — mêmes champs `saves/{uid}` que la sauvegarde cloud
+  // (dleRecentWins, + dleDailyDate/dleDailyGuesses/dleLastWinDate pour les
+  // saves plus anciennes) : zéro lecture en plus. Jour ('2026-09-29') →
+  // nombre d'essais pour chaque défi réussi encore connu (aujourd'hui, hier).
+  dleWins: Record<string, number>;
 }
 
 export interface LeaderboardTeamMember {
@@ -84,7 +89,73 @@ export function extractProfile(data: Record<string, unknown>): LeaderboardProfil
   };
 }
 
-export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEntry[]> {
+// Défis réussis encore connus dans le doc, par jour. `dleRecentWins` garde
+// les 2 dernières victoires ; les saves antérieures à ce champ n'ont que les
+// essais de `dleDailyDate`, exploitables seulement si ce jour a été gagné.
+export function extractDleWins(data: Record<string, unknown>): { dleWins: Record<string, number> } {
+  const dleWins: Record<string, number> = {};
+  const date = typeof data.dleDailyDate === 'string' ? data.dleDailyDate : '';
+  const guesses = Array.isArray(data.dleDailyGuesses) ? data.dleDailyGuesses.length : 0;
+  if (date && data.dleLastWinDate === date && guesses > 0) dleWins[date] = guesses;
+  if (Array.isArray(data.dleRecentWins)) {
+    for (const w of data.dleRecentWins as { date?: unknown; guesses?: unknown }[]) {
+      if (typeof w?.date === 'string' && typeof w.guesses === 'number' && w.guesses > 0) dleWins[w.date] = w.guesses;
+    }
+  }
+  return { dleWins };
+}
+
+// Cache mémoire partagé par tous les classements (palier, GachaDle) : revenir
+// sur la page Classement ou changer d'onglet dans le TTL ne relit rien. Le
+// bouton "Actualiser" (déjà limité à 1 appel / 15s) le contourne via `force`.
+const CACHE_TTL_MS = 120_000;
+let cache: { at: number; entries: Promise<LeaderboardEntry[]> } | null = null;
+
+/**
+ * Tous les joueurs lus (dédupliqués par pseudo), non triés. Un seul appel
+ * alimente les deux classements — ~100 lectures au plus, 0 si le cache est frais.
+ */
+export function getLeaderboardEntries(force = false): Promise<LeaderboardEntry[]> {
+  if (!force && cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.entries;
+  const entries = fetchLeaderboardEntries();
+  cache = { at: Date.now(), entries };
+  // Échec réseau (liste vide) : ne pas le garder en cache pendant 2 min.
+  entries.then(list => { if (list.length === 0 && cache?.entries === entries) cache = null; });
+  return entries;
+}
+
+/** Tri par palier maximum atteint DESC puis Pixel-Coins DESC. */
+export function rankByPalier(entries: LeaderboardEntry[], maxEntries = 50): LeaderboardEntry[] {
+  // Le palier max ne redescend jamais après un prestige, contrairement au palier courant.
+  return [...entries]
+    .sort((a, b) => b.maxPalierReached - a.maxPalierReached || bnCompare(b.pixelCoins, a.pixelCoins))
+    .slice(0, maxEntries);
+}
+
+export interface DleRankingRow { entry: LeaderboardEntry; guesses: number; rank: number }
+
+/**
+ * Classement du défi GachaDle d'un jour : joueurs l'ayant réussi, par nombre
+ * d'essais croissant. Les ex æquo partagent le même rang (1, 1, 3...).
+ */
+export function rankByDleGuesses(entries: LeaderboardEntry[], dateKey: string): DleRankingRow[] {
+  const sorted = entries
+    .filter(e => (e.dleWins?.[dateKey] ?? 0) > 0)
+    .map(entry => ({ entry, guesses: entry.dleWins[dateKey] }))
+    .sort((a, b) => a.guesses - b.guesses || a.entry.username.localeCompare(b.entry.username, 'fr'));
+  const rows: DleRankingRow[] = [];
+  sorted.forEach(({ entry, guesses }, i) => {
+    const prev = rows[i - 1];
+    rows.push({ entry, guesses, rank: prev && prev.guesses === guesses ? prev.rank : i + 1 });
+  });
+  return rows;
+}
+
+export async function getTopLeaderboard(maxEntries = 50, force = false): Promise<LeaderboardEntry[]> {
+  return rankByPalier(await getLeaderboardEntries(force), maxEntries);
+}
+
+async function fetchLeaderboardEntries(): Promise<LeaderboardEntry[]> {
   if (!db) return [];
   try {
     // Récupère un lot de documents et trie côté client — évite les problèmes
@@ -127,6 +198,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
         palier, maxPalierReached, wave, pixelCoins, score, totalDps, prestigeLevel, activeTitle,
         selectedAvatarChampionId, avatarFormIndex,
         profile: extractProfile(data),
+        ...extractDleWins(data),
       };
     });
 
@@ -139,13 +211,7 @@ export async function getTopLeaderboard(maxEntries = 50): Promise<LeaderboardEnt
         seen.set(key, entry);
       }
     }
-    const deduped = Array.from(seen.values());
-
-    // Tri par palier maximum atteint DESC puis Pixel-Coins DESC — le palier max
-    // ne redescend jamais après un prestige, contrairement au palier courant.
-    return deduped
-      .sort((a, b) => b.maxPalierReached - a.maxPalierReached || bnCompare(b.pixelCoins, a.pixelCoins))
-      .slice(0, maxEntries);
+    return Array.from(seen.values());
   } catch (e) {
     logger.error('Leaderboard error:', e);
     return [];

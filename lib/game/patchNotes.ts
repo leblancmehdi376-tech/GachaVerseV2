@@ -19,17 +19,31 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '28/09/2026',
-    title: 'GachaDle : récompenses et quêtes',
+    date: '29/09/2026',
+    title: 'Maj v2.7.0',
     sections: [
+      {
+        icon: '🔎',
+        title: 'Nouvelle activité : GachaDle',
+        changes: [
+          "Nouvelle page **GachaDle** dans **Activités** : devine le personnage mystère !",
+          "À chaque essai, la **rareté**, le **type** et l'**univers** s'affichent en **vert** (correct) ou **rouge** (faux).",
+          "Case **Genre** : masculin, féminin, mixte (duo) ou autre (créatures, robots, objets...).",
+          "Le **type** passe en **orange** quand il est voisin de celui du mystère dans le cycle des types (il le bat ou se fait battre par lui).",
+          "Case **Formes** : le nombre de formes du personnage (1 s'il n'évolue pas).",
+          "Pour la rareté et les formes, une flèche **▲/▼** indique si le mystère a une valeur plus haute ou plus basse.",
+          "En tapant un nom, des **propositions** apparaissent au fur et à mesure (flèches + Entrée pour choisir).",
+          "**Défi du jour** : le même personnage pour tout le monde, renouvelé chaque jour à **2h**, en même temps que les **quêtes journalières**. **Partie libre** : autant de parties que tu veux.",
+        ],
+      },
       {
         icon: '📅',
         title: 'Défi du jour',
         changes: [
-          "Réussir le **défi du jour** rapporte maintenant **100 💎**.",
+          "Réussir le **défi du jour** rapporte **100 💎**.",
           "Enchaîne les jours pour faire monter ta **série 🔥** : la récompense grimpe jusqu'à **150 💎** à partir de **5 jours** d'affilée.",
           "Rater un jour remet la série à zéro.",
-          "Ta progression du défi du jour est maintenant **sauvegardée dans le cloud**.",
+          "Ta progression du défi du jour est **sauvegardée dans le cloud**.",
         ],
       },
       {
@@ -40,30 +54,36 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "**Séries** de 3 à 30 jours, victoires en **moins de 10, 6, 3 ou 2 essais**, **1 à 30 parties** jouées.",
           "Trouve un personnage de **chaque rareté**, de Commun à **Transcendant**.",
           "Accomplis-les toutes pour un bonus de **900 💎**.",
-          "Les parties, essais et raretés comptent aussi en **partie libre** (pas les séries).",
+          "Seuls les **défis du jour** réussis comptent : les **parties libres** ne font pas progresser les quêtes.",
         ],
       },
       {
         icon: '🏆',
-        title: 'Succès',
+        title: 'Classement et succès',
         changes: [
+          "Nouvel onglet **GachaDle du jour** dans le **Classement** : les joueurs sont classés selon le **nombre d'essais** pour trouver le personnage du jour.",
+          "Moins d'essais = meilleure place ; les **ex æquo** partagent le même rang. Le classement repart à zéro en même temps que les **quêtes journalières**.",
+          "Ta victoire est envoyée tout de suite : elle apparaît dans le classement dès la prochaine actualisation.",
+          "Bascule **Aujourd'hui / Hier** pour revoir le classement du défi de la veille.",
           "Nouveau succès **Pro du GachaverseDLE** : termine toutes les quêtes GachaDle pour débloquer le titre du même nom (**+10 %** d'or).",
         ],
       },
-    ],
-  },
-  {
-    date: '28/09/2026',
-    title: 'Nouvelle activité : GachaDle',
-    changes: [
-      "Nouvelle page **GachaDle** dans **Activités** : devine le personnage mystère !",
-      "À chaque essai, la **rareté**, le **type** et l'**univers** s'affichent en **vert** (correct) ou **rouge** (faux).",
-      "Nouvelle case **Genre** : masculin, féminin, mixte (duo) ou autre (créatures, robots, objets...).",
-      "Le **type** passe en **orange** quand il est voisin de celui du mystère dans le cycle des types (il le bat ou se fait battre par lui).",
-      "Nouvelle case **Formes** : le nombre de formes du personnage (1 s'il n'évolue pas).",
-      "Pour la rareté et les formes, une flèche **▲/▼** indique si le mystère a une valeur plus haute ou plus basse.",
-      "En tapant un nom, des **propositions** apparaissent au fur et à mesure (flèches + Entrée pour choisir).",
-      "**Défi du jour** : le même personnage pour tout le monde, renouvelé chaque jour. **Partie libre** : autant de parties que tu veux.",
+      {
+        icon: '🧭',
+        title: 'Expéditions',
+        changes: [
+          "Expédition **Monde des Douzes** : chance d'obtenir un **Œuf de Dragon Primordial** réduite de **75 %** à **25 %**.",
+        ],
+      },
+      {
+        icon: '🙈',
+        title: 'Anti-spoil',
+        changes: [
+          "Pour un univers coché, les personnages gardent désormais l'illustration de leur **forme de base**, quelle que soit leur évolution (avant : seulement la forme précédente).",
+          "Les cartes de la **bannière du Gacha** respectent maintenant aussi l'anti-spoil.",
+          "Chaque univers de la liste affiche le **logo de sa synergie**.",
+        ],
+      },
     ],
   },
   {

@@ -131,6 +131,7 @@ export function getSerializableState() {
     dleStreak:        s.dleStreak ?? 0,
     dleBestStreak:    s.dleBestStreak ?? 0,
     dleLastWinDate:   s.dleLastWinDate ?? '',
+    dleRecentWins:    s.dleRecentWins ?? [],
     dleGamesWon:      s.dleGamesWon ?? 0,
     dleBestGuesses:   s.dleBestGuesses ?? 0,
     dleRaritiesFound: s.dleRaritiesFound ?? [],

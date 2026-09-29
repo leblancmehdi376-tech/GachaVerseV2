@@ -1,20 +1,25 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
-import { getTopLeaderboard, updatePlayerScore, LeaderboardEntry } from '@/lib/firebase/leaderboard';
+import {
+  getLeaderboardEntries, rankByDleGuesses, rankByPalier, updatePlayerScore, extractDleWins,
+  type DleRankingRow, type LeaderboardEntry,
+} from '@/lib/firebase/leaderboard';
+import { getDleDateKey, getPreviousDleDateKey } from '@/lib/game/gachadle';
 import { PageScroll } from '@/components/ui/Page';
 import { AvatarVisual } from '@/components/layout/AvatarVisual';
 import { getCharacterById } from '@/lib/game/characters';
 import { PlayerProfileModal } from '@/components/pages/leaderboard/PlayerProfileModal';
+import { Countdown } from '@/components/pages/QuestsPage';
 
-// Chaque appel à getTopLeaderboard coûte ~100 lectures Firestore — sans
-// cooldown, spammer le bouton "Actualiser" spammerait autant d'appels à
-// 100 lectures chacun.
+// Chaque appel à getLeaderboardEntries coûte ~100 lectures Firestore (hors
+// cache) — sans cooldown, spammer le bouton "Actualiser" spammerait autant
+// d'appels à 100 lectures chacun.
 const REFRESH_COOLDOWN_MS = 15_000;
 // handleSaveName écrit sur Firestore (updatePlayerScore) puis refait un
-// getTopLeaderboard (~100 lectures) — même logique de cooldown pour éviter
+// getLeaderboardEntries (~100 lectures) — même logique de cooldown pour éviter
 // qu'un spam du bouton SAUVEGARDER multiplie écritures + lectures.
 const SAVE_NAME_COOLDOWN_MS = 15_000;
 
@@ -28,12 +33,35 @@ export function getRankDisplay(idx: number): string {
   return idx < 5 ? (RANK_ICONS[idx] ?? `#${idx+1}`) : `#${idx+1}`;
 }
 
+export type DleDay = 'today' | 'yesterday';
+
+/** Jour affiché par l'onglet GachaDle : aujourd'hui ou la veille. */
+export function getDleDayKey(day: DleDay, todayKey: string): string {
+  return day === 'today' ? todayKey : getPreviousDleDateKey(todayKey);
+}
+
+/**
+ * Lignes du classement GachaDle pour le jour choisi. Mes propres victoires
+ * viennent du store local (toujours à jour) plutôt que de la copie Firestore,
+ * qui peut dater de la dernière sauvegarde.
+ */
+export function getDleRanking(
+  entries: LeaderboardEntry[], day: DleDay, todayKey: string,
+  me?: { uid: string; data: Record<string, unknown> },
+): DleRankingRow[] {
+  const myWins = me ? extractDleWins(me.data) : null;
+  const merged = me && myWins ? entries.map(e => e.uid === me.uid ? { ...e, ...myWins } : e) : entries;
+  return rankByDleGuesses(merged, getDleDayKey(day, todayKey));
+}
+
 export function LeaderboardPage() {
   const { user } = useAuth();
   const { username, palier, maxPalierReached, wave, pixelCoins, setUsername, getTotalDps } = useGameStore();
 
   const [loading,   setLoading]   = useState(true);
-  const [entries,   setEntries]   = useState<LeaderboardEntry[]>([]);
+  const [allEntries, setAllEntries] = useState<LeaderboardEntry[]>([]);
+  const [tab,       setTab]       = useState<'palier' | 'dle'>('palier');
+  const [dleDay,    setDleDay]    = useState<DleDay>('today');
   const [nameInput, setNameInput] = useState(username || '');
   const [feedback,  setFeedback]  = useState<{ ok: boolean; msg: string } | null>(null);
   const [saving,    setSaving]    = useState(false);
@@ -43,9 +71,11 @@ export function LeaderboardPage() {
   const lastLoadAtRef = useRef(0);
   const lastSaveNameAtRef = useRef(0);
 
-  const loadEntries = async () => {
+  // Les deux onglets (palier, GachaDle) sont calculés à partir de la MÊME
+  // lecture — changer d'onglet ne coûte rien.
+  const loadEntries = async (force: boolean) => {
     setLoading(true);
-    setEntries(await getTopLeaderboard(50));
+    setAllEntries(await getLeaderboardEntries(force));
     lastLoadAtRef.current = Date.now();
     setLoading(false);
   };
@@ -62,14 +92,15 @@ export function LeaderboardPage() {
       return;
     }
     setRefreshFeedback(null);
-    loadEntries();
+    loadEntries(true);
   };
 
   // Chargement initial uniquement — pas d'auto-refresh : un onglet Classement
   // laissé ouvert ne doit pas facturer des lectures Firestore indéfiniment
-  // (chaque appel à getTopLeaderboard coûte ~100 lectures). Le joueur peut
-  // rafraîchir manuellement via le bouton.
-  useEffect(() => { loadEntries(); }, []);
+  // (chaque appel coûte ~100 lectures). Revenir sur la page dans les 2 min
+  // réutilise le cache de getLeaderboardEntries. Le joueur peut rafraîchir
+  // manuellement via le bouton.
+  useEffect(() => { loadEntries(false); }, []);
 
   // Sync input si le username change dans le store (ex: chargé depuis Firestore),
   // fait pendant le rendu plutôt que dans un effet (pas de rendu intermédiaire).
@@ -97,16 +128,35 @@ export function LeaderboardPage() {
       await updatePlayerScore(user.uid, { username: final, palier, maxPalierReached, wave, pixelCoins, totalDps: getTotalDps() });
       lastSaveNameAtRef.current = Date.now();
       setFeedback({ ok:true, msg:'Pseudo enregistré !' });
-      await loadEntries(); // refresh immédiat pour voir le nouveau pseudo
+      await loadEntries(true); // refresh immédiat pour voir le nouveau pseudo
     } catch {
       setFeedback({ ok:false, msg:'Erreur réseau, réessaie.' });
     }
     setSaving(false);
   };
 
+  // Ma propre victoire GachaDle vient du store local (toujours à jour), pas
+  // de la copie Firestore qui peut dater de la dernière sauvegarde.
+  const dleDailyDate    = useGameStore(s => s.dleDailyDate);
+  const dleDailyGuesses = useGameStore(s => s.dleDailyGuesses);
+  const dleLastWinDate  = useGameStore(s => s.dleLastWinDate);
+  const dleRecentWins   = useGameStore(s => s.dleRecentWins);
+  const todayKey = getDleDateKey();
+
+  // Rang palier sur TOUS les joueurs lus (pour la popup profil ouverte depuis
+  // l'onglet GachaDle), affichage limité au top 50.
+  const byPalier = useMemo(() => rankByPalier(allEntries, Infinity), [allEntries]);
+  const entries  = byPalier.slice(0, 50);
+  // Les deux jours viennent de la même lecture : basculer ne coûte rien.
+  const dleRows = useMemo(() => getDleRanking(allEntries, dleDay, todayKey, user
+    ? { uid: user.uid, data: { dleDailyDate, dleDailyGuesses, dleLastWinDate, dleRecentWins } }
+    : undefined,
+  ), [allEntries, dleDay, todayKey, user, dleDailyDate, dleDailyGuesses, dleLastWinDate, dleRecentWins]);
+  const myDleRow = dleRows.find(r => r.entry.uid === user?.uid);
+
   const myEntry = entries.find(e => e.uid === user?.uid);
   const myRank  = myEntry ? entries.indexOf(myEntry) + 1 : null;
-  const profileIdx = profileUid ? entries.findIndex(e => e.uid === profileUid) : -1;
+  const profileIdx = profileUid ? byPalier.findIndex(e => e.uid === profileUid) : -1;
 
   return (
     <>
@@ -197,7 +247,27 @@ export function LeaderboardPage() {
           </div>
         </div>
 
+        {/* Onglets — même lecture Firestore pour les deux */}
+        <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+          {([['palier', '🏆 Palier max'], ['dle', '📅 GachaDle du jour']] as const).map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)}
+              style={{ padding:'8px 14px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', cursor:'pointer',
+                background: tab === id ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${tab === id ? '#fbbf24' : 'var(--border)'}`,
+                color: tab === id ? '#fbbf24' : 'var(--text-muted)' }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'dle' && (
+          <DleDailyTable rows={dleRows} loading={loading} myUid={user?.uid} day={dleDay} onDayChange={setDleDay}
+            myRow={myDleRow} iWonDay={(dleRecentWins ?? []).some(w => w.date === getDleDayKey(dleDay, todayKey))}
+            onOpenProfile={setProfileUid} />
+        )}
+
         {/* Tableau */}
+        {tab === 'palier' && (
         <div className="panel" style={{ padding:'20px' }}>
           <div style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'var(--text)', letterSpacing:'1px', marginBottom:'16px' }}>
             TOP {entries.length} JOUEURS
@@ -231,18 +301,7 @@ export function LeaderboardPage() {
                         rognerait le glow de l'avatar à ras de sa boîte (effet "carré"),
                         l'ellipsis du pseudo/titre est déjà géré par les divs internes. */}
                     <div className="leaderboard-name" style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
-                      {(() => {
-                        const tpl = entry.selectedAvatarChampionId ? getCharacterById(entry.selectedAvatarChampionId) : null;
-                        return (
-                          <AvatarVisual
-                            size={32}
-                            champion={tpl ? { templateId: tpl.id, formIndex: entry.avatarFormIndex, name: tpl.name, rarity: tpl.rarity } : null}
-                            fallbackLetter={entry.username.charAt(0).toUpperCase()}
-                            maxPalierReached={entry.maxPalierReached}
-                            tooltip={tpl?.name ?? entry.username}
-                          />
-                        );
-                      })()}
+                      <PlayerAvatar entry={entry} />
                       <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0, overflow:'hidden' }}>
                         <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                           {entry.username}{isMe && ' (toi)'}
@@ -281,17 +340,112 @@ export function LeaderboardPage() {
             </div>
           )}
         </div>
+        )}
 
     </PageScroll>
     {profileIdx >= 0 && (
       <PlayerProfileModal
-        entry={entries[profileIdx]}
+        entry={byPalier[profileIdx]}
         rank={profileIdx + 1}
         rankColor={getRankColor(profileIdx)}
-        isMe={entries[profileIdx].uid === user?.uid}
+        isMe={byPalier[profileIdx].uid === user?.uid}
         onClose={() => setProfileUid(null)}
       />
     )}
     </>
+  );
+}
+
+function PlayerAvatar({ entry }: { entry: LeaderboardEntry }) {
+  const tpl = entry.selectedAvatarChampionId ? getCharacterById(entry.selectedAvatarChampionId) : null;
+  return (
+    <AvatarVisual
+      size={32}
+      champion={tpl ? { templateId: tpl.id, formIndex: entry.avatarFormIndex, name: tpl.name, rarity: tpl.rarity } : null}
+      fallbackLetter={entry.username.charAt(0).toUpperCase()}
+      maxPalierReached={entry.maxPalierReached}
+      tooltip={tpl?.name ?? entry.username}
+    />
+  );
+}
+
+// Classement du défi du jour (ou de la veille) : moins d'essais = mieux, ex æquo au même rang.
+// N'affiche que le nombre d'essais, jamais les personnages proposés (pas de
+// spoiler du personnage mystère).
+function DleDailyTable({ rows, loading, myUid, day, onDayChange, myRow, iWonDay, onOpenProfile }: {
+  rows: DleRankingRow[];
+  loading: boolean;
+  myUid: string | undefined;
+  day: DleDay;
+  onDayChange: (day: DleDay) => void;
+  myRow: DleRankingRow | undefined;
+  iWonDay: boolean;
+  onOpenProfile: (uid: string) => void;
+}) {
+  const today = day === 'today';
+  const emptyStyle = { fontFamily:'var(--f-ui)', fontSize:'13.4px', color:'var(--text-dim)', padding:'20px 0' } as const;
+  return (
+    <div className="panel" style={{ padding:'20px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'6px' }}>
+        <div style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'var(--text)', letterSpacing:'1px' }}>
+          {today ? 'DÉFI GACHADLE DU JOUR' : "DÉFI GACHADLE D'HIER"}
+        </div>
+        <div style={{ display:'flex', gap:'4px', marginLeft:'auto' }}>
+          {([['today', "Aujourd'hui"], ['yesterday', 'Hier']] as const).map(([id, label]) => (
+            <button key={id} onClick={() => onDayChange(id)}
+              style={{ padding:'4px 10px', borderRadius:'6px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', cursor:'pointer',
+                background: day === id ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${day === id ? '#c084fc' : 'var(--border)'}`,
+                color: day === id ? '#c084fc' : 'var(--text-muted)' }}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-muted)', marginBottom:'16px' }}>
+        {myRow
+          ? <>{today ? 'Tu es classé' : 'Tu as fini'} <span style={{ color:'#fbbf24', fontWeight:700 }}>#{myRow.rank}</span> sur {rows.length} avec <b>{myRow.guesses}</b> essai{myRow.guesses > 1 ? 's' : ''}.</>
+          : iWonDay ? 'Ta victoire apparaîtra ici à la prochaine actualisation.'
+          : today ? 'Trouve le personnage du jour dans le GachaDle pour entrer dans le classement !'
+          : "Tu n'as pas trouvé le personnage d'hier."}
+        {' '}Nouveau classement dans <Countdown type="daily" />, en même temps que les quêtes journalières.
+      </div>
+      {loading && rows.length === 0 ? (
+        <div style={emptyStyle}>Chargement…</div>
+      ) : rows.length === 0 ? (
+        <div style={emptyStyle}>{today ? "Personne n'a encore trouvé le personnage du jour." : "Personne n'a trouvé le personnage d'hier."}</div>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+          {rows.map(({ entry, guesses, rank }) => {
+            const isMe = entry.uid === myUid;
+            return (
+              <div key={entry.uid} role="button" tabIndex={0} title={`Voir le profil de ${entry.username}`}
+                onClick={() => onOpenProfile(entry.uid)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenProfile(entry.uid); } }}
+                style={{
+                  display:'grid', gridTemplateColumns:'48px 1fr auto', alignItems:'center', gap:'8px', cursor:'pointer',
+                  padding:'10px 16px', borderRadius:'10px',
+                  background: isMe ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
+                  border: isMe ? '1px solid rgba(168,85,247,0.4)' : '1px solid var(--border)',
+                }}>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize: rank <= 3 ? '20px' : '14px', color:getRankColor(rank - 1), textAlign:'center' }}>
+                  {getRankDisplay(rank - 1)}
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
+                  <PlayerAvatar entry={entry} />
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {entry.username}{isMe && ' (toi)'}
+                  </div>
+                </div>
+                <div style={{ textAlign:'center', minWidth:70 }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)' }}>ESSAIS</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.5px', color:'#fbbf24' }}>{guesses}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import { affinityBeatenBy, affinityBeats, getAffinityForId, type Affinity } from
 import { getCardFormCount } from '@/lib/game/cardAssets';
 import { getCharacterGender } from '@/lib/game/characterGenders';
 import { COLLECTION_RARITY_ORDER, normalizeSearch } from '@/lib/game/collectionFilters';
+import { getTodayDayKey } from '@/lib/game/shop';
 import { DLE_QUESTS, type DleQuestDef } from './gachadleQuests';
 
 /** Personnages devinables : tout le roster sauf le stub héros. */
@@ -60,8 +61,14 @@ function hashStr(s: string): number {
   return Math.abs(h | 0);
 }
 
-/** Clé du jour (heure locale), ex. '2026-09-28'. */
-export function getDleDateKey(d: Date = new Date()): string {
+/**
+ * Clé du jour du défi, ex. '2026-09-28'. Sans argument : même jour que les
+ * quêtes journalières (reset à 2h du matin, heure de Paris — getTodayDayKey),
+ * pour que le personnage mystère change en même temps qu'elles. Avec une
+ * date : simple formatage de ce jour-là (heure locale).
+ */
+export function getDleDateKey(d?: Date): string {
+  if (!d) return getTodayDayKey();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${mm}-${dd}`;

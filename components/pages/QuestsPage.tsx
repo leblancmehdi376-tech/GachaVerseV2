@@ -44,7 +44,8 @@ export function getNextResetMs(type: 'daily' | 'weekly'): number {
   }
 }
 
-function Countdown({ type }: { type: 'daily' | 'weekly' }) {
+// Aussi utilisé par le GachaDle et son classement, qui changent de jour au même reset.
+export function Countdown({ type }: { type: 'daily' | 'weekly' }) {
   const [, tick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => tick(n => n + 1), 1000);

@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { PageScroll } from '@/components/ui/Page';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
@@ -15,6 +15,7 @@ import {
 } from '@/lib/game/gachadle';
 import { useGameStore } from '@/store/gameStore';
 import { getDleStats, selectDleCurrentStreak } from '@/store/slices/gachaDleSlice';
+import { Countdown } from '@/components/pages/QuestsPage';
 
 type Mode = 'daily' | 'free';
 const NO_GUESSES: string[] = [];
@@ -123,7 +124,7 @@ function DleQuestsPanel() {
         <span style={{ fontFamily: 'var(--f-num)', fontSize: 12.4, color: 'var(--text-dim)' }}>{doneCount} / {DLE_QUESTS.length}</span>
       </div>
       <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-        Les séries comptent les défis du jour réussis d&apos;affilée. Les parties, essais et raretés comptent aussi en partie libre.
+        Seuls les défis du jour comptent pour les quêtes : les parties libres ne font pas progresser.
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {sorted.map(({ q, p, isClaimed }) => {
@@ -166,7 +167,13 @@ function DleQuestsPanel() {
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export function GachaDlePage() {
-  const dateKey = useMemo(() => getDleDateKey(), []);
+  // Suit le reset de 2h même si la page reste ouverte : sans ça, un essai
+  // envoyé après le reset compterait encore pour le défi de la veille.
+  const [dateKey, setDateKey] = useState(getDleDateKey);
+  useEffect(() => {
+    const id = setInterval(() => setDateKey(getDleDateKey()), 30_000);
+    return () => clearInterval(id);
+  }, []);
   const dailyTarget = useMemo(() => getDailyTarget(dateKey), [dateKey]);
 
   const [mode, setMode] = useState<Mode>('daily');
@@ -175,7 +182,6 @@ export function GachaDlePage() {
   const storedDailyDate = useGameStore(s => s.dleDailyDate);
   const dailyGuesses = storedDailyDate === dateKey ? storedDaily : NO_GUESSES;
   const submitDleDailyGuess = useGameStore(s => s.submitDleDailyGuess);
-  const recordDleFreeWin = useGameStore(s => s.recordDleFreeWin);
   const streak = useGameStore(s => selectDleCurrentStreak(s, dateKey));
   const [freeTarget, setFreeTarget] = useState<CharacterTemplate>(() => getRandomTarget());
   const [freeGuesses, setFreeGuesses] = useState<string[]>([]);
@@ -196,10 +202,7 @@ export function GachaDlePage() {
     if (won || guessedIds.has(tpl.id)) return;
     const next = [...guesses, tpl.id];
     if (mode === 'daily') submitDleDailyGuess(dateKey, tpl.id);
-    else {
-      setFreeGuesses(next);
-      if (tpl.id === target.id) recordDleFreeWin(next.length, target.rarity);
-    }
+    else setFreeGuesses(next);
     setLastGuessId(tpl.id);
     setQuery('');
     setHighlight(0);
@@ -267,7 +270,7 @@ export function GachaDlePage() {
               </div>
               {mode === 'daily' && (
                 <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)', marginTop: 4 }}>
-                  🔥 Série de <b style={{ color: CLOSE.color }}>{streak}</b> jour{streak > 1 ? 's' : ''}. Un nouveau personnage mystère t&apos;attend demain.
+                  🔥 Série de <b style={{ color: CLOSE.color }}>{streak}</b> jour{streak > 1 ? 's' : ''}. Reviens dans <Countdown type="daily" /> pour un nouveau personnage mystère, en même temps que les quêtes journalières.
                 </div>
               )}
             </div>

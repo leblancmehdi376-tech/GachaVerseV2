@@ -11,7 +11,11 @@ import {
   getPreviousDleDateKey, type DleStats,
 } from '@/lib/game/gachadle';
 import { toast } from '@/hooks/useToast';
+import { requestUrgentSave } from '../gameStoreHelpers';
 import type { GameStore, GachaDleActions } from '../gameStore.types';
+
+// Aujourd'hui + hier : tout ce que le classement GachaDle affiche.
+export const DLE_RECENT_WINS_KEPT = 2;
 
 export function getDleStats(s: Pick<GameStore, 'dleBestStreak' | 'dleGamesWon' | 'dleBestGuesses' | 'dleRaritiesFound'>): DleStats {
   return {
@@ -22,7 +26,7 @@ export function getDleStats(s: Pick<GameStore, 'dleBestStreak' | 'dleGamesWon' |
   };
 }
 
-// Stats communes à toute victoire (défi du jour ou partie libre).
+// Stats de quête d'une victoire au défi du jour (les parties libres ne comptent pas).
 function winPatch(s: GameStore, guessCount: number, rarity: Rarity): Partial<GameStore> {
   const found = s.dleRaritiesFound ?? [];
   return {
@@ -60,14 +64,18 @@ export const createGachaDleSlice: StateCreator<GameStore, [], [], GachaDleAction
       dleStreak: streak,
       dleBestStreak: Math.max(s.dleBestStreak ?? 0, streak),
       dleLastWinDate: dateKey,
+      dleRecentWins: [{ date: dateKey, guesses: next.length }, ...(s.dleRecentWins ?? []).filter(w => w.date !== dateKey)]
+        .slice(0, DLE_RECENT_WINS_KEPT),
       nekoGems: s.nekoGems + gems,
     });
+    // Une écriture par joueur et par jour au plus : met la victoire en base
+    // tout de suite pour le classement GachaDle du jour (sinon visible
+    // seulement au prochain cycle de sauvegarde, jusqu'à 10 min plus tard).
+    requestUrgentSave('gachadle_win');
     if (!get().suppressToasts) {
       toast.quest('📅 Défi du jour réussi !', `+${gems} 💎 — série de ${streak} jour${streak > 1 ? 's' : ''}`);
     }
   },
-
-  recordDleFreeWin: (guessCount, rarity) => set(s => winPatch(s, guessCount, rarity)),
 
   claimDleQuest: (id) => {
     const s = get();

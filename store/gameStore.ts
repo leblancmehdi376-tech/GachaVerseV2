@@ -14,7 +14,7 @@ import { generateEnemy } from '@/lib/game/enemies';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels } from '@/lib/game/prestige';
-import type { GameStore, CurrencySnapshot } from './gameStore.types';
+import type { GameStore, CurrencySnapshot, DleWin } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
 import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest, migrateLegacyRaidQuestIds } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
@@ -139,6 +139,7 @@ const makeInitial = () => ({
   dleStreak: 0,
   dleBestStreak: 0,
   dleLastWinDate: '',
+  dleRecentWins: [] as DleWin[],
   dleGamesWon: 0,
   dleBestGuesses: 0,
   dleRaritiesFound: [] as Rarity[],
@@ -401,6 +402,7 @@ export const useGameStore = create<GameStore>()(
         // GachaDle — jamais reset au Prestige.
         dleDailyDate:s.dleDailyDate ?? '', dleDailyGuesses:s.dleDailyGuesses ?? [],
         dleStreak:s.dleStreak ?? 0, dleBestStreak:s.dleBestStreak ?? 0, dleLastWinDate:s.dleLastWinDate ?? '',
+        dleRecentWins:s.dleRecentWins ?? [],
         dleGamesWon:s.dleGamesWon ?? 0, dleBestGuesses:s.dleBestGuesses ?? 0,
         dleRaritiesFound:s.dleRaritiesFound ?? [], dleQuestsClaimed:s.dleQuestsClaimed ?? [],
         // Compadex — jamais reset au Prestige (même traitement qu'historicalMaxRank).

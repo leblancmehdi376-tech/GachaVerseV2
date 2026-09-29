@@ -23,6 +23,12 @@ Each entry looks like:
 
 **Versioning**: entries are grouped under a version number in the `title` (e.g. `'Maj v2.6.1'`). When updating the patch notes, bump the **last** number of the most recent version by 1 (e.g. `2.6.9` → `2.6.10`) and create a new entry with that version as title. Only change another digit when the user explicitly asks for it.
 
+**Before adding an entry, check whether the previous one is already on `main`**:
+1. Read the most recent entry (or entries) at the top of `PATCH_NOTES`.
+2. Compare with `main`: `git fetch origin main` then `git show origin/main:lib/game/patchNotes.ts` (or `git diff origin/main -- lib/game/patchNotes.ts`).
+3. If the previous entry is **already on `main`**, it is published: never edit it, add a new entry with the bumped version as described above.
+4. If the previous entry is **not on `main` yet** (still only on the current branch), don't pile up a new version next to it when that's not needed: **merge your changes into that unpublished entry** (add lines, or switch it to `sections` if it grows), keeping its version number. Also merge several unpublished entries together when they cover related changes, so a single branch ships one or few versions instead of many tiny ones. When merging, remove lines that later changes made outdated or contradictory.
+
 Don't hesitate to use the richer display to keep notes easy to read:
 - Wrap key words in `**double asterisks**` to render them in bold (names, numbers, feature names).
 - Keep each line short: one idea per line.
