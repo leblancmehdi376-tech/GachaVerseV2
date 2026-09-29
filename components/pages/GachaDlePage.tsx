@@ -20,6 +20,25 @@ import { Countdown } from '@/components/pages/QuestsPage';
 type Mode = 'daily' | 'free';
 const NO_GUESSES: string[] = [];
 
+// Partie libre en cours, mémorisée en local uniquement (pas dans la sauvegarde
+// cloud) pour la retrouver en revenant sur la page.
+const FREE_GAME_STORAGE_KEY = 'gv_gachadle_free';
+interface SavedFreeGame { mode: Mode; target: CharacterTemplate; guesses: string[] }
+function loadFreeGame(): SavedFreeGame {
+  try {
+    const raw = localStorage.getItem(FREE_GAME_STORAGE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw) as { mode?: Mode; targetId?: string; guesses?: string[] };
+      const target = DLE_POOL.find(c => c.id === saved.targetId);
+      if (target) {
+        const guesses = Array.isArray(saved.guesses) ? saved.guesses.filter(id => getCharacterById(id)) : [];
+        return { mode: saved.mode === 'free' ? 'free' : 'daily', target, guesses };
+      }
+    }
+  } catch {}
+  return { mode: 'daily', target: getRandomTarget(), guesses: [] };
+}
+
 const OK  = { color: '#4ade80', bg: 'rgba(22,163,74,0.22)',  border: 'rgba(74,222,128,0.55)' };
 const CLOSE = { color: '#fb923c', bg: 'rgba(234,88,12,0.22)', border: 'rgba(251,146,60,0.55)' };
 const BAD = { color: '#f87171', bg: 'rgba(220,38,38,0.18)',  border: 'rgba(248,113,113,0.5)' };
@@ -176,15 +195,21 @@ export function GachaDlePage() {
   }, []);
   const dailyTarget = useMemo(() => getDailyTarget(dateKey), [dateKey]);
 
-  const [mode, setMode] = useState<Mode>('daily');
+  const [initialFree] = useState(loadFreeGame);
+  const [mode, setMode] = useState<Mode>(initialFree.mode);
   // Essais du défi du jour : dans le store (sauvegarde cloud), ignorés s'ils datent d'un autre jour.
   const storedDaily = useGameStore(s => s.dleDailyGuesses);
   const storedDailyDate = useGameStore(s => s.dleDailyDate);
   const dailyGuesses = storedDailyDate === dateKey ? storedDaily : NO_GUESSES;
   const submitDleDailyGuess = useGameStore(s => s.submitDleDailyGuess);
   const streak = useGameStore(s => selectDleCurrentStreak(s, dateKey));
-  const [freeTarget, setFreeTarget] = useState<CharacterTemplate>(() => getRandomTarget());
-  const [freeGuesses, setFreeGuesses] = useState<string[]>([]);
+  const [freeTarget, setFreeTarget] = useState<CharacterTemplate>(initialFree.target);
+  const [freeGuesses, setFreeGuesses] = useState<string[]>(initialFree.guesses);
+  useEffect(() => {
+    try {
+      localStorage.setItem(FREE_GAME_STORAGE_KEY, JSON.stringify({ mode, targetId: freeTarget.id, guesses: freeGuesses }));
+    } catch {}
+  }, [mode, freeTarget, freeGuesses]);
   const [query, setQuery] = useState('');
   const [highlight, setHighlight] = useState(0);
   const [open, setOpen] = useState(false);

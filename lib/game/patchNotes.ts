@@ -20,6 +20,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '29/09/2026',
+    title: 'Maj v2.7.1',
+    changes: [
+      "**GachaDle** : la **partie libre** en cours est maintenant sauvegardée, tu la retrouves en revenant sur la page.",
+    ],
+  },
+  {
+    date: '29/09/2026',
     title: 'Maj v2.7.0',
     sections: [
       {
