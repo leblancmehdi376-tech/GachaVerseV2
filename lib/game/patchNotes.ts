@@ -19,6 +19,18 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '29/09/2026',
+    title: 'Maj v2.6.8',
+    changes: [
+      "La **Boutique** a été entièrement redessinée : même contenu, mêmes prix, présentation plus claire.",
+      "Nouveau titre **BOUTIQUE** avec tes soldes de **BossCrowns** et d'**Orbes du Néant** en haut de page.",
+      "Les sections sont maintenant **côte à côte** sur grand écran pour éviter de faire défiler une longue liste.",
+      "**Boutique du jour** et **Personnages de raid** : cartes plus grandes, avec nom, rareté et prix bien visibles.",
+      "Les chances des **coffres d'équipement** sont regroupées dans un **tableau comparatif**, à côté des coffres.",
+      "Les boutons d'achat gardent la **couleur de leur monnaie** même quand tu n'as pas assez pour acheter.",
+    ],
+  },
+  {
     date: '28/09/2026',
     title: 'Maj v2.6.7',
     changes: [
