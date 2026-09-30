@@ -289,7 +289,7 @@ export function ForgePage() {
   const ownedDrops = PALIER_DROPS.filter(d => (dropInventory[d.id] ?? 0) > 0);
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
+    <div className="page-pad" style={{ height:'100%', overflowY:'auto' }}>
       <div style={{ maxWidth:900, margin:'0 auto', display:'flex', flexDirection:'column', gap:20 }}>
 
         {/* Header */}

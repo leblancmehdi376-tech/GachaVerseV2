@@ -19,6 +19,34 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '30/09/2026',
+    title: 'Maj v2.7.2',
+    sections: [
+      {
+        icon: '📱',
+        title: 'Affichage sur téléphone',
+        changes: [
+          "**GachaDle** : la page n'est plus coupée sur la droite après ta première proposition.",
+          "**Récompenses journalières** : le calendrier passe à **4 jours par ligne**, plus aucun jour coupé.",
+          "**Boutique** : le bouton **+1 emplacement** d'expédition ne dépasse plus de sa carte.",
+          "**Barre du haut** : sur les petits écrans, le logo devient **GV** pour que les gemmes et le calendrier restent visibles.",
+          "**Accueil** : les **4 slots de compagnons** tiennent en entier dans la barre.",
+          "**Infobulles** (cohésion, affinités, compétences, DPS, butin) : elles s'ouvrent d'un appui et se ferment en touchant ailleurs, au lieu de rester bloquées à l'écran.",
+          "**Barre Synergies / Butin / DPS** : quand elle manque de place, ses cases passent à la ligne au lieu de sortir de l'écran.",
+          "Les fenêtres de détail de cette barre (**synergies**, **butin**, **DPS**, **cohésion**) restent toujours **entièrement visibles**, et défilent au doigt si elles sont plus hautes que l'écran.",
+          "Au doigt, un **appui sur la fenêtre** la referme.",
+          "**Quêtes** : en-tête et cartes réorganisés, le bouton **Récupérer** passe en pleine largeur.",
+          "**Expéditions** : les onglets passent à la ligne au lieu de sortir de l'écran.",
+          "**Expéditions**, **Raids**, **Améliorations** et **Inventaire des champions** : plus aucune carte ne dépasse sur les très petits écrans.",
+          "**Compadex** et **Maîtrise** : le bouton d'inversion du tri reste visible.",
+          "**Classement** : les blocs **Pseudo** et **Progression** s'empilent.",
+          "Marges réduites sur la **Boutique**, la **Forge**, les **Expéditions**, les **Paramètres** et les **Améliorations**.",
+          "Zones tactiles agrandies (filtres des **Succès**, repli des quêtes de l'accueil, fermeture du calendrier).",
+        ],
+      },
+    ],
+  },
+  {
     date: '29/09/2026',
     title: 'Maj v2.7.1',
     changes: [

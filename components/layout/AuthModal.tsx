@@ -28,8 +28,8 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
   };
 
   if (user) return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--c-panel)', border: '2px solid var(--c-cyan)', padding: '24px', width: '320px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 0 32px #06b6d444' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 50 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--c-panel)', border: '2px solid var(--c-cyan)', padding: '24px', width: 'min(320px, 100%)', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 0 32px #06b6d444' }}>
         <div style={{ fontFamily: 'var(--font-pixel)', fontSize: '12px', color: 'var(--c-cyan)' }}>CONNECTÉ</div>
         <div style={{ fontFamily: 'var(--font-pixel)', fontSize: '12px', color: 'var(--c-muted)', wordBreak: 'break-all' }}>{user.email}</div>
         <button onClick={() => { logout(); onClose(); }} style={{ padding: '10px', background: '#7f1d1d', border: '1px solid var(--c-red)', color: 'var(--c-red)', cursor: 'pointer', fontFamily: 'var(--font-pixel)', fontSize: '12px' }}>DÉCONNEXION</button>
@@ -39,8 +39,8 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
   );
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--c-panel)', border: '2px solid #8b5cf6', padding: '24px', width: '340px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 0 32px #8b5cf644' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 50 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--c-panel)', border: '2px solid #8b5cf6', padding: '24px', width: 'min(340px, 100%)', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 0 32px #8b5cf644' }}>
         <div style={{ fontFamily: 'var(--font-pixel)', fontSize: '12px', color: '#a78bfa', textAlign: 'center', textShadow: '0 0 8px #8b5cf6' }}>
           {mode === 'signin' ? '🔐 CONNEXION' : '📝 INSCRIPTION'}
         </div>

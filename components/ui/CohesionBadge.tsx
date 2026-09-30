@@ -1,6 +1,8 @@
 "use client";
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useHoverTap } from '@/hooks/useHoverTap';
+import { placePopup } from '@/lib/ui/placePopup';
 import { useGameStore } from '@/store/gameStore';
 import { computeCohesion, COHESION_AMPLITUDE, COHESION_MALUS_FULL_LEVEL, COHESION_FREE_GAP } from '@/lib/game/cohesion';
 
@@ -25,7 +27,7 @@ export function CohesionBadge({ size = 'sm' }: { size?: 'sm' | 'md' }) {
 
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  const { visible, hide, triggerProps, popupProps } = useHoverTap(anchorRef, undefined, tooltipRef);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
   useLayoutEffect(() => {
@@ -33,25 +35,18 @@ export function CohesionBadge({ size = 'sm' }: { size?: 'sm' | 'md' }) {
     const anchor = anchorRef.current;
     const tip = tooltipRef.current;
     if (!anchor || !tip) return;
-    const gap = 10;
-    const aRect = anchor.getBoundingClientRect();
-    const tRect = tip.getBoundingClientRect();
-    let top = aRect.top - tRect.height - gap;
-    if (top < 8) top = aRect.bottom + gap;
-    const left = Math.min(Math.max(aRect.left + aRect.width / 2 - tRect.width / 2, 8), Math.max(window.innerWidth - tRect.width - 8, 8));
-    setPos({ top: Math.round(top), left: Math.round(left) });
+    setPos(placePopup(anchor.getBoundingClientRect(), tip.getBoundingClientRect(), { gap: 10 }));
   }, [visible, r.mult]);
 
   useEffect(() => {
     if (!visible) return;
-    const hide = () => setVisible(false);
     window.addEventListener('resize', hide);
     window.addEventListener('scroll', hide, { passive: true, capture: true });
     return () => {
       window.removeEventListener('resize', hide);
       window.removeEventListener('scroll', hide, { capture: true });
     };
-  }, [visible]);
+  }, [visible, hide]);
 
   const pct = (r.mult - 1) * 100;
   const bad = r.mult < 1;
@@ -72,9 +67,13 @@ export function CohesionBadge({ size = 'sm' }: { size?: 'sm' | 'md' }) {
   const tooltip = (
     <div
       ref={tooltipRef}
+      {...popupProps}
+      // Touchable au doigt (pour être refermée d'un tap), transparente à la souris.
+      className="tap-popup"
       style={{
-        position: 'fixed', top: pos.top, left: pos.left, zIndex: 9999, pointerEvents: 'none',
-        width: 250, padding: '12px 14px', borderRadius: 12,
+        position: 'fixed', top: pos.top, left: pos.left, zIndex: 9999,
+        width: 250, maxWidth: 'calc(100vw - 16px)', maxHeight: 'calc(100dvh - 16px)', overflow: 'hidden',
+        padding: '12px 14px', borderRadius: 12,
         background: 'linear-gradient(180deg, rgba(24,24,30,0.98), rgba(15,15,20,0.98))',
         border: `1px solid ${color}55`,
         boxShadow: `0 0 30px ${color}33, 0 12px 40px rgba(0,0,0,0.6)`,
@@ -124,8 +123,7 @@ export function CohesionBadge({ size = 'sm' }: { size?: 'sm' | 'md' }) {
   return (
     <span
       ref={anchorRef}
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
+      {...triggerProps}
       className={bad ? 'cohesion-badge cohesion-badge--bad' : 'cohesion-badge'}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'help', whiteSpace: 'nowrap',

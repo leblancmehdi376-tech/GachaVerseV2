@@ -162,6 +162,7 @@ export function LeaderboardPage() {
     <>
       <style>{`
         @media (max-width: 640px) {
+          .leaderboard-top { grid-template-columns: 1fr !important; }
           .leaderboard-row {
             grid-template-columns: 40px 1fr !important;
             grid-template-areas: "rank name" "stats stats";
@@ -184,7 +185,7 @@ export function LeaderboardPage() {
     <PageScroll>
 
         {/* Header */}
-        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+        <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:'10px' }}>
           <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:'2px', boxShadow:'0 0 8px #fbbf24' }} />
           <span style={{ fontFamily:'var(--f-title)', fontSize:'16.5px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>🏆 CLASSEMENT</span>
           <button onClick={handleManualRefresh} disabled={loading}
@@ -197,7 +198,7 @@ export function LeaderboardPage() {
         </div>
 
         {/* Pseudo + Ma progression */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+        <div className="leaderboard-top" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
           {/* Pseudo */}
           <div className="panel" style={{ padding:'18px 20px' }}>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'1px', marginBottom:'10px' }}>TON PSEUDO PUBLIC</div>

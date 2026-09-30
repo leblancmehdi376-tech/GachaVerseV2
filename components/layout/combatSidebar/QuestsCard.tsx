@@ -71,7 +71,8 @@ export function QuestsCard({ quests, claimQuest }: { quests: Quest[]; claimQuest
   return (
     <div className="panel panel--flat" style={{ padding:'12px 14px', flex: collapsed ? '0 0 auto' : 1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
       <button onClick={() => setCollapsed(v => !v)}
-        style={{ background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, marginBottom: collapsed ? 0 : '10px' }}>
+        // Zone de clic agrandie (padding) sans décaler le visuel (marges négatives).
+        style={{ background:'none', border:'none', cursor:'pointer', padding:'10px 0', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, margin: collapsed ? '-10px 0' : '-10px 0 0' }}>
         <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text-dim)', letterSpacing:'2px' }}>QUÊTES QUOTIDIENNES</span>
         <span style={{ display:'flex', alignItems:'center', gap:6 }}>
           {claimableCount > 0 && (

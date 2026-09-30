@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useHoverTap } from '@/hooks/useHoverTap';
 import {
   Affinity,
   AFFINITY_CONFIG,
@@ -50,7 +51,7 @@ function MatchupLine({ label, emoji, target, tint }: { label: string; emoji: str
 export function AffinityTooltip({ affinity, children }: { affinity: Affinity; children: React.ReactNode }) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const tooltipRef = useRef<HTMLSpanElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  const { visible, triggerProps } = useHoverTap(anchorRef);
   const [pos, setPos] = useState<{ top: number; left: number; placement: 'top' | 'bottom' }>({ top: 0, left: 0, placement: 'top' });
 
   const config = getAffinityConfig(affinity);
@@ -142,7 +143,7 @@ export function AffinityTooltip({ affinity, children }: { affinity: Affinity; ch
   );
 
   return (
-    <span ref={anchorRef} style={{ display: 'inline-flex' }} onMouseEnter={() => setVisible(true)} onMouseLeave={() => setVisible(false)}>
+    <span ref={anchorRef} style={{ display: 'inline-flex' }} {...triggerProps}>
       {children}
       {visible && createPortal(tooltipContent, document.body)}
     </span>

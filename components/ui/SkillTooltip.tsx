@@ -1,12 +1,13 @@
 "use client";
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useHoverTap } from '@/hooks/useHoverTap';
 import { UltimateDef } from '@/lib/game/ultimates';
 
 export function SkillTooltip({ ult, children }: { ult: UltimateDef | undefined; children: React.ReactNode }) {
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  const { visible, triggerProps } = useHoverTap(anchorRef);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   useLayoutEffect(() => {
@@ -77,7 +78,7 @@ export function SkillTooltip({ ult, children }: { ult: UltimateDef | undefined; 
   );
 
   return (
-    <div ref={anchorRef} onMouseEnter={() => setVisible(true)} onMouseLeave={() => setVisible(false)}>
+    <div ref={anchorRef} {...triggerProps}>
       {children}
       {visible && createPortal(tooltipContent, document.body)}
     </div>

@@ -159,7 +159,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   };
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
+    <div className="page-pad" style={{ height:'100%', overflowY:'auto' }}>
       <div style={{ maxWidth:'600px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'20px' }}>
 
         {/* ── COMPTE ── */}

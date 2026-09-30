@@ -103,7 +103,7 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
 
         <div>
           <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:14 }}>RAIDS DISPONIBLES</div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap:16 }}>
             {RAID_BOSSES.map(raid => {
               const charTpl   = getCharacterById(raid.characterId);
               const charRare  = charTpl ? RARITY_CONFIG[charTpl.rarity] : null;

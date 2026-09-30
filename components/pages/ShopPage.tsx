@@ -96,7 +96,7 @@ export function ShopPage() {
   const starterTimeLeft  = (LAUNCH_TIMESTAMP + STARTER_PACK_WINDOW_MS) - now;
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
+    <div className="page-pad" style={{ height:'100%', overflowY:'auto' }}>
       <div style={{ maxWidth:'820px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'28px' }}>
 
         {/* ── Pack de démarrage Early Access ── */}
@@ -153,7 +153,7 @@ export function ShopPage() {
 
         {/* ══ BOSSCROWN ══════════════════════════════════════════════════ */}
         <div>
-          <div style={{ background:'linear-gradient(135deg,#2a1500,#3d1f00)', border:'1px solid rgba(217,158,34,0.35)', borderRadius:'14px', padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
+          <div style={{ background:'linear-gradient(135deg,#2a1500,#3d1f00)', border:'1px solid rgba(217,158,34,0.35)', borderRadius:'14px', padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'8px 16px', marginBottom:'16px' }}>
             <div>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', fontWeight:600, letterSpacing:'1px', marginBottom:'4px' }}>TON SOLDE</div>
               <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
@@ -162,7 +162,7 @@ export function ShopPage() {
                 <span style={{ fontFamily:'var(--f-ui)', fontSize:'13.4px', color:'var(--text-dim)' }}>BossCrowns</span>
               </div>
             </div>
-            <div style={{ textAlign:'right', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', lineHeight:1.6 }}>
+            <div style={{ marginLeft:'auto', textAlign:'right', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', lineHeight:1.6 }}>
               +1 👑 à chaque boss vaincu
             </div>
           </div>
@@ -203,8 +203,8 @@ export function ShopPage() {
             const maxed     = slotCost === null;
             const canAfford = !maxed && bossCrowns >= slotCost;
             return (
-              <div style={{ background:'var(--bg-card)', border:`1px solid ${maxed?'rgba(74,222,128,0.4)':'var(--border)'}`, borderRadius:'12px', padding:'16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'14px', marginBottom:'20px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+              <div style={{ background:'var(--bg-card)', border:`1px solid ${maxed?'rgba(74,222,128,0.4)':'var(--border)'}`, borderRadius:'12px', padding:'16px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'14px', marginBottom:'20px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'12px', flex:'1 1 200px', minWidth:0 }}>
                   <span style={{ fontSize:'20.6px' }}>🧭</span>
                   <div>
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>Emplacements d&apos;Expédition</div>
@@ -216,7 +216,7 @@ export function ShopPage() {
                 {maxed
                   ? <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'#4ade80', flexShrink:0 }}>✓ MAX</div>
                   : <button onClick={upgradeExpeditionSlot} disabled={!canAfford}
-                      style={{ padding:'9px 16px', background:canAfford?'rgba(251,191,36,0.18)':'rgba(255,255,255,0.03)', border:`1px solid ${canAfford?'#fbbf2466':'var(--border)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canAfford?'#fbbf24':'var(--text-muted)', cursor:canAfford?'pointer':'not-allowed', flexShrink:0, display:'flex', alignItems:'center', gap:'6px' }}>
+                      style={{ padding:'9px 16px', background:canAfford?'rgba(251,191,36,0.18)':'rgba(255,255,255,0.03)', border:`1px solid ${canAfford?'#fbbf2466':'var(--border)'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:canAfford?'#fbbf24':'var(--text-muted)', cursor:canAfford?'pointer':'not-allowed', flexShrink:0, marginLeft:'auto', display:'flex', alignItems:'center', gap:'6px' }}>
                       +1 EMPLACEMENT · 👑{slotCost}
                     </button>
                 }
@@ -271,7 +271,7 @@ export function ShopPage() {
 
         {/* ══ ORBE DU NÉANT ══════════════════════════════════════════════ */}
         <div>
-          <div style={{ background:'linear-gradient(135deg,#1a0d2e,#0d0520)', border:'1px solid rgba(168,85,247,0.35)', borderRadius:'14px', padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
+          <div style={{ background:'linear-gradient(135deg,#1a0d2e,#0d0520)', border:'1px solid rgba(168,85,247,0.35)', borderRadius:'14px', padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'8px 16px', marginBottom:'16px' }}>
             <div>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', fontWeight:600, letterSpacing:'1px', marginBottom:'4px' }}>TON SOLDE</div>
               <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
@@ -280,7 +280,7 @@ export function ShopPage() {
                 <span style={{ fontFamily:'var(--f-ui)', fontSize:'13.4px', color:'var(--text-dim)' }}>Orbes du Néant</span>
               </div>
             </div>
-            <div style={{ textAlign:'right', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', lineHeight:1.6 }}>
+            <div style={{ marginLeft:'auto', textAlign:'right', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', lineHeight:1.6 }}>
               Obtenues en recyclant<br/>les doublons d&apos;un perso 7★
             </div>
           </div>

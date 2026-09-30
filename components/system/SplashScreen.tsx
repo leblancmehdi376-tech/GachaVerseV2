@@ -139,7 +139,7 @@ export function SplashScreen({ onComplete }: Props) {
       </div>
 
       {/* Progress zone */}
-      <div style={{ width: 340, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ width: 'min(340px, calc(100vw - 32px))', display: 'flex', flexDirection: 'column', gap: 10 }}>
 
         {/* Bar track */}
         <div style={{

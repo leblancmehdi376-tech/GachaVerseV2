@@ -168,6 +168,11 @@ export function GameLayout() {
   // les faire rétrécir (flexbox ne les laisserait pas descendre sous leur
   // contenu minimal sans wrap/overflow, d'où le chevauchement observé).
   const isCompactHeader = useIsMobile(1250);
+  // Téléphones étroits (≤400px) : même en mode mobile, logo + avatar + 2
+  // ressources + calendrier dépassent la largeur de l'écran (~11px à 375px,
+  // ~70px à 320px) et le calendrier finit hors champ. Le logo passe alors en
+  // monogramme « GV » (toujours cliquable pour le passage secret).
+  const isNarrowHeader = useIsMobile(400);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sélectionne une page et referme le tiroir mobile
   // `page` (menu, fil d'ariane) change tout de suite pour un retour visuel
@@ -329,7 +334,7 @@ export function GameLayout() {
         {/* Logo */}
         <div style={{ width:isMobile?'auto':'200px', flexShrink:0 }}>
           <div key={logoFlash} onClick={clickLogo} className={logoFlash ? 'gv-logo-secret' : undefined} style={{ cursor:'default', userSelect:'none', fontFamily:'var(--f-title)', fontSize:isMobile?'13.5px':'18.5px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
-            GACHAVERSE
+            {isNarrowHeader ? 'GV' : 'GACHAVERSE'}
           </div>
           {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'4px', marginTop:'3px' }}>MULTIVERS RPG</div>}
         </div>
