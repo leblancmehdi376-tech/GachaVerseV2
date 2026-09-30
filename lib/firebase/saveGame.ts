@@ -5,8 +5,12 @@ import { correctedNow } from './clockOffset';
 import { logger } from '../logger';
 import { logFirestoreOp } from './telemetry';
 
-export async function saveGameToFirestore(userId: string, state: Partial<GameState>, source = 'unknown') {
-  if (!db) return;
+// Renvoie le `lastSaved` réellement écrit (voir knownRemoteLastSaved dans
+// cloudSaveSync.ts). REJETTE sur toute erreur (quota, règles, doc trop
+// gros...) : avant, l'erreur était avalée ici et l'appelant affichait
+// "Synchronisé" alors que rien n'avait atteint Firestore.
+export async function saveGameToFirestore(userId: string, state: Partial<GameState>, source = 'unknown'): Promise<number> {
+  if (!db) throw new Error('Firestore non configuré');
   try {
     const ref = doc(db, 'saves', userId);
     const data = { ...state, lastSaved: correctedNow() };
@@ -23,8 +27,29 @@ export async function saveGameToFirestore(userId: string, state: Partial<GameSta
     // silencieusement tous les autres côté cloud.
     await setDoc(ref, data, { mergeFields: Object.keys(data) });
     logFirestoreOp('write', source);
+    return data.lastSaved;
   } catch (e) {
     logger.error('Save error:', e);
+    throw e;
+  }
+}
+
+// Lecture GARANTIE serveur (jamais le cache) de la sauvegarde cloud — pour
+// vérifier, avant d'écrire après une longue absence, qu'un autre appareil n'a
+// pas sauvegardé entre-temps (voir ensureCloudNotNewer dans cloudSaveSync.ts).
+// `undefined` = serveur injoignable ; `null` = aucune sauvegarde.
+export async function readSaveFromServer(userId: string): Promise<Record<string, unknown> | null | undefined> {
+  if (!db) return undefined;
+  try {
+    const snap = await Promise.race([
+      getDocFromServer(doc(db, 'saves', userId)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+    ]);
+    logFirestoreOp('read', 'stale_tab_check');
+    return snap.exists() ? (snap.data() as Record<string, unknown>) : null;
+  } catch (e) {
+    logger.warn('[CloudSave] Vérification serveur indisponible:', e);
+    return undefined;
   }
 }
 

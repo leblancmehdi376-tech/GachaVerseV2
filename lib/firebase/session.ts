@@ -17,7 +17,9 @@ export interface SessionClaim {
   active: boolean;
 }
 
-function getBrowserId(): string {
+// Exporté aussi pour marquer chaque sauvegarde cloud avec l'appareil qui l'a
+// écrite (`lastSavedBy`, voir saveToFirebase dans cloudSaveSync.ts).
+export function getBrowserId(): string {
   if (typeof window === 'undefined') return 'server';
 
   const raw = localStorage.getItem(LOCAL_SESSION_KEY);

@@ -20,6 +20,16 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '30/09/2026',
+    title: 'Maj v2.7.6',
+    changes: [
+      "**Sauvegarde cloud** : correction d'un **retour en arrière de la progression** en changeant d'appareil.",
+      "Un vieil onglet resté ouvert sur un autre appareil ne peut plus **écraser** la progression faite ailleurs.",
+      "Quand un autre appareil a sauvegardé plus récemment, sa sauvegarde est désormais **toujours reprise**.",
+      "Le statut de synchro n'affiche plus **Synchronisé** quand la sauvegarde cloud a échoué : il passe en **rouge** jusqu'au prochain essai réussi.",
+    ],
+  },
+  {
+    date: '30/09/2026',
     title: 'Maj v2.7.5',
     changes: [
       "**Gains hors-ligne** corrigés : ils pouvaient donner des **millions de gemmes et de coins** quand ton DPS dépassait largement les PV de l'ennemi.",

@@ -23,6 +23,12 @@ export interface PlayerSaveSummary {
   maxPalierReached: number;
   runPeakPalier: number | null;
   lastSaved: number | null;
+  // Navigateur (browserId, voir session.ts) et raison ('periodic',
+  // 'visibility', 'palier', 'admin'...) de la dernière écriture — voir
+  // saveToFirebase dans cloudSaveSync.ts. Optionnels comme currencyHistory :
+  // seul getPlayerDetail les peuple.
+  lastSavedBy?: string | null;
+  lastSavedReason?: string | null;
   prestigeLevel: number;
   prestigeTokens: number;
   prestigeBonusLevels: PrestigeBonusLevels;
@@ -151,6 +157,8 @@ export async function getPlayerDetail(uid: string): Promise<PlayerDetail> {
       maxPalierReached: d.maxPalierReached ?? 1,
       runPeakPalier:    d.runPeakPalier ?? null,
       lastSaved:        d.lastSaved ?? null,
+      lastSavedBy:      typeof d.lastSavedBy === 'string' ? d.lastSavedBy : null,
+      lastSavedReason:  typeof d.lastSavedReason === 'string' ? d.lastSavedReason : null,
       prestigeLevel:    d.prestigeLevel ?? 0,
       prestigeTokens:   d.prestigeTokens ?? 0,
       prestigeBonusLevels: coerceBonusLevels(d.prestigeBonusLevels),
@@ -201,6 +209,7 @@ export async function correctPlayerBalance(
       ...updates,
       lastSaved: Date.now(),
       adminCorrectionAt: Date.now(),
+      lastSavedBy: 'admin', lastSavedReason: 'admin',
     });
     return true;
   } catch (e) {
@@ -235,6 +244,7 @@ export async function correctPlayerProgress(
       ...updates,
       lastSaved: Date.now(),
       adminCorrectionAt: Date.now(),
+      lastSavedBy: 'admin', lastSavedReason: 'admin',
     };
     if (updates.palier !== undefined && updates.wave !== undefined) {
       const runPeak = updates.runPeakPalier ?? updates.maxPalierReached ?? updates.palier;
@@ -254,6 +264,31 @@ export async function correctPlayerProgress(
 }
 
 /**
+ * Corrige le nombre de prestiges effectués et/ou de jetons de prestige non
+ * dépensés d'un joueur. Même mécanisme `adminCorrectionAt` que
+ * correctPlayerBalance : appliqué en direct si le joueur est déjà connecté.
+ * Les niveaux de bonus déjà tirés ne sont pas touchés.
+ */
+export async function correctPlayerPrestige(
+  uid: string,
+  updates: { prestigeLevel?: number; prestigeTokens?: number }
+): Promise<boolean> {
+  if (!db) return false;
+  try {
+    await updateDoc(doc(db, 'saves', uid), {
+      ...updates,
+      lastSaved: Date.now(),
+      adminCorrectionAt: Date.now(),
+      lastSavedBy: 'admin', lastSavedReason: 'admin',
+    });
+    return true;
+  } catch (e) {
+    logger.error('[AdminTools] correctPlayerPrestige:', e);
+    return false;
+  }
+}
+
+/**
  * Réinitialise les quêtes de raid d'un joueur à zéro (progression et
  * statut "terminée" remis à l'état initial) — utile pour un joueur bloqué
  * après un bug, ou pour relancer le raid en cours. Même mécanisme
@@ -267,6 +302,7 @@ export async function resetPlayerRaidQuests(uid: string): Promise<boolean> {
       raidQuests: RAID_QUESTS.map(q => ({ ...q, current: 0, done: false })),
       lastSaved: Date.now(),
       adminCorrectionAt: Date.now(),
+      lastSavedBy: 'admin', lastSavedReason: 'admin',
     });
     return true;
   } catch (e) {
@@ -335,6 +371,7 @@ export async function removePlayerCharacter(uid: string, instanceKey: string): P
       new FieldPath('collection', instanceKey), deleteField(),
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
+      'lastSavedBy', 'admin', 'lastSavedReason', 'admin',
     );
     await write();
     verifyAndReapply(uid, ['collection', instanceKey], undefined, write);
@@ -386,6 +423,7 @@ export async function addPlayerCharacter(
       new FieldPath('collection', instanceKey), entry,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
+      'lastSavedBy', 'admin', 'lastSavedReason', 'admin',
     );
     await write();
     verifyAndReapply(uid, ['collection', instanceKey], entry, write);
@@ -413,6 +451,7 @@ export async function setPlayerCharacterLevel(uid: string, instanceKey: string, 
       new FieldPath('collection', instanceKey, 'level'), clampedLevel,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
+      'lastSavedBy', 'admin', 'lastSavedReason', 'admin',
     );
     await write();
     verifyAndReapply(uid, ['collection', instanceKey, 'level'], clampedLevel, write);
@@ -450,6 +489,7 @@ export async function addPlayerItem(uid: string, itemId: string, qty: number): P
       new FieldPath('inventory', itemId), newQty,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
+      'lastSavedBy', 'admin', 'lastSavedReason', 'admin',
     );
     await write();
     verifyAndReapply(uid, ['inventory', itemId], newQty, write);
@@ -498,6 +538,7 @@ export async function addPlayerEquipment(uid: string, equipmentId: string, qty: 
       new FieldPath('equipmentInventory', equipmentId), newQty,
       'lastSaved', Date.now(),
       'adminCorrectionAt', Date.now(),
+      'lastSavedBy', 'admin', 'lastSavedReason', 'admin',
     );
     await write();
     verifyAndReapply(uid, ['equipmentInventory', equipmentId], newQty, write);

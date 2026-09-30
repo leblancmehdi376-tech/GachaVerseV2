@@ -19,7 +19,9 @@ import {
   subscribeSyncStatus,
   getCloudSyncConfirmed,
   getLastSyncedAt,
+  getLastSaveFailed,
   buildAdminCorrectionPatch,
+  handleRemoteSaveSnapshot,
   type CloudSyncStatus,
 } from '@/lib/firebase/cloudSaveSync';
 
@@ -115,6 +117,13 @@ export function useCloudSave(userId: string | null) {
       logFirestoreOp('read', 'admin_correction_watch');
       if (!snap.exists()) return;
       const data = snap.data() as Record<string, unknown>;
+      // Sauvegarde d'un autre appareil vue en direct → reprise de l'état
+      // cloud (voir handleRemoteSaveSnapshot). Seulement sur un snapshot
+      // confirmé par le serveur : jamais notre propre écriture encore en
+      // attente, ni une copie en cache potentiellement périmée.
+      if (loadedRef.current && !snap.metadata.hasPendingWrites && !snap.metadata.fromCache) {
+        handleRemoteSaveSnapshot(data);
+      }
       const result = buildAdminCorrectionPatch(data, lastCorrectionRef.current);
       if (!result) return;
       lastCorrectionRef.current = result.correctionAt;
@@ -184,6 +193,7 @@ export function useCloudSave(userId: string | null) {
     !userId ? 'offline' :
     !loaded ? 'loading' :
     !getCloudSyncConfirmed() ? 'syncing' :
+    getLastSaveFailed() ? 'error' :
     'synced';
 
   return { forceSave, loaded, syncStatus, lastSyncedAt: getLastSyncedAt() };

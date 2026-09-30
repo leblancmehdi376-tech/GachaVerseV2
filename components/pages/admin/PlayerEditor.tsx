@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  getPlayerDetail, correctPlayerBalance, correctPlayerProgress, resetPlayerRaidQuests,
+  getPlayerDetail, correctPlayerBalance, correctPlayerProgress, correctPlayerPrestige, resetPlayerRaidQuests,
   removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, sortOwnedCharacters,
   addPlayerItem, addPlayerEquipment, sortOwnedEquipment,
   PlayerSaveSummary, PlayerDetail, OwnedCharacterSummary, OwnedItemSummary, OwnedEquipmentSummary,
@@ -37,6 +37,8 @@ function fieldsFromSave(save: PlayerSaveSummary | null) {
     crowns: save ? String(save.bossCrowns) : '',
     palier: save ? String(save.palier) : '',
     wave:   save ? String(save.wave) : '',
+    prestigeLevel:  save ? String(save.prestigeLevel) : '',
+    prestigeTokens: save ? String(save.prestigeTokens) : '',
   };
 }
 
@@ -70,6 +72,10 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
   const [editCoins, setEditCoins]   = useState(initFields.coins);
   const [editGems, setEditGems]     = useState(initFields.gems);
   const [editCrowns, setEditCrowns] = useState(initFields.crowns);
+  const [editPrestigeLevel, setEditPrestigeLevel]   = useState(initFields.prestigeLevel);
+  const [editPrestigeTokens, setEditPrestigeTokens] = useState(initFields.prestigeTokens);
+  const [prestigeBusy, setPrestigeBusy] = useState(false);
+  const [prestigeMsg, setPrestigeMsg]   = useState<string | null>(null);
   const [editPalier, setEditPalier] = useState(initFields.palier);
   const [editWave, setEditWave]     = useState(initFields.wave);
   const [capMaxPalier, setCapMaxPalier] = useState(true);
@@ -246,6 +252,24 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
     setProgressBusy(false);
   };
 
+  const handleCorrectPrestige = async () => {
+    if (!playerSave) return;
+    setPrestigeBusy(true); setPrestigeMsg(null);
+    const patch = {
+      prestigeLevel:  Math.max(0, Math.floor(Number(editPrestigeLevel) || 0)),
+      prestigeTokens: Math.max(0, Math.floor(Number(editPrestigeTokens) || 0)),
+    };
+    const ok = await correctPlayerPrestige(uid, patch);
+    setPrestigeMsg(ok ? '✅ Prestige corrigé — appliqué immédiatement s\'il est en ligne.' : '❌ Échec de la correction.');
+    if (ok) {
+      const updatedSave = { ...playerSave, ...patch };
+      setPlayerSave(updatedSave);
+      patchCache({ save: updatedSave });
+      onSaveUpdate(patch);
+    }
+    setPrestigeBusy(false);
+  };
+
   const handleResetEventQuests = async () => {
     if (!confirm('Réinitialiser les quêtes de raid de ce joueur ? Sa progression sur toutes les quêtes de raid repassera à zéro.')) return;
     setQuestsBusy(true); setQuestsMsg(null);
@@ -267,6 +291,11 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
       <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 4 }}>
         Dernière sauvegarde : {playerSave.lastSaved ? new Date(playerSave.lastSaved).toLocaleString('fr-FR') : 'jamais'}
       </div>
+      {(playerSave.lastSavedBy || playerSave.lastSavedReason) && (
+        <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 4, overflowWrap: 'anywhere' }}>
+          Écrite par : {playerSave.lastSavedBy ?? '?'} — raison : {playerSave.lastSavedReason ?? '?'}
+        </div>
+      )}
       <div style={{ color: '#c084fc', fontSize: 12.4, fontWeight: 700, marginBottom: 4 }}>
         💎 Total de gemmes dépensées : {playerSave.totalGemsSpent.toLocaleString('fr-FR')}
       </div>
@@ -306,6 +335,23 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
             );
           })}
         </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 12, marginTop: 14, marginBottom: 12 }}>
+          <div>
+            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>✨ Nombre de prestiges</label>
+            <input value={editPrestigeLevel} onChange={e => setEditPrestigeLevel(e.target.value)} type="number" min={0} inputMode="numeric"
+              style={{ width: '100%', minHeight: 44, padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🎫 Jetons de prestige</label>
+            <input value={editPrestigeTokens} onChange={e => setEditPrestigeTokens(e.target.value)} type="number" min={0} inputMode="numeric"
+              style={{ width: '100%', minHeight: 44, padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
+          </div>
+        </div>
+        <button onClick={handleCorrectPrestige} disabled={prestigeBusy} style={{ minHeight: 44, padding: '10px 20px', borderRadius: 8, background: 'rgba(192,132,252,0.15)', border: '1px solid rgba(192,132,252,0.5)', color: '#c084fc', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
+          {prestigeBusy ? 'Correction en cours…' : '✅ Appliquer le prestige'}
+        </button>
+        {prestigeMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: prestigeMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{prestigeMsg}</div>}
       </div>
 
       {/* ── Historique coins/gemmes/paliers/prestige ─────────────

@@ -1,6 +1,7 @@
 import { useGameStore } from '@/store/gameStore';
-import { saveGameToFirestore, loadGameFromFirestore, probeClockOffset } from '@/lib/firebase/saveGame';
+import { saveGameToFirestore, loadGameFromFirestore, probeClockOffset, readSaveFromServer } from '@/lib/firebase/saveGame';
 import { setClockOffset, correctedNow } from '@/lib/firebase/clockOffset';
+import { getBrowserId } from '@/lib/firebase/session';
 import { logger } from '@/lib/logger';
 import { BN_ZERO, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
@@ -257,6 +258,9 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   // juste ces champs obsolètes plutôt que de les laisser polluer le patch.
   delete data.prestigePoints;
   delete data.prestigePurchased;
+  // Métadonnées de traçabilité (voir saveToFirebase), pas de l'état de jeu.
+  delete data.lastSavedBy;
+  delete data.lastSavedReason;
 
   // unlockedTitles/activeTitle/compadex* sont gérés séparément par
   // mergeMonotonicState (règles de fusion différentes du reste — "ne fait
@@ -397,9 +401,21 @@ function markSynced(atMs: number) {
   lastSyncedAt = atMs;
   notifySyncListeners();
 }
+// La DERNIÈRE tentative d'écriture cloud a échoué (quota, réseau, règles,
+// timeout...) : le statut affiché ne doit alors plus dire "Synchronisé" tant
+// qu'une écriture n'a pas réellement réussi. saveAttemptSeq permet d'ignorer
+// le résultat d'une tentative dépassée par une plus récente.
+let lastSaveFailed = false;
+let saveAttemptSeq = 0;
+function setLastSaveFailed(value: boolean) {
+  if (lastSaveFailed === value) return;
+  lastSaveFailed = value;
+  notifySyncListeners();
+}
 
 export function getCloudSyncConfirmed(): boolean { return cloudSyncConfirmed; }
 export function getLastSyncedAt(): number | null { return lastSyncedAt; }
+export function getLastSaveFailed(): boolean { return lastSaveFailed; }
 export function subscribeSyncStatus(listener: SyncListener): () => void {
   syncListeners.add(listener);
   return () => { syncListeners.delete(listener); };
@@ -415,9 +431,95 @@ export function resetSyncState() {
   setCloudSyncConfirmed(true);
   pendingLocalSnapshotTs = null;
   reconciliationAttempts = 0;
+  knownRemoteLastSaved = null;
+  lastCloudContactAt = 0;
+  lastSyncedAt = null;
+  setLastSaveFailed(false);
+  notifySyncListeners();
 }
 
-export type CloudSyncStatus = 'offline' | 'loading' | 'syncing' | 'synced';
+// ── Protection contre un appareil périmé ───────────────────────────────────
+// Cas réel : onglet laissé ouvert en arrière-plan sur téléphone (page gelée
+// par le navigateur), le joueur continue sur PC pendant des heures, puis
+// rouvre le téléphone. L'onglet se réveille avec son état en mémoire vieux de
+// plusieurs heures, sans repasser par loadAndApply (même userId), et ses
+// minuteurs en retard sauvegardent aussitôt → rollback de toute la
+// progression faite sur PC. Règle : une sauvegarde cloud écrite par un AUTRE
+// appareil (`lastSavedBy`, voir saveToFirebase) que cet onglet n'a pas encore
+// vue gagne toujours sur l'état en mémoire.
+//
+// knownRemoteLastSaved : `lastSaved` de la dernière version du doc cloud que
+// cet onglet connaît (chargée, écrite par lui, ou vue passer en direct) —
+// comparé à l'identique (jamais en "plus grand que") : insensible au
+// décalage d'horloge entre appareils.
+// lastCloudContactAt : dernier échange réussi avec Firestore (Date.now() brut,
+// seulement comparé localement). Au-delà de STALE_CONTACT_MS sans contact —
+// impossible pour un onglet vivant, qui sauvegarde toutes les 10min —
+// l'onglet a été gelé/mis en veille : on relit le serveur avant d'écrire.
+const STALE_CONTACT_MS = FIREBASE_INTERVAL_MS + 5 * 60_000;
+let knownRemoteLastSaved: number | null = null;
+let lastCloudContactAt = 0;
+let staleCheck: Promise<'ok' | 'adopted' | 'unreachable'> | null = null;
+
+function isForeignWriter(by: unknown): boolean {
+  return typeof by === 'string' && by !== getBrowserId();
+}
+
+// Remplace l'état en mémoire par la sauvegarde cloud (même application que
+// loadAndApply quand Firebase gagne).
+function adoptCloudState(remote: Record<string, unknown>) {
+  applyRemoteState(remote);
+  useGameStore.setState(mergeMonotonicState(remote, remote));
+  if (typeof remote.lastSaved === 'number') knownRemoteLastSaved = remote.lastSaved;
+}
+
+// Appelé par l'écoute en direct de saves/{uid} (hooks/useCloudSave.ts), pour
+// chaque snapshot confirmé par le serveur une fois le chargement terminé.
+export function handleRemoteSaveSnapshot(data: Record<string, unknown>) {
+  const ts = data.lastSaved;
+  if (typeof ts !== 'number' || ts === knownRemoteLastSaved) return;
+  // Les corrections admin sont appliquées champ par champ par
+  // buildAdminCorrectionPatch — la progression locale reste valable.
+  if (isForeignWriter(data.lastSavedBy) && data.lastSavedBy !== 'admin') {
+    logger.warn('[CloudSave] Sauvegarde écrite par un autre appareil détectée — reprise de la sauvegarde cloud.');
+    adoptCloudState(data);
+    return;
+  }
+  knownRemoteLastSaved = ts;
+}
+
+// Avant d'écrire : si l'onglet n'a pas parlé à Firestore depuis longtemps
+// (gel/veille), relit le serveur (1 lecture par retour, pas par sauvegarde).
+// 'adopted' = un autre appareil (ou l'admin) avait écrit entre-temps, son
+// état vient d'être repris et il ne faut PAS écrire l'ancien.
+async function ensureCloudNotNewer(userId: string): Promise<'ok' | 'adopted' | 'unreachable'> {
+  if (Date.now() - lastCloudContactAt < STALE_CONTACT_MS) return 'ok';
+  if (!staleCheck) {
+    const generation = sessionGeneration;
+    staleCheck = (async () => {
+      const remote = await readSaveFromServer(userId);
+      if (generation !== sessionGeneration) return 'unreachable'; // supplanté par un autre login/logout
+      if (remote === undefined) return 'unreachable';
+      lastCloudContactAt = Date.now();
+      const ts = remote?.lastSaved;
+      if (remote && typeof ts === 'number' && ts !== knownRemoteLastSaved && isForeignWriter(remote.lastSavedBy)) {
+        logger.warn('[CloudSave] Retour après une longue absence : sauvegarde plus récente d\'un autre appareil — reprise au lieu d\'écraser.');
+        adoptCloudState(remote);
+        return 'adopted';
+      }
+      if (typeof ts === 'number') knownRemoteLastSaved = ts;
+      return 'ok';
+    })().finally(() => { staleCheck = null; });
+  }
+  return staleCheck;
+}
+
+export type CloudSyncStatus = 'offline' | 'loading' | 'syncing' | 'error' | 'synced';
+
+function formatAgo(ms: number): string {
+  const secs = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+  return secs < 60 ? `${secs}s` : secs < 3600 ? `${Math.floor(secs / 60)}min` : `${Math.floor(secs / 3600)}h`;
+}
 
 // Couleur + libellé partagés entre le badge (GameLayout) et le détail
 // (SettingsPage), pour ne jamais les faire diverger.
@@ -426,11 +528,15 @@ export function formatSyncStatus(status: CloudSyncStatus, lastSyncedAtMs: number
     case 'offline': return { color: '#6b7280', label: 'Hors ligne — sauvegarde locale uniquement' };
     case 'loading': return { color: '#eab308', label: 'Chargement de la sauvegarde cloud...' };
     case 'syncing': return { color: '#eab308', label: 'Synchronisation en cours...' };
+    case 'error': return {
+      color: '#ef4444',
+      label: lastSyncedAtMs
+        ? `Sauvegarde cloud échouée — dernière réussie il y a ${formatAgo(lastSyncedAtMs)}, nouvel essai automatique`
+        : 'Sauvegarde cloud échouée — nouvel essai automatique',
+    };
     case 'synced': {
       if (!lastSyncedAtMs) return { color: '#4ade80', label: 'Synchronisé' };
-      const secs = Math.max(0, Math.floor((Date.now() - lastSyncedAtMs) / 1000));
-      const rel = secs < 60 ? `${secs}s` : secs < 3600 ? `${Math.floor(secs / 60)}min` : `${Math.floor(secs / 3600)}h`;
-      return { color: '#4ade80', label: `Synchronisé — il y a ${rel}` };
+      return { color: '#4ade80', label: `Synchronisé — il y a ${formatAgo(lastSyncedAtMs)}` };
     }
   }
 }
@@ -479,6 +585,8 @@ function scheduleReconciliationRetry(userId: string, generation: number) {
       logger.warn('[CloudSave] Sauvegarde cloud plus récente détectée après reconnexion — réapplication.');
       applyRemoteState(remote as Record<string, unknown>);
     }
+    if (typeof remoteTs === 'number') knownRemoteLastSaved = remoteTs;
+    lastCloudContactAt = Date.now();
     setCloudSyncConfirmed(true);
     pendingLocalSnapshotTs = null;
     clearReconciliationRetry();
@@ -523,9 +631,16 @@ export async function loadAndApply(userId: string, generation: number) {
       { label: 'firebase',      data: remote as Record<string, unknown> | null, ts: safeTs((remote as Record<string,unknown> | null)?.lastSaved) },
       { label: 'local (store)', data: null as Record<string, unknown> | null,   ts: safeTs(current.savedAt) },
     ];
-    const best = candidates.reduce((a, b) => (b.ts > a.ts ? b : a));
+    // Sauvegarde cloud écrite par un AUTRE appareil (ou par l'admin) : elle
+    // gagne toujours, sans comparer les timestamps — l'état en mémoire de cet
+    // appareil ne peut pas contenir la progression faite ailleurs, et un
+    // `savedAt` local faussé (horloge, rafraîchissement trop tôt...) ne doit
+    // jamais pouvoir la faire perdre. Voir isForeignWriter. Les sauvegardes
+    // antérieures à `lastSavedBy` retombent sur "plus récent gagne".
+    const cloudFromOtherDevice = !!remote && isForeignWriter((remote as Record<string, unknown>).lastSavedBy);
+    const best = cloudFromOtherDevice ? candidates[0] : candidates.reduce((a, b) => (b.ts > a.ts ? b : a));
 
-    logger.log('[CloudSave] Source appliquée:', best.label, best.ts >= 0 ? `— ${new Date(best.ts).toLocaleTimeString()}` : '(aucune sauvegarde)');
+    logger.log('[CloudSave] Source appliquée:', best.label, cloudFromOtherDevice ? '(écrite par un autre appareil)' : '', best.ts >= 0 ? `— ${new Date(best.ts).toLocaleTimeString()}` : '(aucune sauvegarde)');
 
     if (best.data) applyRemoteState(best.data as Record<string, unknown>);
 
@@ -544,6 +659,9 @@ export async function loadAndApply(userId: string, generation: number) {
     // interdit toute écriture vers Firebase tant qu'une reconciliation en
     // arrière-plan n'a pas tranché.
     if (reachable) {
+      const remoteTs = (remote as Record<string, unknown> | null)?.lastSaved;
+      knownRemoteLastSaved = typeof remoteTs === 'number' ? remoteTs : null;
+      lastCloudContactAt = Date.now();
       setCloudSyncConfirmed(true);
       pendingLocalSnapshotTs = null;
       reconciliationAttempts = 0;
@@ -570,6 +688,24 @@ export async function saveToFirebase(userId: string, reason = 'unknown'): Promis
     logger.warn('[CloudSave] Écriture cloud suspendue : synchro pas encore confirmée (le premier chargement cloud a échoué), reconciliation en cours.');
     return false;
   }
+  // Onglet resté gelé/en veille longtemps : on vérifie d'abord qu'un autre
+  // appareil n'a pas sauvegardé entre-temps (voir ensureCloudNotNewer).
+  const freshness = await ensureCloudNotNewer(userId);
+  if (freshness === 'unreachable') { setLastSaveFailed(true); return false; }
+  if (freshness === 'adopted') {
+    // L'état en mémoire EST maintenant la sauvegarde cloud : rien à écrire.
+    setLastSaveFailed(false);
+    markSynced(Date.now());
+    return true;
+  }
+  const attempt = ++saveAttemptSeq;
+  const generation = sessionGeneration;
+  const onWriteConfirmed = (writtenLastSaved: number) => {
+    knownRemoteLastSaved = writtenLastSaved;
+    lastCloudContactAt = Date.now();
+    setLastSaveFailed(false);
+    markSynced(Date.now());
+  };
   try {
     // Prend un point d'historique coins/gemmes juste avant la sérialisation —
     // voir recordCurrencySnapshot (store/gameStore.ts) et le commentaire sur
@@ -591,23 +727,47 @@ export async function saveToFirebase(userId: string, reason = 'unknown'): Promis
       username: s.username || 'Joueur',
       totalDps,
       score: s.palier * 100 + s.wave,
+      // Traçabilité (affichée dans la fiche joueur de l'admin) : quel
+      // navigateur a écrit cette sauvegarde, et pourquoi — pour pouvoir
+      // diagnostiquer un rollback entre appareils (ex: un vieil onglet
+      // réveillé qui écrase la progression faite ailleurs). Ne coûte rien :
+      // même setDoc que le reste.
+      lastSavedBy: getBrowserId(),
+      lastSavedReason: reason,
     };
 
     logger.log('[CloudSave] ⇢ Envoyé à Firestore:', payload);
 
-    // Timeout 5s — si Firebase est bloqué (quota), on n'attend pas indéfiniment
-    await Promise.race([
-      saveGameToFirestore(userId, payload, reason),
-      new Promise<void>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-    ]);
+    // Timeout 5s — si Firebase est bloqué (quota), on n'attend pas indéfiniment.
+    // saveGameToFirestore rejette sur TOUTE erreur (quota, règles, doc trop
+    // gros...) : seul un vrai accusé de réception serveur compte comme succès.
+    const write = saveGameToFirestore(userId, payload, reason);
+    let timedOut = false;
+    try {
+      const writtenLastSaved = await Promise.race([
+        write,
+        new Promise<never>((_, reject) => setTimeout(() => { timedOut = true; reject(new Error('timeout')); }, 5000)),
+      ]);
+      onWriteConfirmed(writtenLastSaved);
+    } catch (e) {
+      // Réseau lent/coupé : le SDK garde l'écriture en file et l'enverra au
+      // retour du réseau (tant que l'onglet vit). Si elle finit par passer et
+      // qu'aucune sauvegarde plus récente n'a été tentée entre-temps, le
+      // statut repasse "Synchronisé" à ce moment-là — pas avant.
+      if (timedOut) {
+        write.then((ts) => {
+          if (attempt === saveAttemptSeq && generation === sessionGeneration) onWriteConfirmed(ts);
+        }).catch(() => { /* échec déjà signalé ci-dessous */ });
+      }
+      throw e;
+    }
 
     useGameStore.setState({ savedAt: data.savedAt });
-    markSynced(Date.now());
-
     logger.log('[CloudSave] Firebase OK —', new Date().toLocaleTimeString());
     return true;
   } catch (e) {
-    logger.warn('[CloudSave] Firebase indisponible (quota ou timeout), données conservées en localStorage:', e);
+    logger.warn('[CloudSave] Écriture cloud échouée (quota, réseau, règles ou timeout), données conservées en localStorage:', e);
+    if (attempt === saveAttemptSeq && generation === sessionGeneration) setLastSaveFailed(true);
     return false;
   }
 }
@@ -725,6 +885,8 @@ export function buildAdminCorrectionPatch(
   if (typeof data.pixelCoins === 'number' || (data.pixelCoins && typeof data.pixelCoins === 'object')) patch.pixelCoins = coerceBigNum(data.pixelCoins);
   if (typeof data.nekoGems   === 'number') patch.nekoGems   = data.nekoGems;
   if (typeof data.bossCrowns === 'number') patch.bossCrowns = data.bossCrowns;
+  if (typeof data.prestigeLevel  === 'number') patch.prestigeLevel  = data.prestigeLevel;
+  if (typeof data.prestigeTokens === 'number') patch.prestigeTokens = data.prestigeTokens;
   if (typeof data.palier     === 'number') patch.palier     = data.palier;
   if (typeof data.wave       === 'number') patch.wave       = data.wave;
   if (typeof data.maxPalierReached === 'number') patch.maxPalierReached = data.maxPalierReached;
