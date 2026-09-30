@@ -9,6 +9,9 @@ import { checkIsAdmin } from '@/lib/admin';
 import { RequestsTab } from '@/components/pages/admin/RequestsTab';
 import { PlayersTab } from '@/components/pages/admin/PlayersTab';
 import { MarketplaceTab } from '@/components/pages/admin/MarketplaceTab';
+import { Button, Card, Feedback, Segmented, StatTile } from '@/components/pages/admin/ui';
+
+type AdminTab = 'requests' | 'players' | 'marketplace';
 
 // Cache module-level (hors composant) : survit à un démontage/remontage de
 // la page dans la même session (ex: navigation vers un autre onglet puis
@@ -38,7 +41,7 @@ export default function AdminPage() {
   }, []);
   const [busy, setBusy]           = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [showTab, setShowTab] = useState<'requests'|'players'|'marketplace'>('players');
+  const [showTab, setShowTab] = useState<AdminTab>('players');
 
   // ── Rattrapage des pseudos désynchronisés (voir scripts/sync_usernames.js,
   // dont ceci est l'équivalent utilisable directement depuis le panel) ──────
@@ -139,89 +142,90 @@ export default function AdminPage() {
 
   if (!user || !isAdmin) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050410', flexDirection: 'column', gap: 16 }}>
-        <div style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'sans-serif', fontSize: 14.4 }}>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#050410] px-4 font-sans">
+        <div className="text-center text-base text-white/80">
           {user ? 'Ce compte n\'est pas administrateur.' : 'Connexion administrateur requise.'}
         </div>
-        {!user && (
-          <button onClick={() => setShowAuth(true)} style={{ padding: '10px 20px', borderRadius: 8, background: '#8b5cf6', border: 'none', color: '#fff', cursor: 'pointer', fontFamily: 'sans-serif', fontWeight: 700 }}>
-            Se connecter
-          </button>
-        )}
+        {!user && <Button tone="purple" onClick={() => setShowAuth(true)}>Se connecter</Button>}
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </div>
     );
   }
 
+  const playedCount = allUsers.filter(u => u.save).length;
+  const tabs: { id: AdminTab; label: string }[] = [
+    { id: 'players', label: `👥 Joueurs · ${allUsers.length}` },
+    { id: 'requests', label: `📨 Demandes${pending.length > 0 ? ` · ${pending.length}` : ''}` },
+    { id: 'marketplace', label: '🏛️ Hôtel de Ville' },
+  ];
+
   return (
-    <div style={{ height: '100vh', overflowY: 'auto', background: '#050410', padding: '32px 20px', fontFamily: 'sans-serif' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.45)', fontSize: 12.4, textDecoration: 'none', marginBottom: 16 }}>
-          ← Retour
-        </Link>
-        <h1 style={{ color: '#a78bfa', fontSize: 22.7, fontWeight: 900, marginBottom: 6 }}>🛡️ Panel admin</h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.4, marginBottom: 8 }}>
-          {pending.length} demande(s) en attente · {approvedList.length} compte(s) déjà validé(s)
-        </p>
-        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 20 }}>
-          {loadedAt ? `Liste chargée il y a ${formatRelative(now - loadedAt)}` : 'Liste jamais chargée'}
-        </p>
+    <div className="h-screen overflow-y-auto bg-[#050410] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.12),transparent_60%)] font-sans text-white">
+      {/* ── Barre du haut (reste visible au défilement) ─────────────── */}
+      <header className="sticky top-0 z-20 border-b border-white/15 bg-[#050410]/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
+          <Link href="/" className="flex min-h-11 items-center rounded-lg px-2 text-base text-white/75 no-underline hover:bg-white/5 hover:text-white/90">
+            ← Retour
+          </Link>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-black text-violet-300 sm:text-2xl">🛡️ Panel admin</h1>
+            <p className="text-sm text-white/70">
+              {loadedAt ? `Liste chargée il y a ${formatRelative(now - loadedAt)}` : 'Liste jamais chargée'}
+            </p>
+          </div>
+          <div className="flex w-full gap-2 sm:w-auto">
+            <Button tone="amber" onClick={handleCheckUsernames} disabled={checkingUsernames} className="flex-1 sm:flex-none"
+              title="Détecte les comptes renommés en jeu dont la fiche admin (users/{uid}) n'a jamais été resynchronisée — voir scripts/sync_usernames.js">
+              {checkingUsernames ? 'Vérification…' : '🔍 Vérifier les pseudos'}
+            </Button>
+            {/* Seul déclencheur d'une vraie relecture Firestore de la liste des
+                comptes — sinon la liste en cache (module-level) est réutilisée
+                telle quelle, même en changeant d'onglet ou en revenant sur la page. */}
+            <Button tone="green" onClick={load} disabled={refreshing} className="flex-1 sm:flex-none" title="Recharger la liste des comptes depuis Firestore">
+              {refreshing ? 'Actualisation…' : '🔄 Actualiser'}
+            </Button>
+          </div>
+        </div>
+      </header>
 
-        <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
-          <button onClick={() => setShowTab('players')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='players' ? 'rgba(96,165,250,0.14)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(96,165,250,0.14)', color: '#60a5fa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            👥 Joueurs ({allUsers.length})
-          </button>
-          <button onClick={() => setShowTab('requests')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='requests' ? 'rgba(139,92,246,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.14)', color: '#a78bfa', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            Demandes {pending.length > 0 ? `(${pending.length})` : ''}
-          </button>
-          <button onClick={() => setShowTab('marketplace')} style={{ padding: '8px 16px', borderRadius: 8, background: showTab==='marketplace' ? 'rgba(249,115,22,0.18)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(249,115,22,0.14)', color: '#f97316', cursor: 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            🏛️ Hôtel de Ville
-          </button>
-
-          <button onClick={handleCheckUsernames} disabled={checkingUsernames} title="Détecte les comptes renommés en jeu dont la fiche admin (users/{uid}) n'a jamais été resynchronisée — voir scripts/sync_usernames.js" style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 8, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', cursor: checkingUsernames ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            {checkingUsernames ? 'Vérification…' : '🔍 Vérifier les pseudos'}
-          </button>
-
-          {/* Seul déclencheur d'une vraie relecture Firestore de la liste des
-              comptes — sinon la liste en cache (module-level) est réutilisée
-              telle quelle, même en changeant d'onglet ou en revenant sur la page. */}
-          <button onClick={load} disabled={refreshing} title="Recharger la liste des comptes depuis Firestore" style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', cursor: refreshing ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
-            {refreshing ? 'Actualisation…' : '🔄 Actualiser'}
-          </button>
+      <main className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+          <StatTile label="Comptes" value={allUsers.length} tone="blue" />
+          <StatTile label="En attente" value={pending.length} tone={pending.length > 0 ? 'amber' : 'neutral'} />
+          <StatTile label="Validés" value={approvedList.length} tone="green" />
+          <StatTile label="Ont déjà joué" value={playedCount} tone="purple" hint="Comptes ayant une sauvegarde cloud" />
         </div>
 
         {/* ── Résultat de la vérification des pseudos ─────────────────────
             usernameMismatches === null : jamais vérifié depuis le chargement
             de la page, rien à afficher. */}
         {usernameMismatches !== null && (
-          <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.25)', marginBottom: 16 }}>
+          <Card tone="amber">
             {usernameMismatches.length === 0 ? (
-              <div style={{ color: '#4ade80', fontSize: 13.4, fontWeight: 700 }}>✅ Tous les pseudos sont déjà synchronisés.</div>
+              <div className="text-sm font-bold text-emerald-300">✅ Tous les pseudos sont déjà synchronisés.</div>
             ) : (
               <>
-                <div style={{ color: '#fbbf24', fontSize: 13.4, fontWeight: 700, marginBottom: 10 }}>
+                <div className="mb-3 text-sm font-bold text-amber-300">
                   {usernameMismatches.length} compte(s) désynchronisé(s) — la fiche admin affiche un ancien pseudo :
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12, maxHeight: 200, overflowY: 'auto' }}>
+                <ul className="mb-4 flex max-h-52 flex-col gap-1 overflow-y-auto text-sm text-white/85">
                   {usernameMismatches.map(m => (
-                    <div key={m.uid} style={{ fontSize: 12.4, color: 'rgba(255,255,255,0.7)' }}>
-                      <span style={{ color: '#f87171' }}>{m.from}</span> → <span style={{ color: '#4ade80' }}>{m.to}</span>
-                      <span style={{ color: 'rgba(255,255,255,0.3)' }}> ({m.uid})</span>
-                    </div>
+                    <li key={m.uid} className="break-all">
+                      <span className="text-red-300">{m.from}</span> → <span className="text-emerald-300">{m.to}</span>
+                      <span className="text-white/65"> ({m.uid})</span>
+                    </li>
                   ))}
-                </div>
-                <button onClick={handleApplyUsernameSync} disabled={applyingUsernames} style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: applyingUsernames ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700 }}>
+                </ul>
+                <Button tone="green" onClick={handleApplyUsernameSync} disabled={applyingUsernames}>
                   {applyingUsernames ? 'Correction…' : `✅ Corriger ${usernameMismatches.length > 1 ? 'ces ' + usernameMismatches.length + ' pseudos' : 'ce pseudo'}`}
-                </button>
+                </Button>
               </>
             )}
-          </div>
+          </Card>
         )}
-        {usernameSyncMsg && (
-          <div style={{ fontSize: 12.4, color: usernameSyncMsg.startsWith('✅') ? '#4ade80' : '#fbbf24', marginTop: -8, marginBottom: 16 }}>
-            {usernameSyncMsg}
-          </div>
-        )}
+        <Feedback msg={usernameSyncMsg} />
+
+        <Segmented label="Sections du panel" value={showTab} options={tabs} onChange={setShowTab} className="self-start" />
 
         {showTab === 'players' && (
           <PlayersTab players={allUsers} onSaveUpdate={handleSaveUpdate} />
@@ -232,7 +236,7 @@ export default function AdminPage() {
         )}
 
         {showTab === 'marketplace' && <MarketplaceTab />}
-      </div>
+      </main>
     </div>
   );
 }

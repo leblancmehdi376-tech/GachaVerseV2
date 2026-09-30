@@ -11,7 +11,9 @@ import { ITEM_DEFS, EQUIPMENT_DEFS } from '@/lib/game/items';
 import { RARITY_CONFIG } from '@/types/game';
 import { bnFromNumber, bnToNumber } from '@/lib/game/bignum';
 import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, RANK_RECOVERY_MAX_LEVEL, formatBonusValue } from '@/lib/game/prestige';
+import { formatNumber } from '@/lib/game/format';
 import { PlayerHistoryCharts } from './PlayerHistoryCharts';
+import { Button, Card, Empty, Feedback, Field, SectionHeader, Segmented, SelectInput, StatTile, TextInput, cx } from './ui';
 
 // Listes proposables à l'ajout (les héros ne vivent pas dans `collection`,
 // donc exclus) — calculées une fois, réutilisées pour les suggestions d'id
@@ -29,6 +31,11 @@ const EMPTY_DETAIL: PlayerDetail = { save: null, chars: [], items: [], equipment
 // collection, les objets et l'équipement justifient encore une lecture, à
 // l'ouverture.
 const detailCache = new Map<string, PlayerDetail>();
+
+// Sous-onglet de la fiche : mémorisé pour la session, pour qu'en passant d'un
+// joueur à l'autre on retombe sur la même section (ex : comparer les graphes).
+type EditorTab = 'history' | 'fix' | 'inventory';
+let lastEditorTab: EditorTab = 'history';
 
 function fieldsFromSave(save: PlayerSaveSummary | null) {
   return {
@@ -67,6 +74,8 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
   const [detailLoading, setDetailLoading] = useState(!cachedAtMount);
   // Incrémenté par le bouton "Actualiser" : relit le doc en ignorant le cache.
   const [reloadKey, setReloadKey] = useState(0);
+  const [tab, setTab] = useState<EditorTab>(lastEditorTab);
+  const selectTab = (t: EditorTab) => { lastEditorTab = t; setTab(t); };
 
   const initFields = fieldsFromSave(cachedAtMount?.save ?? initialSave);
   const [editCoins, setEditCoins]   = useState(initFields.coins);
@@ -280,352 +289,313 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
 
   if (!playerSave) {
     return (
-      <div style={{ padding: '16px 20px', color: 'rgba(255,255,255,0.4)', fontSize: 13.4 }}>
+      <div className="px-3 py-4 text-sm text-white/70">
         {detailLoading ? 'Chargement…' : 'Aucune sauvegarde pour ce joueur (jamais joué).'}
       </div>
     );
   }
 
+  const editorTabs: { id: EditorTab; label: string }[] = [
+    { id: 'history', label: '📈 Historique' },
+    { id: 'fix', label: '🛠️ Corrections' },
+    { id: 'inventory', label: `🎒 Inventaire${detailLoading ? '' : ` · ${playerChars.length + playerItems.length + playerEquipment.length}`}` },
+  ];
+
   return (
-    <div style={{ padding: '18px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)', marginTop: 8, marginBottom: 8 }}>
-      <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 4 }}>
-        Dernière sauvegarde : {playerSave.lastSaved ? new Date(playerSave.lastSaved).toLocaleString('fr-FR') : 'jamais'}
-      </div>
-      {(playerSave.lastSavedBy || playerSave.lastSavedReason) && (
-        <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 4, overflowWrap: 'anywhere' }}>
-          Écrite par : {playerSave.lastSavedBy ?? '?'} — raison : {playerSave.lastSavedReason ?? '?'}
+    <div className="flex flex-col gap-4 rounded-xl bg-black/20 p-3 sm:p-4">
+      {/* ── En-tête : infos clés + actualisation ───────────────── */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 text-sm leading-relaxed text-white/70">
+          <div>Dernière sauvegarde : <span className="text-white/80">{playerSave.lastSaved ? new Date(playerSave.lastSaved).toLocaleString('fr-FR') : 'jamais'}</span></div>
+          {(playerSave.lastSavedBy || playerSave.lastSavedReason) && (
+            <div className="break-all">Écrite par : {playerSave.lastSavedBy ?? '?'} — raison : {playerSave.lastSavedReason ?? '?'}</div>
+          )}
         </div>
-      )}
-      <div style={{ color: '#c084fc', fontSize: 12.4, fontWeight: 700, marginBottom: 4 }}>
-        💎 Total de gemmes dépensées : {playerSave.totalGemsSpent.toLocaleString('fr-FR')}
-      </div>
-      <div style={{ color: '#22d3ee', fontSize: 12.4, fontWeight: 700, marginBottom: 16 }}>
-        ✦ Total d&apos;invocations (gacha) : {playerSave.totalGachaPulls.toLocaleString('fr-FR')}
+        <Button size="sm" onClick={() => setReloadKey(k => k + 1)} disabled={detailLoading} title="Relire la fiche du joueur depuis Firestore">
+          {detailLoading ? 'Chargement…' : '↻ Actualiser la fiche'}
+        </Button>
       </div>
 
-      {/* ── Prestige : jetons non dépensés + niveaux de bonus tirés ── */}
-      <div style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px 16px', flexWrap: 'wrap', marginBottom: 10 }}>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 13.4 }}>✨ Prestige</span>
-          <span style={{ color: '#f0abfc', fontSize: 12.4 }}>
-            Prestiges : <b>{playerSave.prestigeLevel.toLocaleString('fr-FR')}</b>
-          </span>
-          <span style={{ color: '#fde68a', fontSize: 12.4 }}>
-            🎫 Jetons disponibles : <b>{playerSave.prestigeTokens.toLocaleString('fr-FR')}</b>
-          </span>
-          <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12.4 }}>
-            🧠 Mémoire des Rangs : <b>{playerSave.prestigeRankRecoveryLevel}/{RANK_RECOVERY_MAX_LEVEL}</b>
-          </span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 190px), 1fr))', gap: 8 }}>
-          {PRESTIGE_BONUS_TYPES.map(type => {
-            const def = PRESTIGE_BONUS_DEFS[type];
-            const level = playerSave.prestigeBonusLevels[type];
-            return (
-              <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.08)', opacity: level > 0 ? 1 : 0.5, minWidth: 0 }}>
-                <span style={{ fontSize: 18 }}>{def.icon}</span>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={def.label}>{def.label}</div>
-                  <div style={{ color: '#fff', fontSize: 12.4, fontWeight: 700 }}>
-                    Niv. {level}{def.maxLevel ? `/${def.maxLevel}` : ''}
-                    <span style={{ color: '#4ade80', marginLeft: 6 }}>{formatBonusValue(type, level)}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 12, marginTop: 14, marginBottom: 12 }}>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>✨ Nombre de prestiges</label>
-            <input value={editPrestigeLevel} onChange={e => setEditPrestigeLevel(e.target.value)} type="number" min={0} inputMode="numeric"
-              style={{ width: '100%', minHeight: 44, padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🎫 Jetons de prestige</label>
-            <input value={editPrestigeTokens} onChange={e => setEditPrestigeTokens(e.target.value)} type="number" min={0} inputMode="numeric"
-              style={{ width: '100%', minHeight: 44, padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-          </div>
-        </div>
-        <button onClick={handleCorrectPrestige} disabled={prestigeBusy} style={{ minHeight: 44, padding: '10px 20px', borderRadius: 8, background: 'rgba(192,132,252,0.15)', border: '1px solid rgba(192,132,252,0.5)', color: '#c084fc', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
-          {prestigeBusy ? 'Correction en cours…' : '✅ Appliquer le prestige'}
-        </button>
-        {prestigeMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: prestigeMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{prestigeMsg}</div>}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <StatTile label="Pixel-Coins" value={<>🪙 {formatNumber(playerSave.pixelCoins)}</>} tone="amber" />
+        <StatTile label="Neko-Gemmes" value={<>💎 {formatNumber(playerSave.nekoGems)}</>} tone="purple" />
+        <StatTile label="Palier · vague" value={<>⛰️ {playerSave.palier} · {playerSave.wave}/10</>} tone="cyan" hint={`Palier max atteint : ${playerSave.maxPalierReached}`} />
+        <StatTile label="Prestiges" value={<>✨ {playerSave.prestigeLevel.toLocaleString('fr-FR')}</>} tone="purple" />
+        <StatTile label="Gemmes dépensées" value={playerSave.totalGemsSpent.toLocaleString('fr-FR')} tone="purple" hint="Total de gemmes dépensées" />
+        <StatTile label="Invocations" value={<>✦ {playerSave.totalGachaPulls.toLocaleString('fr-FR')}</>} tone="cyan" hint="Total d'invocations (gacha)" />
       </div>
+
+      <Segmented label="Sections de la fiche joueur" value={tab} options={editorTabs} onChange={selectTab} tone="amber" className="self-start" />
 
       {/* ── Historique coins/gemmes/paliers/prestige ─────────────
           Alimenté sans coût Firestore additionnel (voir PlayerHistoryCharts
           et le commentaire sur CurrencySnapshot) : le champ voyage dans le
           même doc `saves/{uid}` déjà lu par getPlayerDetail ci-dessus. */}
-      <div style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <button type="button" onClick={() => setReloadKey(k => k + 1)} disabled={detailLoading}
-            style={{ minHeight: 36, padding: '0 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 700, cursor: detailLoading ? 'wait' : 'pointer' }}>
-            ↻ Actualiser
-          </button>
-        </div>
-        {detailLoading ? (
-          <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Chargement de l&apos;historique…</div>
-        ) : (
-          <PlayerHistoryCharts history={playerSave.currencyHistory ?? []} />
-        )}
-      </div>
+      {tab === 'history' && (
+        <Card>
+          {detailLoading ? (
+            <div className="text-sm text-white/70">Chargement de l&apos;historique…</div>
+          ) : (
+            <PlayerHistoryCharts history={playerSave.currencyHistory ?? []} />
+          )}
+        </Card>
+      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
-        <div>
-          <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🪙 Pixel-Coins</label>
-          <input value={editCoins} onChange={e => setEditCoins(e.target.value)} type="number"
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>💎 Neko-Gemmes</label>
-          <input value={editGems} onChange={e => setEditGems(e.target.value)} type="number"
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>👑 Couronnes</label>
-          <input value={editCrowns} onChange={e => setEditCrowns(e.target.value)} type="number"
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-        </div>
-      </div>
-
-      <button onClick={handleCorrect} disabled={correctBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
-        {correctBusy ? 'Correction en cours…' : '✅ Appliquer la correction'}
-      </button>
-      {correctMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: correctMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{correctMsg}</div>}
-
-      {/* ── Palier / progression (ex: annuler une avance obtenue via un bug) ── */}
-      <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 4 }}>Palier / progression</div>
-        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 14 }}>
-          Palier actuel : {playerSave.palier} · Vague : {playerSave.wave}/10 · Palier max atteint : {playerSave.maxPalierReached}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>⛰️ Palier</label>
-            <input value={editPalier} onChange={e => setEditPalier(e.target.value)} type="number" min={1}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }}>🌊 Vague (1-10)</label>
-            <input value={editWave} onChange={e => setEditWave(e.target.value)} type="number" min={1} max={10}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }} />
-          </div>
-        </div>
-
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, cursor: 'pointer' }}>
-          <input type="checkbox" checked={capMaxPalier} onChange={e => setCapMaxPalier(e.target.checked)} />
-          <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12.4 }}>
-            Limiter aussi le &quot;palier max atteint&quot; à cette valeur (à cocher pour annuler une avance obtenue via un bug)
-          </span>
-        </label>
-
-        <button onClick={handleCorrectProgress} disabled={progressBusy} style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.5)', color: '#60a5fa', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
-          {progressBusy ? 'Correction en cours…' : '✅ Appliquer le palier'}
-        </button>
-        {progressMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: progressMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{progressMsg}</div>}
-      </div>
-
-      {/* ── Quêtes de raid ───────────────────────────────────── */}
-      <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 4 }}>Quêtes de raid</div>
-        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 14 }}>
-          Remet à zéro la progression et le statut de toutes les quêtes de raid de ce joueur.
-        </div>
-        <button onClick={handleResetEventQuests} disabled={questsBusy}
-          style={{ padding: '10px 20px', borderRadius: 8, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.5)', color: '#fbbf24', cursor: 'pointer', fontWeight: 700, fontSize: 13.4 }}>
-          {questsBusy ? 'Réinitialisation en cours…' : '♻️ Réinitialiser les quêtes de raid'}
-        </button>
-        {questsMsg && <div style={{ marginTop: 10, fontSize: 12.4, color: questsMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{questsMsg}</div>}
-      </div>
-
-      {/* ── Gestion de la collection de personnages ────────────── */}
-      <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 12 }}>
-          Personnages possédés {detailLoading ? '…' : `(${playerChars.length})`}
-        </div>
-
-        <div style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
-          {detailLoading && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Chargement…</div>}
-          {!detailLoading && playerChars.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Aucun personnage.</div>}
-          {playerChars.map(c => (
-            <div key={c.instanceKey} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12.4 }}>
-              <span style={{ color: RARITY_CONFIG[c.rarity].color, fontWeight: 700, minWidth: 130 }}>{c.name}</span>
-              <span style={{ color: c.edition === 'diamond' ? '#67e8f9' : c.edition === 'gold' ? '#fbbf24' : 'rgba(255,255,255,0.4)', minWidth: 60 }}>
-                {c.edition === 'base' ? '' : c.edition === 'gold' ? '✨ Or' : '💎 Diamant'}
-              </span>
-              <span style={{ color: 'rgba(255,255,255,0.4)', minWidth: 40 }}>{c.rank}★</span>
-              {c.formsCount > 1 && (
-                <span style={{ color: 'rgba(255,255,255,0.45)', minWidth: 90, fontSize: 11.5 }}>
-                  Forme {c.currentForm + 1}/{c.formsCount} · {c.formName}
-                </span>
-              )}
-              <input
-                type="number"
-                defaultValue={c.level}
-                onChange={e => setLevelEdits(s => ({ ...s, [c.instanceKey]: e.target.value }))}
-                style={{ width: 70, padding: '5px 8px', borderRadius: 6, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }}
-              />
-              <button onClick={() => handleSetLevel(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                Niveau
-              </button>
-              <button onClick={() => handleRemoveChar(c.instanceKey)} disabled={charBusy === c.instanceKey}
-                style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', cursor: 'pointer', fontSize: 12, fontWeight: 700, marginLeft: 'auto' }}>
-                {charBusy === c.instanceKey ? '...' : 'Retirer'}
-              </button>
+      {tab === 'fix' && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* ── Soldes ─────────────────────────────────────────── */}
+          <Card>
+            <SectionHeader icon="💰" title="Soldes" subtitle="Remplace les soldes du joueur par ces valeurs." />
+            <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Field label="🪙 Pixel-Coins">
+                <TextInput value={editCoins} onChange={e => setEditCoins(e.target.value)} type="number" inputMode="numeric" />
+              </Field>
+              <Field label="💎 Neko-Gemmes">
+                <TextInput value={editGems} onChange={e => setEditGems(e.target.value)} type="number" inputMode="numeric" />
+              </Field>
+              <Field label="👑 Couronnes">
+                <TextInput value={editCrowns} onChange={e => setEditCrowns(e.target.value)} type="number" inputMode="numeric" />
+              </Field>
             </div>
-          ))}
+            <Button tone="green" onClick={handleCorrect} disabled={correctBusy} className="w-full sm:w-auto">
+              {correctBusy ? 'Correction en cours…' : '✅ Appliquer la correction'}
+            </Button>
+            <Feedback msg={correctMsg} className="mt-3" />
+          </Card>
+
+          {/* ── Palier / progression (ex: annuler une avance obtenue via un bug) ── */}
+          <Card>
+            <SectionHeader icon="⛰️" title="Palier / progression"
+              subtitle={`Palier actuel : ${playerSave.palier} · Vague : ${playerSave.wave}/10 · Palier max atteint : ${playerSave.maxPalierReached}`} />
+            <div className="mb-3 grid grid-cols-2 gap-3">
+              <Field label="⛰️ Palier">
+                <TextInput value={editPalier} onChange={e => setEditPalier(e.target.value)} type="number" min={1} inputMode="numeric" />
+              </Field>
+              <Field label="🌊 Vague (1-10)">
+                <TextInput value={editWave} onChange={e => setEditWave(e.target.value)} type="number" min={1} max={10} inputMode="numeric" />
+              </Field>
+            </div>
+            <label className="mb-4 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-1">
+              <input type="checkbox" checked={capMaxPalier} onChange={e => setCapMaxPalier(e.target.checked)} className="size-4 shrink-0 accent-sky-400" />
+              <span className="text-sm text-white/80">
+                Limiter aussi le &quot;palier max atteint&quot; à cette valeur (à cocher pour annuler une avance obtenue via un bug)
+              </span>
+            </label>
+            <Button tone="blue" onClick={handleCorrectProgress} disabled={progressBusy} className="w-full sm:w-auto">
+              {progressBusy ? 'Correction en cours…' : '✅ Appliquer le palier'}
+            </Button>
+            <Feedback msg={progressMsg} className="mt-3" />
+          </Card>
+
+          {/* ── Prestige : jetons non dépensés + niveaux de bonus tirés ── */}
+          <Card className="lg:col-span-2">
+            <SectionHeader icon="✨" title="Prestige" right={
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                <span className="text-fuchsia-300">Prestiges : <b>{playerSave.prestigeLevel.toLocaleString('fr-FR')}</b></span>
+                <span className="text-amber-200">🎫 Jetons disponibles : <b>{playerSave.prestigeTokens.toLocaleString('fr-FR')}</b></span>
+                <span className="text-white/80">🧠 Mémoire des Rangs : <b>{playerSave.prestigeRankRecoveryLevel}/{RANK_RECOVERY_MAX_LEVEL}</b></span>
+              </div>
+            } />
+            <div className="mb-4 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              {PRESTIGE_BONUS_TYPES.map(type => {
+                const def = PRESTIGE_BONUS_DEFS[type];
+                const level = playerSave.prestigeBonusLevels[type];
+                return (
+                  <div key={type} className={cx('flex min-w-0 items-center gap-2.5 rounded-lg border border-white/15 bg-[#0a0818] px-3 py-2', level <= 0 && 'opacity-70')}>
+                    <span className="text-xl" aria-hidden>{def.icon}</span>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm text-white/85" title={def.label}>{def.label}</div>
+                      <div className="text-sm font-bold text-white">
+                        Niv. {level}{def.maxLevel ? `/${def.maxLevel}` : ''}
+                        <span className="ml-1.5 text-emerald-300">{formatBonusValue(type, level)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <Field label="✨ Nombre de prestiges" className="sm:w-48">
+                <TextInput value={editPrestigeLevel} onChange={e => setEditPrestigeLevel(e.target.value)} type="number" min={0} inputMode="numeric" />
+              </Field>
+              <Field label="🎫 Jetons de prestige" className="sm:w-48">
+                <TextInput value={editPrestigeTokens} onChange={e => setEditPrestigeTokens(e.target.value)} type="number" min={0} inputMode="numeric" />
+              </Field>
+              <Button tone="purple" onClick={handleCorrectPrestige} disabled={prestigeBusy}>
+                {prestigeBusy ? 'Correction en cours…' : '✅ Appliquer le prestige'}
+              </Button>
+            </div>
+            <Feedback msg={prestigeMsg} className="mt-3" />
+          </Card>
+
+          {/* ── Quêtes de raid ───────────────────────────────────── */}
+          <Card className="lg:col-span-2">
+            <SectionHeader icon="🗡️" title="Quêtes de raid"
+              subtitle="Remet à zéro la progression et le statut de toutes les quêtes de raid de ce joueur."
+              right={
+                <Button tone="amber" onClick={handleResetEventQuests} disabled={questsBusy}>
+                  {questsBusy ? 'Réinitialisation en cours…' : '♻️ Réinitialiser les quêtes de raid'}
+                </Button>
+              } />
+            <Feedback msg={questsMsg} />
+          </Card>
         </div>
+      )}
 
-        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, fontWeight: 700, marginBottom: 8 }}>Ajouter un personnage</div>
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 10 }}>
-          <div style={{ flex: '1 1 160px' }}>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Id exact</label>
-            <input
-              value={newCharId}
-              onChange={e => { setNewCharId(e.target.value); setNewCharForm('0'); }}
-              placeholder="ex: goku"
-              list="admin-char-id-suggestions"
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4, boxSizing: 'border-box' }} />
-            {/* Suggestions natives du navigateur, filtrées automatiquement au
-                fur et à mesure de la saisie — pas de dropdown custom à gérer. */}
-            <datalist id="admin-char-id-suggestions">
-              {ADDABLE_CHARACTERS.map(t => (
-                <option key={t.id} value={t.id} label={`${t.name} — ${RARITY_CONFIG[t.rarity].label}`} />
+      {tab === 'inventory' && (
+        <div className="flex flex-col gap-4">
+          {/* ── Gestion de la collection de personnages ────────────── */}
+          <Card>
+            <SectionHeader icon="🧙" title={`Personnages possédés ${detailLoading ? '…' : `(${playerChars.length})`}`} />
+            <div className="mb-5 flex max-h-[420px] flex-col gap-1.5 overflow-y-auto pr-1">
+              {detailLoading && <div className="text-sm text-white/70">Chargement…</div>}
+              {!detailLoading && playerChars.length === 0 && <Empty>Aucun personnage.</Empty>}
+              {playerChars.map(c => (
+                <div key={c.instanceKey} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-white/15 bg-white/[0.02] px-3 py-2 text-sm">
+                  <div className="flex min-w-0 flex-1 basis-48 flex-wrap items-center gap-x-3 gap-y-0.5">
+                    <span className="font-bold" style={{ color: RARITY_CONFIG[c.rarity].color }}>{c.name}</span>
+                    {c.edition !== 'base' && (
+                      <span className={c.edition === 'diamond' ? 'text-cyan-300' : 'text-amber-300'}>
+                        {c.edition === 'gold' ? '✨ Or' : '💎 Diamant'}
+                      </span>
+                    )}
+                    <span className="text-white/75">{c.rank}★</span>
+                    {c.formsCount > 1 && (
+                      <span className="text-sm text-white/75">Forme {c.currentForm + 1}/{c.formsCount} · {c.formName}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <TextInput
+                      type="number"
+                      aria-label={`Niveau de ${c.name}`}
+                      defaultValue={c.level}
+                      onChange={e => setLevelEdits(s => ({ ...s, [c.instanceKey]: e.target.value }))}
+                      className="!min-h-10 w-24 !text-sm"
+                    />
+                    <Button size="sm" tone="blue" onClick={() => handleSetLevel(c.instanceKey)} disabled={charBusy === c.instanceKey}>
+                      Niveau
+                    </Button>
+                    <Button size="sm" tone="red" onClick={() => handleRemoveChar(c.instanceKey)} disabled={charBusy === c.instanceKey}>
+                      {charBusy === c.instanceKey ? '…' : 'Retirer'}
+                    </Button>
+                  </div>
+                </div>
               ))}
-            </datalist>
-          </div>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Édition</label>
-            <select value={newCharEdition} onChange={e => setNewCharEdition(e.target.value as 'base'|'gold'|'diamond')}
-              style={{ padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4 }}>
-              <option value="base">Base</option>
-              <option value="gold">✨ Or</option>
-              <option value="diamond">💎 Diamant</option>
-            </select>
-          </div>
-        </div>
+            </div>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Niveau</label>
-            <input value={newCharLevel} onChange={e => setNewCharLevel(e.target.value)} type="number" min={1}
-              style={{ width: 80, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4, boxSizing: 'border-box' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Nombre d&apos;étoiles</label>
-            <input value={newCharRank} onChange={e => setNewCharRank(e.target.value)} type="number" min={1} max={7}
-              style={{ width: 80, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4, boxSizing: 'border-box' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Forme</label>
-            <select
-              value={newCharForm}
-              onChange={e => setNewCharForm(e.target.value)}
-              disabled={newCharForms.length === 0}
-              style={{ padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: newCharForms.length === 0 ? 'rgba(255,255,255,0.3)' : '#fff', fontSize: 12.4, minWidth: 140 }}>
-              {newCharForms.length === 0 ? (
-                <option value="0">Forme unique</option>
-              ) : (
-                newCharForms.map((f, i) => <option key={f.formId} value={i}>{i + 1}. {f.name}</option>)
-              )}
-            </select>
-          </div>
-          <button onClick={handleAddChar} disabled={addCharBusy || !newCharId.trim()}
-            style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12.4 }}>
-            {addCharBusy ? '...' : '+ Ajouter'}
-          </button>
-        </div>
-        {addCharMsg && <div style={{ marginTop: 8, fontSize: 12.4, color: addCharMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{addCharMsg}</div>}
-      </div>
+            <div className="rounded-xl border border-violet-400/15 bg-violet-400/[0.03] p-3">
+              <div className="mb-3 text-sm font-bold text-violet-200">➕ Ajouter un personnage</div>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_auto] md:items-end">
+                <Field label="Id exact" className="col-span-2 md:col-span-1">
+                  <TextInput
+                    value={newCharId}
+                    onChange={e => { setNewCharId(e.target.value); setNewCharForm('0'); }}
+                    placeholder="ex: goku"
+                    list="admin-char-id-suggestions" />
+                  {/* Suggestions natives du navigateur, filtrées automatiquement au
+                      fur et à mesure de la saisie — pas de dropdown custom à gérer. */}
+                  <datalist id="admin-char-id-suggestions">
+                    {ADDABLE_CHARACTERS.map(t => (
+                      <option key={t.id} value={t.id} label={`${t.name} — ${RARITY_CONFIG[t.rarity].label}`} />
+                    ))}
+                  </datalist>
+                </Field>
+                <Field label="Édition">
+                  <SelectInput value={newCharEdition} onChange={e => setNewCharEdition(e.target.value as 'base'|'gold'|'diamond')}>
+                    <option value="base">Base</option>
+                    <option value="gold">✨ Or</option>
+                    <option value="diamond">💎 Diamant</option>
+                  </SelectInput>
+                </Field>
+                <Field label="Forme">
+                  <SelectInput value={newCharForm} onChange={e => setNewCharForm(e.target.value)} disabled={newCharForms.length === 0}>
+                    {newCharForms.length === 0 ? (
+                      <option value="0">Forme unique</option>
+                    ) : (
+                      newCharForms.map((f, i) => <option key={f.formId} value={i}>{i + 1}. {f.name}</option>)
+                    )}
+                  </SelectInput>
+                </Field>
+                <Field label="Niveau">
+                  <TextInput value={newCharLevel} onChange={e => setNewCharLevel(e.target.value)} type="number" min={1} inputMode="numeric" />
+                </Field>
+                <Field label="Nombre d'étoiles">
+                  <TextInput value={newCharRank} onChange={e => setNewCharRank(e.target.value)} type="number" min={1} max={7} inputMode="numeric" />
+                </Field>
+                <Button tone="purple" onClick={handleAddChar} disabled={addCharBusy || !newCharId.trim()} className="col-span-2 md:col-span-1">
+                  {addCharBusy ? '…' : '+ Ajouter'}
+                </Button>
+              </div>
+              <Feedback msg={addCharMsg} className="mt-3" />
+            </div>
+          </Card>
 
-      {/* ── Objets d'évolution ──────────────────────────────────── */}
-      <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 12 }}>
-          Objets d&apos;évolution {detailLoading ? '…' : `(${playerItems.length})`}
-        </div>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* ── Objets d'évolution ──────────────────────────────────── */}
+            <Card>
+              <SectionHeader icon="🧪" title={`Objets d'évolution ${detailLoading ? '…' : `(${playerItems.length})`}`} />
+              <div className="mb-4 flex flex-wrap gap-1.5">
+                {detailLoading && <div className="text-sm text-white/70">Chargement…</div>}
+                {!detailLoading && playerItems.length === 0 && <div className="text-sm text-white/70">Aucun objet.</div>}
+                {playerItems.map(item => (
+                  <span key={item.id} title={item.id} className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-sm font-bold"
+                    style={{ background: `${item.color}15`, borderColor: `${item.color}55`, color: item.color }}>
+                    {item.icon} {item.name} ×{item.qty}
+                  </span>
+                ))}
+              </div>
+              <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-2 sm:grid-cols-[minmax(0,1fr)_5.5rem_auto] sm:items-end">
+                <Field label="Id exact">
+                  <TextInput value={newItemId} onChange={e => setNewItemId(e.target.value)} placeholder="ex: elixir_vie" list="admin-item-id-suggestions" />
+                  <datalist id="admin-item-id-suggestions">
+                    {ADDABLE_ITEMS.map(t => <option key={t.id} value={t.id} label={t.name} />)}
+                  </datalist>
+                </Field>
+                <Field label="Quantité">
+                  <TextInput value={newItemQty} onChange={e => setNewItemQty(e.target.value)} type="number" min={1} inputMode="numeric" />
+                </Field>
+                <Button tone="purple" onClick={handleAddItem} disabled={addItemBusy || !newItemId.trim()} className="col-span-2 sm:col-span-1">
+                  {addItemBusy ? '…' : '+ Ajouter'}
+                </Button>
+              </div>
+              <Feedback msg={addItemMsg} className="mt-3" />
+            </Card>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-          {detailLoading && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Chargement…</div>}
-          {!detailLoading && playerItems.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Aucun objet.</div>}
-          {playerItems.map(item => (
-            <span key={item.id} title={item.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, background: `${item.color}15`, border: `1px solid ${item.color}55`, color: item.color, fontSize: 12, fontWeight: 700 }}>
-              {item.icon} {item.name} ×{item.qty}
-            </span>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 160px' }}>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Id exact</label>
-            <input
-              value={newItemId}
-              onChange={e => setNewItemId(e.target.value)}
-              placeholder="ex: elixir_vie"
-              list="admin-item-id-suggestions"
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4, boxSizing: 'border-box' }} />
-            <datalist id="admin-item-id-suggestions">
-              {ADDABLE_ITEMS.map(t => <option key={t.id} value={t.id} label={t.name} />)}
-            </datalist>
+            {/* ── Équipement ("drops") ────────────────────────────────── */}
+            <Card>
+              <SectionHeader icon="🛡️" title={`Équipement (drops) ${detailLoading ? '…' : `(${playerEquipment.length})`}`} />
+              <div className="mb-4 flex flex-wrap gap-1.5">
+                {detailLoading && <div className="text-sm text-white/70">Chargement…</div>}
+                {!detailLoading && playerEquipment.length === 0 && <div className="text-sm text-white/70">Aucun équipement.</div>}
+                {playerEquipment.map(eq => {
+                  const color = RARITY_CONFIG[eq.rarity].color;
+                  return (
+                    <span key={eq.id} title={eq.id} className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-sm font-bold"
+                      style={{ background: `${color}15`, borderColor: `${color}55`, color }}>
+                      {eq.icon} {eq.name} ×{eq.qty}
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-2 sm:grid-cols-[minmax(0,1fr)_5.5rem_auto] sm:items-end">
+                <Field label="Id exact">
+                  <TextInput value={newEquipId} onChange={e => setNewEquipId(e.target.value)} placeholder="ex: helmet_legendary" list="admin-equipment-id-suggestions" />
+                  <datalist id="admin-equipment-id-suggestions">
+                    {ADDABLE_EQUIPMENT.map(t => <option key={t.id} value={t.id} label={`${t.name} — ${RARITY_CONFIG[t.rarity as keyof typeof RARITY_CONFIG]?.label ?? t.rarity}`} />)}
+                  </datalist>
+                </Field>
+                <Field label="Quantité">
+                  <TextInput value={newEquipQty} onChange={e => setNewEquipQty(e.target.value)} type="number" min={1} inputMode="numeric" />
+                </Field>
+                <Button tone="purple" onClick={handleAddEquipment} disabled={addEquipBusy || !newEquipId.trim()} className="col-span-2 sm:col-span-1">
+                  {addEquipBusy ? '…' : '+ Ajouter'}
+                </Button>
+              </div>
+              <Feedback msg={addEquipMsg} className="mt-3" />
+            </Card>
           </div>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Quantité</label>
-            <input value={newItemQty} onChange={e => setNewItemQty(e.target.value)} type="number" min={1}
-              style={{ width: 90, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4, boxSizing: 'border-box' }} />
-          </div>
-          <button onClick={handleAddItem} disabled={addItemBusy || !newItemId.trim()}
-            style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12.4 }}>
-            {addItemBusy ? '...' : '+ Ajouter'}
-          </button>
         </div>
-        {addItemMsg && <div style={{ marginTop: 8, fontSize: 12.4, color: addItemMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{addItemMsg}</div>}
-      </div>
-
-      {/* ── Équipement ("drops") ────────────────────────────────── */}
-      <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ color: '#fff', fontWeight: 800, fontSize: 14.4, marginBottom: 12 }}>
-          Équipement (drops) {detailLoading ? '…' : `(${playerEquipment.length})`}
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-          {detailLoading && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Chargement…</div>}
-          {!detailLoading && playerEquipment.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Aucun équipement.</div>}
-          {playerEquipment.map(eq => (
-            <span key={eq.id} title={eq.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, background: `${RARITY_CONFIG[eq.rarity].color}15`, border: `1px solid ${RARITY_CONFIG[eq.rarity].color}55`, color: RARITY_CONFIG[eq.rarity].color, fontSize: 12, fontWeight: 700 }}>
-              {eq.icon} {eq.name} ×{eq.qty}
-            </span>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 160px' }}>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Id exact</label>
-            <input
-              value={newEquipId}
-              onChange={e => setNewEquipId(e.target.value)}
-              placeholder="ex: helmet_legendary"
-              list="admin-equipment-id-suggestions"
-              style={{ width: '100%', padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4, boxSizing: 'border-box' }} />
-            <datalist id="admin-equipment-id-suggestions">
-              {ADDABLE_EQUIPMENT.map(t => <option key={t.id} value={t.id} label={`${t.name} — ${RARITY_CONFIG[t.rarity as keyof typeof RARITY_CONFIG]?.label ?? t.rarity}`} />)}
-            </datalist>
-          </div>
-          <div>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 11.5, marginBottom: 4 }}>Quantité</label>
-            <input value={newEquipQty} onChange={e => setNewEquipQty(e.target.value)} type="number" min={1}
-              style={{ width: 90, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12.4, boxSizing: 'border-box' }} />
-          </div>
-          <button onClick={handleAddEquipment} disabled={addEquipBusy || !newEquipId.trim()}
-            style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(139,92,246,0.18)', border: '1px solid #8b5cf6', color: '#a78bfa', cursor: 'pointer', fontWeight: 700, fontSize: 12.4 }}>
-            {addEquipBusy ? '...' : '+ Ajouter'}
-          </button>
-        </div>
-        {addEquipMsg && <div style={{ marginTop: 8, fontSize: 12.4, color: addEquipMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>{addEquipMsg}</div>}
-      </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { PlayerSaveSummary } from '@/lib/firebase/adminTools';
 import { formatNumber } from '@/lib/game/format';
 import { bnToNumber } from '@/lib/game/bignum';
 import { PlayerEditor } from './PlayerEditor';
+import { Empty, TextInput, cx } from './ui';
 
 type SortKey = 'createdAt' | 'nekoGems' | 'pixelCoins' | 'palier' | 'prestigeLevel' | 'totalGemsSpent';
 
@@ -53,73 +54,99 @@ export function PlayersTab({ players, onSaveUpdate }: PlayersTabProps) {
   };
 
   return (
-    <>
-      <h2 style={{ color: '#60a5fa', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>Joueurs ({players.length})</h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.4, marginBottom: 14, lineHeight: 1.5 }}>
-        Clique sur un joueur pour voir/modifier son solde, sa progression et sa collection.
-      </p>
-
-      <input
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Filtrer par pseudo, email ou id de save…"
-        style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, marginBottom: 12, boxSizing: 'border-box' }}
-      />
-
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11.5 }}>Trier :</span>
-        {(Object.keys(SORT_LABELS) as SortKey[]).map(key => (
-          <button
-            key={key}
-            onClick={() => toggleSort(key)}
-            style={{
-              padding: '5px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11.5, fontWeight: 700,
-              background: sortKey === key ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.02)',
-              border: `1px solid ${sortKey === key ? 'rgba(96,165,250,0.5)' : 'rgba(255,255,255,0.1)'}`,
-              color: sortKey === key ? '#60a5fa' : 'rgba(255,255,255,0.5)',
-            }}
-          >
-            {SORT_LABELS[key]}{sortKey === key ? (sortDesc ? ' ↓' : ' ↑') : ''}
-          </button>
-        ))}
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
+        <div className="relative">
+          <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-white/65">🔎</span>
+          <TextInput
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Filtrer par pseudo, email ou id de save…"
+            className="pl-9"
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 max-w-full items-center gap-2">
+            <span className="shrink-0 text-sm font-semibold uppercase tracking-wide text-white/70">Trier</span>
+            <div className="flex gap-1 overflow-x-auto pb-1">
+              {(Object.keys(SORT_LABELS) as SortKey[]).map(key => {
+                const active = sortKey === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggleSort(key)}
+                    aria-pressed={active}
+                    className={cx(
+                      'min-h-10 shrink-0 cursor-pointer rounded-lg border px-3 text-sm font-bold whitespace-nowrap transition-colors',
+                      active ? 'border-sky-400/50 bg-sky-400/15 text-sky-300' : 'border-white/20 bg-white/[0.02] text-white/75 hover:text-white/90',
+                    )}
+                  >
+                    {SORT_LABELS[key]}{active ? (sortDesc ? ' ↓' : ' ↑') : ''}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <span className="text-sm text-white/70">{rows.length} / {players.length} joueur(s) · clique pour ouvrir la fiche</span>
+        </div>
       </div>
 
-      {rows.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4 }}>Aucun joueur trouvé.</div>}
+      {rows.length === 0 && <Empty>Aucun joueur trouvé.</Empty>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {rows.map(u => {
           const isOpen = expandedUid === u.uid;
           return (
-            <div key={u.uid} style={{ borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: `1px solid ${isOpen ? 'rgba(251,191,36,0.4)' : 'rgba(96,165,250,0.18)'}` }}>
-              <div
+            <div key={u.uid} className={cx(
+              'overflow-hidden rounded-2xl border transition-colors',
+              isOpen ? 'border-amber-400/40 bg-white/[0.035]' : 'border-white/15 bg-white/[0.02] hover:border-sky-400/30',
+            )}>
+              <button
+                type="button"
                 onClick={() => setExpandedUid(isOpen ? null : u.uid)}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '12px 16px', cursor: 'pointer' }}
+                aria-expanded={isOpen}
+                className="flex w-full cursor-pointer flex-col gap-3 px-3 py-3 text-left sm:flex-row sm:items-center sm:gap-4 sm:px-4"
               >
-                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{isOpen ? '▾' : '▸'}</span>
-                <div style={{ minWidth: 160 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{u.username || '(sans pseudo)'}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{u.email}</div>
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span aria-hidden className={cx(
+                    'flex size-9 shrink-0 items-center justify-center rounded-full text-base font-black',
+                    u.approved ? 'bg-sky-400/15 text-sky-300' : 'bg-amber-400/15 text-amber-300',
+                  )}>
+                    {(u.username || '?').charAt(0).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-base font-bold text-white">{u.username || '(sans pseudo)'}</span>
+                      <span className={cx(
+                        'shrink-0 rounded-full px-2 py-0.5 text-sm font-bold',
+                        u.approved ? 'bg-emerald-400/10 text-emerald-300' : 'bg-amber-400/10 text-amber-300',
+                      )}>
+                        {u.approved ? '✓ Validé' : '⏳ En attente'}
+                      </span>
+                    </div>
+                    <div className="truncate text-sm text-white/75">{u.email}</div>
+                  </div>
+                  <span aria-hidden className={cx('shrink-0 text-white/70 transition-transform sm:order-last', isOpen && 'rotate-90')}>▸</span>
                 </div>
-                <span style={{ color: u.approved ? '#4ade80' : '#fbbf24', fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap' }}>
-                  {u.approved ? '✓ Validé' : '⏳ En attente'}
-                </span>
                 {u.save ? (
-                  <div style={{ display: 'flex', gap: 12, marginLeft: 'auto', flexWrap: 'wrap' }}>
-                    <span style={{ color: '#fbbf24', fontSize: 12.4, whiteSpace: 'nowrap' }}>🪙 {formatNumber(u.save.pixelCoins)}</span>
-                    <span style={{ color: '#c084fc', fontSize: 12.4, whiteSpace: 'nowrap' }}>💎 {formatNumber(u.save.nekoGems)}</span>
-                    <span style={{ color: '#67e8f9', fontSize: 12.4, whiteSpace: 'nowrap' }}>⛰️ {u.save.palier}</span>
-                    <span style={{ color: '#f0abfc', fontSize: 12.4, whiteSpace: 'nowrap' }} title="Prestiges effectués">✨ {u.save.prestigeLevel}</span>
-                    <span style={{ color: '#fde68a', fontSize: 12.4, whiteSpace: 'nowrap' }} title="Jetons de prestige disponibles">🎫 {formatNumber(u.save.prestigeTokens)}</span>
-                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11.5, whiteSpace: 'nowrap' }}>
-                      {u.save.lastSaved ? new Date(u.save.lastSaved).toLocaleDateString('fr-FR') : '—'}
+                  <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-sm tabular-nums sm:flex sm:shrink-0 sm:items-center sm:gap-4">
+                    <span className="whitespace-nowrap text-amber-300" title="Pixel-Coins">🪙 {formatNumber(u.save.pixelCoins)}</span>
+                    <span className="whitespace-nowrap text-violet-300" title="Neko-Gemmes">💎 {formatNumber(u.save.nekoGems)}</span>
+                    <span className="whitespace-nowrap text-cyan-300" title="Palier">⛰️ {u.save.palier}</span>
+                    <span className="whitespace-nowrap text-fuchsia-300" title="Prestiges effectués">✨ {u.save.prestigeLevel}</span>
+                    <span className="whitespace-nowrap text-amber-200" title="Jetons de prestige disponibles">🎫 {formatNumber(u.save.prestigeTokens)}</span>
+                    <span className="whitespace-nowrap text-white/65" title="Dernière sauvegarde">
+                      🕒 {u.save.lastSaved ? new Date(u.save.lastSaved).toLocaleDateString('fr-FR') : '—'}
                     </span>
                   </div>
                 ) : (
-                  <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.25)', fontSize: 11.5 }}>Jamais joué</span>
+                  <span className="text-sm text-white/60 sm:shrink-0">Jamais joué</span>
                 )}
-              </div>
+              </button>
               {isOpen && (
-                <div style={{ padding: '0 12px 12px' }}>
+                <div className="border-t border-white/15 p-2 sm:p-3">
                   <PlayerEditor
                     key={u.uid}
                     uid={u.uid}
@@ -132,6 +159,6 @@ export function PlayersTab({ players, onSaveUpdate }: PlayersTabProps) {
           );
         })}
       </div>
-    </>
+    </div>
   );
 }

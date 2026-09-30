@@ -9,6 +9,7 @@ import {
 } from '@/lib/firebase/marketplace';
 import { restoreListingItemToSeller } from '@/lib/firebase/adminTools';
 import { getListingLabel, getListingIcon } from '@/components/pages/MarketplacePage';
+import { Button, Card, Empty, Feedback, SectionHeader, Segmented, StatTile, TextInput, cx } from './ui';
 
 const CURRENCY_ICON: Record<ListingCurrency, string> = { gems: '💎', coins: '🪙', crowns: '👑' };
 const TYPE_LABEL: Record<ListingType, string> = { item: 'Item', equipment: 'Équipement', character: 'Personnage' };
@@ -96,115 +97,101 @@ export function MarketplaceTab() {
   };
 
   return (
-    <>
-      <h2 style={{ color: '#f97316', fontSize: 15.5, fontWeight: 800, marginBottom: 4 }}>🏛️ Hôtel de Ville</h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.4, marginBottom: 14, lineHeight: 1.5 }}>
-        Toutes les annonces du marketplace. « Acheter » récupère l'item gratuitement (aucune monnaie débitée) ; « Retirer » annule l'annonce et restitue l'item au vendeur.
-      </p>
-
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-        {[
-          { label: 'En vente', value: stats.active, color: '#4ade80' },
-          { label: 'Vendues', value: stats.sold, color: '#60a5fa' },
-          { label: 'Annulées', value: stats.cancelled, color: 'rgba(255,255,255,0.4)' },
-          { label: 'Vendeurs actifs', value: stats.sellers, color: '#fbbf24' },
-        ].map(s => (
-          <div key={s.label} style={{ padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div style={{ color: s.color, fontWeight: 900, fontSize: 16.5 }}>{s.value}</div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{s.label}</div>
-          </div>
-        ))}
-        <button onClick={load} disabled={loading} title="Recharger les annonces depuis Firestore" style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 8, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', cursor: loading ? 'default' : 'pointer', fontSize: 12.4, fontWeight: 700, alignSelf: 'flex-start' }}>
-          {loading ? 'Actualisation…' : '🔄 Actualiser'}
-        </button>
-      </div>
-
-      {feedback && (
-        <div style={{ padding: '10px 16px', borderRadius: 8, fontSize: 12.4, fontWeight: 700, marginBottom: 14,
-          background: feedback.ok ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
-          border: `1px solid ${feedback.ok ? 'rgba(74,222,128,0.4)' : 'rgba(239,68,68,0.4)'}`,
-          color: feedback.ok ? '#4ade80' : '#f87171' }}>
-          {feedback.ok ? '✅' : '❌'} {feedback.msg}
+    <div className="flex flex-col gap-4">
+      <Card tone="orange">
+        <SectionHeader icon="🏛️" title="Hôtel de Ville"
+          subtitle="Toutes les annonces du marketplace. « Acheter » récupère l'item gratuitement (aucune monnaie débitée) ; « Retirer » annule l'annonce et restitue l'item au vendeur."
+          right={
+            <Button tone="green" onClick={load} disabled={loading} title="Recharger les annonces depuis Firestore">
+              {loading ? 'Actualisation…' : '🔄 Actualiser'}
+            </Button>
+          } />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <StatTile label="En vente" value={stats.active} tone="green" />
+          <StatTile label="Vendues" value={stats.sold} tone="blue" />
+          <StatTile label="Annulées" value={stats.cancelled} />
+          <StatTile label="Vendeurs actifs" value={stats.sellers} tone="amber" />
         </div>
-      )}
+      </Card>
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14, alignItems: 'center' }}>
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Filtrer par vendeur, id ou item…"
-          style={{ flex: 1, minWidth: 200, padding: '9px 14px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13.4, boxSizing: 'border-box' }}
-        />
-        {(['active', 'sold', 'cancelled', 'all'] as StatusFilter[]).map(s => (
-          <button key={s} onClick={() => setStatusFilter(s)} style={{
-            padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11.5, fontWeight: 700,
-            background: statusFilter === s ? 'rgba(249,115,22,0.18)' : 'rgba(255,255,255,0.02)',
-            border: `1px solid ${statusFilter === s ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.1)'}`,
-            color: statusFilter === s ? '#f97316' : 'rgba(255,255,255,0.5)',
-          }}>
-            {s === 'all' ? 'Toutes' : STATUS_LABEL[s]}
-          </button>
-        ))}
-        {(['all', 'item', 'equipment', 'character'] as TypeFilter[]).map(t => (
-          <button key={t} onClick={() => setTypeFilter(t)} style={{
-            padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11.5, fontWeight: 700,
-            background: typeFilter === t ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.02)',
-            border: `1px solid ${typeFilter === t ? 'rgba(96,165,250,0.5)' : 'rgba(255,255,255,0.1)'}`,
-            color: typeFilter === t ? '#60a5fa' : 'rgba(255,255,255,0.5)',
-          }}>
-            {t === 'all' ? 'Tous types' : TYPE_LABEL[t]}
-          </button>
-        ))}
+      {feedback && <Feedback msg={`${feedback.ok ? '✅' : '❌'} ${feedback.msg}`} />}
+
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+        <div className="relative min-w-0 flex-1">
+          <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-white/65">🔎</span>
+          <TextInput
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Filtrer par vendeur, id ou item…"
+            className="pl-9"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Segmented label="Statut" value={statusFilter} tone="orange"
+            options={(['active', 'sold', 'cancelled', 'all'] as StatusFilter[]).map(s => ({ id: s, label: s === 'all' ? 'Toutes' : STATUS_LABEL[s] }))}
+            onChange={setStatusFilter} />
+          <Segmented label="Type" value={typeFilter} tone="blue"
+            options={(['all', 'item', 'equipment', 'character'] as TypeFilter[]).map(t => ({ id: t, label: t === 'all' ? 'Tous types' : TYPE_LABEL[t] }))}
+            onChange={setTypeFilter} />
+        </div>
       </div>
 
       {loading && listings.length === 0 ? (
-        <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4, padding: '20px 0' }}>Chargement…</div>
+        <Empty>Chargement…</Empty>
       ) : filtered.length === 0 ? (
-        <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4, padding: '20px 0' }}>Aucune annonce pour ces filtres.</div>
+        <Empty>Aucune annonce pour ces filtres.</Empty>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="flex flex-col gap-2">
+          <div className="text-sm text-white/70">{filtered.length} annonce(s)</div>
           {filtered.map(l => (
-            <div key={l.id} style={{
-              display: 'grid', gridTemplateColumns: '32px 1fr auto auto auto', gap: 12, alignItems: 'center',
-              padding: '12px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)',
-              border: `1px solid ${l.status === 'active' ? 'rgba(249,115,22,0.25)' : l.status === 'sold' ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.08)'}`,
-            }}>
-              <span style={{ fontSize: 20, textAlign: 'center' }}>{getListingIcon(l)}</span>
-              <div>
-                <div style={{ color: '#fff', fontWeight: 700, fontSize: 13.4 }}>
-                  {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
+            <div key={l.id} className={cx(
+              'flex flex-col gap-3 rounded-2xl border bg-white/[0.025] p-3 sm:flex-row sm:items-center sm:gap-4 sm:px-4',
+              l.status === 'active' ? 'border-orange-400/25' : l.status === 'sold' ? 'border-emerald-400/20' : 'border-white/15 opacity-80',
+            )}>
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-black/30 text-2xl" aria-hidden>{getListingIcon(l)}</span>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-bold text-white">
+                    {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
+                  </div>
+                  <div className="text-sm text-white/75">
+                    {TYPE_LABEL[l.type]} · vendu par <span className="text-cyan-300">{l.sellerName}</span>
+                    {' · '}{new Date(l.createdAt).toLocaleString('fr-FR')}
+                  </div>
+                  {l.status === 'sold' && (
+                    <div className="text-sm text-emerald-300">
+                      Acheté par {l.soldToName}{l.claimed ? ' · encaissé' : ' · non encaissé'}
+                    </div>
+                  )}
                 </div>
-                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11.5, marginTop: 2 }}>
-                  {TYPE_LABEL[l.type]} · vendu par <span style={{ color: '#67e8f9' }}>{l.sellerName}</span>
-                  {' · '}{new Date(l.createdAt).toLocaleString('fr-FR')}
-                </div>
-                {l.status === 'sold' && (
-                  <div style={{ color: '#4ade80', fontSize: 11.5, marginTop: 2 }}>
-                    Acheté par {l.soldToName}{l.claimed ? ' · encaissé' : ' · non encaissé'}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:flex-nowrap">
+                <span className={cx('text-sm font-bold whitespace-nowrap',
+                  l.status === 'active' ? 'text-emerald-300' : l.status === 'sold' ? 'text-sky-300' : 'text-white/70')}>
+                  {STATUS_LABEL[l.status]}
+                </span>
+                <span className={cx('ml-auto font-mono text-base font-black whitespace-nowrap sm:ml-0',
+                  l.currency === 'gems' ? 'text-violet-300' : l.currency === 'crowns' ? 'text-amber-300' : 'text-amber-200')}>
+                  {CURRENCY_ICON[l.currency]} {formatNumber(l.price)}
+                </span>
+                {l.status === 'active' && (
+                  <div className="flex w-full gap-2 sm:w-auto">
+                    <Button size="sm" tone="blue" onClick={() => handleBuy(l)} disabled={busy === l.id} className="flex-1 sm:flex-none"
+                      title="Récupérer gratuitement sur le compte admin (aucune monnaie débitée)">
+                      🛒 Acheter
+                    </Button>
+                    <Button size="sm" tone="red" onClick={() => handleRemove(l)} disabled={busy === l.id} className="flex-1 sm:flex-none"
+                      title="Annuler l'annonce et restituer l'item au vendeur">
+                      {busy === l.id ? '…' : '🗑️ Retirer'}
+                    </Button>
                   </div>
                 )}
               </div>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: l.status === 'active' ? '#4ade80' : l.status === 'sold' ? '#60a5fa' : 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
-                {STATUS_LABEL[l.status]}
-              </span>
-              <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 14, textAlign: 'right', whiteSpace: 'nowrap',
-                color: l.currency === 'gems' ? '#c084fc' : l.currency === 'crowns' ? '#fbbf24' : '#fde68a' }}>
-                {CURRENCY_ICON[l.currency]} {formatNumber(l.price)}
-              </span>
-              {l.status === 'active' ? (
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => handleBuy(l)} disabled={busy === l.id} title="Récupérer gratuitement sur le compte admin (aucune monnaie débitée)" style={{ padding: '7px 12px', borderRadius: 6, cursor: busy === l.id ? 'default' : 'pointer', fontSize: 11.5, fontWeight: 700, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', whiteSpace: 'nowrap' }}>
-                    🛒 Acheter
-                  </button>
-                  <button onClick={() => handleRemove(l)} disabled={busy === l.id} title="Annuler l'annonce et restituer l'item au vendeur" style={{ padding: '7px 12px', borderRadius: 6, cursor: busy === l.id ? 'default' : 'pointer', fontSize: 11.5, fontWeight: 700, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', whiteSpace: 'nowrap' }}>
-                    {busy === l.id ? '...' : '🗑️ Retirer'}
-                  </button>
-                </div>
-              ) : <span />}
             </div>
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

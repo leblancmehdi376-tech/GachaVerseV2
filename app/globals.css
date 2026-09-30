@@ -67,7 +67,12 @@
 }
 
 /* ── Reset ──────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Dans @layer base (comme le preflight Tailwind) : hors couche, ce reset
+   l'emporterait sur les utilitaires Tailwind (`p-4`, `mx-auto`…), qui vivent
+   dans @layer utilities — un style hors couche bat toujours un style en couche. */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+}
 html, body {
   height: 100%;
   background: var(--bg-void);

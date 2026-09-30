@@ -1,5 +1,6 @@
 'use client';
 import { AccessRequest } from '@/lib/firebase/accessRequests';
+import { Button, Card, Empty, SectionHeader } from './ui';
 
 interface RequestsTabProps {
   pending: AccessRequest[];
@@ -10,37 +11,46 @@ interface RequestsTabProps {
 
 export function RequestsTab({ pending, approvedList, busy, onApprove }: RequestsTabProps) {
   return (
-    <>
-      <h2 style={{ color: '#fbbf24', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>En attente</h2>
-      {pending.length === 0 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13.4, marginBottom: 24 }}>Aucune demande en attente.</div>}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
-        {pending.map(r => (
-          <div key={r.uid} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,191,36,0.25)' }}>
-            <div>
-              <div style={{ color: '#fff', fontWeight: 700, fontSize: 14.4 }}>{r.username}</div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12.4, marginTop: 2 }}>{r.email}</div>
-              <div style={{ color: '#7289da', fontSize: 12.4, marginTop: 2 }}>Discord : {r.discordHandle}</div>
-              <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 4 }}>
-                Demandé le {new Date(r.createdAt).toLocaleString('fr-FR')}
+    <div className="flex flex-col gap-5">
+      <Card tone={pending.length > 0 ? 'amber' : undefined}>
+        <SectionHeader icon="⏳" title={`En attente (${pending.length})`} subtitle="Du plus ancien au plus récent." />
+        {pending.length === 0 ? (
+          <Empty>Aucune demande en attente.</Empty>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {pending.map(r => (
+              <div key={r.uid} className="flex flex-col gap-3 rounded-xl border border-amber-400/20 bg-black/25 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <div className="min-w-0">
+                  <div className="truncate text-base font-bold text-white">{r.username}</div>
+                  <div className="truncate text-sm text-white/75">{r.email}</div>
+                  <div className="truncate text-sm text-[#b4c0ff]">Discord : {r.discordHandle}</div>
+                  <div className="mt-1 text-sm text-white/65">Demandé le {new Date(r.createdAt).toLocaleString('fr-FR')}</div>
+                </div>
+                <Button tone="green" onClick={() => onApprove(r.uid)} disabled={busy === r.uid} className="w-full sm:w-auto">
+                  {busy === r.uid ? '…' : '✓ Valider'}
+                </Button>
               </div>
-            </div>
-            <button onClick={() => onApprove(r.uid)} disabled={busy === r.uid} style={{ padding: '9px 18px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80', cursor: 'pointer', fontWeight: 700, fontSize: 12.4, whiteSpace: 'nowrap' }}>
-              {busy === r.uid ? '...' : '✓ Valider'}
-            </button>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </Card>
 
-      <h2 style={{ color: '#4ade80', fontSize: 15.5, fontWeight: 800, marginBottom: 12 }}>Déjà validés ({approvedList.length})</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {approvedList.map(r => (
-          <div key={r.uid} style={{ display: 'flex', gap: 12, padding: '8px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 12.4 }}>
-            <span style={{ color: '#fff', fontWeight: 700, minWidth: 140 }}>{r.username}</span>
-            <span style={{ color: 'rgba(255,255,255,0.4)' }}>{r.email}</span>
-            <span style={{ color: '#7289da' }}>{r.discordHandle}</span>
+      <Card>
+        <SectionHeader icon="✅" title={`Déjà validés (${approvedList.length})`} />
+        {approvedList.length === 0 ? (
+          <Empty>Aucun compte validé.</Empty>
+        ) : (
+          <div className="flex flex-col divide-y divide-white/15">
+            {approvedList.map(r => (
+              <div key={r.uid} className="grid grid-cols-1 gap-x-4 py-2 text-sm sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
+                <span className="truncate font-bold text-white">{r.username}</span>
+                <span className="truncate text-white/75">{r.email}</span>
+                <span className="truncate text-[#b4c0ff]">{r.discordHandle}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </>
+        )}
+      </Card>
+    </div>
   );
 }
