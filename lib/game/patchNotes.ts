@@ -20,6 +20,14 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '30/09/2026',
+    title: 'Maj v2.7.4',
+    changes: [
+      "Le menu déroulant de **recherche d'univers** s'affiche désormais **au-dessus** des pastilles d'évolution et d'édition des cartes.",
+      "**Boutique du jour** : nouvel interrupteur **Alerte perso inédit** à côté du bouton Reroll, pour activer ou couper la confirmation quand la boutique contient un personnage que tu n'as pas encore.",
+    ],
+  },
+  {
+    date: '30/09/2026',
     title: 'Maj v2.7.3',
     changes: [
       "La **Boutique** a été entièrement redessinée : même contenu, mêmes prix, présentation plus claire.",

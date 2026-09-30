@@ -121,7 +121,7 @@ function UniverseDropdown({ universes, value, onChange }: { universes: string[];
         <span style={{ color: 'var(--text-muted)', fontSize: '10px', transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
       </button>
       {open && (
-        <div className="cf-pop cf-frame" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 20, width: '260px' }}>
+        <div className="cf-pop cf-frame" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100, width: '260px' }}>
           <div className="cf-frame__inner" style={{ padding: '8px' }}>
             <div className="cf-search" style={{ marginBottom: '6px' }}>
               <SearchIcon />

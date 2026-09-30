@@ -75,6 +75,31 @@ export function formatDuration(ms: number): string {
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
+// Préférence locale (par appareil) : afficher ou non la confirmation avant de
+// reroll une boutique contenant un personnage pas encore possédé.
+const REROLL_CONFIRM_PREF_KEY = 'gachaverse_shop_reroll_confirm';
+
+function readRerollConfirmPref(): boolean {
+  try { return localStorage.getItem(REROLL_CONFIRM_PREF_KEY) !== '0'; } catch { return true; }
+}
+
+function writeRerollConfirmPref(enabled: boolean) {
+  try { localStorage.setItem(REROLL_CONFIRM_PREF_KEY, enabled ? '1' : '0'); } catch {}
+}
+
+/** Interrupteur on/off compact (zone tactile ≥ 44px de haut). */
+function ToggleSwitch({ checked, onChange, label, color }: { checked: boolean; onChange: (v: boolean) => void; label: string; color: string }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
+      style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'0 4px', background:'none', border:'none', cursor:'pointer', color:'var(--text-sub)', fontFamily:'var(--f-ui)', fontSize:12.4, fontWeight:600, textAlign:'left' }}>
+      <span style={{ position:'relative', flexShrink:0, width:38, height:22, borderRadius:999, background: checked ? color : 'rgba(255,255,255,0.12)', border:`1px solid ${checked ? color : 'rgba(255,255,255,0.2)'}`, transition:'background 0.15s' }}>
+        <span style={{ position:'absolute', top:2, left: checked ? 18 : 2, width:16, height:16, borderRadius:'50%', background:'#fff', transition:'left 0.15s' }} />
+      </span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
 function msUntilNextMidnight(): number {
   const now = new Date();
   const next = new Date(now);
@@ -164,9 +189,18 @@ export function ShopPage() {
   const [chestResult, setChestResult] = useState<{ itemId: string; tier: ChestTier } | null>(null);
   const [starterResult, setStarterResult] = useState<{ templateId: string; edition: CardEdition } | null>(null);
   const [showRerollConfirm, setShowRerollConfirm] = useState(false);
+  const [rerollConfirmEnabled, setRerollConfirmEnabled] = useState(true);
   useEffect(() => {
     ensureDailyShop();
   }, [ensureDailyShop]);
+  // Lu après le montage pour éviter un écart d'hydratation serveur/client.
+  useEffect(() => {
+    setRerollConfirmEnabled(readRerollConfirmPref());
+  }, []);
+  const toggleRerollConfirm = (enabled: boolean) => {
+    setRerollConfirmEnabled(enabled);
+    writeRerollConfirmPref(enabled);
+  };
 
   const dpsActive  = isDpsBoostActive();
   const goldActive = isGoldBoostActive();
@@ -184,7 +218,7 @@ export function ShopPage() {
     id => !dailyShop.purchased.includes(id) && !isCharacterOwned(collection, id)
   );
   const handleRerollClick = () => {
-    if (hasUnclaimedNewCard) setShowRerollConfirm(true);
+    if (hasUnclaimedNewCard && rerollConfirmEnabled) setShowRerollConfirm(true);
     else rerollDailyShop();
   };
 
@@ -366,9 +400,13 @@ export function ShopPage() {
         <ShopSection icon="🛒" title="BOUTIQUE DU JOUR" accent={C.orb}
           subtitle={<>⏳ Renouvellement dans <b style={{ color:'var(--text-sub)', fontFamily:'var(--f-num)', fontSize:12 }}>{formatDuration(msUntilNextMidnight())}</b></>}
           right={
-            <BuyButton color={C.orb} enabled={canReroll} onClick={handleRerollClick} style={{ width:'auto', padding:'9px 16px' }}>
-              🎲 REROLL LA BOUTIQUE · 🔮 {rerollCost}
-            </BuyButton>
+            <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'flex-end', gap:'4px 12px' }}>
+              <ToggleSwitch checked={rerollConfirmEnabled} onChange={toggleRerollConfirm} color={C.orb}
+                label="Alerte perso inédit" />
+              <BuyButton color={C.orb} enabled={canReroll} onClick={handleRerollClick} style={{ width:'auto', padding:'9px 16px' }}>
+                🎲 REROLL LA BOUTIQUE · 🔮 {rerollCost}
+              </BuyButton>
+            </div>
           }>
           <div className="shop-grid-3">
             {dailyShop.characterIds.map(id => {
