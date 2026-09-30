@@ -4,6 +4,15 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# Responsive design
+
+**Every UI change must work on all screen sizes, mobile first**: phones (~360–430px wide, portrait), tablets, and desktop. Don't design only for the desktop layout.
+- Use responsive utilities/breakpoints (e.g. `sm:`, `md:`, `lg:`) to adapt layouts: stack columns, shrink paddings/fonts, wrap or scroll rows instead of overflowing.
+- No horizontal page scroll on mobile: avoid fixed widths that exceed the viewport, prefer `max-w-*`, `w-full`, `flex-wrap`, `min-w-0`.
+- Touch targets must stay comfortable to tap (~44px), and nothing important may rely on hover only.
+- Modals, popups and overlays must fit the mobile viewport (max height with inner scroll, reachable close button).
+- Check how existing components already handle mobile (e.g. `components/layout/GameLayout.tsx`) and stay consistent with them.
+
 # Patch notes
 
 The game has an in-app Patch Notes popup (accessible from the left navbar in `components/layout/GameLayout.tsx`, rendered by `components/layout/PatchNotesModal.tsx`), backed by `lib/game/patchNotes.ts`.
