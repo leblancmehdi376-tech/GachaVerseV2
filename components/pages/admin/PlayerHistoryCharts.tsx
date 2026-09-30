@@ -36,6 +36,12 @@ const RANGES: { id: Range; label: string; ms: number }[] = [
   { id: 'all', label: 'Tout', ms: Infinity },
 ];
 
+type Scale = 'log' | 'linear';
+const SCALES: { id: Scale; label: string }[] = [
+  { id: 'log', label: 'Log' },
+  { id: 'linear', label: 'Linéaire' },
+];
+
 const GAIN_COLOR = '#4ade80';
 const LOSS_COLOR = '#f87171';
 const COIN_COLOR = '#fbbf24';
@@ -127,6 +133,7 @@ interface ChartDef {
   summary: React.ReactNode;
   readout: (index: number) => React.ReactNode;
   formatAxis: (v: number) => string;
+  alreadyLog?: boolean;   // valeurs déjà en log10 : pas de seconde transformation
 }
 
 function Legend({ items }: { items: LegendItem[] }) {
@@ -146,8 +153,24 @@ function Legend({ items }: { items: LegendItem[] }) {
   );
 }
 
-function MountainChart({ chart, expanded = false, onExpand }: {
+// Graduations de l'axe vertical, dans l'espace tracé (log10 en échelle log).
+// En log, sur au moins deux ordres de grandeur, on gradue sur les puissances
+// de 10 (1, 10, 100, 1K…) — bien plus lisible que des valeurs intermédiaires
+// comme 3 162. Sinon, graduations régulières de hi à lo.
+function axisTicksFor(lo: number, hi: number, count: number, log: boolean): number[] {
+  if (log && hi - lo >= 2) {
+    const exps: number[] = [];
+    for (let e = Math.ceil(lo); e <= Math.floor(hi); e++) exps.push(e);
+    const step = Math.ceil(exps.length / count);
+    const picked = exps.filter((_, i) => (exps.length - 1 - i) % step === 0).reverse();
+    if (picked.length >= 2) return picked;
+  }
+  return Array.from({ length: count }, (_, k) => hi - (k / (count - 1)) * (hi - lo));
+}
+
+function MountainChart({ chart, log, expanded = false, onExpand }: {
   chart: ChartDef;
+  log: boolean;
   expanded?: boolean;
   onExpand?: () => void;
 }) {
@@ -156,22 +179,27 @@ function MountainChart({ chart, expanded = false, onExpand }: {
   const { ref, index, handlers } = usePointerIndex(times.length, expanded ? undefined : onExpand);
   const n = times.length;
   const w = Math.max(n - 1, 1);
-  const all = series.flatMap(s => s.values);
+  // Échelle log : on trace log10(valeur), 0 étant ramené à 1 (pied de l'axe).
+  // Les séries déjà en log10 (coins au-delà de Number.MAX_VALUE) restent telles quelles.
+  const useLog = log && !chart.alreadyLog;
+  const plot = (v: number) => useLog ? Math.log10(Math.max(v, 1)) : v;
+  const unplot = (p: number) => useLog ? 10 ** p : p;
+  const all = series.flatMap(s => s.values.map(plot));
   const min = Math.min(...all);
   const max = Math.max(...all);
   // Pied de la montagne : 0 pour les petites valeurs (prestige, palier bas),
   // sinon un peu sous le minimum pour que les reliefs restent lisibles.
   const lo = min <= 5 ? 0 : min - (max - min) * 0.15;
   const hi = max === lo ? lo + 1 : max;
-  const toY = (v: number) => PAD_TOP + (1 - (v - lo) / (hi - lo)) * (VIEW_H - PAD_TOP);
+  const yOf = (p: number) => PAD_TOP + (1 - (p - lo) / (hi - lo)) * (VIEW_H - PAD_TOP);
+  const toY = (v: number) => yOf(plot(v));
   const shown = index ?? n - 1;
 
   // En grand : dès l'ouverture, le focus va sur le graphe pour que les
   // flèches parcourent directement les points.
   useEffect(() => { if (expanded) ref.current?.focus(); }, [expanded, ref]);
 
-  const axisTicks = expanded ? 5 : 2;
-  const axisValues = Array.from({ length: axisTicks }, (_, k) => hi - (k / (axisTicks - 1)) * (hi - lo));
+  const axisValues = axisTicksFor(lo, hi, expanded ? 6 : 3, useLog);
   const dateTicks = spreadIndices(n, expanded ? 5 : 2);
   const plotHeight = expanded ? 'clamp(220px, 58vh, 620px)' : 130;
 
@@ -197,8 +225,18 @@ function MountainChart({ chart, expanded = false, onExpand }: {
         <span className="text-white/70">{index !== null ? formatDate(times[shown]) : 'Dernier point'}</span> · {readout(shown)}
       </div>
       <div className="flex gap-1.5">
-        <div className="flex shrink-0 flex-col items-end justify-between text-sm tabular-nums text-white/65" style={{ height: plotHeight, minWidth: 48 }}>
-          {axisValues.map((v, k) => <span key={k}>{formatAxis(v)}</span>)}
+        {/* Libellés placés à la hauteur exacte de leur graduation (en log,
+            les puissances de 10 ne sont pas régulièrement espacées). */}
+        <div className="relative shrink-0 text-sm tabular-nums text-white/65" style={{ height: plotHeight, minWidth: 56 }}>
+          {axisValues.map(p => {
+            const pct = (yOf(p) / VIEW_H) * 100;
+            const shift = pct < 8 ? 'translate-y-0' : pct > 92 ? '-translate-y-full' : '-translate-y-1/2';
+            return (
+              <span key={p} className={cx('absolute right-0 whitespace-nowrap leading-none', shift)} style={{ top: `${pct}%` }}>
+                {formatAxis(unplot(p))}
+              </span>
+            );
+          })}
         </div>
         <div className="relative min-w-0 flex-1 overflow-hidden rounded-lg border border-white/15 bg-[#0a0818]" style={{ height: plotHeight }}>
           <svg
@@ -220,13 +258,9 @@ function MountainChart({ chart, expanded = false, onExpand }: {
                 </linearGradient>
               ))}
             </defs>
-            {axisValues.slice(1, -1).map(v => (
-              <line key={v} x1={0} y1={toY(v)} x2={w} y2={toY(v)}
+            {axisValues.map(p => (
+              <line key={p} x1={0} y1={yOf(p)} x2={w} y2={yOf(p)}
                 stroke="rgba(255,255,255,0.12)" vectorEffect="non-scaling-stroke" />
-            ))}
-            {!expanded && [0.25, 0.5, 0.75].map(f => (
-              <line key={f} x1={0} y1={VIEW_H * f} x2={w} y2={VIEW_H * f}
-                stroke="rgba(255,255,255,0.1)" vectorEffect="non-scaling-stroke" />
             ))}
             {series.map((s, si) => {
               const pts = s.values.map((v, i) => `${i} ${toY(v)}`);
@@ -257,7 +291,7 @@ function MountainChart({ chart, expanded = false, onExpand }: {
           ))}
         </div>
       </div>
-      <div className="relative mt-1 h-5 text-sm tabular-nums text-white/65" style={{ marginLeft: 54 }}>
+      <div className="relative mt-1 h-5 text-sm tabular-nums text-white/65" style={{ marginLeft: 62 }}>
         {dateTicks.map((i, k) => {
           const pct = (i / w) * 100;
           const align = k === 0 ? 'translate-x-0' : k === dateTicks.length - 1 ? '-translate-x-full' : '-translate-x-1/2';
@@ -273,13 +307,15 @@ function MountainChart({ chart, expanded = false, onExpand }: {
 }
 
 // ─── Modale plein écran ────────────────────────────────────────────────────
-function ChartModal({ charts, activeId, onSelect, onClose, range, onRange, pointCount }: {
+function ChartModal({ charts, activeId, onSelect, onClose, range, onRange, scale, onScale, pointCount }: {
   charts: ChartDef[];
   activeId: string;
   onSelect: (id: string) => void;
   onClose: () => void;
   range: Range;
   onRange: (r: Range) => void;
+  scale: Scale;
+  onScale: (s: Scale) => void;
   pointCount: number;
 }) {
   const chart = charts.find(c => c.id === activeId) ?? charts[0];
@@ -318,11 +354,14 @@ function ChartModal({ charts, activeId, onSelect, onClose, range, onRange, point
           <Segmented label="Graphe affiché" value={chart.id} tone="cyan"
             options={charts.map(c => ({ id: c.id, label: `${c.icon} ${c.label}` }))}
             onChange={onSelect} />
-          <Segmented label="Période affichée" value={range} tone="amber"
-            options={RANGES.map(r => ({ id: r.id, label: r.label }))} onChange={onRange} />
+          <div className="flex flex-wrap gap-2">
+            <Segmented label="Période affichée" value={range} tone="amber"
+              options={RANGES.map(r => ({ id: r.id, label: r.label }))} onChange={onRange} />
+            <Segmented label="Échelle verticale" value={scale} tone="purple" options={SCALES} onChange={onScale} />
+          </div>
         </div>
 
-        <MountainChart key={chart.id} chart={chart} expanded />
+        <MountainChart key={chart.id} chart={chart} log={scale === 'log'} expanded />
 
         <div className="text-sm text-white/65">
           {pointCount} points · survolez, touchez ou utilisez ← → pour lire un point · Échap pour fermer.
@@ -336,6 +375,9 @@ function ChartModal({ charts, activeId, onSelect, onClose, range, onRange, point
 // ─── Composant principal ───────────────────────────────────────────────────
 export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }) {
   const [range, setRange] = useState<Range>('all');
+  // Log par défaut : les soldes grimpent de plusieurs ordres de grandeur, en
+  // linéaire tout le début de partie serait écrasé au pied du graphe.
+  const [scale, setScale] = useState<Scale>('log');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -420,6 +462,7 @@ export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }
         </>;
       },
       formatAxis: coinAxis,
+      alreadyLog: coins.log,
     },
     {
       id: 'gems', icon: '💎', label: 'Neko-Gemmes', times,
@@ -433,7 +476,7 @@ export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }
         solde <span style={{ color: '#fff' }}>{fmtInt(gems.values[i])}</span>
         {i > 0 && <> · <DeltaText delta={gems.values[i] - gems.values[i - 1]} format={fmtInt} /></>}
       </>,
-      formatAxis: fmtInt,
+      formatAxis: v => formatNumber(Math.round(v)),
     },
   ];
 
@@ -477,15 +520,18 @@ export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }
             {filtered.length} points · un par sauvegarde (~10 min de jeu). Survolez ou glissez pour lire un point, cliquez pour agrandir.
           </div>
         </div>
-        <Segmented label="Période affichée" value={range} tone="amber"
-          options={RANGES.map(r => ({ id: r.id, label: r.label }))} onChange={setRange} />
+        <div className="flex flex-wrap gap-2">
+          <Segmented label="Période affichée" value={range} tone="amber"
+            options={RANGES.map(r => ({ id: r.id, label: r.label }))} onChange={setRange} />
+          <Segmented label="Échelle verticale" value={scale} tone="purple" options={SCALES} onChange={setScale} />
+        </div>
       </div>
 
       {currencyCharts.length === 0 ? (
         <div className="text-sm text-white/70">Pas de données sur cette période.</div>
       ) : (
         <div className={grid}>
-          {currencyCharts.map(c => <MountainChart key={c.id} chart={c} onExpand={() => setExpandedId(c.id)} />)}
+          {currencyCharts.map(c => <MountainChart key={c.id} chart={c} log={scale === 'log'} onExpand={() => setExpandedId(c.id)} />)}
         </div>
       )}
 
@@ -495,7 +541,7 @@ export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }
         </div>
       ) : (
         <div className={grid}>
-          {progressionCharts.map(c => <MountainChart key={c.id} chart={c} onExpand={() => setExpandedId(c.id)} />)}
+          {progressionCharts.map(c => <MountainChart key={c.id} chart={c} log={scale === 'log'} onExpand={() => setExpandedId(c.id)} />)}
         </div>
       )}
 
@@ -507,6 +553,8 @@ export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }
           onClose={() => setExpandedId(null)}
           range={range}
           onRange={setRange}
+          scale={scale}
+          onScale={setScale}
           pointCount={filtered.length}
         />
       )}
