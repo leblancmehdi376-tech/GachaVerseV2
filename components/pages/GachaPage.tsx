@@ -6,6 +6,7 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { getCharacterById } from '@/lib/game/characters';
 import { getDynamicRates, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
 import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
+import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { formatNumber } from '@/lib/game/format';
@@ -72,6 +73,8 @@ export function GachaPage() {
   const [showOverlay, setShowOverlay] = useState(false);
   const [showPool,    setShowPool]    = useState(false);
   const [bannerId,    setBannerIdState] = useState<BannerId>(loadBannerId);
+  // Abonnement au store anti-spoil : la bannière se met à jour quand on coche un univers.
+  useSpoilerStore(s => s.protectedUniverses);
   const setBannerId = (id: BannerId) => {
     setBannerIdState(id);
     try { localStorage.setItem(BANNER_STORAGE_KEY, id); } catch {}
@@ -164,7 +167,7 @@ export function GachaPage() {
               const tpl = getCharacterById(id);
               if (!tpl) return null;
               const k = i - (all.length - 1) / 2; // -2.5 … 2.5 : position dans l'éventail
-              const form = banner.featuredForms?.[id] ?? 0;
+              const form = getSafeFormIndex(tpl.universe ?? '', banner.featuredForms?.[id] ?? 0);
               return (
                 // Inclinaison et flottement gérés en CSS (.gacha-fan-card, globals.css).
                 <div key={id} className="gacha-fan-card"

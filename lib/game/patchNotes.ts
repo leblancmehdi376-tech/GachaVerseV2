@@ -19,8 +19,8 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '29/09/2026',
-    title: 'Maj v2.6.8',
+    date: '30/09/2026',
+    title: 'Maj v2.7.3',
     changes: [
       "La **Boutique** a été entièrement redessinée : même contenu, mêmes prix, présentation plus claire.",
       "Nouveau titre **BOUTIQUE** avec tes soldes de **BossCrowns** et d'**Orbes du Néant** en haut de page.",
@@ -28,6 +28,116 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
       "**Boutique du jour** et **Personnages de raid** : cartes plus grandes, avec nom, rareté et prix bien visibles.",
       "Les chances des **coffres d'équipement** sont regroupées dans un **tableau comparatif**, à côté des coffres.",
       "Les boutons d'achat gardent la **couleur de leur monnaie** même quand tu n'as pas assez pour acheter.",
+    ],
+  },
+  {
+    date: '30/09/2026',
+    title: 'Maj v2.7.2',
+    sections: [
+      {
+        icon: '📱',
+        title: 'Affichage sur téléphone',
+        changes: [
+          "**GachaDle** : la page n'est plus coupée sur la droite après ta première proposition.",
+          "**Récompenses journalières** : le calendrier passe à **4 jours par ligne**, plus aucun jour coupé.",
+          "**Boutique** : le bouton **+1 emplacement** d'expédition ne dépasse plus de sa carte.",
+          "**Barre du haut** : sur les petits écrans, le logo devient **GV** pour que les gemmes et le calendrier restent visibles.",
+          "**Accueil** : les **4 slots de compagnons** tiennent en entier dans la barre.",
+          "**Infobulles** (cohésion, affinités, compétences, DPS, butin) : elles s'ouvrent d'un appui et se ferment en touchant ailleurs, au lieu de rester bloquées à l'écran.",
+          "**Barre Synergies / Butin / DPS** : quand elle manque de place, ses cases passent à la ligne au lieu de sortir de l'écran.",
+          "Les fenêtres de détail de cette barre (**synergies**, **butin**, **DPS**, **cohésion**) restent toujours **entièrement visibles**, et défilent au doigt si elles sont plus hautes que l'écran.",
+          "Au doigt, un **appui sur la fenêtre** la referme.",
+          "**Quêtes** : en-tête et cartes réorganisés, le bouton **Récupérer** passe en pleine largeur.",
+          "**Expéditions** : les onglets passent à la ligne au lieu de sortir de l'écran.",
+          "**Expéditions**, **Raids**, **Améliorations** et **Inventaire des champions** : plus aucune carte ne dépasse sur les très petits écrans.",
+          "**Compadex** et **Maîtrise** : le bouton d'inversion du tri reste visible.",
+          "**Classement** : les blocs **Pseudo** et **Progression** s'empilent.",
+          "Marges réduites sur la **Boutique**, la **Forge**, les **Expéditions**, les **Paramètres** et les **Améliorations**.",
+          "Zones tactiles agrandies (filtres des **Succès**, repli des quêtes de l'accueil, fermeture du calendrier).",
+        ],
+      },
+    ],
+  },
+  {
+    date: '29/09/2026',
+    title: 'Maj v2.7.1',
+    changes: [
+      "**GachaDle** : la **partie libre** en cours est maintenant sauvegardée, tu la retrouves en revenant sur la page.",
+    ],
+  },
+  {
+    date: '29/09/2026',
+    title: 'Maj v2.7.0',
+    sections: [
+      {
+        icon: '🔎',
+        title: 'Nouvelle activité : GachaDle',
+        changes: [
+          "Nouvelle page **GachaDle** dans **Activités** : devine le personnage mystère !",
+          "À chaque essai, la **rareté**, le **type** et l'**univers** s'affichent en **vert** (correct) ou **rouge** (faux).",
+          "Case **Genre** : masculin, féminin, mixte (duo) ou autre (créatures, robots, objets...).",
+          "Le **type** passe en **orange** quand il est voisin de celui du mystère dans le cycle des types (il le bat ou se fait battre par lui).",
+          "Case **Formes** : le nombre de formes du personnage (1 s'il n'évolue pas).",
+          "Pour la rareté et les formes, une flèche **▲/▼** indique si le mystère a une valeur plus haute ou plus basse.",
+          "En tapant un nom, des **propositions** apparaissent au fur et à mesure (flèches + Entrée pour choisir).",
+          "**Défi du jour** : le même personnage pour tout le monde, renouvelé chaque jour à **2h**, en même temps que les **quêtes journalières**. **Partie libre** : autant de parties que tu veux.",
+        ],
+      },
+      {
+        icon: '📅',
+        title: 'Défi du jour',
+        changes: [
+          "Réussir le **défi du jour** rapporte **100 💎**.",
+          "Enchaîne les jours pour faire monter ta **série 🔥** : la récompense grimpe jusqu'à **150 💎** à partir de **5 jours** d'affilée.",
+          "Rater un jour remet la série à zéro.",
+          "Ta progression du défi du jour est **sauvegardée dans le cloud**.",
+        ],
+      },
+      {
+        icon: '📜',
+        title: 'Quêtes GachaDle',
+        changes: [
+          "**26 quêtes** à accomplir directement sur la page **GachaDle**, chacune réclamable une seule fois.",
+          "**Séries** de 3 à 30 jours, victoires en **moins de 10, 6, 3 ou 2 essais**, **1 à 30 parties** jouées.",
+          "Trouve un personnage de **chaque rareté**, de Commun à **Transcendant**.",
+          "Accomplis-les toutes pour un bonus de **900 💎**.",
+          "Seuls les **défis du jour** réussis comptent : les **parties libres** ne font pas progresser les quêtes.",
+        ],
+      },
+      {
+        icon: '🏆',
+        title: 'Classement et succès',
+        changes: [
+          "Nouvel onglet **GachaDle du jour** dans le **Classement** : les joueurs sont classés selon le **nombre d'essais** pour trouver le personnage du jour.",
+          "Moins d'essais = meilleure place ; les **ex æquo** partagent le même rang. Le classement repart à zéro en même temps que les **quêtes journalières**.",
+          "Ta victoire est envoyée tout de suite : elle apparaît dans le classement dès la prochaine actualisation.",
+          "Bascule **Aujourd'hui / Hier** pour revoir le classement du défi de la veille.",
+          "Nouveau succès **Pro du GachaverseDLE** : termine toutes les quêtes GachaDle pour débloquer le titre du même nom (**+10 %** d'or).",
+        ],
+      },
+      {
+        icon: '🧭',
+        title: 'Expéditions',
+        changes: [
+          "Expédition **Monde des Douzes** : chance d'obtenir un **Œuf de Dragon Primordial** réduite de **75 %** à **25 %**.",
+        ],
+      },
+      {
+        icon: '🙈',
+        title: 'Anti-spoil',
+        changes: [
+          "Pour un univers coché, les personnages gardent désormais l'illustration de leur **forme de base**, quelle que soit leur évolution (avant : seulement la forme précédente).",
+          "Les cartes de la **bannière du Gacha** respectent maintenant aussi l'anti-spoil.",
+          "Chaque univers de la liste affiche le **logo de sa synergie**.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '29/09/2026',
+    title: 'Maj v2.6.8',
+    changes: [
+      "Nouveau cadrage de la carte **Makima — Démon de la Domination** : image dézoomée et recentrée, le visage est maintenant visible en entier.",
     ],
   },
   {

@@ -604,7 +604,7 @@ html, body {
 .collection-group__header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-family: var(--f-title); font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--text); }
 .collection-group__header span:first-child { position: relative; }
 .collection-group__header span:first-child::before { content: ''; position: absolute; left: -16px; top: 50%; transform: translateY(-50%); width: 3px; height: 14px; border-radius: 2px; background: linear-gradient(180deg,var(--accent,#60a5fa),transparent); box-shadow: 0 0 8px var(--accent,#60a5fa); }
-.collection-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.collection-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 20px; }
 /* .collection-card est le déclencheur de :hover / la hit-box — elle reste
    immobile pour ne jamais se dérober sous le curseur. Seul son contenu
    (.collection-card__body) se translate au survol : découpler les deux évite
@@ -716,6 +716,13 @@ html, body {
   flex-direction: column;
   gap: 18px;
 }
+/* Un enfant centré par `margin: 0 auto` (motif `maxWidth + margin auto` des
+   pages) n'est plus étiré par le flex : il prend alors la largeur de son
+   contenu, et un contenu large (grille GachaDle en minWidth:680 dans son
+   propre scroll) l'élargit au-delà de l'écran — rogné par l'overflow-x
+   hidden de .page-scroll, sans défilement possible. `width: 100%` le borne
+   à la colonne (son maxWidth inline continue de plafonner sur desktop). */
+.page-inner > * { width: 100%; min-width: 0; }
 /* En-tête de section unifié : barre d'accent + sur-titre + titre */
 .sec-head {
   display: flex;
@@ -777,6 +784,54 @@ html, body {
   .gacha-pool-grid       { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
   .upgrades-stat-grid    { grid-template-columns: 1fr !important; }
   .synergy-all-grid      { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  /* Nombre impair de tuiles sur 2 colonnes : la dernière prend toute la
+     largeur plutôt que de laisser un trou (et de coincer le badge Cohésion). */
+  .companion-stats > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .companion-stats__card { padding: 14px 16px; }
+}
+
+/* Barre d'infos de combat (TeamBar : synergies / butin / DPS). Un seul cadre
+   avec séparateurs quand tout tient sur une ligne ; sinon les cases passent à
+   la ligne dans ce même cadre au lieu de sortir de l'écran. Les séparateurs
+   sont des bordures gauche/haut sur chaque case, décalées de -1px : le cadre
+   (overflow: hidden) rogne celles de la première case de chaque ligne et de
+   la première ligne, il ne reste que les filets ENTRE les cases. */
+.combat-info {
+  display: flex; flex-wrap: wrap; align-items: stretch;
+  flex: 0 1 auto; min-width: 0; max-width: 100%; align-self: flex-end;
+  background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; overflow: hidden;
+}
+.combat-info__cell {
+  flex: 1 1 auto; min-width: 0; margin: -1px 0 0 -1px;
+  border-left: 1px solid rgba(255,255,255,0.07); border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+/* Conteneur de défilement des pages sans PageScroll (Boutique, Forge,
+   Expéditions, Paramètres, Améliorations) : même marge réduite sur mobile. */
+.page-pad { padding: 24px 28px; }
+@media (max-width: 900px) { .page-pad { padding: 14px 12px 32px; } }
+
+/* Calendrier des récompenses journalières : 7 jours par ligne sur desktop,
+   4 sur téléphone (7 colonnes de ~40px y coupaient le jour 7 et écrasaient
+   les libellés). */
+.daily-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 560px) { .daily-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } }
+
+/* Cartes de quête (QuestsPage) : sur téléphone, le bouton RÉCUPÉRER passe
+   sous la quête en pleine largeur, et le statut ne réserve plus 80px. */
+@media (max-width: 480px) {
+  .quest-card { padding: 12px 14px !important; gap: 10px !important; flex-wrap: wrap; }
+  .quest-card__claim { flex: 1 1 100%; }
+  .quest-card__status { width: auto !important; }
+}
+
+/* Zones tactiles : les filtres, le tri et les dépliants de niveaux de la
+   page Succès (17 à 28px de haut) sont trop petits au doigt. */
+@media (pointer: coarse) {
+  .ach-toolbar2__status .cf-bevel,
+  .ach-sort .cf-segment > button { min-height: 36px; }
+  .ach-levels { min-height: 32px; }
 }
 
 /* ── Boutique (components/pages/ShopPage.tsx) ──────────────────────
@@ -911,7 +966,7 @@ html, body {
 }
 
 .shop-bar {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px;
   background: var(--bg-card); border: 1px solid var(--border);
 }
 .shop-bar--standalone {
@@ -1262,7 +1317,7 @@ html, body {
 }
 
 /* ── Grille & cartes ───────────────────────────────────────────────── */
-.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; }
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; align-items: start; }
 @media (max-width: 480px) { .ach-grid { grid-template-columns: 1fr; } }
 
 @keyframes achFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -1637,7 +1692,17 @@ html, body {
 .mastery-dps.is-on { color: #4ade80; text-shadow: 0 0 8px rgba(74,222,128,0.5); }
 
 /* ── Détail du DPS (survol du DPS en combat, voir DpsBreakdownTooltip) ─── */
-.dps-tip__pop { position: fixed; z-index: 9999; pointer-events: none; animation: achFadeUp 0.18s ease both; }
+.dps-tip__pop {
+  position: fixed; z-index: 9999; pointer-events: none; animation: achFadeUp 0.18s ease both;
+  /* Jamais plus haute que l'écran (voir lib/ui/placePopup.ts) : au-delà, elle
+     défile — au doigt seulement, la souris ne peut pas y entrer sans quitter
+     la case qui l'a ouverte. */
+  max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; border-radius: 12px;
+}
+.tap-popup { pointer-events: none; }
+/* Au doigt, la popup capte les appuis : un tap dessus la referme (voir
+   hooks/useHoverTap.ts) au lieu d'atteindre ce qu'il y a dessous. */
+@media (pointer: coarse) { .dps-tip__pop, .tap-popup { pointer-events: auto; } }
 .dps-tip {
   width: min(320px, calc(100vw - 16px)); padding: 12px 14px; border-radius: 12px;
   background: linear-gradient(160deg, rgba(20,14,40,0.97), rgba(8,6,18,0.97));

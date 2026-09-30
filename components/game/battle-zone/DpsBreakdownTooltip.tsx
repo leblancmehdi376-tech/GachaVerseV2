@@ -1,5 +1,7 @@
 'use client';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useHoverTap } from '@/hooks/useHoverTap';
+import { placePopup } from '@/lib/ui/placePopup';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
@@ -110,31 +112,51 @@ function BreakdownContent({ b }: { b: DpsBreakdown }) {
 
 /**
  * Fenêtre de détail au survol (ordinateur) ou à l'appui (mobile), recalculée
- * chaque seconde tant qu'elle est ouverte. Partagée par le détail du DPS et
- * celui de l'or (voir GoldBreakdownTooltip).
+ * chaque seconde tant qu'elle est ouverte. Partagée par le détail du DPS, de
+ * l'or (GoldBreakdownTooltip) et des synergies (SynergyBreakdownTooltip).
+ * Mesurée puis placée par placePopup : elle reste toujours entièrement dans
+ * l'écran (au-dessus de la case, sinon en dessous, sinon contre le bord).
  */
 export function BreakdownPopup<T>({ read, render, children }: { read: () => T; render: (data: T) => ReactNode; children: ReactNode }) {
-  const [anchor, setAnchor] = useState<DOMRect | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const popRef = useRef<HTMLDivElement | null>(null);
   const [data, setData] = useState<T | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  // Survol sur ordinateur ; appui sur mobile (pas de survol au doigt).
+  const { visible, hide, triggerProps, popupProps } = useHoverTap(ref, () => { setData(read()); setPos(null); }, popRef);
 
   useEffect(() => {
-    if (!anchor) return;
+    if (!visible) return;
     const iv = setInterval(() => setData(read()), REFRESH_MS);
     return () => clearInterval(iv);
-  }, [anchor, read]);
+  }, [visible, read]);
 
-  const open = (el: HTMLElement) => {
-    setData(read());
-    setAnchor(el.getBoundingClientRect());
-  };
+  // Replacement à chaque rafraîchissement : la hauteur change avec le contenu.
+  useLayoutEffect(() => {
+    if (!visible || !ref.current || !popRef.current) return;
+    const next = placePopup(ref.current.getBoundingClientRect(), popRef.current.getBoundingClientRect(), { align: 'end' });
+    setPos(p => (p && p.left === next.left && p.top === next.top ? p : next));
+  }, [visible, data]);
+
+  // La position est figée à l'ouverture : on referme si la page défile ou
+  // change de taille (sauf défilement DANS la popup, possible au doigt).
+  useEffect(() => {
+    if (!visible) return;
+    const onScroll = (e: Event) => { if (!popRef.current?.contains(e.target as Node)) hide(); };
+    window.addEventListener('resize', hide);
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener('resize', hide);
+      window.removeEventListener('scroll', onScroll, { capture: true });
+    };
+  }, [visible, hide]);
 
   return (
-    // Survol sur ordinateur ; appui sur mobile (pas de survol au doigt).
-    <div onMouseEnter={e => open(e.currentTarget)} onMouseLeave={() => setAnchor(null)}
-      onClick={e => (anchor ? setAnchor(null) : open(e.currentTarget))} style={{ cursor: 'help' }}>
+    <div ref={ref} {...triggerProps} style={{ cursor: 'help' }}>
       {children}
-      {anchor && data !== null && createPortal(
-        <div className="dps-tip__pop" style={{ right: Math.max(8, window.innerWidth - anchor.right), bottom: window.innerHeight - anchor.top + 8 }}>
+      {visible && data !== null && createPortal(
+        // Invisible au premier rendu, le temps d'être mesurée et placée.
+        <div ref={popRef} {...popupProps} className="dps-tip__pop" style={{ left: pos?.left ?? 0, top: pos?.top ?? 0, visibility: pos ? 'visible' : 'hidden' }}>
           {render(data)}
         </div>,
         document.body,

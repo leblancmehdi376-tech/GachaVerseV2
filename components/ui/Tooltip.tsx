@@ -1,11 +1,12 @@
 "use client";
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useHoverTap } from '@/hooks/useHoverTap';
 
 export function Tooltip({ content, children }: { content: React.ReactNode; children: React.ReactNode }) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const tipRef = useRef<HTMLSpanElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  const { visible, triggerProps } = useHoverTap(anchorRef);
   const [pos, setPos] = useState<{ top: number; left: number; placement: 'top' | 'bottom' }>({ top: 0, left: 0, placement: 'top' });
 
   useLayoutEffect(() => {
@@ -42,7 +43,7 @@ export function Tooltip({ content, children }: { content: React.ReactNode; child
   );
 
   return (
-    <span ref={anchorRef} style={{ display: 'inline-flex' }} onMouseEnter={() => setVisible(true)} onMouseLeave={() => setVisible(false)}>
+    <span ref={anchorRef} style={{ display: 'inline-flex' }} {...triggerProps}>
       {children}
       {visible && createPortal(tip, document.body)}
     </span>

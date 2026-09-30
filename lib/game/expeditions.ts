@@ -446,7 +446,7 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     description:'S\'aventurer dans le monde des Douzes, menfin on dirait plutôt une balade dans son jardin.',
     duration: H, slots:2, palierRequired: RARITY_GATES.M.unlockPalier, minTeamDps: referenceTeamDps('M'),
     allowedCharacters: ['twix', 'igloo_na'],
-    rewards:{ coinsMin:100_000, coinsMax:300_000, gemsMin:1, gemsMax:3, dropId:'oeuf_dragon_primordial', dropChance:0.75, dropQuantity:1 },
+    rewards:{ coinsMin:100_000, coinsMax:300_000, gemsMin:1, gemsMax:3, dropId:'oeuf_dragon_primordial', dropChance:0.25, dropQuantity:1 },
   },
   {
     id:'esplanade_tempest', name:'Esplanade de Tempest', icon:'👹', universe:'Tensei Slime',

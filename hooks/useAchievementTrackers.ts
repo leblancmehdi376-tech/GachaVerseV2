@@ -11,11 +11,13 @@ import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { makeInstanceKey } from '@/lib/game/editions';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
+import { countDleQuestsDone } from '@/lib/game/gachadle';
+import { getDleStats } from '@/store/slices/gachaDleSlice';
 import {
   trackBossKills, trackBossCrowns, trackPalier, trackCoins, trackDps, trackCollection,
   trackEquippedTeam, trackKills, trackQuestsCompleted, trackUpgrades, trackGems, trackPrestige,
   trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax,
-  trackCompadexCharacters, trackCompadexEquipment, trackCompadexBoth,
+  trackCompadexCharacters, trackCompadexEquipment, trackCompadexBoth, trackDleQuests,
   trackAchievementStats, trackMastery, trackSeenRarities, trackCompleteSets, trackGemsSpent,
 } from '@/store/achievementTrackers';
 
@@ -69,6 +71,7 @@ export function useAchievementTrackers() {
   const achievementStats = useGameStore(s => s.achievementStats);
   const charMastery = useGameStore(s => s.charMastery);
   const totalGemsSpent = useGameStore(s => s.totalGemsSpent);
+  const dleQuestsDone = useGameStore(s => countDleQuestsDone(getDleStats(s)));
 
   useEffect(() => { trackAchievementStats(achievementStats ?? {}); }, [achievementStats]);
   useEffect(() => { trackMastery(charMastery ?? {}); }, [charMastery]);
@@ -85,6 +88,7 @@ export function useAchievementTrackers() {
   useEffect(() => { trackVoidOrbs(totalVoidOrbsEarned); }, [totalVoidOrbsEarned]);
   useEffect(() => { trackUnlockedTitles(unlockedTitlesCount); }, [unlockedTitlesCount]);
   useEffect(() => { trackGachaPulls(totalGachaPulls); }, [totalGachaPulls]);
+  useEffect(() => { trackDleQuests(dleQuestsDone); }, [dleQuestsDone]);
   useEffect(() => {
     const active = computeActiveSynergies(equippedTeam);
     const hasMax = active.some((a: { def: { thresholds: unknown[] }; threshold: unknown }) =>

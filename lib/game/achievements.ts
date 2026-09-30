@@ -3,6 +3,7 @@
 import { CHARACTER_POOL } from './characters';
 import { EQUIPMENT_DEFS } from './items';
 import { PALIERS } from './paliers';
+import { DLE_QUESTS } from './gachadleQuests';
 import { RARITY_ORDER_ASC, type Rarity } from '@/types/game';
 
 // Totaux du Compadex — voir la section COMPADEX ci-dessous. Exportés pour que
@@ -982,6 +983,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:`Vaincs le boss du dernier monde du multivers (palier ${WORLD_TOTAL}).`, target:1, stat:CHAL.maxDiff,
     reward:{ type:'gems', value:1500 },
     tier:'platinum',
+  },
+  {
+    id:'dle_pro', category:'challenges', icon:'❓',
+    title:'Pro du GachaverseDLE', name:'Pro du GachaverseDLE',
+    description:'Accomplis toutes les quêtes GachaDle.', target:DLE_QUESTS.length,
+    reward:{ type:'title', value:'Pro du GachaverseDLE' },
   },
 
   // ── EXPLORATION ─────────────────────────────────────────────────────────

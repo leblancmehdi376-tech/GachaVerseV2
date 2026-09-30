@@ -4,9 +4,9 @@ import { useGameStore } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { formatNumber } from '@/lib/game/format';
 import { redeemGiftCode } from '@/lib/firebase/giftCodes';
-import { useSpoilerStore } from '@/store/spoilerStore';
+import { useSpoilerStore, getSpoilerUniverses } from '@/store/spoilerStore';
+import { UniverseIcon } from '@/components/ui/CollectionFilters';
 import { useDisplaySettingsStore } from '@/store/displaySettingsStore';
-import { CHARACTER_POOL } from '@/lib/game/characters';
 import { formatSyncStatus, type CloudSyncStatus } from '@/lib/firebase/cloudSaveSync';
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
@@ -18,7 +18,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
   const { numberNotation, setNotation } = useDisplaySettingsStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
-  const ALL_UNIVERSES = [...new Set(CHARACTER_POOL.map(c => c.universe).filter((u): u is string => !!u))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const ALL_UNIVERSES = getSpoilerUniverses();
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetDone, setResetDone]       = useState(false);
   const [saving,    setSaving]          = useState(false);
@@ -159,7 +159,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   };
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
+    <div className="page-pad" style={{ height:'100%', overflowY:'auto' }}>
       <div style={{ maxWidth:'600px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'20px' }}>
 
         {/* ── COMPTE ── */}
@@ -317,7 +317,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
             <span style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', fontWeight:700, color:'#60a5fa', letterSpacing:'2px' }}>🙈 ANTI-SPOIL</span>
           </div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)', marginBottom:'14px', lineHeight:1.5 }}>
-            Coche les univers que tu n&apos;as pas encore terminés (anime, jeu, série...). Pour ces univers, les personnages qui évoluent garderont l&apos;illustration de leur forme précédente au lieu de révéler la nouvelle — partout dans le jeu.
+            Coche les univers que tu n&apos;as pas encore terminés (anime, jeu, série...). Pour ces univers, les personnages qui évoluent garderont l&apos;illustration de leur forme de base au lieu de révéler leurs évolutions — partout dans le jeu.
           </div>
 
           <input
@@ -338,6 +338,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
                     background: checked ? '#3b82f6' : 'transparent', border:`1.5px solid ${checked ? '#3b82f6' : 'var(--text-muted)'}` }}>
                     {checked && <span style={{ fontSize:'12px', color:'#fff', fontWeight:900, lineHeight:1 }}>✓</span>}
                   </div>
+                  <UniverseIcon universe={universe} size={18} />
                   <span style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', fontWeight: checked ? 700 : 500, color: checked ? '#93c5fd' : 'var(--text-sub)' }}>{universe}</span>
                 </label>
               );

@@ -146,7 +146,7 @@ export function ChampionInventoryPage() {
         </div>
       ) : (
         <div style={{ maxHeight: '62vh', overflowY: 'auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:'12px' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap:'12px' }}>
             {champions.map(({ id, qty, tpl }) => {
             if (!tpl) return null;
             const cfg     = RARITY_CONFIG[tpl.rarity];

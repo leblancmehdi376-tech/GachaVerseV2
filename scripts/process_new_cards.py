@@ -74,6 +74,7 @@ X_CENTER_OVERRIDES = {
     'EnderDragon_Minecraft_Evo1': 0.30,
     'Bastion_Overwatch_Evo1': 0.35,
     'Makima_ChainsawMan_Evo0': 0.42,
+    'Makima_ChainsawMan_Evo1': 0.38,
     'Amumu_LeagueofLegends_Evo0': 0.62,
     'Shaco_LeagueofLegends_Evo0': 0.58,
     'Jack8_Tekken_Evo0': 0.27,
@@ -110,6 +111,7 @@ ZOOM_OVERRIDES = {
     'RyomenSukuna_JujutsuKaisen_Evo0': 1.1,
     # Dézoom : le bas de la fenêtre (flouté) reste caché sous le bandeau.
     'Maliketh_EldenRing_Evo1': 0.8,
+    'Makima_ChainsawMan_Evo1': 0.85,
 }
 
 # Quand il faut rogner en hauteur (image plus étroite que la cible), on
@@ -128,6 +130,7 @@ VERTICAL_BIAS_OVERRIDES = {
     'Garp_OnePiece_Evo2': 1.0,
     'RyomenSukuna_JujutsuKaisen_Evo0': 1.0,
     'Maliketh_EldenRing_Evo1': 0.0,
+    'Makima_ChainsawMan_Evo1': 0.0,
     'DioBrando_JoJosBizarreAdventure_Evo0': 1.0,
     'Emolga_Pokemon_Evo0': 1.0,
     'Ryuk_DeathNote_Evo0': 1.0,

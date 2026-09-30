@@ -14,7 +14,7 @@ import { generateEnemy } from '@/lib/game/enemies';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels } from '@/lib/game/prestige';
-import type { GameStore, CurrencySnapshot } from './gameStore.types';
+import type { GameStore, CurrencySnapshot, DleWin } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
 import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest, migrateLegacyRaidQuestIds } from './gameStoreHelpers';
 import { createCombatSlice } from './slices/combatSlice';
@@ -32,6 +32,7 @@ import { createExpeditionSlice, initialDefAffinities, backfillDefAffinities } fr
 import { migrateLegacyDrops } from '@/lib/game/expeditions';
 import { createMineSlice } from './slices/mineSlice';
 import { createAnomalySlice } from './slices/anomalySlice';
+import { createGachaDleSlice } from './slices/gachaDleSlice';
 import { migrateAnomalies } from '@/lib/game/anomalies';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
@@ -132,6 +133,17 @@ const makeInitial = () => ({
   anomalyTokens: 0,
   ownedAnomalies: [] as GameStore['ownedAnomalies'],
   anomalySlots: 1,
+  // ── GachaDle (jamais reset au Prestige) ──
+  dleDailyDate: '',
+  dleDailyGuesses: [] as string[],
+  dleStreak: 0,
+  dleBestStreak: 0,
+  dleLastWinDate: '',
+  dleRecentWins: [] as DleWin[],
+  dleGamesWon: 0,
+  dleBestGuesses: 0,
+  dleRaritiesFound: [] as Rarity[],
+  dleQuestsClaimed: [] as string[],
   // ── Combat de boss de raid en cours (jamais persisté, voir GameStore) ──
   raidBossFight: null as GameStore['raidBossFight'],
   // ── Historique de solde (graphe admin, voir CurrencySnapshot) ──
@@ -220,6 +232,7 @@ export const useGameStore = create<GameStore>()(
       ...createExpeditionSlice(set, get, api),
       ...createMineSlice(set, get, api),
       ...createAnomalySlice(set, get, api),
+      ...createGachaDleSlice(set, get, api),
 
       resetGame: () => {
         try { localStorage.clear(); } catch {}
@@ -386,6 +399,12 @@ export const useGameStore = create<GameStore>()(
         // Anomalies — jamais reset au Prestige (voir doPrestige), doivent donc
         // être persistées comme bossCrowns/voidOrbs.
         anomalyTokens:s.anomalyTokens ?? 0, ownedAnomalies:s.ownedAnomalies ?? [], anomalySlots:s.anomalySlots ?? 1,
+        // GachaDle — jamais reset au Prestige.
+        dleDailyDate:s.dleDailyDate ?? '', dleDailyGuesses:s.dleDailyGuesses ?? [],
+        dleStreak:s.dleStreak ?? 0, dleBestStreak:s.dleBestStreak ?? 0, dleLastWinDate:s.dleLastWinDate ?? '',
+        dleRecentWins:s.dleRecentWins ?? [],
+        dleGamesWon:s.dleGamesWon ?? 0, dleBestGuesses:s.dleBestGuesses ?? 0,
+        dleRaritiesFound:s.dleRaritiesFound ?? [], dleQuestsClaimed:s.dleQuestsClaimed ?? [],
         // Compadex — jamais reset au Prestige (même traitement qu'historicalMaxRank).
         compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
         // Historique de solde (graphe admin) — persisté localement comme le

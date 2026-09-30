@@ -14,17 +14,17 @@ export function DailyRewardsModal({ onClose }: { onClose: () => void }) {
   return (
     <div
       onClick={onClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(3,2,8,0.88)' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(10px, 3vw, 20px)', background: 'rgba(3,2,8,0.88)' }}
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{ width: 'min(720px, 100%)', maxHeight: '88vh', overflowY: 'auto', borderRadius: 14, border: '1px solid var(--border-lit)', background: '#0f0c20', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', padding: '20px 22px' }}
+        style={{ width: 'min(720px, 100%)', maxHeight: '88vh', overflowY: 'auto', borderRadius: 14, border: '1px solid var(--border-lit)', background: '#0f0c20', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', padding: 'clamp(14px, 4vw, 22px)' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
           <div style={{ fontFamily: 'var(--f-title)', fontSize: 16.5, fontWeight: 800, letterSpacing: 1.5, color: 'var(--purple-glow)' }}>
             📅 RÉCOMPENSES JOURNALIÈRES
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" style={{ flexShrink: 0, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
         <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-sub)', marginBottom: 16 }}>
           Jour {dailyRewardCurrentDay} / {DAILY_REWARD_CYCLE_LENGTH} — connecte-toi chaque jour pour avancer dans le cycle
@@ -35,7 +35,8 @@ export function DailyRewardsModal({ onClose }: { onClose: () => void }) {
             <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
               Semaine {wi + 1}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+            {/* 7 colonnes sur desktop, 4 sur téléphone (voir .daily-grid dans globals.css) */}
+            <div className="daily-grid">
               {week.map(def => {
                 const claimed = isClaimed(def.day);
                 const today = isToday(def.day);

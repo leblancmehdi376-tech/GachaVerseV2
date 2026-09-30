@@ -265,7 +265,7 @@ export function ShopPage() {
         {/* ══ EMPLACEMENTS D'EXPÉDITION (barre pleine largeur) ═════════════ */}
         <div className={`shop-bar shop-bar--standalone${slotMaxed ? ' shop-bar--maxed' : ''}`}>
           <span className="shop-section__icon" style={{ ['--acc' as string]: C.gold }}>🧭</span>
-          <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ flex:'1 1 200px', minWidth:0 }}>
             <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:'var(--text)' }}>Emplacements d&apos;Expédition</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)' }}>
               Lance {maxActive} expédition{maxActive>1?'s':''} en simultané{slotMaxed ? ' — MAXIMUM ATTEINT' : ''}
@@ -273,7 +273,7 @@ export function ShopPage() {
           </div>
           {slotMaxed
             ? <span className="shop-chip" style={{ ['--acc' as string]: C.green }}>✓ MAX</span>
-            : <BuyButton color={C.gold} enabled={canAffordSlot} onClick={upgradeExpeditionSlot} style={{ width:'auto', padding:'9px 16px' }}>
+            : <BuyButton color={C.gold} enabled={canAffordSlot} onClick={upgradeExpeditionSlot} style={{ width:'auto', marginLeft:'auto', padding:'9px 16px' }}>
                 +1 EMPLACEMENT · 👑{slotCost}
               </BuyButton>
           }

@@ -27,6 +27,9 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = {
   '⚡ Le Protagoniste Prometteur': 7,
   '🌌 Briseur de Limites':         28,
 
+  // ── GachaDle — toutes les quêtes accomplies (succès dle_pro) ─────────
+  'Pro du GachaverseDLE': 10,
+
   // ── Raid (voir RAID_TITLES) ───────────────────────────────────────────
   'Shadow Monarch':  8,
   'Shadow Eminence': 10,

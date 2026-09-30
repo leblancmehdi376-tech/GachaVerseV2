@@ -44,7 +44,8 @@ export function getNextResetMs(type: 'daily' | 'weekly'): number {
   }
 }
 
-function Countdown({ type }: { type: 'daily' | 'weekly' }) {
+// Aussi utilisé par le GachaDle et son classement, qui changent de jour au même reset.
+export function Countdown({ type }: { type: 'daily' | 'weekly' }) {
   const [, tick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => tick(n => n + 1), 1000);
@@ -58,7 +59,7 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
   const canClaim = q.current >= q.target && !q.done;
 
   return (
-    <div className="panel" style={{
+    <div className="panel quest-card" style={{
       borderColor: q.done ? 'rgba(74,222,128,0.3)' : canClaim ? 'var(--border-glow)' : 'var(--border)',
       padding:'16px 18px', display:'flex', gap:'14px', alignItems:'center',
       boxShadow: canClaim ? '0 0 20px rgba(147,51,234,0.14)' : q.done ? '0 0 12px rgba(74,222,128,0.08)' : 'none',
@@ -66,8 +67,8 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
     }}>
       {canClaim && <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,var(--purple-hi),transparent)' }} />}
       <span style={{ fontSize:'28.8px', flexShrink:0 }}>{q.icon}</span>
-      <div style={{ flex:1 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px', gap:10 }}>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', marginBottom:'8px', gap:'6px 10px' }}>
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text)' }}>{q.label}</span>
           <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'13.4px', color:'var(--gold)', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', padding:'3px 12px', borderRadius:'6px', flexShrink:0 }}>
             {q.rewardType === 'gems' ? '💎' : '🪙'} {formatNumber(q.reward)}
@@ -89,12 +90,12 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
       {q.done ? (
         <span style={{ fontSize:'26.8px', flexShrink:0 }}>✅</span>
       ) : canClaim ? (
-        <button onClick={() => onClaim(q.id)} className="btn-primary"
+        <button onClick={() => onClaim(q.id)} className="btn-primary quest-card__claim"
           style={{ padding:'10px 18px', fontSize:'13.4px', letterSpacing:'0.5px', flexShrink:0 }}>
           RÉCUPÉRER
         </button>
       ) : (
-        <div style={{ width:80, flexShrink:0, textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', fontWeight:600 }}>EN COURS</div>
+        <div className="quest-card__status" style={{ width:80, flexShrink:0, textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-muted)', fontWeight:600 }}>EN COURS</div>
       )}
     </div>
   );

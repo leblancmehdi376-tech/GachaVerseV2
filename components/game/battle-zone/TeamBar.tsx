@@ -46,7 +46,7 @@ export function TeamBar({
         boxSizing: 'border-box',
       }}>
         {/* Panel compagnons */}
-        <div style={{
+        <div className="team-companion-panel" style={{
           background:'linear-gradient(160deg,rgba(15,10,30,0.92),rgba(8,6,18,0.92))',
           border:'1px solid rgba(255,255,255,0.08)',
           borderRadius:10,
@@ -75,8 +75,16 @@ export function TeamBar({
             @media (min-width: 1800px) {
               .team-companion-slot { width: 200px !important; }
             }
+            /* Téléphone : 4 slots de 88px ne tiennent pas (le 4e était coupé
+               dans le scroll) — le panneau prend toute la largeur et les
+               slots se partagent l'espace (88px max chacun). */
+            @media (max-width: 820px) {
+              .team-companion-panel { flex: 1 1 100%; min-width: 0; }
+              .team-companion-row { display: grid !important; grid-template-columns: repeat(4, minmax(0, 88px)); justify-content: center; width: 100%; }
+              .team-companion-slot { width: auto !important; }
+            }
           `}</style>
-          <div style={{
+          <div className="team-companion-row" style={{
             display:'flex',
             gap:10,
             alignItems:'flex-start',
@@ -93,14 +101,17 @@ export function TeamBar({
 
         {/* Barre d'infos de combat unifiée : synergies / butin / DPS partagent
             un seul cadre avec séparateurs internes, plutôt que des boîtes
-            bordées séparées (moins de cadres empilés, hauteur cohérente). */}
-        <div style={{ display:'flex', alignItems:'stretch', background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, overflow:'hidden', flexShrink:0, alignSelf:'flex-end' }}>
+            bordées séparées (moins de cadres empilés, hauteur cohérente).
+            Si elle ne tient plus en largeur, ses cases passent à la ligne
+            dans le même cadre au lieu de sortir de l'écran (voir
+            .combat-info dans globals.css). */}
+        <div className="combat-info">
           {/* Synergies — détail des paliers (actifs / atteignables) au survol (voir SynergyBreakdownTooltip) */}
           {hasSynergyProgress && (
-            <div style={{ padding:'7px 12px', borderRight:'1px solid rgba(255,255,255,0.07)' }}>
+            <div className="combat-info__cell" style={{ padding:'7px 12px' }}>
             <SynergyBreakdownTooltip>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
-            <div style={{ display:'flex', gap:6, alignItems:'center', minHeight:16 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', minHeight:16 }}>
               {syns.length === 0 && (
                 <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:12, color:'rgba(255,255,255,0.3)', whiteSpace:'nowrap' }}>Aucune active</span>
               )}
@@ -124,7 +135,7 @@ export function TeamBar({
           )}
 
           {/* Butin de l'ennemi courant — détail de l'or au survol (voir GoldBreakdownTooltip) */}
-          <div style={{ padding:'7px 14px', textAlign:'right', borderRight:'1px solid rgba(255,255,255,0.07)' }}>
+          <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
             <GoldBreakdownTooltip>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
               <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
@@ -137,7 +148,7 @@ export function TeamBar({
           </div>
 
           {/* DPS d'équipe — détail au survol (voir DpsBreakdownTooltip) */}
-          <div style={{ padding:'7px 14px', textAlign:'right' }}>
+          <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
             <DpsBreakdownTooltip>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
               <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>

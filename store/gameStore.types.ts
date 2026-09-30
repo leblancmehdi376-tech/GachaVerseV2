@@ -340,6 +340,31 @@ export interface DailyRewardActions {
 }
 export type DailyRewardSlice = DailyRewardState & DailyRewardActions;
 
+// ─── GachaDle : défi du jour, série et quêtes (jamais reset au Prestige) ─────
+export interface GachaDleState {
+  dleDailyDate: string;         // jour (getDleDateKey) des essais ci-dessous
+  dleDailyGuesses: string[];    // ids proposés au défi du jour, dans l'ordre
+  dleStreak: number;            // série au moment de dleLastWinDate
+  dleBestStreak: number;
+  dleLastWinDate: string;       // dernier défi du jour réussi ('' = jamais)
+  // Dernières victoires au défi du jour (la plus récente d'abord, 2 max) :
+  // alimente le classement GachaDle du jour ET de la veille, alors que
+  // dleDailyGuesses est écrasé dès le premier essai du jour suivant.
+  dleRecentWins: DleWin[];
+  dleGamesWon: number;          // défis du jour réussis (parties libres exclues)
+  dleBestGuesses: number;       // moins d'essais pour une victoire (0 = aucune)
+  dleRaritiesFound: Rarity[];   // raretés des personnages déjà trouvés
+  dleQuestsClaimed: string[];
+}
+export interface DleWin { date: string; guesses: number }
+export interface GachaDleActions {
+  // Ajoute un essai au défi du jour ; en cas de victoire, crédite les gemmes
+  // du jour (une seule fois par jour) et fait avancer la série.
+  submitDleDailyGuess: (dateKey: string, characterId: string) => void;
+  claimDleQuest: (id: string) => void;
+}
+export type GachaDleSlice = GachaDleState & GachaDleActions;
+
 // ─── Prestige (New Game+) ───────────────────────────────────────────────────
 export interface PrestigeState {
   prestigeLevel: number;
@@ -484,6 +509,7 @@ export type GameStore = GameState
   & ExpeditionSlice
   & MineSlice
   & AnomalySlice
+  & GachaDleSlice
   & {
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;

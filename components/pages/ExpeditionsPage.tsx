@@ -479,7 +479,7 @@ export function ExpeditionsPage() {
   }, [focusedExpeditionId, focusExpedition]);
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'24px 28px' }}>
+    <div className="page-pad" style={{ height:'100%', overflowY:'auto' }}>
       {selectedDef && (
         <CharSelector
           def={selectedDef}
@@ -494,7 +494,7 @@ export function ExpeditionsPage() {
       <div style={{ maxWidth:1000, margin:'0 auto', display:'flex', flexDirection:'column', gap:20 }}>
 
         {/* Header */}
-        <div className="panel" style={{ padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20 }}>
+        <div className="panel" style={{ padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, flexWrap:'wrap' }}>
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5 }}>
               <div style={{ width:4, height:18, background:'linear-gradient(180deg,#fb923c,#f59e0b)', borderRadius:2, boxShadow:'0 0 8px #fb923c' }} />
@@ -527,7 +527,7 @@ export function ExpeditionsPage() {
         )}
 
         {/* Filtres */}
-        <div style={{ display:'flex', gap:8 }}>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
           {[
             { k:'forge'     as const, label:'⚒️ ITEM DE FORGE'    },
             { k:'equipment' as const, label:'🛠️ ATELIER ÉQUIPEMENT' },
@@ -545,7 +545,7 @@ export function ExpeditionsPage() {
         </div>
 
         {/* Liste expéditions */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(320px, 1fr))', gap:12 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap:12 }}>
           {filtered.map(def => (
             <ExpeditionCard key={def.id} def={def} busy={runningExp.length >= maxActive} onSelect={() => setSelectedDef(def)} highlighted={highlightId === def.id} />
           ))}

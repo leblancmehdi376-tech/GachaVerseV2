@@ -34,7 +34,7 @@ const SECTION_LABEL: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: '11p
 // ─── Briques ──────────────────────────────────────────────────────────────
 
 /** Icône de synergie de l'univers (sprite, repli sur l'emoji), ou 🌐 sans synergie. */
-function UniverseIcon({ universe, size = 16 }: { universe: string | 'all'; size?: number }) {
+export function UniverseIcon({ universe, size = 16 }: { universe: string | 'all'; size?: number }) {
   const def = universe === 'all' ? undefined : SYNERGIES.find(s => s.universe === universe);
   const [broken, setBroken] = useState(false);
   const box: CSSProperties = { width: size, height: size, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.75 };
@@ -68,19 +68,22 @@ function SortSegment({ sortKey, reversed, onChange }: { sortKey: CollectionSortK
   const idx = Math.max(0, SORTS.findIndex(s => s.key === sortKey));
   const cur = SORTS[idx];
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-      <div className="cf-segment">
-        <div className="cf-segment__thumb" style={{ left: `${3 + idx * SORT_W}px`, width: `${SORT_W}px` }} />
+    // Colonnes de SORT_W px sur desktop, qui rétrécissent (minmax(0, …)) sur
+    // téléphone au lieu de pousser le bouton ↓ hors de l'écran ; la pastille
+    // est positionnée en % pour rester alignée quelle que soit la largeur.
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 1 auto', minWidth: 0 }}>
+      <div className="cf-segment" style={{ display: 'grid', gridTemplateColumns: `repeat(${SORTS.length}, minmax(0, ${SORT_W}px))`, minWidth: 0 }}>
+        <div className="cf-segment__thumb" style={{ left: `calc(3px + ${idx} * (100% - 6px) / ${SORTS.length})`, width: `calc((100% - 6px) / ${SORTS.length})` }} />
         {SORTS.map(s => (
           <button key={s.key} type="button" onClick={() => onChange(s.key, s.key === sortKey ? reversed : false)}
-            style={{ width: `${SORT_W}px`, color: s.key === sortKey ? '#fbbf24' : 'var(--text-dim)' }}>
+            style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: s.key === sortKey ? '#fbbf24' : 'var(--text-dim)' }}>
             {s.label}
           </button>
         ))}
       </div>
       <button type="button" className="cf-sort-dir" onClick={() => onChange(sortKey, !reversed)}
         title={reversed ? cur.reversed : cur.natural} aria-label={`Inverser le tri (${reversed ? cur.reversed : cur.natural})`}
-        style={{ transform: reversed ? 'rotate(180deg)' : 'none' }}>
+        style={{ flexShrink: 0, transform: reversed ? 'rotate(180deg)' : 'none' }}>
         ↓
       </button>
     </div>

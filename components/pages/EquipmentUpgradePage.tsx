@@ -150,7 +150,7 @@ export function EquipmentUpgradePage() {
             {/* Colonne droite : panneau de fusion pour le groupe sélectionné */}
             <div>
               {!selected && (
-                <div className="companion-empty">Sélectionne un équipement à gauche pour le fusionner.</div>
+                <div className="companion-empty">Sélectionne un équipement dans la liste pour le fusionner.</div>
               )}
               {selected && (
                 <div className="companion-card-hero">

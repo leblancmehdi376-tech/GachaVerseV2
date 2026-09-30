@@ -280,7 +280,7 @@ export function UpgradesPage() {
   if (!mounted) return null;
 
   return (
-    <div style={{ height:'100%', overflowY:'auto', padding:'20px 24px' }}>
+    <div className="page-pad" style={{ height:'100%', overflowY:'auto' }}>
       <div style={{ maxWidth:900, margin:'0 auto', display:'flex', flexDirection:'column', gap:24 }}>
 
         {/* Stats */}
@@ -301,7 +301,7 @@ export function UpgradesPage() {
         {/* Améliorations générales */}
         <div>
           <SectionHead color="var(--gold)">AMÉLIORATIONS GÉNÉRALES</SectionHead>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(280px, 100%),1fr))', gap:12 }}>
             <GoldUpgradeCard />
           </div>
         </div>

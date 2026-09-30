@@ -242,6 +242,17 @@ export function IconAnomaly({ size = 18, color = 'currentColor' }: IconProps) {
 }
 
 // Map from nav id to icon component
+export function IconQuestion({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Bulle de devinette (GachaDle) */}
+      <path d="M4 3h12a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 16 14h-5l-4 3.5V14H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 3z" />
+      <path d="M8.2 7a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4" />
+      <circle cx="10" cy="11.9" r="0.4" />
+    </svg>
+  );
+}
+
 export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   home:         IconHome,
   upgrades:     IconTrendUp,
@@ -259,6 +270,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   prestige:     IconPrestige,
   mine:         IconMine,
   anomalie:     IconAnomaly,
+  gachadle:     IconQuestion,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,
   champions:    IconVoidPortal,

@@ -23,7 +23,9 @@ export function SectionHeader({
   right?: ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+    // flexWrap : sur téléphone, le slot droit passe sous le titre plutôt que
+    // de l'écraser (ou de sortir de l'écran).
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
       <div className="sec-head" style={{ ['--sec-accent' as string]: accent }}>
         <div className="sec-head__bar" />
         <div>
@@ -31,7 +33,7 @@ export function SectionHeader({
           <div className="sec-head__title" style={{ color: accent }}>{title}</div>
         </div>
       </div>
-      {right && <div style={{ flexShrink: 0 }}>{right}</div>}
+      {right && <div style={{ flexShrink: 0, marginLeft: 'auto' }}>{right}</div>}
     </div>
   );
 }
