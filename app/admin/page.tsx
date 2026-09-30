@@ -6,6 +6,7 @@ import { AuthModal } from '@/components/layout/AuthModal';
 import { getAllUsers, approveUser, findUsernameMismatches, applyUsernameSync, PlayerRow, UsernameMismatch } from '@/lib/firebase/accessRequests';
 import { PlayerSaveSummary } from '@/lib/firebase/adminTools';
 import { checkIsAdmin } from '@/lib/admin';
+import { useDisplaySettingsStore } from '@/store/displaySettingsStore';
 import { RequestsTab } from '@/components/pages/admin/RequestsTab';
 import { PlayersTab } from '@/components/pages/admin/PlayersTab';
 import { MarketplaceTab } from '@/components/pages/admin/MarketplaceTab';
@@ -29,6 +30,11 @@ function formatRelative(ms: number): string {
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
+  // Notation des nombres choisie dans les Paramètres du jeu (suffixes,
+  // scientifique, alphabétique) : importer le store la recharge depuis le
+  // navigateur, et s'y abonner re-rend le panel si elle change — formatNumber
+  // la lit directement (voir GameLayout, même mécanisme).
+  useDisplaySettingsStore(s => s.numberNotation);
   const [showAuth, setShowAuth]   = useState(false);
   const [allUsers, setAllUsers]   = useState<PlayerRow[]>(accountsCache ?? []);
   const [loadedAt, setLoadedAt]   = useState<number | null>(accountsCacheAt);
@@ -86,22 +92,31 @@ export default function AdminPage() {
   const pending = allUsers.filter(u => !u.approved).sort((a, b) => a.createdAt - b.createdAt);
   const approvedList = allUsers.filter(u => u.approved); // déjà triés par getAllUsers (plus récent d'abord)
 
-  const [isAdmin, setIsAdmin]         = useState(false);
-  const [adminChecked, setAdminChecked] = useState(false);
+  // Résultat de la vérification admin, rattaché au uid vérifié : tant qu'il
+  // ne correspond pas au compte connecté, la vérification est "en cours".
+  // Dérivé au rendu plutôt que remis à zéro dans l'effet (pas de setState
+  // synchrone dans un effet, donc pas de rendu en cascade).
+  const [adminCheck, setAdminCheck] = useState<{ uid: string; ok: boolean } | null>(null);
+  const adminChecked = !user || adminCheck?.uid === user.uid;
+  const isAdmin = !!user && adminCheck?.uid === user.uid && adminCheck.ok;
 
   useEffect(() => {
-    if (!user) { setIsAdmin(false); setAdminChecked(true); return; }
-    setAdminChecked(false);
-    checkIsAdmin(user.uid).then((ok) => { setIsAdmin(ok); setAdminChecked(true); });
+    if (!user) return;
+    let cancelled = false;
+    checkIsAdmin(user.uid).then((ok) => { if (!cancelled) setAdminCheck({ uid: user.uid, ok }); });
+    return () => { cancelled = true; };
   }, [user]);
 
-  const load = async () => {
-    setRefreshing(true);
-    const all = await getAllUsers();
+  const applyAccounts = (all: PlayerRow[]) => {
     accountsCache = all;
     accountsCacheAt = Date.now();
     setAllUsers(all);
     setLoadedAt(accountsCacheAt);
+  };
+
+  const load = async () => {
+    setRefreshing(true);
+    applyAccounts(await getAllUsers());
     setRefreshing(false);
   };
 
@@ -109,7 +124,10 @@ export default function AdminPage() {
   // sur cette page (changement d'onglet du site, etc.) ne redéclenche plus
   // les lectures Firestore à chaque fois. Le bouton "Actualiser" force une
   // vraie relecture quand besoin.
-  useEffect(() => { if (isAdmin && accountsCache === null) load(); }, [isAdmin]);
+  useEffect(() => { if (isAdmin && accountsCache === null) getAllUsers().then(applyAccounts); }, [isAdmin]);
+  // Premier chargement en cours : jamais chargé mais déjà admin (le bouton
+  // "Actualiser" l'affiche comme une actualisation).
+  const loadingAccounts = refreshing || (isAdmin && loadedAt === null);
 
   const handleApprove = async (uid: string) => {
     setBusy(uid);
@@ -181,8 +199,8 @@ export default function AdminPage() {
             {/* Seul déclencheur d'une vraie relecture Firestore de la liste des
                 comptes — sinon la liste en cache (module-level) est réutilisée
                 telle quelle, même en changeant d'onglet ou en revenant sur la page. */}
-            <Button tone="green" onClick={load} disabled={refreshing} className="flex-1 sm:flex-none" title="Recharger la liste des comptes depuis Firestore">
-              {refreshing ? 'Actualisation…' : '🔄 Actualiser'}
+            <Button tone="green" onClick={load} disabled={loadingAccounts} className="flex-1 sm:flex-none" title="Recharger la liste des comptes depuis Firestore">
+              {loadingAccounts ? 'Actualisation…' : '🔄 Actualiser'}
             </Button>
           </div>
         </div>

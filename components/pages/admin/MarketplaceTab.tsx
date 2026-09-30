@@ -23,8 +23,8 @@ export function MarketplaceTab() {
   const user = auth?.currentUser;
 
   const [listings, setListings]   = useState<MarketplaceListing[]>([]);
-  const [loading, setLoading]     = useState(false);
-  const [loadedOnce, setLoadedOnce] = useState(false);
+  // true d'entrée : le premier chargement part au montage (voir l'effet).
+  const [loading, setLoading]     = useState(true);
   const [busy, setBusy]           = useState<string | null>(null);
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null);
 
@@ -37,15 +37,17 @@ export function MarketplaceTab() {
     setTimeout(() => setFeedback(null), 4000);
   };
 
-  const load = async () => {
-    setLoading(true);
-    const data = await getAllListingsAdmin();
+  const applyListings = (data: MarketplaceListing[]) => {
     setListings(data);
     setLoading(false);
-    setLoadedOnce(true);
   };
 
-  useEffect(() => { if (!loadedOnce) load(); }, [loadedOnce]);
+  const load = async () => {
+    setLoading(true);
+    applyListings(await getAllListingsAdmin());
+  };
+
+  useEffect(() => { getAllListingsAdmin().then(applyListings); }, []);
 
   const stats = useMemo(() => {
     const active = listings.filter(l => l.status === 'active');

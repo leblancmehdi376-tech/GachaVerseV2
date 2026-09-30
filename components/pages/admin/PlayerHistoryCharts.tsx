@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BN_ZERO, bnAdd, bnCompare, bnLog10, bnSub, bnToNumber } from '@/lib/game/bignum';
+import { BN_ZERO, bnAdd, bnCompare, bnLog10, bnPow, bnSub, bnToNumber } from '@/lib/game/bignum';
 import { formatNumber } from '@/lib/game/format';
 import type { CurrencySnapshot } from '@/store/gameStore.types';
 import { Segmented, cx } from './ui';
@@ -433,7 +433,9 @@ export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }
 
   const times = filtered.map(h => h.t);
   const fmtInt = (v: number) => Math.round(v).toLocaleString('fr-FR');
-  const coinAxis = (v: number) => coins.log ? `1e${Math.round(v)}` : formatNumber(v);
+  // Gemmes et coins suivent la notation choisie dans les Paramètres (formatNumber).
+  const fmtNum = (v: number) => formatNumber(Math.round(v));
+  const coinAxis = (v: number) => coins.log ? formatNumber(bnPow(10, Math.round(v))) : formatNumber(v);
 
   const progTimes = progression.map(h => h.t);
   const paliers = progression.map(h => h.palier);
@@ -468,15 +470,15 @@ export function PlayerHistoryCharts({ history }: { history: CurrencySnapshot[] }
       id: 'gems', icon: '💎', label: 'Neko-Gemmes', times,
       series: [{ label: 'gemmes', color: GEM_COLOR, values: gems.values }],
       summary: <>
-        <span style={{ color: GAIN_COLOR, fontWeight: 700 }}>+{fmtInt(gems.gained)}</span>
+        <span style={{ color: GAIN_COLOR, fontWeight: 700 }}>+{fmtNum(gems.gained)}</span>
         {' / '}
-        <span style={{ color: LOSS_COLOR, fontWeight: 700 }}>-{fmtInt(gems.spent)}</span>
+        <span style={{ color: LOSS_COLOR, fontWeight: 700 }}>-{fmtNum(gems.spent)}</span>
       </>,
       readout: i => <>
-        solde <span style={{ color: '#fff' }}>{fmtInt(gems.values[i])}</span>
-        {i > 0 && <> · <DeltaText delta={gems.values[i] - gems.values[i - 1]} format={fmtInt} /></>}
+        solde <span style={{ color: '#fff' }}>{fmtNum(gems.values[i])}</span>
+        {i > 0 && <> · <DeltaText delta={gems.values[i] - gems.values[i - 1]} format={fmtNum} /></>}
       </>,
-      formatAxis: v => formatNumber(Math.round(v)),
+      formatAxis: fmtNum,
     },
   ];
 

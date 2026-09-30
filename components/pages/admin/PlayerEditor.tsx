@@ -126,8 +126,9 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
     // du composant l'a déjà pris en compte (voir cachedAtMount ci-dessus),
     // rien à refaire.
     if (reloadKey === 0 && detailCache.has(uid)) return;
+    // detailLoading est déjà à true ici : à l'initialisation (pas de cache)
+    // ou via reloadDetail (bouton "Actualiser").
     let cancelled = false;
-    setDetailLoading(true);
     getPlayerDetail(uid).then(detail => {
       if (cancelled) return;
       detailCache.set(uid, detail);
@@ -139,6 +140,11 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
     });
     return () => { cancelled = true; };
   }, [uid, reloadKey]);
+
+  const reloadDetail = () => {
+    setDetailLoading(true);
+    setReloadKey(k => k + 1);
+  };
 
   const patchCache = (patch: Partial<PlayerDetail>) => {
     const cached = detailCache.get(uid) ?? EMPTY_DETAIL;
@@ -311,7 +317,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
             <div className="break-all">Écrite par : {playerSave.lastSavedBy ?? '?'} — raison : {playerSave.lastSavedReason ?? '?'}</div>
           )}
         </div>
-        <Button size="sm" onClick={() => setReloadKey(k => k + 1)} disabled={detailLoading} title="Relire la fiche du joueur depuis Firestore">
+        <Button size="sm" onClick={reloadDetail} disabled={detailLoading} title="Relire la fiche du joueur depuis Firestore">
           {detailLoading ? 'Chargement…' : '↻ Actualiser la fiche'}
         </Button>
       </div>
@@ -321,7 +327,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
         <StatTile label="Neko-Gemmes" value={<>💎 {formatNumber(playerSave.nekoGems)}</>} tone="purple" />
         <StatTile label="Palier · vague" value={<>⛰️ {playerSave.palier} · {playerSave.wave}/10</>} tone="cyan" hint={`Palier max atteint : ${playerSave.maxPalierReached}`} />
         <StatTile label="Prestiges" value={<>✨ {playerSave.prestigeLevel.toLocaleString('fr-FR')}</>} tone="purple" />
-        <StatTile label="Gemmes dépensées" value={playerSave.totalGemsSpent.toLocaleString('fr-FR')} tone="purple" hint="Total de gemmes dépensées" />
+        <StatTile label="Gemmes dépensées" value={formatNumber(playerSave.totalGemsSpent)} tone="purple" hint="Total de gemmes dépensées" />
         <StatTile label="Invocations" value={<>✦ {playerSave.totalGachaPulls.toLocaleString('fr-FR')}</>} tone="cyan" hint="Total d'invocations (gacha)" />
       </div>
 
@@ -392,7 +398,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
             <SectionHeader icon="✨" title="Prestige" right={
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
                 <span className="text-fuchsia-300">Prestiges : <b>{playerSave.prestigeLevel.toLocaleString('fr-FR')}</b></span>
-                <span className="text-amber-200">🎫 Jetons disponibles : <b>{playerSave.prestigeTokens.toLocaleString('fr-FR')}</b></span>
+                <span className="text-amber-200">🎫 Jetons disponibles : <b>{formatNumber(playerSave.prestigeTokens)}</b></span>
                 <span className="text-white/80">🧠 Mémoire des Rangs : <b>{playerSave.prestigeRankRecoveryLevel}/{RANK_RECOVERY_MAX_LEVEL}</b></span>
               </div>
             } />
