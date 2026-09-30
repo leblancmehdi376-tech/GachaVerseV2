@@ -34,11 +34,23 @@ export function useInstanceLock() {
     let isMounted = true;
 
     // --- Tenter d'acquérir le verrou ---
-    navigator.locks.request(
+    // Un refus au 1er essai n'est pas forcément un autre onglet : si ce
+    // composant vient d'être démonté/remonté (StrictMode en dev, navigation
+    // client depuis /admin), la demande du montage précédent peut encore
+    // tenir le verrou un instant avant de le relâcher (sa callback voit
+    // isMounted=false et rend la main). On retente donc une fois un peu plus
+    // tard avant de conclure au doublon.
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    const tryAcquire = (attempt: number) => navigator.locks.request(
       LOCK_NAME,
       { ifAvailable: true },
       async (lock) => {
         if (!isMounted) return;
+
+        if (lock === null && attempt === 0) {
+          retryTimer = setTimeout(() => { if (isMounted) tryAcquire(1); }, 300);
+          return;
+        }
 
         if (lock === null) {
           // Verrou déjà pris par un autre onglet
@@ -82,6 +94,7 @@ export function useInstanceLock() {
         });
       }
     );
+    tryAcquire(0);
 
     // Écouter les messages quand on est en mode duplicate
     const handleMessage = (e: MessageEvent<SyncMessage>) => {
@@ -95,6 +108,7 @@ export function useInstanceLock() {
 
     return () => {
       isMounted = false;
+      if (retryTimer) clearTimeout(retryTimer);
       releaseResolve?.();
       channel.close();
     };

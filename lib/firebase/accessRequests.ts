@@ -1,6 +1,7 @@
 import { doc, setDoc, getDoc, getDocs, collection, updateDoc } from 'firebase/firestore';
 import { db } from './config';
 import { logger } from '../logger';
+import { coerceBonusLevels } from '@/lib/game/prestige';
 import type { PlayerSaveSummary } from './adminTools';
 import { coerceBigNum } from '@/lib/game/bignum';
 
@@ -141,6 +142,10 @@ function summarizePlayerSave(d: Record<string, unknown>): PlayerSaveSummary {
     maxPalierReached: (d.maxPalierReached as number) ?? 1,
     runPeakPalier:    (d.runPeakPalier as number) ?? null,
     lastSaved:        (d.lastSaved as number) ?? null,
+    prestigeLevel:    (d.prestigeLevel as number) ?? 0,
+    prestigeTokens:   (d.prestigeTokens as number) ?? 0,
+    prestigeBonusLevels: coerceBonusLevels(d.prestigeBonusLevels),
+    prestigeRankRecoveryLevel: (d.prestigeRankRecoveryLevel as number) ?? 0,
   };
 }
 

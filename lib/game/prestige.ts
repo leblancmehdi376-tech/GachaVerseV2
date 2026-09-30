@@ -52,6 +52,27 @@ export function calcPrestigeBonuses(bonusLevels: PrestigeBonusLevels): ActivePre
   };
 }
 
+// Valeur totale d'un bonus à ce niveau, telle qu'affichée (page Prestige, admin).
+export function formatBonusValue(type: PrestigeBonusType, level: number): string {
+  const def = PRESTIGE_BONUS_DEFS[type];
+  const total = def.perLevel * level;
+  if (type === 'tokenGain') return `+${total}`;
+  if (type === 'shinyGold' || type === 'shinyDiamond') return `+${total.toFixed(2)}%`;
+  return `+${(total * 100).toFixed(0)}%`;
+}
+
+// Niveaux de bonus lus depuis une sauvegarde brute (champs manquants → 0).
+export function coerceBonusLevels(raw: unknown): PrestigeBonusLevels {
+  const levels = initialBonusLevels();
+  if (raw && typeof raw === 'object') {
+    for (const type of PRESTIGE_BONUS_TYPES) {
+      const v = (raw as Record<string, unknown>)[type];
+      if (typeof v === 'number') levels[type] = v;
+    }
+  }
+  return levels;
+}
+
 // Jetons gagnés en prestigeant au palier `maxPalierReached` (>=41) :
 // ARRONDI(1 + 2*((palier-40)/10)^1,7 ; 0), plus le bonus tokenGain éventuel.
 export function calcTokensAwarded(maxPalierReached: number, tokenGainBonus: number): number {

@@ -250,8 +250,17 @@ export const useGameStore = create<GameStore>()(
         const history = state.currencyHistory;
         const last = history[history.length - 1];
         const t = Date.now();
-        if (last && t - last.t < CURRENCY_SNAPSHOT_MIN_GAP_MS) return {};
-        const next = [...history, { t, coins: state.pixelCoins, gems: state.nekoGems }];
+        // Un changement de palier/record/prestige est toujours enregistré,
+        // même sous l'écart minimal (les sauvegardes urgentes de progression
+        // sont déjà throttlées à 15s, voir requestUrgentSave) : sinon un
+        // palier franchi juste après un point n'apparaîtrait jamais au graphe.
+        const progressed = !last || last.palier !== state.palier
+          || last.maxPalier !== state.maxPalierReached || last.prestige !== state.prestigeLevel;
+        if (last && !progressed && t - last.t < CURRENCY_SNAPSHOT_MIN_GAP_MS) return {};
+        const next = [...history, {
+          t, coins: state.pixelCoins, gems: state.nekoGems,
+          palier: state.palier, maxPalier: state.maxPalierReached, prestige: state.prestigeLevel,
+        }];
         return { currencyHistory: next.length > MAX_CURRENCY_SNAPSHOTS ? next.slice(next.length - MAX_CURRENCY_SNAPSHOTS) : next };
       }),
     }),

@@ -6,13 +6,14 @@ import { formatNumber } from '@/lib/game/format';
 import { bnToNumber } from '@/lib/game/bignum';
 import { PlayerEditor } from './PlayerEditor';
 
-type SortKey = 'createdAt' | 'nekoGems' | 'pixelCoins' | 'palier' | 'totalGemsSpent';
+type SortKey = 'createdAt' | 'nekoGems' | 'pixelCoins' | 'palier' | 'prestigeLevel' | 'totalGemsSpent';
 
 const SORT_LABELS: Record<SortKey, string> = {
   createdAt:      'Inscription',
   nekoGems:       '💎 Gemmes',
   pixelCoins:     '🪙 Coins',
   palier:         '⛰️ Palier',
+  prestigeLevel:  '✨ Prestige',
   totalGemsSpent: 'Gemmes dépensées',
 };
 
@@ -107,6 +108,8 @@ export function PlayersTab({ players, onSaveUpdate }: PlayersTabProps) {
                     <span style={{ color: '#fbbf24', fontSize: 12.4, whiteSpace: 'nowrap' }}>🪙 {formatNumber(u.save.pixelCoins)}</span>
                     <span style={{ color: '#c084fc', fontSize: 12.4, whiteSpace: 'nowrap' }}>💎 {formatNumber(u.save.nekoGems)}</span>
                     <span style={{ color: '#67e8f9', fontSize: 12.4, whiteSpace: 'nowrap' }}>⛰️ {u.save.palier}</span>
+                    <span style={{ color: '#f0abfc', fontSize: 12.4, whiteSpace: 'nowrap' }} title="Prestiges effectués">✨ {u.save.prestigeLevel}</span>
+                    <span style={{ color: '#fde68a', fontSize: 12.4, whiteSpace: 'nowrap' }} title="Jetons de prestige disponibles">🎫 {formatNumber(u.save.prestigeTokens)}</span>
                     <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11.5, whiteSpace: 'nowrap' }}>
                       {u.save.lastSaved ? new Date(u.save.lastSaved).toLocaleDateString('fr-FR') : '—'}
                     </span>

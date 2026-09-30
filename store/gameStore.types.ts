@@ -31,17 +31,22 @@ export interface Quest {
   type: 'daily' | 'weekly' | 'raid';
 }
 
-// ─── Historique de solde (pour le graphe admin coins/gemmes) ───────────────
+// ─── Historique de solde/progression (pour les graphes admin) ──────────────
 // Un point par sauvegarde Firestore (périodique ~10min, ou urgente) — voir
 // recordCurrencySnapshot dans gameStore.ts et son appel dans saveToFirebase
 // (lib/firebase/cloudSaveSync.ts) : le point est pris juste avant l'écriture
 // déjà prévue, donc inclus dans le MÊME setDoc, sans lecture/écriture Firestore
 // supplémentaire. Le solde (pas le delta) est stocké : le delta gagné/dépensé
-// entre deux points est recalculé à l'affichage (voir CurrencyHistoryChart).
+// entre deux points est recalculé à l'affichage (voir PlayerHistoryCharts).
+// palier/maxPalier/prestige sont optionnels : absents des points enregistrés
+// avant leur ajout, ces points sont simplement ignorés par leurs graphes.
 export interface CurrencySnapshot {
   t: number;      // Date.now() au moment du snapshot
   coins: BigNum;  // solde de pixelCoins à cet instant
   gems: number;   // solde de nekoGems à cet instant
+  palier?: number;     // palier actuel à cet instant
+  maxPalier?: number;  // meilleur palier jamais atteint (maxPalierReached)
+  prestige?: number;   // nombre de prestiges effectués (prestigeLevel)
 }
 
 export interface OfflineGain {

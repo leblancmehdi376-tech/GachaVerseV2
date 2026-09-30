@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, RANK_RECOVERY_MAX_LEVEL, getRankRecoveryCost, rankRecoveryCap } from '@/lib/game/prestige';
+import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, formatBonusValue, RANK_RECOVERY_MAX_LEVEL, getRankRecoveryCost, rankRecoveryCap } from '@/lib/game/prestige';
 import { formatNumber } from '@/lib/game/format';
 import { LootReelPopup, LootReelItem, buildReel } from '@/components/ui/LootReelPopup';
 
@@ -96,13 +96,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
   );
 }
 
-export function formatBonusValue(type: PrestigeBonusType, level: number): string {
-  const def = PRESTIGE_BONUS_DEFS[type];
-  const total = def.perLevel * level;
-  if (type === 'tokenGain') return `+${total}`;
-  if (type === 'shinyGold' || type === 'shinyDiamond') return `+${total.toFixed(2)}%`;
-  return `+${(total * 100).toFixed(0)}%`;
-}
+export { formatBonusValue };
 
 // ─── Roue de tirage (façon lootbox) ─────────────────────────────────────────
 const BONUS_COLORS: Record<PrestigeBonusType, string> = {

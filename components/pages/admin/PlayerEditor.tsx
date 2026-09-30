@@ -10,7 +10,8 @@ import { CHARACTER_POOL, getCharacterById } from '@/lib/game/characters';
 import { ITEM_DEFS, EQUIPMENT_DEFS } from '@/lib/game/items';
 import { RARITY_CONFIG } from '@/types/game';
 import { bnFromNumber, bnToNumber } from '@/lib/game/bignum';
-import { CurrencyHistoryChart } from './CurrencyHistoryChart';
+import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, RANK_RECOVERY_MAX_LEVEL, formatBonusValue } from '@/lib/game/prestige';
+import { PlayerHistoryCharts } from './PlayerHistoryCharts';
 
 // Listes proposables à l'ajout (les héros ne vivent pas dans `collection`,
 // donc exclus) — calculées une fois, réutilisées pour les suggestions d'id
@@ -62,6 +63,8 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
   const [playerItems, setPlayerItems] = useState<OwnedItemSummary[]>(cachedAtMount?.items ?? []);
   const [playerEquipment, setPlayerEquipment] = useState<OwnedEquipmentSummary[]>(cachedAtMount?.equipment ?? []);
   const [detailLoading, setDetailLoading] = useState(!cachedAtMount);
+  // Incrémenté par le bouton "Actualiser" : relit le doc en ignorant le cache.
+  const [reloadKey, setReloadKey] = useState(0);
 
   const initFields = fieldsFromSave(cachedAtMount?.save ?? initialSave);
   const [editCoins, setEditCoins]   = useState(initFields.coins);
@@ -107,7 +110,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
     // Déjà en cache (ligne rouverte dans la même session) — l'état initial
     // du composant l'a déjà pris en compte (voir cachedAtMount ci-dessus),
     // rien à refaire.
-    if (detailCache.has(uid)) return;
+    if (reloadKey === 0 && detailCache.has(uid)) return;
     let cancelled = false;
     setDetailLoading(true);
     getPlayerDetail(uid).then(detail => {
@@ -120,7 +123,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
       setDetailLoading(false);
     });
     return () => { cancelled = true; };
-  }, [uid]);
+  }, [uid, reloadKey]);
 
   const patchCache = (patch: Partial<PlayerDetail>) => {
     const cached = detailCache.get(uid) ?? EMPTY_DETAIL;
@@ -271,15 +274,55 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
         ✦ Total d&apos;invocations (gacha) : {playerSave.totalGachaPulls.toLocaleString('fr-FR')}
       </div>
 
-      {/* ── Historique coins/gemmes ──────────────────────────────
-          Alimenté sans coût Firestore additionnel (voir CurrencyHistoryChart
+      {/* ── Prestige : jetons non dépensés + niveaux de bonus tirés ── */}
+      <div style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px 16px', flexWrap: 'wrap', marginBottom: 10 }}>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 13.4 }}>✨ Prestige</span>
+          <span style={{ color: '#f0abfc', fontSize: 12.4 }}>
+            Prestiges : <b>{playerSave.prestigeLevel.toLocaleString('fr-FR')}</b>
+          </span>
+          <span style={{ color: '#fde68a', fontSize: 12.4 }}>
+            🎫 Jetons disponibles : <b>{playerSave.prestigeTokens.toLocaleString('fr-FR')}</b>
+          </span>
+          <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12.4 }}>
+            🧠 Mémoire des Rangs : <b>{playerSave.prestigeRankRecoveryLevel}/{RANK_RECOVERY_MAX_LEVEL}</b>
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 190px), 1fr))', gap: 8 }}>
+          {PRESTIGE_BONUS_TYPES.map(type => {
+            const def = PRESTIGE_BONUS_DEFS[type];
+            const level = playerSave.prestigeBonusLevels[type];
+            return (
+              <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: '#0a0818', border: '1px solid rgba(255,255,255,0.08)', opacity: level > 0 ? 1 : 0.5, minWidth: 0 }}>
+                <span style={{ fontSize: 18 }}>{def.icon}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={def.label}>{def.label}</div>
+                  <div style={{ color: '#fff', fontSize: 12.4, fontWeight: 700 }}>
+                    Niv. {level}{def.maxLevel ? `/${def.maxLevel}` : ''}
+                    <span style={{ color: '#4ade80', marginLeft: 6 }}>{formatBonusValue(type, level)}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Historique coins/gemmes/paliers/prestige ─────────────
+          Alimenté sans coût Firestore additionnel (voir PlayerHistoryCharts
           et le commentaire sur CurrencySnapshot) : le champ voyage dans le
           même doc `saves/{uid}` déjà lu par getPlayerDetail ci-dessus. */}
       <div style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <button type="button" onClick={() => setReloadKey(k => k + 1)} disabled={detailLoading}
+            style={{ minHeight: 36, padding: '0 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 700, cursor: detailLoading ? 'wait' : 'pointer' }}>
+            ↻ Actualiser
+          </button>
+        </div>
         {detailLoading ? (
           <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12.4 }}>Chargement de l&apos;historique…</div>
         ) : (
-          <CurrencyHistoryChart history={playerSave.currencyHistory ?? []} />
+          <PlayerHistoryCharts history={playerSave.currencyHistory ?? []} />
         )}
       </div>
 

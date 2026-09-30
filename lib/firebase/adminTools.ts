@@ -10,6 +10,7 @@ import { Rarity, RARITY_ORDER_ASC } from '@/types/game';
 import { logger } from '../logger';
 import { coerceBigNum, type BigNum } from '@/lib/game/bignum';
 import type { CurrencySnapshot } from '@/store/gameStore.types';
+import { coerceBonusLevels, type PrestigeBonusLevels } from '@/lib/game/prestige';
 
 export interface PlayerSaveSummary {
   pixelCoins: BigNum;
@@ -22,6 +23,10 @@ export interface PlayerSaveSummary {
   maxPalierReached: number;
   runPeakPalier: number | null;
   lastSaved: number | null;
+  prestigeLevel: number;
+  prestigeTokens: number;
+  prestigeBonusLevels: PrestigeBonusLevels;
+  prestigeRankRecoveryLevel: number;
   // Historique de solde pour le graphe admin (voir CurrencySnapshot) — déjà
   // présent dans le même doc `saves/{uid}` que le reste de ce résumé, donc
   // aucune lecture Firestore supplémentaire pour l'exposer ici. Optionnel :
@@ -146,11 +151,18 @@ export async function getPlayerDetail(uid: string): Promise<PlayerDetail> {
       maxPalierReached: d.maxPalierReached ?? 1,
       runPeakPalier:    d.runPeakPalier ?? null,
       lastSaved:        d.lastSaved ?? null,
+      prestigeLevel:    d.prestigeLevel ?? 0,
+      prestigeTokens:   d.prestigeTokens ?? 0,
+      prestigeBonusLevels: coerceBonusLevels(d.prestigeBonusLevels),
+      prestigeRankRecoveryLevel: d.prestigeRankRecoveryLevel ?? 0,
       currencyHistory:  Array.isArray(d.currencyHistory)
-        ? (d.currencyHistory as Array<{ t?: number; coins?: unknown; gems?: number }>).map(e => ({
+        ? (d.currencyHistory as Array<{ t?: number; coins?: unknown; gems?: number; palier?: number; maxPalier?: number; prestige?: number }>).map(e => ({
             t: typeof e.t === 'number' ? e.t : 0,
             coins: coerceBigNum(e.coins),
             gems: typeof e.gems === 'number' ? e.gems : 0,
+            palier: typeof e.palier === 'number' ? e.palier : undefined,
+            maxPalier: typeof e.maxPalier === 'number' ? e.maxPalier : undefined,
+            prestige: typeof e.prestige === 'number' ? e.prestige : undefined,
           }))
         : [],
     };
