@@ -25,13 +25,17 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   getOfflineRewardScale: () => OFFLINE_REWARD_SCALE_TIERS[Math.min(get().offlineMultLevel ?? 0, OFFLINE_REWARD_SCALE_TIERS.length - 1)],
 
   // Nombre de mobs NORMAUX tués par heure (aucun boss n'est simulé hors-ligne).
+  // Plafonné à 1 kill/seconde comme en jeu actif (tickDps tourne 1×/s et ne
+  // tue qu'un mob par tick) : sans ce plafond, un DPS très supérieur aux PV
+  // du mob courant (palier bas, après prestige...) donnait des millions de
+  // kills — et donc de gemmes/coins — par heure hors-ligne.
   getOfflineKillsPerHour: () => {
     const s = get();
     const enemy = s.currentEnemy;
     if (!enemy || bnIsZero(enemy.maxHp)) return 0;
     const dps = s.getTotalDps();
     if (bnIsZero(dps)) return 0;
-    return bnDivRatio(dps, enemy.maxHp) * 3600 * s.getOfflineMult();
+    return Math.min(1, bnDivRatio(dps, enemy.maxHp)) * 3600 * s.getOfflineMult();
   },
 
   // Revenu passif estimé (coins/heure) = mobs/h × butin d'un mob × multiplicateurs.

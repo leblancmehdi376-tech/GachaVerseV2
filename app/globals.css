@@ -809,6 +809,40 @@ html, body {
 
 /* Conteneur de défilement des pages sans PageScroll (Boutique, Forge,
    Expéditions, Paramètres, Améliorations) : même marge réduite sur mobile. */
+/* Page Améliorations — cartes alliés. 2 colonnes sur grand écran (vignette +
+   infos, boutons en dessous) ; sous 640px, 1 colonne de cartes horizontales :
+   vignette à gauche, infos + boutons + évolution empilés à droite. */
+.upgrades-ally-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.upgrade-char-card__body {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "thumb info" "actions actions" "evo evo";
+  column-gap: 12px; row-gap: 10px; padding-left: 8px;
+}
+.upgrade-char-card__thumb   { grid-area: thumb; align-self: start; }
+.upgrade-char-card__info    { grid-area: info; min-width: 0; }
+.upgrade-char-card__actions { grid-area: actions; display: flex; gap: 8px; }
+.upgrade-char-card__evo     { grid-area: evo; display: flex; flex-direction: column; gap: 8px; }
+.upgrade-char-card__lvl     { flex: 1; min-width: 0; }
+.upgrade-char-card__multi   { flex-shrink: 0; }
+@media (max-width: 640px) {
+  .upgrades-ally-grid { grid-template-columns: minmax(0, 1fr); }
+  .upgrade-char-card__body {
+    grid-template-areas: "thumb info" "thumb actions" "thumb evo";
+    grid-template-rows: auto auto minmax(0, 1fr); row-gap: 8px;
+  }
+  /* LVL UP sur toute la largeur, ×10 / ×100 côte à côte en dessous. */
+  .upgrade-char-card__actions { flex-wrap: wrap; }
+  .upgrade-char-card__lvl     { flex: 1 1 100%; }
+  .upgrade-char-card__multi   { flex: 1 1 0; }
+  .upgrade-char-card__actions button,
+  .upgrade-char-card__evo button { min-height: 40px; }
+  /* Stats du haut en lignes compactes (libellé à gauche, valeur à droite). */
+  .upgrades-stat-grid { gap: 8px !important; }
+  .upgrades-stat-tile { display: flex; align-items: center; flex-wrap: wrap; column-gap: 10px; padding: 10px 14px !important; }
+  .upgrades-stat-tile__label { flex: 1; margin-bottom: 0 !important; }
+  .upgrades-stat-tile__extra { flex-basis: 100%; }
+}
+
 .page-pad { padding: 24px 28px; }
 @media (max-width: 900px) { .page-pad { padding: 14px 12px 32px; } }
 

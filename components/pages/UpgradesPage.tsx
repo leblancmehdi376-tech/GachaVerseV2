@@ -152,20 +152,24 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
   const evoStoneExpedition = EXPEDITION_DEFS.find(x => x.rewards.dropId === EVOLUTION_STONE_ITEM_ID);
   const name     = getCharFormName(tpl, owned.currentForm);
   const handleLevelUpX10 = () => levelUpCharacterN(templateId, 10);
+  const handleLevelUpX100 = () => levelUpCharacterN(templateId, 100);
 
   return (
     <div style={{ background:'linear-gradient(135deg,#0e0c1a,#130f22)', border:`1px solid ${cfg.color}33`, borderRadius:12, padding:14, position:'relative', overflow:'hidden', boxShadow:`0 0 14px ${cfg.glow}0d` }}>
       <div style={{ position:'absolute', left:0, top:0, bottom:0, width:4, background:`linear-gradient(180deg,${cfg.color},${cfg.glow})`, boxShadow:`0 0 8px ${cfg.glow}` }} />
-      <div style={{ display:'flex', gap:12, alignItems:'flex-start', paddingLeft:8 }}>
+      {/* Grille à zones nommées (voir .upgrade-char-card dans globals.css) :
+          boutons sous la carte sur grand écran, tout à droite de la vignette
+          sur téléphone (carte horizontale pleine largeur). */}
+      <div className="upgrade-char-card__body">
         {/* Carte perso */}
-        <div style={{ position:'relative', flexShrink:0 }}>
+        <div className="upgrade-char-card__thumb" style={{ position:'relative' }}>
           <CharacterCardThumb templateId={pureId} formIndex={owned.currentForm} name={name} rarity={tpl.rarity} edition={owned.edition} width={70} height={97} frameOverlay />
           {tpl.forms && tpl.forms.length > 1 && (
             <div style={{ position:'absolute', bottom:-5, right:-5, zIndex:30, background:cfg.color, borderRadius:'50%', width:18, height:18, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, border:'2px solid var(--bg-deep)', fontWeight:700, color:'#000' }}>{owned.currentForm+1}</div>
           )}
         </div>
         {/* Infos */}
-        <div style={{ flex:1, minWidth:0 }}>
+        <div className="upgrade-char-card__info">
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
             <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13.4, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
             <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:'var(--green)', flexShrink:0, marginLeft:8 }}>{formatNumber(dps)}/s</span>
@@ -179,28 +183,31 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
           <LevelBar level={owned.level} color={cfg.color} />
           <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
             {tpl.forms && tpl.forms.length > 1 && (
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', whiteSpace:'nowrap' }}>
                 Forme {owned.currentForm+1}/{tpl.forms.length}
               </span>
             )}
             <RankStars rank={owned.rank} />
           </div>
         </div>
-      </div>
       {/* Boutons */}
-      <div style={{ display:'flex', gap:8, marginTop:12, paddingLeft:8 }}>
-        <button onClick={() => levelUpCharacter(templateId)} disabled={!canAffordLv}
-          style={{ flex:1, padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
+      <div className="upgrade-char-card__actions">
+        <button className="upgrade-char-card__lvl" onClick={() => levelUpCharacter(templateId)} disabled={!canAffordLv}
+          style={{ padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
         </button>
-        <button onClick={handleLevelUpX10} disabled={!canAffordLv} title="Améliore jusqu'à 10 niveaux d'affilée"
-          style={{ flexShrink:0, padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
+        <button className="upgrade-char-card__multi" onClick={handleLevelUpX10} disabled={!canAffordLv} title="Améliore jusqu'à 10 niveaux d'affilée"
+          style={{ padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}> × 10 </span>
+        </button>
+        <button className="upgrade-char-card__multi" onClick={handleLevelUpX100} disabled={!canAffordLv} title="Améliore jusqu'à 100 niveaux d'affilée"
+          style={{ padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}> × 100 </span>
         </button>
       </div>
       {canEvolveAtAll && (
-        <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:8, paddingLeft:8 }}>
+        <div className="upgrade-char-card__evo">
           {!canEvo_ && reqItems.length > 0 && (
             <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
               <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert :</span>
@@ -237,6 +244,7 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
           )}
         </div>
       )}
+      </div>
     </div>
   );
 });
@@ -290,10 +298,10 @@ export function UpgradesPage() {
             { label:'NEKO-GEMMES', val:formatNumber(nekoGems),      color:'var(--cyan-hi)', icon:'💎' },
             { label:'DPS',         val:formatNumber(getTotalDps()), color:'var(--green)',   icon:'🔥' },
           ].map(s=>(
-            <div key={s.label} className="panel" style={{ padding:'16px 18px' }}>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
+            <div key={s.label} className="panel upgrades-stat-tile" style={{ padding:'16px 18px' }}>
+              <div className="upgrades-stat-tile__label" style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
               <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.7, color:s.color, lineHeight:1.05 }}>{s.val}</div>
-              {s.label === 'DPS' && <div style={{ marginTop:6 }}><CohesionBadge size="md" /></div>}
+              {s.label === 'DPS' && <div className="upgrades-stat-tile__extra" style={{ marginTop:6 }}><CohesionBadge size="md" /></div>}
             </div>
           ))}
         </div>
@@ -376,7 +384,7 @@ export function UpgradesPage() {
           <div>
             <SectionHead color="var(--cyan)">ALLIÉS ({ownedIds.length})</SectionHead>
             <CollectionFilters universes={universeOptions} />
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
+            <div className="upgrades-ally-grid">
               {filteredIds.map(id => <CharCard key={id} templateId={id} />)}
             </div>
           </div>

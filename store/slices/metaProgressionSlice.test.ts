@@ -228,3 +228,27 @@ describe('claimOfflineEarnings — progression des quêtes "Vaincre X monstres"'
     expect(useGameStore.getState().quests.find(q => q.id === 'd_kills')!.current).toBe(dBefore);
   });
 });
+
+describe('getOfflineKillsPerHour — plafond de 1 kill/seconde', () => {
+  beforeEach(() => {
+    useGameStore.getState().resetGame();
+  });
+
+  const setDpsRatio = (ratio: number) => {
+    const enemy = useGameStore.getState().currentEnemy;
+    useGameStore.setState({ getTotalDps: () => bnFromNumber(bnToNumber(enemy.maxHp) * ratio) });
+  };
+
+  it('plafonne à 3600 kills/h × multiplicateur AFK quand le DPS dépasse largement les PV du mob', () => {
+    setDpsRatio(10_000);
+    const s = useGameStore.getState();
+    expect(s.getOfflineKillsPerHour()).toBeCloseTo(3600 * s.getOfflineMult());
+    expect(s.getOfflineGemsPerHour()).toBeLessThan(100);
+  });
+
+  it('reste proportionnel au DPS quand un mob met plus d\'une seconde à mourir', () => {
+    setDpsRatio(0.25);
+    const s = useGameStore.getState();
+    expect(s.getOfflineKillsPerHour()).toBeCloseTo(0.25 * 3600 * s.getOfflineMult());
+  });
+});

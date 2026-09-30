@@ -20,6 +20,17 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '30/09/2026',
+    title: 'Maj v2.7.5',
+    changes: [
+      "**Gains hors-ligne** corrigés : ils pouvaient donner des **millions de gemmes et de coins** quand ton DPS dépassait largement les PV de l'ennemi.",
+      "Hors-ligne, tes compagnons tuent désormais au maximum **1 ennemi par seconde**, comme quand tu joues.",
+      "Ça s'applique aussi à la récompense quotidienne **heures de gains hors ligne**.",
+      "**Amélioration** : nouveau bouton **×100** pour monter jusqu'à 100 niveaux d'un coup.",
+      "**Amélioration** sur téléphone : les alliés s'affichent en **cartes horizontales** pleine largeur, avec des boutons plus grands.",
+    ],
+  },
+  {
+    date: '30/09/2026',
     title: 'Maj v2.7.4',
     changes: [
       "Le menu déroulant de **recherche d'univers** s'affiche désormais **au-dessus** des pastilles d'évolution et d'édition des cartes.",
