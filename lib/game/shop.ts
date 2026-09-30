@@ -167,8 +167,8 @@ function buildChestDropRates(tier: ChestTier): { label: string; pct: string; col
 
 export const EQUIPMENT_CHESTS: EquipmentChestDef[] = [
   {
-    id: 'chest_common', label: 'Coffre Commun', emoji: '📦', gems: 125,
-    color: '#9ca3af', glow: '#6b7280',
+    id: 'chest_common', label: 'Coffre Peu Commun', emoji: '📦', gems: 125,
+    color: '#4ade80', glow: '#16a34a',
     dropRates: buildChestDropRates('common'),
   },
   {

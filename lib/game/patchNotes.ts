@@ -28,6 +28,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
       "**Boutique du jour** et **Personnages de raid** : cartes plus grandes, avec nom, rareté et prix bien visibles.",
       "Les chances des **coffres d'équipement** sont regroupées dans un **tableau comparatif**, à côté des coffres.",
       "Les boutons d'achat gardent la **couleur de leur monnaie** même quand tu n'as pas assez pour acheter.",
+      "Le **Coffre Commun** devient le **Coffre Peu Commun**, désormais en **vert** (chances inchangées).",
     ],
   },
   {
