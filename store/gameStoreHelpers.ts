@@ -10,7 +10,7 @@ import { getTitleGoldMultiplier } from '@/lib/game/titles';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import { formatNumber } from '@/lib/game/format';
 import {
-  PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, rankRecoveryCap,
+  PrestigeBonusLevels, ActivePrestigeBonuses, calcPrestigeBonuses, stoneMemoryCapPoints,
 } from '@/lib/game/prestige';
 import { Anomaly, calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { killAchievementPatch } from '@/lib/game/achievementStats';
@@ -260,12 +260,12 @@ export function runPeakPalierOf(state: { runPeakPalier: number | null; maxPalier
 let _pbLevels: PrestigeBonusLevels | null = null;
 let _pbValue: ActivePrestigeBonuses | null = null;
 
-export function getPrestigeBonuses(bonusLevels: PrestigeBonusLevels, rankRecoveryLevel: number): ActivePrestigeBonuses & { rankRecoveryCap: number } {
+export function getPrestigeBonuses(bonusLevels: PrestigeBonusLevels, stoneMemoryLevel: number): ActivePrestigeBonuses & { stoneMemoryCapPoints: number } {
   if (!_pbValue || _pbLevels !== bonusLevels) {
     _pbValue = calcPrestigeBonuses(bonusLevels);
     _pbLevels = bonusLevels;
   }
-  return { ..._pbValue, rankRecoveryCap: rankRecoveryCap(rankRecoveryLevel) };
+  return { ..._pbValue, stoneMemoryCapPoints: stoneMemoryCapPoints(stoneMemoryLevel) };
 }
 
 export function getActiveCoinMultiplier(ultActiveUlts: ActiveUlt[]): number {

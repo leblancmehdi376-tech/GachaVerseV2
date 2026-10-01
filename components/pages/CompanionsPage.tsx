@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
-import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
+import { RarityBadge } from '@/components/ui/RarityBadge';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getUltimateDef, type UltimateDef } from '@/lib/game/ultimates';
 import { getEquipmentDef, getEquipBonusMult, type EquipmentDef } from '@/lib/game/items';
@@ -16,7 +16,7 @@ import { bnMulScalar, type BigNum } from '@/lib/game/bignum';
 import { AffinityBadge } from '@/components/ui/AffinityBadge';
 import { AffinityTooltip } from '@/components/ui/AffinityTooltip';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
-import { EDITION_CONFIG } from '@/lib/game/editions';
+import { EditionBadge, EditionGauge, EditionGaugeMini } from '@/components/ui/EditionBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
 import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
@@ -197,7 +197,7 @@ function TeamSlotCard({
             <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: 'var(--text)' }}>{tpl.name}</div>
             <div style={{ marginTop: 6 }}><RarityBadge rarity={tpl.rarity} /></div>
           </div>
-          <RankStars rank={owned.rank} />
+          <EditionBadge edition={owned.edition} />
           <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16.5, color: 'var(--green)' }}>{formatNumber(dps)}/s</div>
           {ult && (
             <div style={{ textAlign: 'center', padding: '0 4px' }}>
@@ -254,6 +254,7 @@ function SelectedCharacterHero({
           <div style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 18.5, color: '#fff', lineHeight: 1.15, marginBottom: 8 }}>{getCharFormName(tpl, owned.currentForm)}</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <RarityBadge rarity={tpl.rarity} />
+            <EditionBadge edition={owned.edition} />
             {affinity ? (
               <AffinityTooltip affinity={affinity}>
                 <AffinityBadge affinity={affinity} size="sm" />
@@ -280,6 +281,8 @@ function SelectedCharacterHero({
             <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 15.5, color: equipMult > 1 ? 'var(--green)' : 'var(--text-muted)', marginTop: 3 }}>×{equipMult.toFixed(2)}</div>
           </div>
         </div>
+
+        <EditionGauge owned={owned} />
 
         {ult ? (
           <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(147,51,234,0.09)', border: '1px solid var(--border-glow)' }}>
@@ -448,21 +451,15 @@ function CollectionCard({
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
             <RarityBadge rarity={tpl.rarity} />
-            {owned.edition && owned.edition !== 'base' && (
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, letterSpacing:0.5,
-                color: EDITION_CONFIG[owned.edition].color, background:`${EDITION_CONFIG[owned.edition].color}18`,
-                border:`1px solid ${EDITION_CONFIG[owned.edition].color}55`, borderRadius:999, padding:'2px 7px' }}>
-                {owned.edition === 'diamond' ? '💎 DIAMANT' : '✨ OR'}
-              </span>
-            )}
+            <EditionBadge edition={owned.edition} />
             <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-muted)' }}>{owned.copies} copies</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <RankStars rank={owned.rank} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.5, color: 'var(--green)' }}>{formatNumber(dps)}/s</span>
           </div>
+          <EditionGaugeMini owned={owned} style={{ marginTop: 6 }} />
           {ult && (
             <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 8 }}>
               <UltimateBlurb ult={ult} />

@@ -87,15 +87,11 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
           <CharacterCardThumb templateId={pureId} formIndex={formIdx} name={name} rarity={tpl.rarity} edition={owned.edition}
             width={88} height={149} frameOverlay style={{ width: '100%' }} />
 
-          {/* Niveau + rang — flotte au-dessus de l'illustration en dessous de
+          {/* Niveau — flotte au-dessus de l'illustration en dessous de
               1800px ; masqué au-delà (repris par .ally-card-badge-inline,
               placé dans le bloc d'infos à droite). */}
           <div className="ally-card-badge-float" style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', zIndex: 30, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(0,0,0,0.4)', border: `1px solid ${rc.color}55`, borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}>
             <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.3 }}>LV{owned.level}</span>
-            {owned.rank > 0 && <>
-              <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.15)' }} />
-              <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: '#fbbf24', letterSpacing: 0.3 }}>★{owned.rank}</span>
-            </>}
           </div>
         </div>
       </SkillTooltip>
@@ -107,14 +103,10 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
           faisant seulement 88px de large. Passe à droite de l'illustration
           au-delà de 1800px via .ally-card-info. */}
       <div className="ally-card-info" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '5px 7px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22` }}>
-        {/* Niveau + rang — repris ici pour l'affichage large (voir
+        {/* Niveau — repris ici pour l'affichage large (voir
             .ally-card-badge-float, masqué au-delà de 1800px). */}
         <div className="ally-card-badge-inline" style={{ alignItems: 'center', gap: 5, marginBottom: 2 }}>
           <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.3 }}>LV{owned.level}</span>
-          {owned.rank > 0 && <>
-            <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.15)' }} />
-            <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 800, color: '#fbbf24', letterSpacing: 0.3 }}>★{owned.rank}</span>
-          </>}
         </div>
         <div onClick={() => clickable && activateCharacterUltimate(templateId, formIdx)}
           title={queued ? "En file d'attente — cliquer pour annuler" : undefined}

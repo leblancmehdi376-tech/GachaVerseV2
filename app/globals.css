@@ -1853,3 +1853,10 @@ html, body {
 .cf-pop { animation: cfPop .18s ease-out; }
 .cf-scroll { scrollbar-width: thin; scrollbar-color: var(--border-lit) transparent; }
 @keyframes cfPop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes editionPrism {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="editionPrism"] { animation: none !important; }
+}

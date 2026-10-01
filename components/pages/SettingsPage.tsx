@@ -87,7 +87,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
         const { addToCollection } = useGameStore.getState();
         result.characters.forEach(id => addToCollection(id));
       }
-      // Personnages MAX (7★, dernière évo, niveau max, édition Diamant)
+      // Personnages MAX (dernière évo, niveau max, édition Diamant)
       if (result.maxCharacters && result.maxCharacters.length > 0) {
         const { grantMaxedCharacter } = useGameStore.getState();
         result.maxCharacters.forEach(id => grantMaxedCharacter(id, 'diamond'));

@@ -18,10 +18,8 @@ import { useProgressiveCount } from '@/hooks/useProgressiveCount';
 
 const RARITY_ORDER: Rarity[] = ['C','U','R','E','L','M','S','CO','P','T'];
 
-// collection est indexée par clé d'instance (templateId, ou templateId::gold/
-// ::diamond pour les shiny), pas par id de template pur, donc on passe par
-// parseInstanceKey pour ne pas rater les persos possédés uniquement en
-// édition shiny.
+// parseInstanceKey : tolère encore une ancienne clé "id::gold" (save pas
+// encore migrée, voir migrateEditionSave).
 export function getOwnedChars(collection: Record<string, unknown>): typeof CHARACTER_POOL {
   const ownedTemplateIds = new Set(Object.keys(collection).map(k => parseInstanceKey(k).templateId));
   return CHARACTER_POOL.filter(c => ownedTemplateIds.has(c.id));

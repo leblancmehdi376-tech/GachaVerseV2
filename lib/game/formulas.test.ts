@@ -17,7 +17,7 @@ function makeTemplate(overrides: Partial<CharacterTemplate> = {}): CharacterTemp
 }
 
 function makeOwned(overrides: Partial<OwnedCharacter> = {}): OwnedCharacter {
-  return { templateId: 'test_char', rank: 1, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
+  return { templateId: 'test_char', copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
 }
 
 describe('calcCharDps', () => {
@@ -62,6 +62,16 @@ describe('calcCharDps', () => {
     const diamond = n(calcCharDps(makeTemplate({ baseDps: 10 }), makeOwned({ level: 10, edition: 'diamond' })));
     expect(gold).toBeGreaterThan(base);
     expect(diamond).toBeGreaterThan(gold);
+  });
+
+  it("l'édition augmente aussi la croissance par niveau (+0.0002 de puissance par palier)", () => {
+    const tpl = makeTemplate({ rarity: 'L', baseDps: 50 });
+    const ratioAt = (level: number) =>
+      n(calcCharDps(tpl, makeOwned({ level, edition: 'prismatic' }))) / n(calcCharDps(tpl, makeOwned({ level, edition: 'base' })));
+    // ×8 fixe, puis le bonus de puissance creuse l'écart avec le niveau.
+    const expected = 8 * Math.pow((1.028 + 0.0014) / 1.028, 499);
+    expect(ratioAt(500) / expected).toBeCloseTo(1, 6);
+    expect(ratioAt(1000)).toBeGreaterThan(ratioAt(500));
   });
 });
 

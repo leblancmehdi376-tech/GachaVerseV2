@@ -104,7 +104,7 @@ export function ChampionInventoryPage() {
       </div>
 
       <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-muted)', lineHeight:1.6 }}>
-        Doublons obtenus lorsque tes personnages atteignent les <strong style={{ color:'#fbbf24' }}>7★</strong>. Recycle-les contre des Orbes du Néant ou mets-les en vente à l&apos;Hôtel de Ville.
+        Doublons obtenus lorsque tes personnages sont déjà en édition <strong style={{ color:'#f0abfc' }}>Prismatique</strong>. Recycle-les contre des Orbes du Néant ou mets-les en vente à l&apos;Hôtel de Ville.
       </div>
 
       {/* Feedback */}
@@ -142,7 +142,7 @@ export function ChampionInventoryPage() {
       {champions.length === 0 ? (
         <div style={{ textAlign:'center', padding:'60px 20px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'13.4px' }}>
           <div style={{ fontSize:'41.2px', marginBottom:'12px' }}>🏆</div>
-          Aucun doublon 7★ pour le moment.<br/>Continue à pull pour remplir cet inventaire !
+          Aucun doublon Prismatique pour le moment.<br/>Continue à pull pour remplir cet inventaire !
         </div>
       ) : (
         <div style={{ maxHeight: '62vh', overflowY: 'auto' }}>

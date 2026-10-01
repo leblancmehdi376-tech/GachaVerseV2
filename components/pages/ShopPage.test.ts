@@ -1,30 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { isCharacterOwned, formatDuration } from './ShopPage';
-import { makeInstanceKey } from '@/lib/game/editions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 
 describe('isCharacterOwned', () => {
   const tplId = CHARACTER_POOL[0].id;
 
-  it('vaut false quand aucune édition du template n’est en collection', () => {
+  it('vaut false quand le perso n’est pas en collection', () => {
     expect(isCharacterOwned({}, tplId)).toBe(false);
   });
 
-  it('vaut true quand l’édition de base est possédée', () => {
-    expect(isCharacterOwned({ [makeInstanceKey(tplId, 'base')]: {} }, tplId)).toBe(true);
-  });
-
-  it('vaut true quand seule l’édition or est possédée', () => {
-    expect(isCharacterOwned({ [makeInstanceKey(tplId, 'gold')]: {} }, tplId)).toBe(true);
-  });
-
-  it('vaut true quand seule l’édition diamant est possédée', () => {
-    expect(isCharacterOwned({ [makeInstanceKey(tplId, 'diamond')]: {} }, tplId)).toBe(true);
+  it('vaut true quand le perso est en collection, quelle que soit son édition', () => {
+    expect(isCharacterOwned({ [tplId]: { edition: 'gold' } }, tplId)).toBe(true);
   });
 
   it('ignore les entrées d’un autre template', () => {
     const otherId = CHARACTER_POOL[1].id;
-    expect(isCharacterOwned({ [makeInstanceKey(otherId, 'base')]: {} }, tplId)).toBe(false);
+    expect(isCharacterOwned({ [otherId]: {} }, tplId)).toBe(false);
   });
 });
 

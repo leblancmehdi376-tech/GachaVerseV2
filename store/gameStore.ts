@@ -13,7 +13,8 @@ import { OwnedCharacter, HeroState, Rarity } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
-import { initialBonusLevels } from '@/lib/game/prestige';
+import { initialBonusLevels, coerceBonusLevels } from '@/lib/game/prestige';
+import { migrateEditionFields } from '@/lib/game/editions';
 import type { GameStore, CurrencySnapshot, DleWin } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
 import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest, migrateLegacyRaidQuestIds } from './gameStoreHelpers';
@@ -80,9 +81,8 @@ const makeInitial = () => ({
   championInventory:  {} as Record<string, number>,
   lastEquipmentDrop: null,
   focusedExpeditionId: null,
-  bankedRanks: {} as Record<string, number>,
   raidCharacterPurchases: {} as Record<string, number>,
-  historicalMaxRank: {} as Record<string, number>,
+  historicalEditionPoints: {} as Record<string, number>,
   unlockedEquipRarities: ['C'] as Rarity[],
   unlockedEquipDropRarities: ['C'] as Rarity[],
   dpsBoostEndsAt: 0, goldBoostEndsAt: 0,
@@ -306,6 +306,11 @@ export const useGameStore = create<GameStore>()(
           const victory = raw.lastBossVictory as Record<string, unknown>;
           raw.lastBossVictory = { ...victory, coins: coerceBigNum(victory.coins) };
         }
+        // Rework des éditions : une carte par perso (fusion des anciennes
+        // entrées par édition + jauge), et Taux Shiny Or/Diamant → Taux
+        // d'édition. Idempotent, tourne à chaque réhydratation.
+        migrateEditionFields(raw);
+        raw.prestigeBonusLevels = coerceBonusLevels(raw.prestigeBonusLevels);
         const merged = raw as unknown as GameStore;
         // Backfill des types d'expédition manquants (voir backfillDefAffinities) :
         // une sauvegarde antérieure à l'ajout d'une nouvelle expédition sans
@@ -366,8 +371,7 @@ export const useGameStore = create<GameStore>()(
         unlockedEquipRarities:s.unlockedEquipRarities,
         unlockedEquipDropRarities:s.unlockedEquipDropRarities,
         championInventory:s.championInventory ?? {},
-        bankedRanks:s.bankedRanks ?? {},
-        historicalMaxRank:s.historicalMaxRank ?? {},
+        historicalEditionPoints:s.historicalEditionPoints ?? {},
         // Nombre d'achats déjà effectués par boss de raid (prix +10% par
         // achat, voir getRaidCharacterCost) — jamais synchronisé avant ce
         // correctif : un refresh/reconnexion faisait revenir le prix à son
@@ -414,7 +418,7 @@ export const useGameStore = create<GameStore>()(
         dleRecentWins:s.dleRecentWins ?? [],
         dleGamesWon:s.dleGamesWon ?? 0, dleBestGuesses:s.dleBestGuesses ?? 0,
         dleRaritiesFound:s.dleRaritiesFound ?? [], dleQuestsClaimed:s.dleQuestsClaimed ?? [],
-        // Compadex — jamais reset au Prestige (même traitement qu'historicalMaxRank).
+        // Compadex — jamais reset au Prestige (même traitement qu'historicalEditionPoints).
         compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
         // Historique de solde (graphe admin) — persisté localement comme le
         // reste (gratuit, middleware persist), et synchronisé cloud via

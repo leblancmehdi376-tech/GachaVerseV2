@@ -15,7 +15,7 @@ const sampleTpl = nonHeroes[0];
 const sampleTpl2 = nonHeroes[1];
 
 function makeOwned(templateId: string, overrides: Partial<OwnedCharacter> = {}): OwnedCharacter {
-  return { templateId, rank: 1, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
+  return { templateId, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
 }
 
 describe('getEquipmentMultiplier', () => {

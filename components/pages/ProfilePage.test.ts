@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { getOwnedChars, computeRarityBreakdown, fmtDur } from './ProfilePage';
-import { makeInstanceKey } from '@/lib/game/editions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 
 // On s'appuie sur le vrai contenu du jeu (CHARACTER_POOL) sans coder en dur
@@ -12,17 +11,13 @@ describe('getOwnedChars', () => {
     expect(getOwnedChars({})).toEqual([]);
   });
 
-  it('inclut un template possédé uniquement en édition shiny (or/diamant)', () => {
-    const owned = getOwnedChars({ [makeInstanceKey(tplA.id, 'gold')]: {} });
+  it('inclut un template possédé', () => {
+    const owned = getOwnedChars({ [tplA.id]: {} });
     expect(owned.map(c => c.id)).toContain(tplA.id);
   });
 
-  it('ne compte un template qu’une seule fois même possédé en plusieurs éditions', () => {
-    const owned = getOwnedChars({
-      [makeInstanceKey(tplA.id, 'base')]: {},
-      [makeInstanceKey(tplA.id, 'gold')]: {},
-      [makeInstanceKey(tplA.id, 'diamond')]: {},
-    });
+  it('reconnaît encore une ancienne clé d’édition (save pas encore migrée)', () => {
+    const owned = getOwnedChars({ [`${tplA.id}::gold`]: {}, [tplA.id]: {} });
     expect(owned.filter(c => c.id === tplA.id)).toHaveLength(1);
   });
 });

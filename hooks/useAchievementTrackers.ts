@@ -9,7 +9,7 @@ import { SSR_RARITIES } from '@/lib/game/achievementStats';
 import type { Rarity } from '@/types/game';
 import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
-import { makeInstanceKey } from '@/lib/game/editions';
+import { isEditionAtLeast, type CardEdition } from '@/lib/game/editions';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
 import { countDleQuestsDone } from '@/lib/game/gachadle';
 import { getDleStats } from '@/store/slices/gachaDleSlice';
@@ -101,36 +101,23 @@ export function useAchievementTrackers() {
   useEffect(() => { trackQuestsCompleted(totalQuestsCompleted); }, [totalQuestsCompleted]);
   useEffect(() => { trackUpgrades(totalUpgradesPerformed); }, [totalUpgradesPerformed]);
   useEffect(() => {
-    // Possédé si N'IMPORTE QUELLE édition l'est (Base/Or/Diamant) — sinon un
-    // perso obtenu uniquement en shiny ne compterait pas pour ces succès.
-    const owned = CHARACTER_POOL.filter((c: {id: string}) =>
-      (['base', 'gold', 'diamond'] as const).some(ed => !!col[makeInstanceKey(c.id, ed)])
-    );
+    const owned = CHARACTER_POOL.filter((c: {id: string}) => !!col[c.id]);
     const hasL  = owned.some((c: {rarity: string}) => ['L','M','S','CO','P','T'].includes(c.rarity));
     const hasT  = owned.some((c: {rarity: string}) => c.rarity === 'T');
     const transcendantCount = owned.filter((c: {rarity: string}) => c.rarity === 'T').length;
     trackCollection(owned.length, hasL, hasT, CHARACTER_POOL.length, transcendantCount);
     trackEquippedTeam(equippedTeam.filter(Boolean).length);
 
-    // Éditions shiny : scan direct des instances de collection (les clés
-    // composites "id::gold"/"id::diamond" encodent déjà l'édition).
-    const instances = Object.values(col) as { templateId: string; edition?: string; rank: number }[];
-    const goldOrDiamond = instances.filter(o => o.edition === 'gold' || o.edition === 'diamond');
-    const hasGold    = instances.some(o => o.edition === 'gold');
-    const hasDiamond = instances.some(o => o.edition === 'diamond');
-    const diamondTemplates = new Set(instances.filter(o => o.edition === 'diamond').map(o => o.templateId));
-    // Trio parfait : un templateId présent avec ses 3 éditions à la fois.
-    const byTemplate: Record<string, Set<string>> = {};
-    for (const o of instances) (byTemplate[o.templateId] ??= new Set()).add(o.edition ?? 'base');
-    const trioTemplates = Object.values(byTemplate).filter(s => s.has('base') && s.has('gold') && s.has('diamond'));
-    const hasTrio = trioTemplates.length > 0;
-    trackShinyEditions(goldOrDiamond.length, hasGold, hasDiamond, diamondTemplates.size, hasTrio, trioTemplates.length);
+    // Éditions : une carte par perso, "Or" / "Diamant" = cette édition OU mieux.
+    const instances = Object.values(col) as { templateId: string; edition?: CardEdition }[];
+    const goldPlus      = instances.filter(o => isEditionAtLeast(o.edition, 'gold')).length;
+    const diamondPlus   = instances.filter(o => isEditionAtLeast(o.edition, 'diamond')).length;
+    const prismaticCount = instances.filter(o => o.edition === 'prismatic').length;
+    trackShinyEditions(goldPlus, goldPlus > 0, diamondPlus > 0, diamondPlus, prismaticCount > 0, prismaticCount);
 
-    // Rangs 7★ : combien de personnages DIFFÉRENTS au rang max (dédupliqué par
-    // templateId, une même carte en plusieurs éditions ne doit compter qu'une
-    // fois), et l'équipe entière l'est-elle ?
-    const count7Star = new Set(instances.filter(o => o.rank >= 7).map(o => o.templateId)).size;
-    const fullTeamRank7 = equippedTeam.length === 4 && equippedTeam.every(id => id && col[id]?.rank >= 7);
+    // Ex-succès "rang 7★" : personnages en édition Obsidienne ou mieux, et l'équipe entière l'est-elle ?
+    const count7Star = instances.filter(o => isEditionAtLeast(o.edition, 'obsidian')).length;
+    const fullTeamRank7 = equippedTeam.length === 4 && equippedTeam.every(id => id && isEditionAtLeast(col[id]?.edition, 'obsidian'));
     trackRank7(count7Star, fullTeamRank7);
 
     const ownedIds = new Set(owned.map(c => c.id));

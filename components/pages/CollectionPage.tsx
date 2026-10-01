@@ -7,14 +7,14 @@ import { CHARACTER_POOL, getCharFormName } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
-import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
-import { Rarity, RARITY_CONFIG, OwnedCharacter, CardEdition } from '@/types/game';
+import { RarityBadge } from '@/components/ui/RarityBadge';
+import { Rarity, RARITY_CONFIG, OwnedCharacter } from '@/types/game';
 import { calcCharDps } from '@/lib/game/formulas';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
 import { COLLECTION_RARITY_ORDER, compareCharacters, matchesCharacterFilters, type CharMasteryMap, type CollectionFilterState } from '@/lib/game/collectionFilters';
-import { EDITION_CONFIG, makeInstanceKey } from '@/lib/game/editions';
+import { EditionBadge, EditionGauge, EditionGaugeMini } from '@/components/ui/EditionBadge';
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
 
@@ -23,17 +23,14 @@ const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 // Tous les univers présents dans le pool
 const UNIVERSES = Array.from(new Set(CHARACTER_POOL.map(c => c.universe).filter(Boolean))).sort() as string[];
 
-// Une "entrée" de collection = un template + une édition précise (Base/Or/Diamant).
-// Un template possédé en plusieurs éditions produit PLUSIEURS entrées, chacune
-// avec sa propre progression (rang/niveau) — chaque édition compte comme un
-// personnage à part, tout en partageant l'art/nom/ultime du template.
+// Une "entrée" de collection = un template (une seule carte par perso, son
+// édition n'est qu'un bonus porté par la carte, voir lib/game/editions.ts).
 export interface CollectionEntry {
   tpl: typeof CHARACTER_POOL[number];
-  key: string;               // clé de collection (instance) : templateId ou templateId::edition
-  owned: OwnedCharacter | null; // null = pas ACTUELLEMENT possédé (aucune édition)
+  key: string;               // clé de collection = templateId
+  owned: OwnedCharacter | null; // null = pas ACTUELLEMENT possédé
   seen: boolean;              // Compadex : déjà obtenu au moins une fois, à vie (voir compadexCharactersSeen)
 }
-const ALL_EDITIONS: CardEdition[] = ['base', 'gold', 'diamond'];
 
 // "Possédés"/"Manquants" filtrent sur le Compadex (déjà obtenu à vie, `seen`),
 // pas sur la possession ACTUELLE — cohérent avec le sens de cette page depuis
@@ -79,18 +76,13 @@ const CharCard = memo(function CharCard({ entry, onSelect }: { entry: Collection
     );
   }
   const dps = calcCharDps(tpl, owned);
-  const ed  = EDITION_CONFIG[owned.edition ?? 'base'];
   return (
     <div className="collection-card owned" onClick={onClick} style={{ ['--accent' as string]: cfg2.color, cursor:'pointer' } as CSSProperties}>
       <div className="collection-card__body">
         <CharacterCardThumb templateId={tpl.id} formIndex={owned.currentForm} name={getCharFormName(tpl, owned.currentForm)} rarity={tpl.rarity} edition={owned.edition} width={143} height={194} frameOverlay />
         <div className="collection-card__name">{tpl.name}</div>
-        {owned.edition && owned.edition !== 'base' && (
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'12px', letterSpacing:0.5, color:ed.color, background:`${ed.color}18`, border:`1px solid ${ed.color}55`, borderRadius:999, padding:'1px 8px', marginTop:2 }}>
-            {owned.edition === 'diamond' ? '💎 DIAMANT' : '✨ OR'}
-          </div>
-        )}
-        <RankStars rank={owned.rank} />
+        <EditionBadge edition={owned.edition} style={{ marginTop:2 }} />
+        <EditionGaugeMini owned={owned} style={{ padding:'0 6px' }} />
         <div className="collection-card__dps">{formatNumber(dps)}/s</div>
         {tpl.universe && <div className="collection-card__series">{tpl.universe}</div>}
         {ult && (
@@ -156,8 +148,8 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
                 <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--green)' }}>{formatNumber(dps!)}/s</div>
               </div>
               <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Rang</div>
-                <RankStars rank={owned.rank} />
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Copies</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{owned.copies}</div>
               </div>
               <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Niveau</div>
@@ -173,6 +165,7 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
               {seen ? '🕓 Déjà obtenu par le passé — non possédé actuellement' : '🔒 Personnage jamais obtenu'}
             </div>
           )}
+          {owned && <EditionGauge owned={owned} />}
 
           {forms.length > 0 && (
             <div>
@@ -215,25 +208,12 @@ export function CollectionPage() {
   const [view, setView] = useState<'characters' | 'equipment'>('characters');
   const [detailKey, setDetailKey] = useState<string | null>(null);
 
-  // Chaque template possédé ACTUELLEMENT se décline en autant d'entrées que
-  // d'éditions réellement en collection ; un template jamais obtenu OU perdu
-  // depuis (Prestige...) garde une seule entrée "verrouillée" (pas 3 cadenas
-  // pour un seul perso), avec son statut Compadex (`seen`) à part.
-  const allEntries = useMemo<CollectionEntry[]>(() => {
-    const entries: CollectionEntry[] = [];
-    for (const tpl of CHARACTER_POOL) {
-      const seen = !!compadexCharactersSeen[tpl.id];
-      const ownedEditions = ALL_EDITIONS
-        .map(ed => makeInstanceKey(tpl.id, ed))
-        .filter(key => collection[key]);
-      if (ownedEditions.length === 0) {
-        entries.push({ tpl, key: tpl.id, owned: null, seen });
-      } else {
-        for (const key of ownedEditions) entries.push({ tpl, key, owned: collection[key], seen });
-      }
-    }
-    return entries;
-  }, [collection, compadexCharactersSeen]);
+  // Une entrée par template ; un template jamais obtenu OU perdu depuis
+  // (Prestige...) reste une entrée "verrouillée", avec son statut Compadex
+  // (`seen`) à part.
+  const allEntries = useMemo<CollectionEntry[]>(() =>
+    CHARACTER_POOL.map(tpl => ({ tpl, key: tpl.id, owned: collection[tpl.id] ?? null, seen: !!compadexCharactersSeen[tpl.id] })),
+  [collection, compadexCharactersSeen]);
 
   // Compadex : nombre de templates DÉJÀ obtenus au moins une fois, à vie
   // (jamais remis à zéro par le Prestige — voir compadexCharactersSeen) —

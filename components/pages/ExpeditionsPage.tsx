@@ -5,7 +5,7 @@ import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditio
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, RARITY_ORDER_ASC, getPrevRarity } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
-import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
+import { parseInstanceKey } from '@/lib/game/editions';
 import { AFFINITY_CONFIG, getAffinityForId } from '@/lib/game/affinities';
 import { correctedNow } from '@/lib/firebase/clockOffset';
 import { bnCompare, bnFromNumber, bnGte, bnToNumber } from '@/lib/game/bignum';
@@ -49,11 +49,8 @@ function CharSelector({ def, onConfirm, onClose }: {
   const { isCharOnExpedition, getExpeditionAffinity } = useGameStore();
   const [selected, setSelected] = useState<string[]>([]);
 
-  // Possédé si N'IMPORTE QUELLE édition l'est (Base/Or/Diamant) — sinon un
-  // perso possédé uniquement en shiny serait invisible pour les expéditions.
   // Trié par DPS décroissant (meilleur d'abord).
-  const owned = CHARACTER_POOL.filter(c => !c.isHero &&
-    (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(c.id, ed)]))
+  const owned = CHARACTER_POOL.filter(c => !c.isHero && !!collection[c.id])
     .sort((a, b) => bnCompare(getCharacterExpeditionDps(collection, b.id), getCharacterExpeditionDps(collection, a.id)));
   const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
   const score = getExpeditionTeamDps(collection, selected);

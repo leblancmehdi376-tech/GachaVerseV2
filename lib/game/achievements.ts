@@ -34,7 +34,7 @@ export interface Achievement {
   secret?:     boolean;
   // true : progression/déblocage/récompense remis à zéro à chaque Prestige
   // (succès "de run" — kills, dps, coins, pulls, améliorations, collection
-  // en cours, quêtes, rang 7★). Par défaut (absent/false) : permanent, comme
+  // en cours, quêtes, édition Obsidienne). Par défaut (absent/false) : permanent, comme
   // les titres, les éditions shiny et tout ce qui touche à la progression
   // de Prestige elle-même.
   resetsOnPrestige?: boolean;
@@ -62,7 +62,7 @@ export interface AchievCategoryMeta {
 export const ACHIEVEMENT_CATEGORIES: AchievCategoryMeta[] = [
   { id:'progression', label:'PROGRESSION', icon:'📈', accent:'#c084fc', blurb:'Ton ascension dans le multivers : Prestige, améliorations, quêtes et temps de jeu.' },
   { id:'gacha',       label:'GACHA',       icon:'🎰', accent:'#22d3ee', blurb:'Invocations, raretés extrêmes et coups de chance insolents.' },
-  { id:'collection',  label:'COLLECTION',  icon:'📚', accent:'#60a5fa', blurb:'Compadex, licences complètes, éditions Or et Diamant.' },
+  { id:'collection',  label:'COLLECTION',  icon:'📚', accent:'#60a5fa', blurb:'Compadex, licences complètes, éditions de carte.' },
   { id:'combat',      label:'COMBAT',      icon:'⚔️', accent:'#f87171', blurb:'Monstres, boss de palier, boss de raid et combos dévastateurs.' },
   { id:'mastery',     label:'MAÎTRISE',    icon:'🎖️', accent:'#f472b6', blurb:'Chaque personnage a sa propre progression : fais-les tous briller.' },
   { id:'economy',     label:'ÉCONOMIE',    icon:'💰', accent:'#fbbf24', blurb:'Pixel-Coins, Neko-Gemmes, achats et ventes.' },
@@ -509,53 +509,53 @@ export const ACHIEVEMENTS: Achievement[] = [
     secret:true,
   },
 
-  // — Éditions Or/Diamant —
+  // — Éditions (Or / Diamant = cette édition ou mieux) —
   {
     id:'gold_1', category:'collection', icon:'✨',
     title:'Étincelant', name:'Première Étincelle',
-    description:'Obtiens ta première carte Édition Or.', target:1,
+    description:'Fais monter une carte en édition Or ou mieux.', target:1,
     reward:{ type:'gems', value:400 },
   },
   {
     id:'diamond_1', category:'collection', icon:'💠',
     title:'Éclat Pur', name:'Diamant Brut',
-    description:'Obtiens ta première carte Édition Diamant.', target:1,
+    description:'Fais monter une carte en édition Diamant ou mieux.', target:1,
     reward:{ type:'gems', value:600 },
     secret:true,
   },
   {
     id:'diamond_3', category:'collection', icon:'👑',
     title:'Prisme Absolu', name:'Le Nec Plus Ultra',
-    description:'Possède 3 personnages Diamant différents.', target:3,
+    description:'Possède 3 personnages en édition Diamant ou mieux.', target:3,
     reward:{ type:'gems', value:1000 },
     secret:true,
   },
   {
     id:'diamond_10', category:'collection', icon:'💎',
     title:'Éternel', name:'Diamant Éternel',
-    description:'Possède 10 personnages différents en édition Diamant.', target:10,
+    description:'Possède 10 personnages en édition Diamant ou mieux.', target:10,
     reward:{ type:'gems', value:2000 },
     secret:true,
   },
   {
     id:'shiny_10', category:'collection', icon:'🌟',
     title:'Scintillant', name:'Collection Étincelante',
-    description:'Possède 10 cartes Or ou Diamant au total.', target:10,
+    description:'Possède 10 personnages en édition Or ou mieux.', target:10,
     reward:{ type:'gems', value:550 },
   },
 
-  // — Même personnage en Base + Or + Diamant (collection complète d'un perso) —
+  // — Édition Prismatique (jauge d'édition pleine) —
   {
-    id:'trio_perfect', category:'collection', icon:'🔱',
-    title:'Trinité', name:'Trio Parfait',
-    description:'Complète la collection d\'un personnage : possède-le en Base, Or ET Diamant.', target:1,
+    id:'trio_perfect', category:'collection', icon:'🌈',
+    title:'Trinité', name:'Prisme Parfait',
+    description:'Fais monter une carte jusqu\'à l\'édition Prismatique.', target:1,
     reward:{ type:'gems', value:300 },
     secret:true,
   },
   {
     id:'pantheon_5', category:'collection', icon:'🏺',
     title:'Architecte du Panthéon', name:'Panthéon Complet',
-    description:'Possède 5 personnages différents en Base, Or ET Diamant à la fois.', target:5,
+    description:'Possède 5 personnages en édition Prismatique.', target:5,
     reward:{ type:'gems', value:1000 },
     secret:true,
   },
@@ -802,25 +802,25 @@ export const ACHIEVEMENTS: Achievement[] = [
     tier:'platinum',
   },
 
-  // — Rang 7★ —
+  // — Édition Obsidienne ou mieux (ex-rang 7★, mêmes ids) —
   {
     id:'rank7_1', category:'mastery', icon:'⭐',
     title:'Astre', name:'Étoile Filante',
-    description:'Monte un personnage au rang 7★ maximum.', target:1,
+    description:'Fais monter un personnage en édition Obsidienne ou mieux.', target:1,
     reward:{ type:'gems', value:40 },
     resetsOnPrestige:true,
   },
   {
     id:'rank7_5', category:'mastery', icon:'🌌',
     title:'Nébuleuse', name:'Constellation',
-    description:'Monte 5 personnages différents au rang 7★.', target:5,
+    description:'Fais monter 5 personnages en édition Obsidienne ou mieux.', target:5,
     reward:{ type:'gems', value:70 },
     resetsOnPrestige:true,
   },
   {
     id:'rank7_team', category:'mastery', icon:'🛡',
     title:'Garde d\'Élite', name:'Escouade d\'Élite',
-    description:'Équipe une équipe complète (4/4) de personnages rang 7★.', target:1,
+    description:'Équipe une équipe complète (4/4) de personnages en édition Obsidienne ou mieux.', target:1,
     reward:{ type:'gems', value:200 },
     secret:true,
     resetsOnPrestige:true,
@@ -1193,7 +1193,7 @@ export const ACHIEVEMENT_SERIES: AchievementSeries[] = [
   { id:'transcendant',  name:'Transcendants',              icon:'🌈', ids:['transcendant_1', 'transcendant_3'] },
   { id:'shiny',         name:'Éditions Brillantes',        icon:'✨', ids:['gold_1', 'shiny_10'] },
   { id:'diamond',       name:'Éditions Diamant',           icon:'💠', ids:['diamond_1', 'diamond_3', 'diamond_10'] },
-  { id:'trinity',       name:'Trinité',                    icon:'🔱', ids:['trio_perfect', 'pantheon_5'] },
+  { id:'trinity',       name:'Éditions Prismatiques',      icon:'🌈', ids:['trio_perfect', 'pantheon_5'] },
   // Combat
   { id:'kills',         name:'Chasse aux Monstres',        icon:'⚔', ids:['kills_500', 'kills_5000', 'kills_50000', 'kills_500000', 'kills_1000000'] },
   { id:'bosses',        name:'Victoires contre les Boss',  icon:'💀', ids:['first_boss', 'bosses_5', 'bosses_10', 'bosses_20', 'bosses_67', 'bosses_100', 'bosses_1000'] },
@@ -1203,7 +1203,7 @@ export const ACHIEVEMENT_SERIES: AchievementSeries[] = [
   { id:'mastery_lv',    name:"Niveau d'un Personnage",   icon:'🏵', ids:['mastery_lv_10', 'mastery_lv_50', 'mastery_lv_100'] },
   { id:'mastery_fights',name:"Combats d'un Personnage",  icon:'🤺', ids:['mastery_fights_100', 'mastery_fights_500', 'mastery_fights_1000'] },
   { id:'mastery_full',  name:'Maîtrise Totale',            icon:'💯', ids:['mastery_full_1', 'mastery_full_5'] },
-  { id:'rank7',         name:'Rang 7★',                    icon:'⭐', ids:['rank7_1', 'rank7_5'] },
+  { id:'rank7',         name:'Éditions Obsidienne',        icon:'🌑', ids:['rank7_1', 'rank7_5'] },
   // Économie
   { id:'coins',         name:'Fortune',                    icon:'🪙', ids:['coins_1k', 'coins_100k', 'coins_1m', 'coins_10m', 'coins_1b', 'coins_10b', 'coins_100b'] },
   { id:'spend',         name:'Dépenses',                   icon:'💸', ids:['spend_10k', 'spend_1m'] },

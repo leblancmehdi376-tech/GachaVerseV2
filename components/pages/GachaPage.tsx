@@ -1,14 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
+import { RarityBadge } from '@/components/ui/RarityBadge';
+import { EditionBadge } from '@/components/ui/EditionBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { getCharacterById } from '@/lib/game/characters';
 import { getDynamicRates, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
 import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
-import { makeInstanceKey } from '@/lib/game/editions';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll } from '@/components/ui/Page';
 import { GachaRevealOverlay } from './gacha/GachaRevealOverlay';
@@ -102,7 +102,7 @@ export function GachaPage() {
     setPulling(true);
     const res = pullSingle(bannerId);
     if (res) {
-      const wasNew = !collection[makeInstanceKey(res.templateId, res.edition)];
+      const wasNew = !collection[res.templateId];
       setResults([{ templateId: res.templateId, isNew: wasNew, edition: res.edition }]);
       setShowOverlay(true);
     }
@@ -114,7 +114,7 @@ export function GachaPage() {
     setPulling(true);
     const results = pullMulti(bannerId);
     if (results) {
-      setResults(results.map(r => ({ templateId: r.templateId, isNew: !collection[makeInstanceKey(r.templateId, r.edition)], edition: r.edition })));
+      setResults(results.map(r => ({ templateId: r.templateId, isNew: !collection[r.templateId], edition: r.edition })));
       setShowOverlay(true);
     }
     setPulling(false);
@@ -125,7 +125,7 @@ export function GachaPage() {
     setPulling(true);
     const results = pullMulti100(bannerId);
     if (results) {
-      setResults(results.map(r => ({ templateId: r.templateId, isNew: !collection[makeInstanceKey(r.templateId, r.edition)], edition: r.edition })));
+      setResults(results.map(r => ({ templateId: r.templateId, isNew: !collection[r.templateId], edition: r.edition })));
       setShowOverlay(true);
     }
     setPulling(false);
@@ -278,17 +278,14 @@ export function GachaPage() {
                 <div className="gacha-pool-grid" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
                   {banner.pool.map(tpl => {
                     const cfg       = RARITY_CONFIG[tpl.rarity];
-                    // Possédé si N'IMPORTE QUELLE édition l'est ; on affiche la meilleure (diamant > or > base).
-                    const owned     = collection[makeInstanceKey(tpl.id, 'diamond')]
-                                    ?? collection[makeInstanceKey(tpl.id, 'gold')]
-                                    ?? collection[tpl.id];
+                    const owned     = collection[tpl.id];
                     const rarLocked = maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier;
                     return (
                       <div key={tpl.id} style={{ background:owned?`${cfg.color}0d`:'rgba(255,255,255,0.02)', border:`1px solid ${owned?cfg.color+'55':'var(--border)'}`, borderRadius:8, padding:'10px 6px', display:'flex', flexDirection:'column', alignItems:'center', gap:5, opacity: rarLocked ? 0.3 : owned ? 1 : 0.55 }}>
                         <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm??0} name={tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={48} height={66} frameOverlay />
                         <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-sub)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
                         <RarityBadge rarity={tpl.rarity} size="xs" />
-                        {owned && <RankStars rank={owned.rank} />}
+                        {owned && <EditionBadge edition={owned.edition} style={{ fontSize:11, padding:'1px 6px' }} />}
                         {rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#f87171', fontWeight:700 }}>🔒 P{RARITY_GATES[tpl.rarity].unlockPalier}</span>}
                         {!owned && !rarLocked && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)' }}>Non obtenu</span>}
                       </div>

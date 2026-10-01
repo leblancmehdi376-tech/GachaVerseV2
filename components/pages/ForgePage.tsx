@@ -5,7 +5,6 @@ import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe, EXPEDITION_DEFS } from '@/lib
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { RARITY_CONFIG, RARITY_ORDER_ASC, Rarity } from '@/types/game';
 import { getEquipmentDef, getSpecialWeaponGroup, SPECIAL_WEAPON_FUSION_COST, SPECIAL_WEAPON_FUSION_RARITIES } from '@/lib/game/items';
-import { isTemplateOwned } from '@/lib/game/editions';
 import { ForgeRevealOverlay } from './ForgeRevealOverlay';
 
 // Recettes et drops triés par rareté du personnage forgé (du plus commun au
@@ -30,7 +29,7 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
     ok = have >= quantity;
   } else {
     const owned = collection[id];
-    maxed = !!owned && owned.rank >= 7;
+    maxed = !!owned && owned.edition === 'prismatic';
     have = championInventory[id] ?? 0;
     ok = maxed && have >= quantity;
   }
@@ -58,8 +57,8 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
         {type !== 'drop' && (
           <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color: maxed ? 'var(--text-dim)' : '#f87171' }}>
             {maxed
-              ? 'Consommé depuis l\'inventaire champions — ton exemplaire 7★ reste dans ta collection'
-              : 'Nécessite le champion maxé (7★) dans ta collection'}
+              ? 'Consommé depuis l\'inventaire champions — ton exemplaire Prismatique reste dans ta collection'
+              : 'Nécessite le champion en édition Prismatique dans ta collection'}
           </div>
         )}
         {clickable && (
@@ -92,7 +91,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
   const locked = getRunPeakPalier() < recipe.palierRequired;
   const { ok } = canCraft(recipe.id);
   const alreadyOwned = recipe.reward.type === 'character' && recipe.reward.characterId
-    ? isTemplateOwned(collection, recipe.reward.characterId) : false;
+    ? !!collection[recipe.reward.characterId] : false;
 
   const rewardTpl = recipe.reward.characterId ? CHARACTER_POOL.find(c => c.id === recipe.reward.characterId) : null;
   const rewardCfg = rewardTpl ? RARITY_CONFIG[rewardTpl.rarity] : null;

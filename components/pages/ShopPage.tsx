@@ -15,11 +15,10 @@ import {
 import { getEquipmentDef, getItemDef, rollEquipmentChest, ChestTier } from '@/lib/game/items';
 import { LootReelPopup, LootReelItem, buildReel } from '@/components/ui/LootReelPopup';
 import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
-import { makeInstanceKey } from '@/lib/game/editions';
 import { useNow } from '@/hooks/useNow';
 
 export function isCharacterOwned(collection: Record<string, unknown>, templateId: string): boolean {
-  return (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(templateId, ed)]);
+  return !!collection[templateId];
 }
 
 // Couleurs de la boutique : violet (identité), cyan (gemmes), doré (or /
@@ -238,7 +237,7 @@ export function ShopPage() {
           </div>
           <div className="shop-hero__balances">
             <Balance icon="👑" value={formatNumber(bossCrowns)} label="BossCrowns" hint="+1 👑 à chaque boss vaincu" color={C.gold} />
-            <Balance icon="🔮" value={formatNumber(voidOrbs)} label="Orbes du Néant" hint="Obtenues en recyclant les doublons d'un perso 7★" color={C.orb} />
+            <Balance icon="🔮" value={formatNumber(voidOrbs)} label="Orbes du Néant" hint="Obtenues en recyclant les doublons d'un perso Prismatique" color={C.orb} />
           </div>
         </header>
 

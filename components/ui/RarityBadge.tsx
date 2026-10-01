@@ -16,17 +16,3 @@ export function RarityBadge({ rarity, size = 'sm' }: { rarity: Rarity; size?: 'x
     </span>
   );
 }
-
-export function RankStars({ rank }: { rank: number }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '2px' }}>
-      {Array.from({ length: 7 }, (_, i) => (
-        <span key={i} style={{
-          fontSize: '12px', lineHeight: 1,
-          color: i < rank ? '#fbbf24' : 'rgba(255,255,255,0.08)',
-          textShadow: i < rank ? '0 0 4px #f59e0b' : 'none',
-        }}>★</span>
-      ))}
-    </div>
-  );
-}

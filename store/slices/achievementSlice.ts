@@ -176,7 +176,7 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
 
   // Remet à zéro uniquement les succès marqués `resetsOnPrestige` (kills,
   // dps, coins, pulls, améliorations, collection en cours, quêtes, rang
-  // 7★ — voir lib/game/achievements.ts). Les succès permanents (titres,
+  // Obsidienne — voir lib/game/achievements.ts). Les succès permanents (titres,
   // shiny, boss, gemmes, prestige, boss crowns...) ne sont pas touchés.
   resetPrestigeAchievements: () => set(s => {
     const achievementProgress = { ...s.achievementProgress };

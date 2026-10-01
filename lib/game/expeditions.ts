@@ -7,8 +7,7 @@ import { EQUIP_RARITY_MIN_PALIER } from '@/lib/game/items';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { getPalierBossHp } from '@/lib/game/enemies';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { makeInstanceKey } from '@/lib/game/editions';
-import { type BigNum, BN_ZERO, bnAdd, bnLog10, bnMax, bnToNumber } from '@/lib/game/bignum';
+import { type BigNum, BN_ZERO, bnAdd, bnLog10, bnToNumber } from '@/lib/game/bignum';
 
 // ── Seuil de DPS d'équipe requis par expédition ───────────────────────────
 // Le seuil n'est plus un poids de rareté arbitraire (RARITY_SCORE) mais un
@@ -37,18 +36,11 @@ function rarityForPalier(palier: number): Rarity {
   return result;
 }
 
-// DPS d'un personnage (par id de template pur, toutes éditions confondues)
-// pour le calcul de score d'expédition : prend la meilleure édition possédée,
-// puisque les expéditions ne distinguent pas Base/Or/Diamant.
+// DPS d'un personnage pour le calcul de score d'expédition.
 export function getCharacterExpeditionDps(collection: Record<string, OwnedCharacter>, templateId: string): BigNum {
   const tpl = CHARACTER_POOL.find(c => c.id === templateId);
-  if (!tpl) return BN_ZERO;
-  let best = BN_ZERO;
-  for (const ed of ['base', 'gold', 'diamond'] as const) {
-    const owned = collection[makeInstanceKey(templateId, ed)];
-    if (owned) best = bnMax(best, calcCharDps(tpl, owned));
-  }
-  return best;
+  const owned = collection[templateId];
+  return tpl && owned ? calcCharDps(tpl, owned) : BN_ZERO;
 }
 
 export function getExpeditionTeamDps(collection: Record<string, OwnedCharacter>, characterIds: string[]): BigNum {

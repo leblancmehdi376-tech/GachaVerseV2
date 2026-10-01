@@ -164,19 +164,11 @@ export type EquipmentSlice = EquipmentState & EquipmentActions;
 
 // ─── Gacha & collection ─────────────────────────────────────────────────
 export interface GachaState {
-  // LEGACY — ancienne banque illimitée (shiny/forge/event uniquement), avant
-  // l'unification dans historicalMaxRank. Plus jamais écrit par doPrestige ;
-  // conservé en lecture seule dans addToCollection pour replier une bonne
-  // fois les rangs déjà en attente chez des joueurs existants dans le pic
-  // historique, sans perte. Peut être supprimé une fois toutes ces entrées
-  // consommées (mappe vide chez tout joueur ayant prestigé depuis).
-  bankedRanks: Record<string, number>;
-  // Rang MAX jamais atteint (toutes vies confondues) pour CHAQUE carte —
-  // shiny/forge/event compris, même traitement que les persos normaux —
-  // banqué à chaque Prestige. Sert au bonus "Mémoire des Rangs" (achat direct
-  // côté Prestige) : jamais consommé/supprimé, plafonné par le niveau du
-  // bonus à la ré-obtention (voir addToCollection).
-  historicalMaxRank: Record<string, number>;
+  // Jauge d'édition MAX jamais atteinte (toutes vies confondues) pour CHAQUE
+  // carte, banquée à chaque Prestige. Sert au bonus "Mémoire des Pierres"
+  // (achat direct côté Prestige) : jamais consommée, plafonnée par le niveau
+  // du bonus à la ré-obtention (voir addToCollection).
+  historicalEditionPoints: Record<string, number>;
   // Filtres de collection partagés entre les pages (en mémoire, non persistés)
   collectionFilters: CollectionFilterState;
   // Boutique — achat d'un perso de raid contre ses pièces (voir lib/game/raidBoss.ts)
@@ -380,7 +372,7 @@ export interface PrestigeState {
 export interface PrestigeActions {
   canPrestige: (maxPalierReached: number) => boolean;
   spendToken: () => PrestigeBonusType | null;
-  buyRankRecovery: () => boolean;
+  buyStoneMemory: () => boolean;
 }
 export type PrestigeSlice = PrestigeState & PrestigeActions;
 

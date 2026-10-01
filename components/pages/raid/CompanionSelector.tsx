@@ -1,7 +1,7 @@
 'use client';
 import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
-import { makeInstanceKey, parseInstanceKey } from '@/lib/game/editions';
+import { parseInstanceKey } from '@/lib/game/editions';
 import { Affinity, AFFINITY_CONFIG, affinityMatchupKind, getAffinityForId } from '@/lib/game/affinities';
 import { MAX_RAID_COMPANIONS } from './raidBattleHelpers';
 
@@ -14,8 +14,7 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
   const { collection, equippedTeam, isCharOnExpedition } = useGameStore();
 
   const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
-  const owned = CHARACTER_POOL.filter(c => !c.isHero &&
-    (['base', 'gold', 'diamond'] as const).some(ed => !!collection[makeInstanceKey(c.id, ed)]));
+  const owned = CHARACTER_POOL.filter(c => !c.isHero && !!collection[c.id]);
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}

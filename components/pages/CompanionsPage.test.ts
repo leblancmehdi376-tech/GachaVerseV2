@@ -17,7 +17,7 @@ const equipmentWithBonus = Object.values(EQUIPMENT_DEFS).find(e => e.bonusFor)!;
 const equipmentWithoutBonus = Object.values(EQUIPMENT_DEFS).find(e => !e.bonusFor)!;
 
 function makeOwned(templateId: string, overrides: Partial<OwnedCharacter> = {}): OwnedCharacter {
-  return { templateId, rank: 1, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
+  return { templateId, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
 }
 
 describe('getEquipScore', () => {

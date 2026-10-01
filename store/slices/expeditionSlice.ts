@@ -291,12 +291,12 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
         if (have < ing.quantity)
           missing.push(`${ing.label} (${have}/${ing.quantity})`);
       } else {
-        // champion_dupe : le champion doit être maxé (7★) ET avoir des
+        // champion_dupe : le champion doit être Prismatique ET avoir des
         // doublons en attente dans championInventory (obtenu une fois de plus après le max)
         const owned = gs.collection[ing.id];
         const spares = gs.championInventory[ing.id] ?? 0;
-        if (!owned || owned.rank < 7)
-          missing.push(`${ing.label} (champion non maxé 7★)`);
+        if (!owned || owned.edition !== 'prismatic')
+          missing.push(`${ing.label} (champion pas encore Prismatique)`);
         else if (spares < ing.quantity)
           missing.push(`${ing.label} (doublons insuffisants : ${spares}/${ing.quantity})`);
       }
@@ -324,7 +324,7 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
       if (ing.type === 'drop') {
         newDropInv[ing.id] = (newDropInv[ing.id] ?? 0) - ing.quantity;
       } else {
-        // Consommer les doublons champion (maxés 7★, en attente dans championInventory)
+        // Consommer les doublons champion (Prismatique, en attente dans championInventory)
         for (let i = 0; i < ing.quantity; i++) {
           get().removeChampion(ing.id);
         }

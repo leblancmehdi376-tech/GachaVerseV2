@@ -8,7 +8,8 @@ import { RARITY_CONFIG, EVOLUTION_STONE_ITEM_ID } from '@/types/game';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { getItemDef, ITEM_DEFS } from '@/lib/game/items';
 import { getPalierDrop, EXPEDITION_DEFS } from '@/lib/game/expeditions';
-import { RarityBadge, RankStars } from '@/components/ui/RarityBadge';
+import { RarityBadge } from '@/components/ui/RarityBadge';
+import { EditionBadge, EditionGaugeMini } from '@/components/ui/EditionBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
@@ -187,8 +188,9 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
                 Forme {owned.currentForm+1}/{tpl.forms.length}
               </span>
             )}
-            <RankStars rank={owned.rank} />
+            <EditionBadge edition={owned.edition} />
           </div>
+          <EditionGaugeMini owned={owned} style={{ marginTop:6 }} />
         </div>
       {/* Boutons */}
       <div className="upgrade-char-card__actions">

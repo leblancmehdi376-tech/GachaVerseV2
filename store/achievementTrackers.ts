@@ -155,7 +155,7 @@ export function trackUnlockedTitles(count: number) {
   useGameStore.getState().setProgress('titles_25', Math.min(count, 25));
 }
 
-/** Éditions shiny (Or/Diamant) : détectées en scannant la collection. */
+/** Éditions (Or+ / Diamant+ / Prismatique) : détectées en scannant la collection. */
 export function trackShinyEditions(goldOrDiamondCount: number, hasGold: boolean, hasDiamond: boolean, diamondUniqueCount: number, hasTrio: boolean, pantheonCount: number) {
   const s = useGameStore.getState();
   if (hasGold)    s.setProgress('gold_1', 1);
@@ -167,7 +167,7 @@ export function trackShinyEditions(goldOrDiamondCount: number, hasGold: boolean,
   s.setProgress('pantheon_5', Math.min(pantheonCount, 5));
 }
 
-/** Rangs 7★ : détectés en scannant la collection + l'équipe active. */
+/** Édition Obsidienne+ (ex-rang 7★) : détectée en scannant la collection + l'équipe active. */
 export function trackRank7(count7Star: number, fullTeamRank7: boolean) {
   const s = useGameStore.getState();
   s.setProgress('rank7_1', Math.min(count7Star, 1));

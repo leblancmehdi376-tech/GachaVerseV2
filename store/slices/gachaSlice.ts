@@ -4,7 +4,10 @@ import type { StateCreator } from 'zustand';
 import { defaultEquippedItems } from '@/types/game';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, DEFAULT_BANNER_ID } from '@/lib/game/gacha';
 import { getCharacterById } from '@/lib/game/characters';
-import { rollCardEdition, makeInstanceKey } from '@/lib/game/editions';
+import {
+  rollCardEdition, parseInstanceKey, getEditionPoints, editionFromPoints,
+  EDITION_CONFIG, EDITION_MAX_POINTS,
+} from '@/lib/game/editions';
 import { RAID_BOSSES, getRaidCharacterCost } from '@/lib/game/raidBoss';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { broadcastLocalState, requestUrgentSave, runPeakPalierOf, getPrestigeBonuses } from '../gameStoreHelpers';
@@ -87,18 +90,19 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     requestUrgentSave('gacha_multi100');
     return results;
   },
-  addToCollection: (templateId) => {
-    // L'édition (Base/Or/Diamant) est tirée à CHAQUE obtention — pas
-    // seulement la première fois. Chaque édition d'un perso est une
-    // entrée de collection séparée (progression indépendante), reliée au
-    // même templateId pour l'art/nom/ultime.
+  addToCollection: (rawId) => {
+    // UNE seule carte par perso : l'édition tirée à chaque obtention ajoute
+    // sa valeur en points à la jauge d'édition de la carte (voir
+    // lib/game/editions.ts). parseInstanceKey : une ancienne annonce d'HdV
+    // peut encore porter une clé "id::gold".
+    const templateId = parseInstanceKey(rawId).templateId;
     const prestigeBonuses = getPrestigeBonuses(get().prestigeBonusLevels, get().prestigeRankRecoveryLevel);
-    const edition = rollCardEdition(prestigeBonuses.shinyGoldBonusPct, prestigeBonuses.shinyDiamondBonusPct);
-    const instanceKey = makeInstanceKey(templateId, edition);
+    const edition = rollCardEdition(prestigeBonuses.editionRateBonusPct);
+    const gained = EDITION_CONFIG[edition].points;
 
-    const ex = get().collection[instanceKey];
-    if (ex && ex.rank >= 7) {
-      // Déjà au rang maximum (7★) → va dans l'Inventaire des Champions
+    const ex = get().collection[templateId];
+    if (ex && getEditionPoints(ex) >= EDITION_MAX_POINTS) {
+      // Déjà Prismatique (jauge pleine) → va dans l'Inventaire des Champions
       set(state => ({
         championInventory: {
           ...state.championInventory,
@@ -108,39 +112,24 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
       return edition;
     }
     set(state => {
-      const ex2 = state.collection[instanceKey];
+      const ex2 = state.collection[templateId];
       const equippedItems = ex2?.equippedItems ?? defaultEquippedItems();
-      // Bonus de Prestige "Mémoire des Rangs" — même traitement pour TOUS
-      // les persos (shiny/forge/raid compris, plus de banque illimitée
-      // spéciale pour eux) : récupère jusqu'au pic historique atteint dans
-      // une vie précédente (historicalMaxRank), plafonné par le niveau du
-      // bonus acheté. Jamais consommé : reste disponible pour toutes les
-      // obtentions futures. `legacyBanked` replie une seule fois l'ancien
-      // système de banque illimitée (avant cette unification) dans le pic,
-      // pour ne pas perdre le rang des joueurs qui en avaient déjà un en attente.
-      const legacyBanked = state.bankedRanks[instanceKey];
-      const newBankedRanks = legacyBanked !== undefined
-        ? Object.fromEntries(Object.entries(state.bankedRanks).filter(([k]) => k !== instanceKey))
-        : state.bankedRanks;
-      const recoveryCap = prestigeBonuses.rankRecoveryCap;
-      const peak = Math.max(state.historicalMaxRank[instanceKey] ?? 0, legacyBanked ?? 0) || undefined;
-      const startRank = (recoveryCap > 0 && peak) ? Math.min(peak, recoveryCap) : 1;
+      // Bonus de Prestige "Mémoire des Pierres" : à la première obtention
+      // d'une carte, lui rend la jauge d'édition atteinte dans une vie
+      // précédente (historicalEditionPoints), plafonnée par le niveau du bonus
+      // acheté. Jamais consommé : reste disponible pour les obtentions futures.
+      const memory = ex2 ? 0 : Math.min(state.historicalEditionPoints[templateId] ?? 0, prestigeBonuses.stoneMemoryCapPoints);
+      const editionPoints = Math.min(EDITION_MAX_POINTS, (ex2 ? getEditionPoints(ex2) : memory) + gained);
       return {
         collection: {
           ...state.collection,
-          [instanceKey]: ex2
-            ? { ...ex2, copies: ex2.copies+1, rank: Math.min(ex2.rank+1, 7), equippedItems }
-            : { templateId, rank: startRank, copies: startRank, level:1, currentForm:0, xp:0, equippedItems, edition },
+          [templateId]: ex2
+            ? { ...ex2, copies: ex2.copies+1, equippedItems, editionPoints, edition: editionFromPoints(editionPoints) }
+            : { templateId, copies: 1, level:1, currentForm:0, xp:0, equippedItems, editionPoints, edition: editionFromPoints(editionPoints) },
         },
-        bankedRanks: newBankedRanks,
       };
     });
-    // "Obtenir X personnages différents" compte les TEMPLATES uniques
-    // possédés (peu importe l'édition), pas le nombre d'instances.
-    const uniqueOwned = new Set(
-      Object.values(get().collection).map(c => c.templateId)
-    ).size;
-    get().setQuestProgress('e_collection_100', uniqueOwned);
+    get().setQuestProgress('e_collection_100', Object.keys(get().collection).length);
     return edition;
   },
 
@@ -160,7 +149,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     return true;
   },
 
-  // Octroi déterministe (codes cadeaux "cheat") : rang 7★, dernière évolution,
+  // Octroi déterministe (codes cadeaux "cheat") : dernière évolution,
   // niveau max de cette forme, édition choisie. Contourne le tirage aléatoire
   // normal d'addToCollection — sert pour des récompenses garanties.
   grantMaxedCharacter: (templateId, edition = 'diamond') => {
@@ -168,15 +157,20 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     if (!tpl) return;
     const lastForm = Math.max(0, (tpl.forms?.length ?? 1) - 1);
     const level = 1000;
-    const key = makeInstanceKey(templateId, edition);
-    set(state => ({
-      collection: {
-        ...state.collection,
-        [key]: {
-          templateId, rank: 7, copies: 7, level, currentForm: lastForm, xp: 0,
-          edition, equippedItems: state.collection[key]?.equippedItems ?? defaultEquippedItems(),
+    set(state => {
+      const ex = state.collection[templateId];
+      // Jamais de régression de jauge si la carte était déjà plus haute.
+      const editionPoints = Math.max(ex ? getEditionPoints(ex) : 0, EDITION_CONFIG[edition].points);
+      return {
+        collection: {
+          ...state.collection,
+          [templateId]: {
+            templateId, copies: Math.max(1, ex?.copies ?? 0), level, currentForm: lastForm, xp: 0,
+            editionPoints, edition: editionFromPoints(editionPoints),
+            equippedItems: ex?.equippedItems ?? defaultEquippedItems(),
+          },
         },
-      },
-    }));
+      };
+    });
   },
 });

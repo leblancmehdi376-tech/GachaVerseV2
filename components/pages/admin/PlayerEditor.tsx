@@ -9,8 +9,9 @@ import {
 import { CHARACTER_POOL, getCharacterById } from '@/lib/game/characters';
 import { ITEM_DEFS, EQUIPMENT_DEFS } from '@/lib/game/items';
 import { RARITY_CONFIG } from '@/types/game';
+import { EDITION_CONFIG, EDITION_ORDER, type CardEdition } from '@/lib/game/editions';
 import { bnFromNumber, bnToNumber } from '@/lib/game/bignum';
-import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, RANK_RECOVERY_MAX_LEVEL, formatBonusValue } from '@/lib/game/prestige';
+import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, STONE_MEMORY_MAX_LEVEL, formatBonusValue } from '@/lib/game/prestige';
 import { formatNumber } from '@/lib/game/format';
 import { PlayerHistoryCharts } from './PlayerHistoryCharts';
 import { Button, Card, Empty, Feedback, Field, SectionHeader, Segmented, SelectInput, StatTile, TextInput, cx } from './ui';
@@ -98,9 +99,8 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
   const [charBusy, setCharBusy]       = useState<string | null>(null);
   const [levelEdits, setLevelEdits]   = useState<Record<string, string>>({});
   const [newCharId, setNewCharId]     = useState('');
-  const [newCharEdition, setNewCharEdition] = useState<'base'|'gold'|'diamond'>('base');
+  const [newCharEdition, setNewCharEdition] = useState<CardEdition>('base');
   const [newCharLevel, setNewCharLevel]     = useState('1');
-  const [newCharRank, setNewCharRank]       = useState('1');
   const [newCharForm, setNewCharForm]       = useState('0');
   const [addCharMsg, setAddCharMsg]   = useState<string | null>(null);
   const [addCharBusy, setAddCharBusy] = useState(false);
@@ -178,7 +178,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
   const handleAddChar = async () => {
     if (!newCharId.trim()) return;
     setAddCharBusy(true); setAddCharMsg(null);
-    const res = await addPlayerCharacter(uid, newCharId.trim(), newCharEdition, Number(newCharLevel) || 1, Number(newCharRank) || 1, Number(newCharForm) || 0);
+    const res = await addPlayerCharacter(uid, newCharId.trim(), newCharEdition, Number(newCharLevel) || 1, Number(newCharForm) || 0);
     setAddCharMsg(res.ok ? '✅ Personnage ajouté.' : `❌ ${res.error}`);
     if (res.ok && res.char) {
       const added = res.char;
@@ -399,7 +399,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
                 <span className="text-fuchsia-300">Prestiges : <b>{playerSave.prestigeLevel.toLocaleString('fr-FR')}</b></span>
                 <span className="text-amber-200">🎫 Jetons disponibles : <b>{formatNumber(playerSave.prestigeTokens)}</b></span>
-                <span className="text-white/80">🧠 Mémoire des Rangs : <b>{playerSave.prestigeRankRecoveryLevel}/{RANK_RECOVERY_MAX_LEVEL}</b></span>
+                <span className="text-white/80">💎 Mémoire des Pierres : <b>{playerSave.prestigeRankRecoveryLevel}/{STONE_MEMORY_MAX_LEVEL}</b></span>
               </div>
             } />
             <div className="mb-4 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
@@ -460,12 +460,11 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
                 <div key={c.instanceKey} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-white/15 bg-white/[0.02] px-3 py-2 text-sm">
                   <div className="flex min-w-0 flex-1 basis-48 flex-wrap items-center gap-x-3 gap-y-0.5">
                     <span className="font-bold" style={{ color: RARITY_CONFIG[c.rarity].color }}>{c.name}</span>
-                    {c.edition !== 'base' && (
-                      <span className={c.edition === 'diamond' ? 'text-cyan-300' : 'text-amber-300'}>
-                        {c.edition === 'gold' ? '✨ Or' : '💎 Diamant'}
+                    {c.edition !== 'base' && EDITION_CONFIG[c.edition as CardEdition] && (
+                      <span style={{ color: EDITION_CONFIG[c.edition as CardEdition].color }}>
+                        {EDITION_CONFIG[c.edition as CardEdition].icon} {EDITION_CONFIG[c.edition as CardEdition].label}
                       </span>
                     )}
-                    <span className="text-white/75">{c.rank}★</span>
                     {c.formsCount > 1 && (
                       <span className="text-sm text-white/75">Forme {c.currentForm + 1}/{c.formsCount} · {c.formName}</span>
                     )}
@@ -507,10 +506,10 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
                   </datalist>
                 </Field>
                 <Field label="Édition">
-                  <SelectInput value={newCharEdition} onChange={e => setNewCharEdition(e.target.value as 'base'|'gold'|'diamond')}>
-                    <option value="base">Base</option>
-                    <option value="gold">✨ Or</option>
-                    <option value="diamond">💎 Diamant</option>
+                  <SelectInput value={newCharEdition} onChange={e => setNewCharEdition(e.target.value as CardEdition)}>
+                    {EDITION_ORDER.map(ed => (
+                      <option key={ed} value={ed}>{EDITION_CONFIG[ed].icon} {EDITION_CONFIG[ed].label}</option>
+                    ))}
                   </SelectInput>
                 </Field>
                 <Field label="Forme">
@@ -524,9 +523,6 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
                 </Field>
                 <Field label="Niveau">
                   <TextInput value={newCharLevel} onChange={e => setNewCharLevel(e.target.value)} type="number" min={1} inputMode="numeric" />
-                </Field>
-                <Field label="Nombre d'étoiles">
-                  <TextInput value={newCharRank} onChange={e => setNewCharRank(e.target.value)} type="number" min={1} max={7} inputMode="numeric" />
                 </Field>
                 <Button tone="purple" onClick={handleAddChar} disabled={addCharBusy || !newCharId.trim()} className="col-span-2 md:col-span-1">
                   {addCharBusy ? '…' : '+ Ajouter'}

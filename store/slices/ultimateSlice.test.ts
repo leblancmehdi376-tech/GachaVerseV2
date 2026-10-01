@@ -10,7 +10,7 @@ const DURATION_MS = getUltimateDef(A)!.duration * 1000;
 const COOLDOWN    = getUltimateDef(A)!.cooldown;
 
 function owned(templateId: string): OwnedCharacter {
-  return { templateId, rank: 1, copies: 1, level: 1, currentForm: 0, xp: 0 };
+  return { templateId, copies: 1, level: 1, currentForm: 0, xp: 0 };
 }
 
 function setupTeam() {

@@ -52,7 +52,7 @@ export function getGoldPackCoins(pack: GemGoldPack, palier: number, goldChestMul
   return bnMulScalar(perKill, pack.killsEquivalent);
 }
 
-// ── Orbe du Néant : recyclage des doublons au rang max (7★) ──────────────
+// ── Orbe du Néant : recyclage des doublons d'un perso Prismatique ──────────────
 export function getVoidOrbsForRarity(rarity: Rarity): number {
   if (rarity === 'C') return 1;
   if (rarity === 'U') return 2;

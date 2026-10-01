@@ -1,4 +1,4 @@
-// Prestige (New Game+) : jetons, bonus, Mémoire des Rangs. Fusionné dans
+// Prestige (New Game+) : jetons, bonus, Mémoire des Pierres. Fusionné dans
 // gameStore depuis l'ancien store/prestigeStore.ts (voir Phase 2 du refacto).
 // L'action `doPrestige(maxPalierReached)` de l'ancien store a été supprimée
 // (collisionnait avec MetaProgressionActions.doPrestige() côté UI) — son
@@ -7,7 +7,7 @@
 import type { StateCreator } from 'zustand';
 import {
   PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES,
-  getRankRecoveryCost,
+  getStoneMemoryCost,
 } from '@/lib/game/prestige';
 import type { GameStore, PrestigeActions } from '../gameStore.types';
 
@@ -30,10 +30,10 @@ export const createPrestigeSlice: StateCreator<GameStore, [], [], PrestigeAction
     return picked;
   },
 
-  // Achat direct (pas de tirage) du niveau suivant de "Mémoire des Rangs".
-  buyRankRecovery: () => {
+  // Achat direct (pas de tirage) du niveau suivant de "Mémoire des Pierres".
+  buyStoneMemory: () => {
     const level = get().prestigeRankRecoveryLevel;
-    const cost = getRankRecoveryCost(level);
+    const cost = getStoneMemoryCost(level);
     if (cost === null || get().prestigeTokens < cost) return false;
     set(s => ({ prestigeTokens: s.prestigeTokens - cost, prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel + 1 }));
     return true;

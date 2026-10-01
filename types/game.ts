@@ -140,13 +140,13 @@ export interface CharacterTemplate {
 // ── Personnage possédé ────────────────────────────────────────────────────
 export interface OwnedCharacter {
   templateId:  string;
-  rank:        number;
   copies:      number;
   level:       number;
   currentForm: number;
   xp:          number;
   equippedItems?: EquippedItems;
-  edition?:    CardEdition; // tirée une seule fois, à l'obtention (absent = 'base')
+  edition?:    CardEdition; // dérivée de editionPoints (absent = 'base'), voir lib/game/editions.ts
+  editionPoints?: number;   // jauge d'édition : somme des valeurs des cartes obtenues (max 128)
 }
 
 // ── Héros principal ───────────────────────────────────────────────────────

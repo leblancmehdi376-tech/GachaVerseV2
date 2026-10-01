@@ -3,11 +3,11 @@
 import type { StateCreator } from 'zustand';
 import { Rarity } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
-import { makeInstanceKey } from '@/lib/game/editions';
 import { correctedNow } from '@/lib/firebase/clockOffset';
 import { auth } from '@/lib/firebase/config';
 import { cancelAllActiveListings } from '@/lib/firebase/marketplace';
 import { calcTokensAwarded } from '@/lib/game/prestige';
+import { getEditionPoints } from '@/lib/game/editions';
 import { toast } from '@/hooks/useToast';
 import {
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
@@ -141,11 +141,10 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   //            (store dédié), quêtes, monnaies premium (BossCrowns,
   //            Orbes du Néant), Compadex (compadexCharactersSeen/
   //            compadexEquipmentSeen — jamais touché par ce set(), voir
-  //            hooks/useCompadexTracker.ts). TOUTES les cartes (shiny/forge/event
-  //            compris — même traitement que les persos normaux depuis
-  //            l'unification) ont leur rang max banqué (historicalMaxRank),
+  //            hooks/useCompadexTracker.ts). TOUTES les cartes ont leur
+  //            jauge d'édition max banquée (historicalEditionPoints),
   //            récupérable à la re-obtention seulement via le bonus de
-  //            Prestige "Mémoire des Rangs" (voir addToCollection).
+  //            Prestige "Mémoire des Pierres" (voir addToCollection).
   doPrestige: async () => {
     const state = get();
     const runPeak = runPeakPalierOf(state);
@@ -159,15 +158,13 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     const uid = auth?.currentUser?.uid;
     if (uid) await cancelAllActiveListings(uid);
 
-    // Rang MAX jamais atteint, TOUTES les cartes (voir bonus "Mémoire des
-    // Rangs") — Math.max pour ne jamais écraser un pic antérieur par un
-    // rang plus bas (le bonus plafonne volontairement la récup en-dessous
-    // du pic tant que son niveau n'est pas suffisant).
-    const newHistoricalMaxRank = { ...state.historicalMaxRank };
+    // Jauge d'édition MAX jamais atteinte, TOUTES les cartes (voir bonus
+    // "Mémoire des Pierres") — Math.max pour ne jamais écraser un pic
+    // antérieur par une jauge plus basse (le bonus plafonne volontairement la
+    // récup en-dessous du pic tant que son niveau n'est pas suffisant).
+    const newHistoricalEditionPoints = { ...state.historicalEditionPoints };
     for (const owned of Object.values(state.collection)) {
-      const edition = owned.edition ?? 'base';
-      const key = makeInstanceKey(owned.templateId, edition);
-      newHistoricalMaxRank[key] = Math.max(newHistoricalMaxRank[key] ?? 0, owned.rank);
+      newHistoricalEditionPoints[owned.templateId] = Math.max(newHistoricalEditionPoints[owned.templateId] ?? 0, getEditionPoints(owned));
     }
 
     // Incrémente le niveau de prestige et crédite les jetons + toast (le
@@ -183,7 +180,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     );
 
     // Succès "de run" (kills, dps, coins, pulls, amélios, collection,
-    // quêtes, rang 7★) remis à zéro — voir lib/game/achievements.ts.
+    // quêtes, édition Obsidienne) remis à zéro — voir lib/game/achievements.ts.
     get().resetPrestigeAchievements();
     // Quête de raid "Prestiger 1 fois" — les quêtes ne sont PAS remises à
     // zéro par le set() ci-dessous (voir commentaire "Conservé" plus haut).
@@ -197,7 +194,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       pixelCoins: BN_ZERO,
       collection: {},
       championInventory: {},
-      historicalMaxRank: newHistoricalMaxRank,
+      historicalEditionPoints: newHistoricalEditionPoints,
       equippedTeam: [null, null, null, null],
       inventory: {},
       raidCharacterPurchases: {},

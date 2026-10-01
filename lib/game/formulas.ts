@@ -1,6 +1,6 @@
 // Formules de calcul (DPS, coûts, éligibilité à l'évolution) — extraites de
 // types/game.ts pour séparer la logique métier des définitions de types.
-import { getEditionStatMult } from '@/lib/game/editions';
+import { getEditionStatMult, getEditionPowBonus } from '@/lib/game/editions';
 import {
   Rarity, RARITY_CONFIG, RARITY_ORDER_ASC,
   CharacterTemplate, OwnedCharacter, EvoForm, HeroState,
@@ -49,10 +49,10 @@ export function calcCharDps(tpl: CharacterTemplate, owned: OwnedCharacter): BigN
   // Le niveau n'est plus plafonné : le numéro de forme sert de multiplicateur
   // (base = ×1, evo1 = ×2, evo2 = ×3, etc.).
   const formMult    = owned.currentForm + 1;
-  const rankMult    = [1, 1.4, 1.9, 2.6, 3.5, 5.5, 9.0][Math.min(owned.rank - 1, 6)];
-  const editionMult = getEditionStatMult(owned.edition); // ×1 base / ×1.2 or / ×1.5 diamant
-  const pow         = RARITY_CONFIG[tpl.rarity].dpsMultiplier; // 1.024 + 0.001 par palier de rareté
-  const otherMults  = formMult * rankMult * editionMult;
+  const editionMult = getEditionStatMult(owned.edition); // ×1 Normale → ×8 Prismatique
+  // 1.024 + 0.001 par palier de rareté, + 0.0002 par palier d'édition
+  const pow         = RARITY_CONFIG[tpl.rarity].dpsMultiplier + getEditionPowBonus(owned.edition);
+  const otherMults  = formMult * editionMult;
 
   const rawDpsAtLevel = (lvl: number): BigNum => {
     const tierMult = Math.round(lvl / 100) + 1; // palier tous les 100 niveaux

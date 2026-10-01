@@ -6,6 +6,7 @@ import { getCharacterById } from '@/lib/game/characters';
 import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { EDITION_CONFIG } from '@/lib/game/editions';
+import { EditionLogo, OFFICIAL_EDITION_LOGO } from '@/components/ui/EditionLogo';
 
 interface Props {
   templateId: string;
@@ -17,6 +18,7 @@ interface Props {
   height?: number;
   style?: React.CSSProperties;
   frameOverlay?: boolean;
+  badge?: (size: number) => React.ReactNode; // remplace la pastille d'édition
 }
 
 // Carte de personnage avec repli en cascade.
@@ -32,10 +34,13 @@ export function CharacterCardThumb({
   height = 88,
   style,
   frameOverlay = false,
+  badge,
 }: Props) {
   const cfg = RARITY_CONFIG[rarity];
-  const ed = EDITION_CONFIG[edition];
-  const isShiny = edition !== 'base';
+  const ed = EDITION_CONFIG[edition] ?? EDITION_CONFIG.base;
+  const isShiny = ed !== EDITION_CONFIG.base;
+  // Prismatique : bordure, halo et badge défilent sur tout l'arc-en-ciel.
+  const prismAnim = edition === 'prismatic' ? 'editionPrism 4s linear infinite' : undefined;
   const frameSrc = frameOverlay ? RARITY_FRAME_SRC[rarity] : null;
 
   // Les fichiers de public/sprites/new_cards_processed sont recadrés en
@@ -88,7 +93,7 @@ export function CharacterCardThumb({
   const { src, failed, onError } = useFallbackImage(candidates);
 
   const shinyBorder = isShiny
-    ? `2px solid ${ed.color}`
+    ? `2px solid ${ed.border}`
     : undefined;
 
   // Le contenu remplit la largeur de la boîte définie par le cadre, mais
@@ -313,7 +318,7 @@ export function CharacterCardThumb({
           borderRadius: 8,
           boxShadow: `0 0 12px ${ed.glow}aa, 0 0 28px ${ed.glow}55`,
           zIndex: 13,
-          animation: 'editionPulse 1.8s ease-in-out infinite',
+          animation: prismAnim ? `editionPulse 1.8s ease-in-out infinite, ${prismAnim}` : 'editionPulse 1.8s ease-in-out infinite',
         }}
       />
 
@@ -330,40 +335,19 @@ export function CharacterCardThumb({
           border: shinyBorder,
           pointerEvents: 'none',
           zIndex: 15,
+          animation: prismAnim,
         }}
       />
 
       {/* Badge d'édition — zIndex au-dessus du cadre (10/11) ET des overlays
           externes posés par les pages appelantes (LV/rang, badge "NEW", etc.),
-          qui utilisent le même palier (30) pour rester visibles par-dessus. */}
-      <div
-        style={{
-          position: 'absolute',
-          top: -6,
-          right: -6,
-          zIndex: 30,
-          width: Math.max(
-            16,
-            Math.round(width * 0.22)
-          ),
-          height: Math.max(
-            16,
-            Math.round(width * 0.22)
-          ),
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: `radial-gradient(circle at 35% 30%, #fff, ${ed.color})`,
-          border: `1.5px solid ${ed.color}`,
-          boxShadow: `0 0 10px ${ed.glow}`,
-          fontSize: Math.max(
-            9,
-            Math.round(width * 0.13)
-          ),
-        }}
-      >
-        {edition === 'diamond' ? '💎' : '✨'}
+          qui utilisent le même palier (30) pour rester visibles par-dessus.
+          Logo officiel (voir OFFICIAL_EDITION_LOGO) ; `badge` (page Test
+          visuels) le remplace par une autre proposition. */}
+      <div style={{ position: 'absolute', top: -8, right: -8, zIndex: 30, display: 'flex' }}>
+        {badge
+          ? badge(Math.max(18, Math.round(width * 0.26)))
+          : <EditionLogo edition={edition} variant={OFFICIAL_EDITION_LOGO} size={Math.max(18, Math.round(width * 0.26))} />}
       </div>
     </div>
   );

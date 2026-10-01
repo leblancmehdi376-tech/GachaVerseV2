@@ -1,7 +1,7 @@
 import { doc, getDoc, updateDoc, deleteField, FieldPath } from 'firebase/firestore';
 import { db } from './config';
 import { getCharacterById, getCharFormName } from '@/lib/game/characters';
-import { makeInstanceKey, parseInstanceKey, CardEdition } from '@/lib/game/editions';
+import { parseInstanceKey, EDITION_CONFIG, type CardEdition } from '@/lib/game/editions';
 import { getItemDef, getEquipmentDef } from '@/lib/game/items';
 import { generateEnemy } from '@/lib/game/enemies';
 import { getPalierConfig } from '@/lib/game/paliers';
@@ -50,7 +50,6 @@ export interface OwnedCharacterSummary {
   rarity: Rarity;
   edition: string;
   level: number;
-  rank: number;
   currentForm: number;
   formsCount: number; // formes connues pour ce perso (0/1 = pas d'évolution)
   formName: string;   // nom affiché pour la forme actuelle (= name si pas d'évolution)
@@ -86,7 +85,7 @@ export function sortOwnedEquipment(items: OwnedEquipmentSummary[]): OwnedEquipme
   });
 }
 
-function summarizeCollection(raw: Record<string, { templateId: string; edition?: string; level: number; rank: number; currentForm?: number }>): OwnedCharacterSummary[] {
+function summarizeCollection(raw: Record<string, { templateId: string; edition?: string; level: number; currentForm?: number }>): OwnedCharacterSummary[] {
   const chars = Object.entries(raw).map(([instanceKey, c]) => {
     const tpl = getCharacterById(c.templateId);
     const currentForm = c.currentForm ?? 0;
@@ -97,7 +96,6 @@ function summarizeCollection(raw: Record<string, { templateId: string; edition?:
       rarity: tpl?.rarity ?? 'C',
       edition: c.edition ?? 'base',
       level: c.level ?? 1,
-      rank: c.rank ?? 1,
       currentForm,
       formsCount: tpl?.forms?.length ?? 0,
       formName: tpl ? getCharFormName(tpl, currentForm) : c.templateId,
@@ -390,7 +388,7 @@ export async function removePlayerCharacter(uid: string, instanceKey: string): P
  * réellement (0 pour les persos sans évolution).
  */
 export async function addPlayerCharacter(
-  uid: string, templateId: string, edition: CardEdition, level: number, rank: number, currentForm: number = 0
+  uid: string, templateId: string, edition: CardEdition, level: number, currentForm: number = 0
 ): Promise<{ ok: boolean; error?: string; char?: OwnedCharacterSummary }> {
   if (!db) return { ok: false, error: 'Firebase non configuré' };
   const database = db;
@@ -403,17 +401,17 @@ export async function addPlayerCharacter(
     // déjà affiché dans le panel.
     const snap = await getDoc(doc(database, 'saves', uid));
     if (!snap.exists()) return { ok: false, error: 'Sauvegarde introuvable pour ce joueur' };
-    const instanceKey = makeInstanceKey(templateId, edition);
+    // Une carte par perso : l'édition choisie fixe la jauge à son seuil.
+    const instanceKey = templateId;
     const existing = (snap.data().collection ?? {})[instanceKey];
     const clampedLevel = Math.max(1, Math.min(999, Math.floor(level)));
-    const clampedRank  = Math.max(1, Math.min(7, Math.floor(rank)));
     const maxFormIndex = tpl.forms && tpl.forms.length > 0 ? tpl.forms.length - 1 : 0;
     const clampedForm  = Math.max(0, Math.min(maxFormIndex, Math.floor(currentForm)));
     const entry = {
       templateId,
       edition,
+      editionPoints: EDITION_CONFIG[edition].points,
       level: clampedLevel,
-      rank: clampedRank,
       copies: existing?.copies ?? 1,
       currentForm: clampedForm,
       xp: existing?.xp ?? 0,
@@ -431,7 +429,7 @@ export async function addPlayerCharacter(
       ok: true,
       char: {
         instanceKey, templateId, edition, name: tpl.name, rarity: tpl.rarity,
-        level: clampedLevel, rank: clampedRank, currentForm: clampedForm,
+        level: clampedLevel, currentForm: clampedForm,
         formsCount: tpl.forms?.length ?? 0, formName: getCharFormName(tpl, clampedForm),
       },
     };
@@ -505,10 +503,9 @@ export async function addPlayerItem(uid: string, itemId: string, qty: number): P
 // adminCancelListing dans marketplace.ts) : l'item n'a jamais quitté la base
 // (il a juste été soustrait de l'inventaire du vendeur à la mise en vente),
 // donc il faut le lui recréditer directement sur sa save cloud, comme s'il
-// avait annulé l'annonce lui-même. Pour un personnage, seuls templateId et
-// edition sont connus (niveau/rang perdus dès la mise en vente, cf.
-// ChampionInventoryPage.handleSell) — recréé au niveau/rang de base, comme le
-// ferait un achat classique.
+// avait annulé l'annonce lui-même. Un personnage en vente vient toujours de
+// l'Inventaire des Champions (cf. ChampionInventoryPage.handleSell) : il y
+// est simplement remis, sans toucher à la carte possédée.
 export async function restoreListingItemToSeller(listing: {
   sellerId: string; type: 'item' | 'equipment' | 'character'; itemId: string; quantity: number;
 }): Promise<boolean> {
@@ -518,8 +515,29 @@ export async function restoreListingItemToSeller(listing: {
   if (listing.type === 'equipment') {
     return (await addPlayerEquipment(listing.sellerId, listing.itemId, listing.quantity)).ok;
   }
-  const { templateId, edition } = parseInstanceKey(listing.itemId);
-  return (await addPlayerCharacter(listing.sellerId, templateId, edition, 1, 1)).ok;
+  return addPlayerChampion(listing.sellerId, parseInstanceKey(listing.itemId).templateId);
+}
+
+async function addPlayerChampion(uid: string, templateId: string): Promise<boolean> {
+  if (!db) return false;
+  const database = db;
+  try {
+    const snap = await getDoc(doc(database, 'saves', uid));
+    if (!snap.exists()) return false;
+    const newQty = ((snap.data().championInventory ?? {})[templateId] ?? 0) + 1;
+    const write = () => updateDoc(doc(database, 'saves', uid),
+      new FieldPath('championInventory', templateId), newQty,
+      'lastSaved', Date.now(),
+      'adminCorrectionAt', Date.now(),
+      'lastSavedBy', 'admin', 'lastSavedReason', 'admin',
+    );
+    await write();
+    verifyAndReapply(uid, ['championInventory', templateId], newQty, write);
+    return true;
+  } catch (e) {
+    logger.error('[AdminTools] addPlayerChampion:', e);
+    return false;
+  }
 }
 
 /** Ajoute une quantité d'un équipement ("drop", EQUIPMENT_DEFS) au stock non-équipé d'un joueur. */

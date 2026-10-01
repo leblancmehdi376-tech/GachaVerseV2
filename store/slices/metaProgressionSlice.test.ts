@@ -11,7 +11,7 @@ import type { ActiveExpedition } from '@/store/gameStore.types';
 // bout en bout plutôt qu'en isolation.
 function setPrestigeableRunState() {
   const dummyCharacter: OwnedCharacter = {
-    templateId: 'jinwoo', rank: 3, copies: 2, level: 10, currentForm: 0, xp: 100,
+    templateId: 'jinwoo', copies: 2, editionPoints: 13, edition: 'emerald', level: 10, currentForm: 0, xp: 100,
   };
   const dummyExpedition: ActiveExpedition = {
     id: 'exp1', defId: 'def1', characterIds: ['jinwoo'], startTime: 0, endTime: 1000, claimed: false,
@@ -25,7 +25,7 @@ function setPrestigeableRunState() {
     pixelCoins: bnFromNumber(1_000_000),
     collection: { jinwoo: dummyCharacter },
     championInventory: { jinwoo: 3 },
-    historicalMaxRank: {},
+    historicalEditionPoints: {},
     equipmentInventory: { epee_ether: 2 },
     unlockedEquipRarities: ['C', 'R', 'E'],
     unlockedEquipDropRarities: ['C', 'R'],
@@ -118,12 +118,12 @@ describe('doPrestige — resets', () => {
     expect(state.voidOrbs).toBe(20);
   });
 
-  it('banque le rang max de chaque carte possédée avant de vider la collection', async () => {
+  it("banque la jauge d'édition de chaque carte possédée avant de vider la collection", async () => {
     setPrestigeableRunState();
 
     await useGameStore.getState().doPrestige();
 
-    expect(useGameStore.getState().historicalMaxRank.jinwoo).toBe(3);
+    expect(useGameStore.getState().historicalEditionPoints.jinwoo).toBe(13);
   });
 
   it('incrémente prestigeLevel et crédite des jetons de Prestige', async () => {

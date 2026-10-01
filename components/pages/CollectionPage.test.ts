@@ -13,7 +13,7 @@ const tplA = nonHeroes[0];
 const tplB = nonHeroes.find(c => c.universe !== tplA.universe && c.rarity !== tplA.rarity)!;
 
 function makeOwned(overrides: Partial<OwnedCharacter> = {}): OwnedCharacter {
-  return { templateId: tplA.id, rank: 1, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
+  return { templateId: tplA.id, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
 }
 
 function makeEntry(tpl: typeof tplA, overrides: Partial<CollectionEntry> = {}): CollectionEntry {

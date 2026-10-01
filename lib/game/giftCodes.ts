@@ -13,7 +13,7 @@ export interface GiftCodeDef {
   gems?: number;          // Neko-Gemmes à distribuer (optionnel)
   pixelCoins?: number;    // Pixel-Coins à distribuer (optionnel)
   characters?: string[];  // IDs de personnages à ajouter à la collection (édition tirée normalement)
-  maxCharacters?: string[]; // IDs de personnages octroyés déjà MAX (7★, dernière évo, niveau max, édition Diamant)
+  maxCharacters?: string[]; // IDs de personnages octroyés déjà MAX (dernière évo, niveau max, édition Diamant)
   items?: string[];       // IDs d'items à ajouter à l'inventaire (optionnel)
   equipment?: string[];   // IDs d'équipements (armes/armures) à ajouter à l'équipementInventaire (optionnel)
   drops?: Record<string, number>; // Drops spéciaux d'expédition (dropInventory) à ajouter, ex: { pierre_evolution: 1000 }
@@ -31,7 +31,7 @@ export interface GiftCodeDef {
 // 3) Personnage offert, tiré "normalement" (niveau 1, forme de base) :
 //    { code: 'LUFFY-CADEAU', characters: ['luffy'] },
 //
-// 4) Même personnage mais directement au maximum (7★, dernière évolution,
+// 4) Même personnage mais directement au maximum (dernière évolution,
 //    niveau max, édition Diamant) :
 //    { code: 'LUFFY-DIAMOND-MAX', maxCharacters: ['luffy'] },
 //
@@ -122,7 +122,7 @@ export const GIFT_CODES: GiftCodeDef[] = [
     code:         'ROKLOU-EPEE',
     items:        ['epee_ether'],
   },*/
-  // ── Goku max (7★, dernière évolution, niveau max, édition Diamant) ──
+  // ── Goku max (dernière évolution, niveau max, édition Diamant) ──
   /*{
     code:          'GOKU-DIAMOND-MAX',
     maxCharacters: ['goku'],

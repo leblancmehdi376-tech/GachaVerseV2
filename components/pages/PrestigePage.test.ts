@@ -7,10 +7,11 @@ describe('formatBonusValue', () => {
     expect(formatBonusValue('tokenGain', 3)).toBe(`+${PRESTIGE_BONUS_DEFS.tokenGain.perLevel * 3}`);
   });
 
-  it('shinyGold / shinyDiamond affichent un pourcentage à 2 décimales', () => {
-    const level = 4;
-    const expected = `+${(PRESTIGE_BONUS_DEFS.shinyGold.perLevel * level).toFixed(2)}%`;
-    expect(formatBonusValue('shinyGold', level)).toBe(expected);
+  it('editionRate affiche un pourcentage à 1 décimale', () => {
+    const level = 3;
+    const expected = `+${(PRESTIGE_BONUS_DEFS.editionRate.perLevel * level * 100).toFixed(1)}%`;
+    expect(formatBonusValue('editionRate', level)).toBe(expected);
+    expect(formatBonusValue('editionRate', 3)).toBe('+7.5%');
   });
 
   it('les autres types (dps, gold, equipDrop) affichent un pourcentage arrondi sans décimale', () => {

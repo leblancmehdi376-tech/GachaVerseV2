@@ -7,6 +7,8 @@ import { BN_ZERO, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
 import { migrateLegacyRaidQuestIds } from '@/store/gameStoreHelpers';
 import { migrateLegacyDrops } from '@/lib/game/expeditions';
+import { migrateEditionFields } from '@/lib/game/editions';
+import { coerceBonusLevels } from '@/lib/game/prestige';
 import type { Quest } from '@/store/gameStore.types';
 import { ACHIEVEMENT_BY_ID, type CharMastery } from '@/lib/game/achievements';
 
@@ -56,8 +58,7 @@ export function getSerializableState() {
     inventory:          s.inventory,
     equipmentInventory: s.equipmentInventory,
     championInventory:  s.championInventory ?? {},
-    bankedRanks:         s.bankedRanks ?? {},
-    historicalMaxRank:   s.historicalMaxRank ?? {},
+    historicalEditionPoints: s.historicalEditionPoints ?? {},
     // Nombre d'achats déjà effectués par boss de raid (prix +10% par
     // achat, voir getRaidCharacterCost) — jamais synchronisé avant ce
     // correctif : un refresh/reconnexion faisait revenir le prix à son
@@ -121,7 +122,7 @@ export function getSerializableState() {
     anomalyTokens:   s.anomalyTokens ?? 0,
     ownedAnomalies:  s.ownedAnomalies ?? [],
     anomalySlots:    s.anomalySlots ?? 1,
-    // Compadex — jamais reset au Prestige (comme historicalMaxRank/anomalies),
+    // Compadex — jamais reset au Prestige (comme historicalEditionPoints/anomalies),
     // doit donc être synchronisé pour survivre à un changement d'appareil.
     compadexCharactersSeen: s.compadexCharactersSeen ?? {},
     compadexEquipmentSeen:  s.compadexEquipmentSeen ?? {},
@@ -327,6 +328,10 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   if (data.expeditionDropInventory && typeof data.expeditionDropInventory === 'object') {
     data.expeditionDropInventory = migrateLegacyDrops(data.expeditionDropInventory as Record<string, number>);
   }
+
+  // Même rework des éditions que côté local (voir gameStore.ts::merge).
+  migrateEditionFields(data);
+  if ('prestigeBonusLevels' in data) data.prestigeBonusLevels = coerceBonusLevels(data.prestigeBonusLevels);
 
   useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);
   // Allow effects to settle, then re-enable toasts.

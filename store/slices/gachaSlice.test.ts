@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useGameStore } from '@/store/gameStore';
 import { GACHA_COSTS } from '@/lib/game/gacha';
 import type { Anomaly } from '@/lib/game/anomalies';
@@ -85,5 +85,65 @@ describe('gachaSlice — getGachaCosts (réduction via anomalies "Réduc. Coût 
     useGameStore.getState().pullSingle();
     expect(useGameStore.getState().nekoGems).toBe(100 - reducedCost);
     expect(reducedCost).toBeLessThan(GACHA_COSTS.single);
+  });
+});
+
+describe('gachaSlice — addToCollection (une carte par perso, jauge d\'édition)', () => {
+  beforeEach(() => {
+    useGameStore.getState().resetGame();
+    vi.restoreAllMocks();
+  });
+
+  // Math.random = 0.99 → toujours une carte Normale (1 point).
+  const rollNormal = () => vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+  it('chaque doublon ajoute sa valeur à la jauge, sur la même carte', () => {
+    rollNormal();
+    const s = useGameStore.getState();
+    s.addToCollection('minato');
+    s.addToCollection('minato');
+    const minato = useGameStore.getState().collection.minato;
+    expect(Object.keys(useGameStore.getState().collection)).toEqual(['minato']);
+    expect(minato.editionPoints).toBe(2);
+    expect(minato.edition).toBe('bronze');
+  });
+
+  it('une carte tirée directement en Or ajoute 4 points', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.02); // 2 % → bande Or (après les 1,005 % des éditions plus rares)
+    expect(useGameStore.getState().addToCollection('minato')).toBe('gold');
+    expect(useGameStore.getState().collection.minato.editionPoints).toBe(4);
+  });
+
+  it("avant Prismatique, les doublons remplissent la jauge au lieu d'aller aux Champions", () => {
+    rollNormal();
+    useGameStore.setState({ collection: { minato: { templateId: 'minato', copies: 7, level: 1, currentForm: 0, xp: 0, editionPoints: 10, edition: 'emerald' } } });
+    useGameStore.getState().addToCollection('minato');
+    const s = useGameStore.getState();
+    expect(s.collection.minato.editionPoints).toBe(11);
+    expect(s.championInventory.minato ?? 0).toBe(0);
+  });
+
+  it("déjà Prismatique : le doublon part dans l'Inventaire des Champions", () => {
+    rollNormal();
+    useGameStore.setState({ collection: { minato: { templateId: 'minato', copies: 200, level: 1, currentForm: 0, xp: 0, editionPoints: 128, edition: 'prismatic' } } });
+    useGameStore.getState().addToCollection('minato');
+    const s = useGameStore.getState();
+    expect(s.collection.minato.editionPoints).toBe(128);
+    expect(s.championInventory.minato).toBe(1);
+  });
+
+  it('Mémoire des Pierres : la première obtention rend la jauge passée, plafonnée par le niveau', () => {
+    rollNormal();
+    useGameStore.setState({ historicalEditionPoints: { minato: 40 }, prestigeRankRecoveryLevel: 3 }); // niv. 3 → max Émeraude (8)
+    useGameStore.getState().addToCollection('minato');
+    expect(useGameStore.getState().collection.minato.editionPoints).toBe(8 + 1);
+    expect(useGameStore.getState().collection.minato.edition).toBe('emerald');
+  });
+
+  it('sans Mémoire des Pierres, la carte repart de zéro', () => {
+    rollNormal();
+    useGameStore.setState({ historicalEditionPoints: { minato: 40 }, prestigeRankRecoveryLevel: 0 });
+    useGameStore.getState().addToCollection('minato');
+    expect(useGameStore.getState().collection.minato.editionPoints).toBe(1);
   });
 });

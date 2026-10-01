@@ -210,23 +210,23 @@ describe('setPlayerCharacterLevel', () => {
 });
 
 describe('addPlayerCharacter', () => {
-  it('préserve copies/xp/equippedItems existants en changeant niveau/rang/forme', async () => {
+  it('préserve copies/xp/equippedItems existants en changeant niveau/forme/édition', async () => {
     getDocMock.mockResolvedValue(fakeSnap(true, {
       collection: { goku: { copies: 3, xp: 120, equippedItems: { weapon: 'sword' } } },
     }));
 
-    const res = await addPlayerCharacter('u1', 'goku', 'base', 10, 3, 1);
+    const res = await addPlayerCharacter('u1', 'goku', 'base', 10, 1);
 
     expect(res.ok).toBe(true);
     const [, path, entry] = updateDocMock.mock.calls[0] as UpdateDocCall;
     expect(path.segments).toEqual(['collection', 'goku']);
     expect(entry).toMatchObject({
-      copies: 3, xp: 120, equippedItems: { weapon: 'sword' }, level: 10, rank: 3, currentForm: 1,
+      copies: 3, xp: 120, equippedItems: { weapon: 'sword' }, level: 10, currentForm: 1, editionPoints: 1,
     });
   });
 
   it("échoue sans écrire si le templateId n'existe pas", async () => {
-    const res = await addPlayerCharacter('u1', 'inexistant', 'base', 1, 1);
+    const res = await addPlayerCharacter('u1', 'inexistant', 'base', 1);
 
     expect(res.ok).toBe(false);
     expect(updateDocMock).not.toHaveBeenCalled();

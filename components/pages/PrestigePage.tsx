@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, formatBonusValue, RANK_RECOVERY_MAX_LEVEL, getRankRecoveryCost, rankRecoveryCap } from '@/lib/game/prestige';
+import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, formatBonusValue, STONE_MEMORY_MAX_LEVEL, getStoneMemoryCost, stoneMemoryCapEdition } from '@/lib/game/prestige';
 import { formatNumber } from '@/lib/game/format';
+import { EDITION_CONFIG } from '@/lib/game/editions';
+import { EditionIcon } from '@/components/ui/EditionLogo';
 import { LootReelPopup, LootReelItem, buildReel } from '@/components/ui/LootReelPopup';
 
 const PRESTIGE_PALIER_REQUIRED = 41;
@@ -52,7 +54,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
           {[
             'Neko-Gemmes', 'Succès & Titres', 'Quêtes', 'BossCrowns & VoidOrbs',
             'Palier max atteint (classement)', 'Bonus de Prestige déjà obtenus',
-            'Rang max déjà atteint par chaque carte (toutes éditions) : récupérable à la re-obtention selon le niveau de "Mémoire des Rangs"',
+            'Jauge d\'édition max déjà atteinte par chaque carte : récupérable à la re-obtention selon le niveau de "Mémoire des Pierres"',
           ].map(item => (
             <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(74,222,128,0.8)', marginBottom:3 }}>• {item}</div>
           ))}
@@ -102,8 +104,7 @@ export { formatBonusValue };
 const BONUS_COLORS: Record<PrestigeBonusType, string> = {
   dps: '#f97316',
   gold: '#eab308',
-  shinyGold: '#38bdf8',
-  shinyDiamond: '#f472b6',
+  editionRate: '#38bdf8',
   equipDrop: '#4ade80',
   tokenGain: '#fbbf24',
 };
@@ -144,7 +145,7 @@ function PrestigeReelPopup({ results, onClose }: { results: PrestigeBonusType[];
 export function PrestigePage() {
   const {
     prestigeLevel: level, prestigeTokens: tokens, prestigeBonusLevels: bonusLevels, canPrestige, spendToken,
-    prestigeRankRecoveryLevel: rankRecoveryLevel, buyRankRecovery, getRunPeakPalier, doPrestige,
+    prestigeRankRecoveryLevel: stoneMemoryLevel, buyStoneMemory, getRunPeakPalier, doPrestige,
   } = useGameStore();
   const [showConfirm, setShowConfirm] = useState(false);
   const [savingPrestige, setSavingPrestige] = useState(false);
@@ -280,28 +281,31 @@ export function PrestigePage() {
           </div>
         </div>
 
-        {/* Mémoire des Rangs — achat direct, pas de tirage */}
+        {/* Mémoire des Pierres — achat direct, pas de tirage */}
         <div className="panel prestige-row" style={{ padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
           <div style={{ flex:1, minWidth:220 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-              <span style={{ fontSize:18.5 }}>🧠</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'var(--text)' }}>Mémoire des Rangs</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)' }}>Niveau {rankRecoveryLevel} / {RANK_RECOVERY_MAX_LEVEL}</span>
+              <span style={{ fontSize:18.5 }}>💎</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'var(--text)' }}>Mémoire des Pierres</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)' }}>Niveau {stoneMemoryLevel} / {STONE_MEMORY_MAX_LEVEL}</span>
             </div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.6, maxWidth:460 }}>
-              {rankRecoveryLevel > 0
-                ? <>Une carte déjà obtenue par le passé est récupérée directement au rang atteint alors, plafonné à <strong style={{ color:'#c084fc' }}>{rankRecoveryCap(rankRecoveryLevel)}★</strong>, au lieu de repartir à 1★.</>
-                : <>Débloque la récupération du rang d’une carte déjà obtenue dans une vie précédente, au lieu de repartir à 1★.</>}
+              {(() => {
+                const cap = stoneMemoryCapEdition(stoneMemoryLevel);
+                return cap
+                  ? <>Une carte déjà obtenue par le passé retrouve sa jauge d’édition d’alors, plafonnée à l’édition <strong style={{ color: EDITION_CONFIG[cap].color }}><EditionIcon edition={cap} size={14} /> {EDITION_CONFIG[cap].label}</strong>, au lieu de repartir de zéro.</>
+                  : <>Débloque la récupération de la jauge d’édition d’une carte déjà obtenue dans une vie précédente, au lieu de repartir de zéro. Chaque niveau relève le plafond d’une édition (niv. 7 : Prismatique).</>;
+              })()}
             </div>
           </div>
           {(() => {
-            const cost = getRankRecoveryCost(rankRecoveryLevel);
+            const cost = getStoneMemoryCost(stoneMemoryLevel);
             const maxed = cost === null;
             const canBuy = !maxed && tokens >= cost!;
             return (
-              <button onClick={buyRankRecovery} disabled={!canBuy} className={canBuy ? 'btn-primary' : 'btn-secondary'}
+              <button onClick={buyStoneMemory} disabled={!canBuy} className={canBuy ? 'btn-primary' : 'btn-secondary'}
                 style={{ padding:'12px 24px', fontSize:14.4, cursor: canBuy ? 'pointer' : 'not-allowed', opacity: maxed ? 0.6 : canBuy ? 1 : 0.4, whiteSpace:'nowrap' }}>
-                {maxed ? '✓ NIVEAU MAX' : `🧠 Améliorer — 🎫 ${formatNumber(cost!)}`}
+                {maxed ? '✓ NIVEAU MAX' : `💎 Améliorer — 🎫 ${formatNumber(cost!)}`}
               </button>
             );
           })()}

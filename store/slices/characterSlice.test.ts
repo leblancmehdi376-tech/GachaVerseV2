@@ -8,7 +8,7 @@ import type { OwnedCharacter } from '@/types/game';
 // seules les Pierres d'Évolution + les pixelCoins sont nécessaires, ce qui
 // simplifie le setup par rapport à un perso avec items d'évolution dédiés.
 function setEvolvableMinato() {
-  const owned: OwnedCharacter = { templateId: 'minato', rank: 1, copies: 1, level: 1, currentForm: 0, xp: 0 };
+  const owned: OwnedCharacter = { templateId: 'minato', copies: 1, level: 1, currentForm: 0, xp: 0 };
   useGameStore.setState({
     collection: { minato: owned },
     pixelCoins: bnFromNumber(2_000_000_000),
@@ -69,7 +69,7 @@ describe('levelUpCharacterN — amélioration ×N en une seule mise à jour', ()
   });
 
   function setMinato(coins: number) {
-    const owned: OwnedCharacter = { templateId: 'minato', rank: 1, copies: 1, level: 1, currentForm: 0, xp: 0 };
+    const owned: OwnedCharacter = { templateId: 'minato', copies: 1, level: 1, currentForm: 0, xp: 0 };
     useGameStore.setState({ collection: { minato: owned }, pixelCoins: bnFromNumber(coins) });
   }
 

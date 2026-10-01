@@ -13,7 +13,7 @@ const tplB = nonHeroes.find(c => c.universe !== tplA.universe && c.rarity !== tp
 const RANK = ['C', 'U', 'R', 'E', 'L', 'M', 'S', 'CO', 'P', 'T'];
 
 function owned(templateId: string, overrides: Partial<OwnedCharacter> = {}): OwnedCharacter {
-  return { templateId, rank: 1, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
+  return { templateId, copies: 0, level: 1, currentForm: 0, xp: 0, ...overrides };
 }
 
 describe('matchesCharacterFilters', () => {

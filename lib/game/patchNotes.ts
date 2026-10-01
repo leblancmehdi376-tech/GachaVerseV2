@@ -19,6 +19,58 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    date: '01/10/2026',
+    title: 'Maj v2.7.7',
+    sections: [
+      {
+        icon: '🃏',
+        title: 'Une seule carte par personnage',
+        changes: [
+          "Fini les doublons d'édition : chaque personnage n'a plus qu'**une seule carte**.",
+          "L'édition devient un **bonus** porté par cette carte, qui monte au fil des doublons.",
+          "Tes anciennes cartes d'un même perso sont **fusionnées** : tu gardes le **meilleur niveau et la meilleure forme**.",
+          "Les équipements des cartes fusionnées sont **remis dans ton inventaire**, rien n'est perdu.",
+        ],
+      },
+      {
+        icon: '💎',
+        title: 'Jauge d\'édition',
+        changes: [
+          "**8 éditions** : Normale, **Bronze**, Or, **Émeraude**, **Rubis**, Diamant, **Obsidienne** et **Prismatique**.",
+          "Chaque carte tirée remplit la jauge de sa valeur : Normale **1**, Bronze **2**, Or **4**… jusqu'à Prismatique **128**.",
+          "Exemple : **2 Bronzes + 4 Normales** = une Émeraude.",
+          "Tes anciennes copies comptent déjà dans la jauge (une copie Or vaut **4 points**, une Diamant **32**).",
+          "La jauge est visible sur chaque carte du **Compadex**, des **Compagnons** et des **Améliorations**, et en détail sur la fiche du personnage.",
+          "Nouveau **logo d'édition** sur les cartes : un hexagone serti numéroté de **I** (Bronze) à **VII** (Prismatique), dont les arêtes s'allument à chaque palier.",
+          "Seuls les doublons tirés une fois la carte **Prismatique** vont dans l'Inventaire des Champions.",
+        ],
+      },
+      {
+        icon: '⭐',
+        title: 'Fin des étoiles',
+        changes: [
+          "Les **étoiles de rang (★)** sont supprimées : la progression d'un perso passe désormais par sa **jauge d'édition**.",
+          "Le bonus de DPS des étoiles (jusqu'à **×9** à 7★) disparaît avec elles.",
+          "Prestige : **Mémoire des Rangs** devient **Mémoire des Pierres**. Une carte re-obtenue retrouve sa **jauge d'édition** passée, plafonnée à **une édition par niveau** (niv. 7 : Prismatique).",
+          "Mémoire des Pierres gagne un **7e niveau**. Tes niveaux déjà achetés sont conservés.",
+          "Les recettes de Forge qui consomment des champions demandent désormais le perso en **Prismatique** (au lieu de 7★).",
+          "Les succès « Rang 7★ » deviennent des succès **Obsidienne ou mieux**.",
+        ],
+      },
+      {
+        icon: '⚔️',
+        title: 'Puissance et taux',
+        changes: [
+          "Bonus de DPS : **×1,5** (Bronze) à **×8** (Prismatique). Or et Diamant gardent **×2,5** et **×4,5**.",
+          "Chaque palier d'édition augmente aussi la **croissance par niveau** : une carte Prismatique tient tête à des raretés supérieures à haut niveau.",
+          "Taux de tirage : Bronze **5 %**, Or **2 %**, Émeraude **0,7 %**, Rubis **0,2 %**, Diamant **0,08 %**, Obsidienne **0,02 %**, Prismatique **0,005 %**.",
+          "Prestige : **Taux Shiny Or** et **Taux Shiny Diamant** fusionnent en **Taux d'édition** (+2,5 % par niveau sur toutes les éditions, 40 niveaux). Tes niveaux actuels sont additionnés.",
+          "Les succès d'édition comptent désormais **Or ou mieux** / **Diamant ou mieux**, et le Trio Parfait devient **Prisme Parfait**.",
+        ],
+      },
+    ],
+  },
+  {
     date: '30/09/2026',
     title: 'Maj v2.7.6',
     changes: [

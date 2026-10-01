@@ -59,15 +59,16 @@ function num(v: unknown): number {
 // Extrait le profil public d'un doc `saves/{uid}` (voir getSerializableState).
 export function extractProfile(data: Record<string, unknown>): LeaderboardProfile {
   const collection = (data.collection && typeof data.collection === 'object')
-    ? data.collection as Record<string, { currentForm?: number; level?: number }>
+    ? data.collection as Record<string, { currentForm?: number; level?: number; edition?: CardEdition }>
     : {};
   const team: LeaderboardTeamMember[] = [];
   if (Array.isArray(data.equippedTeam)) {
     for (const key of data.equippedTeam) {
       if (typeof key !== 'string') continue;
-      const { templateId, edition } = parseInstanceKey(key);
+      // Clé "id::gold" possible sur une save pas encore migrée (ancien format).
+      const parsed = parseInstanceKey(key);
       const owned = collection[key];
-      team.push({ templateId, edition, formIndex: owned?.currentForm ?? 0, level: owned?.level ?? 0 });
+      team.push({ templateId: parsed.templateId, edition: owned?.edition ?? parsed.edition, formIndex: owned?.currentForm ?? 0, level: owned?.level ?? 0 });
     }
   }
   const ownedTemplates = new Set(Object.keys(collection).map(k => parseInstanceKey(k).templateId));
