@@ -20,7 +20,7 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '02/10/2026',
-    title: 'Maj v2.7.7',
+    title: 'Maj v2.8.0',
     sections: [
       {
         icon: '🃏',
