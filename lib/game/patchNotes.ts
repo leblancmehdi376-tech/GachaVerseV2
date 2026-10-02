@@ -20,6 +20,13 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '02/10/2026',
+    title: 'Maj v2.8.1.1',
+    changes: [
+      "Les boutons **Boss** et **Retraite** sont maintenant **en haut à droite**, juste au-dessus des infos de combat (synergies, butin, DPS).",
+    ],
+  },
+  {
+    date: '02/10/2026',
     title: 'Maj v2.8.1',
     sections: [
       {

@@ -100,91 +100,95 @@ export function TeamBar({
 
         <div style={{ flex:1 }} />
 
-        {/* Barre d'infos de combat unifiée : synergies / butin / DPS partagent
-            un seul cadre avec séparateurs internes, plutôt que des boîtes
-            bordées séparées (moins de cadres empilés, hauteur cohérente).
-            Si elle ne tient plus en largeur, ses cases passent à la ligne
-            dans le même cadre au lieu de sortir de l'écran (voir
-            .combat-info dans globals.css). */}
-        <div className="combat-info">
-          {/* Synergies — détail des paliers (actifs / atteignables) au survol (voir SynergyBreakdownTooltip) */}
-          {hasSynergyProgress && (
-            <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
-            <SynergyBreakdownTooltip>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', justifyContent:'flex-end', minHeight:16 }}>
-              {syns.length === 0 && (
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:14, color:'rgba(255,255,255,0.55)', whiteSpace:'nowrap' }}>Aucune active</span>
-              )}
-              {syns.map(s => (
-                <div key={s.def.id}
-                  style={{ display:'flex', alignItems:'center', gap:4 }}>
-                  <div style={{ width:16, height:16, flexShrink:0 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/sprites/synergies/${s.def.id}.webp`} alt={s.def.label}
-                      style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:2 }}
-                      onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:14px">${s.def.icon}</span>`; }} />
-                  </div>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:s.def.color, whiteSpace:'nowrap' }}>
-                    {s.threshold.dpsBonus > 0 ? `+${s.threshold.dpsBonus}%` : `+${s.threshold.globalBonus}% glb`}
-                  </span>
-                </div>
-              ))}
-            </div>
-            </SynergyBreakdownTooltip>
-            </div>
+        {/* Colonne de droite : actions boss au-dessus de la barre d'infos */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, flex:'0 1 auto', minWidth:0, maxWidth:'100%', alignSelf:'flex-end', marginLeft:'auto' }}>
+          {/* Actions boss — en haut à droite, au-dessus des infos de combat,
+              seulement pendant/après un boss */}
+          {(bossActive || wave === 10) && (
+            <button
+              onClick={e => { e.stopPropagation(); retreatFromBoss(); }}
+              style={{ padding:'10px 14px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.4)', borderRadius:10, cursor:'pointer', display:'flex', alignItems:'center', gap:8, minHeight:44, flexShrink:0, transition:'background 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.25)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.12)')}
+              title="Abandonner le boss et retourner à la vague 1"
+            >
+              <span style={{ fontSize:18 }}>🏳️</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
+            </button>
           )}
-
-          {/* Butin de l'ennemi courant — détail de l'or au survol (voir GoldBreakdownTooltip) */}
-          <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
-            <GoldBreakdownTooltip>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
-              <div style={{ fontFamily:'var(--f-num)', fontSize:16, fontWeight:700, color:'var(--gold)' }}>
-                +{formatNumber(pixelCoinsReward)} 🪙
-                {realGold && <span style={{ fontSize:14, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
+          {bossAvoided && !bossActive && wave !== 10 && (
+            <button
+              onClick={e => { e.stopPropagation(); challengeBoss(); }}
+              style={{ padding:'10px 14px', background:'rgba(234,179,8,0.08)', border:'1px solid rgba(234,179,8,0.35)', borderRadius:10, cursor:'pointer', display:'flex', alignItems:'center', gap:8, minHeight:44, flexShrink:0, transition:'background 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.22)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.08)')}
+              title="Retenter le boss"
+            >
+              <span style={{ fontSize:18 }}>⚡</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
+            </button>
+          )}
+          {/* Barre d'infos de combat unifiée : synergies / butin / DPS partagent
+              un seul cadre avec séparateurs internes, plutôt que des boîtes
+              bordées séparées (moins de cadres empilés, hauteur cohérente).
+              Si elle ne tient plus en largeur, ses cases passent à la ligne
+              dans le même cadre au lieu de sortir de l'écran (voir
+              .combat-info dans globals.css). */}
+          <div className="combat-info">
+            {/* Synergies — détail des paliers (actifs / atteignables) au survol (voir SynergyBreakdownTooltip) */}
+            {hasSynergyProgress && (
+              <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
+              <SynergyBreakdownTooltip>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', justifyContent:'flex-end', minHeight:16 }}>
+                {syns.length === 0 && (
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:14, color:'rgba(255,255,255,0.55)', whiteSpace:'nowrap' }}>Aucune active</span>
+                )}
+                {syns.map(s => (
+                  <div key={s.def.id}
+                    style={{ display:'flex', alignItems:'center', gap:4 }}>
+                    <div style={{ width:16, height:16, flexShrink:0 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/sprites/synergies/${s.def.id}.webp`} alt={s.def.label}
+                        style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:2 }}
+                        onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:14px">${s.def.icon}</span>`; }} />
+                    </div>
+                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:s.def.color, whiteSpace:'nowrap' }}>
+                      {s.threshold.dpsBonus > 0 ? `+${s.threshold.dpsBonus}%` : `+${s.threshold.globalBonus}% glb`}
+                    </span>
+                  </div>
+                ))}
               </div>
-            </GoldBreakdownTooltip>
-            {gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, color:'var(--cyan-hi)' }}>+{gemsReward} 💎</div>}
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
-          </div>
-
-          {/* DPS d'équipe — détail au survol (voir DpsBreakdownTooltip) */}
-          <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
-            <DpsBreakdownTooltip>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.55)', letterSpacing:2 }}>🔥 DPS <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
-              <div style={{ fontFamily:'var(--f-num)', fontSize:22, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
-                {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:14, marginLeft:2 }}>×{dpsUltMult}</span>}
+              </SynergyBreakdownTooltip>
               </div>
-            </DpsBreakdownTooltip>
-            <div style={{ marginTop:3 }}><CohesionBadge /></div>
+            )}
+
+            {/* Butin de l'ennemi courant — détail de l'or au survol (voir GoldBreakdownTooltip) */}
+            <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
+              <GoldBreakdownTooltip>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+                <div style={{ fontFamily:'var(--f-num)', fontSize:16, fontWeight:700, color:'var(--gold)' }}>
+                  +{formatNumber(pixelCoinsReward)} 🪙
+                  {realGold && <span style={{ fontSize:14, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
+                </div>
+              </GoldBreakdownTooltip>
+              {gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, color:'var(--cyan-hi)' }}>+{gemsReward} 💎</div>}
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
+            </div>
+
+            {/* DPS d'équipe — détail au survol (voir DpsBreakdownTooltip) */}
+            <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
+              <DpsBreakdownTooltip>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.55)', letterSpacing:2 }}>🔥 DPS <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+                <div style={{ fontFamily:'var(--f-num)', fontSize:22, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
+                  {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:14, marginLeft:2 }}>×{dpsUltMult}</span>}
+                </div>
+              </DpsBreakdownTooltip>
+              <div style={{ marginTop:3 }}><CohesionBadge /></div>
+            </div>
           </div>
         </div>
 
-        {/* Actions boss — dans la barre, seulement pendant/après un boss */}
-        {(bossActive || wave === 10) && (
-          <button
-            onClick={e => { e.stopPropagation(); retreatFromBoss(); }}
-            style={{ padding:'10px 14px', background:'rgba(239,68,68,0.12)', border:'1px solid rgba(239,68,68,0.4)', borderRadius:10, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:2, flexShrink:0, alignSelf:'flex-end', transition:'background 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.25)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.12)')}
-            title="Abandonner le boss et retourner à la vague 1"
-          >
-            <span style={{ fontSize:18 }}>🏳️</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
-          </button>
-        )}
-        {bossAvoided && !bossActive && wave !== 10 && (
-          <button
-            onClick={e => { e.stopPropagation(); challengeBoss(); }}
-            style={{ padding:'10px 14px', background:'rgba(234,179,8,0.08)', border:'1px solid rgba(234,179,8,0.35)', borderRadius:10, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:2, flexShrink:0, alignSelf:'flex-end', transition:'background 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.22)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.08)')}
-            title="Retenter le boss"
-          >
-            <span style={{ fontSize:18 }}>⚡</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
-          </button>
-        )}
       </div>
     </div>
   );
