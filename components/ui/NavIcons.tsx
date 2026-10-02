@@ -271,7 +271,6 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   mine:         IconMine,
   anomalie:     IconAnomaly,
   gachadle:     IconQuestion,
-  visualtest:   IconDiamond,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,
   champions:    IconVoidPortal,

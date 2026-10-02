@@ -16,7 +16,6 @@ import { useGameStore, type Quest } from '@/store/gameStore';
 import { useDisplaySettingsStore } from '@/store/displaySettingsStore';
 import { getCompadexProgress } from '@/lib/game/compadex';
 import { useAuth } from '@/hooks/useAuth';
-import { checkIsAdmin } from '@/lib/admin';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { formatSyncStatus } from '@/lib/firebase/cloudSaveSync';
 import { useDpsTick } from '@/hooks/useDpsTick';
@@ -70,7 +69,6 @@ const PAGE_LOADERS = {
   AnomaliePage: () => import('@/components/pages/AnomaliePage').then(m => ({ default: m.AnomaliePage })),
   MasteryPage: () => import('@/components/pages/MasteryPage').then(m => ({ default: m.MasteryPage })),
   GachaDlePage: () => import('@/components/pages/GachaDlePage').then(m => ({ default: m.GachaDlePage })),
-  VisualTestPage: () => import('@/components/pages/VisualTestPage').then(m => ({ default: m.VisualTestPage })),
 };
 const UpgradesPage = lazy(PAGE_LOADERS.UpgradesPage);
 const CompanionsPage = lazy(PAGE_LOADERS.CompanionsPage);
@@ -93,9 +91,8 @@ const MinePage = lazy(PAGE_LOADERS.MinePage);
 const AnomaliePage = lazy(PAGE_LOADERS.AnomaliePage);
 const MasteryPage = lazy(PAGE_LOADERS.MasteryPage);
 const GachaDlePage = lazy(PAGE_LOADERS.GachaDlePage);
-const VisualTestPage = lazy(PAGE_LOADERS.VisualTestPage);
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie' | 'mastery' | 'gachadle' | 'visualtest';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie' | 'mastery' | 'gachadle';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -143,13 +140,8 @@ const NAV_MOBILE_EXTRA: NavItem[] = [
   { id:'settings',     label:'PARAMÈTRES',      accent:'var(--text-sub)'    },
 ];
 
-// Onglet de test des visuels : affiché en local et pour les admins uniquement.
-const NAV_DEV_GROUP: { title?: string; items: NavItem[] } = { title:'DEV', items: [
-  { id:'visualtest',   label:'TEST VISUELS',    accent:'#e879f9'            },
-]};
-
 // Liste à plat : sert à retrouver le libellé/accent de la page courante.
-const NAV: NavItem[] = [...NAV_GROUPS.flatMap(g => g.items), ...NAV_MOBILE_EXTRA, ...NAV_DEV_GROUP.items];
+const NAV: NavItem[] = [...NAV_GROUPS.flatMap(g => g.items), ...NAV_MOBILE_EXTRA];
 
 // Pages qui affichent la zone de combat (pas de panel central)
 const COMBAT_PAGES: Page[] = ['home'];
@@ -229,19 +221,6 @@ export function GameLayout() {
   })));
   const { count: compadexCount, total: compadexTotal } = getCompadexProgress(compadexCharactersSeen, compadexEquipmentSeen);
   const { user, logout, kickedOut, dismissKickedOut } = useAuth();
-  // Onglets DEV (Test visuels) : en local, ou pour un compte admin.
-  const [isAdmin, setIsAdmin] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    checkIsAdmin(user?.uid).then(ok => { if (!cancelled) setIsAdmin(ok); });
-    return () => { cancelled = true; };
-  }, [user?.uid]);
-  const isLocalDev = typeof window !== 'undefined' && (
-    process.env.NODE_ENV === 'development' ||
-    window.location.hostname === 'localhost' ||
-    window.location.hostname.startsWith('127.')
-  );
-  const canSeeDevTabs = isLocalDev || isAdmin;
   const { forceSave, loaded: cloudLoaded, syncStatus, lastSyncedAt } = useCloudSave(user?.uid ?? null);
 
   const hasHydrated = useGameHydration(cloudLoaded);
@@ -469,7 +448,7 @@ export function GameLayout() {
               transition:'transform 0.25s ease',
             } : {}),
           }}>
-          {[...(isMobile ? [...NAV_GROUPS, { title:'RACCOURCIS', items: NAV_MOBILE_EXTRA }] : NAV_GROUPS), ...(canSeeDevTabs ? [NAV_DEV_GROUP] : [])].map((group, gi) => (
+          {(isMobile ? [...NAV_GROUPS, { title:'RACCOURCIS', items: NAV_MOBILE_EXTRA }] : NAV_GROUPS).map((group, gi) => (
             <div key={gi} style={{ display:'flex', flexDirection:'column', gap:2 }}>
               {group.title && (
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, letterSpacing:2, color:'var(--text-muted)', padding:'10px 12px 4px', textTransform:'uppercase' }}>
@@ -573,7 +552,6 @@ export function GameLayout() {
                   {contentPage === 'anomalie'    && <AnomaliePage />}
                   {contentPage === 'mastery'     && <MasteryPage />}
                   {contentPage === 'gachadle'    && <GachaDlePage />}
-                  {contentPage === 'visualtest'  && canSeeDevTabs && <VisualTestPage />}
                   {contentPage === 'profile'     && <ProfilePage />}
                 </PageTransition>
                 </Suspense>
