@@ -36,7 +36,7 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
   unlockEquipDropRarity: (rarity) => set(s =>
     s.unlockedEquipDropRarities.includes(rarity) ? {} : { unlockedEquipDropRarities: [...s.unlockedEquipDropRarities, rarity] }
   ),
-  upgradeEquipment: (slot, rarity) => {
+  upgradeEquipment: (slot, rarity, times = 1) => {
     const nextRarity = getNextRarity(rarity);
     if (!nextRarity) return { ok: false, reason: 'Rareté maximale atteinte' };
     if (!get().unlockedEquipRarities.includes(nextRarity)) {
@@ -49,8 +49,16 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
     const totalOwned = fodderGroup.reduce((sum, item) => sum + (inv[item.id] ?? 0), 0);
     if (totalOwned < cost) return { ok: false, reason: `Pas assez d’objets (${cost} requis)` };
 
-    const output = pickEquipmentUpgradeOutput(slot, nextRarity);
-    if (!output) return { ok: false, reason: 'Aucun objet disponible à cette rareté' };
+    // Nombre de fusions : borné par le stock. Tout est appliqué en UN set()
+    // (le bouton "max" bouclait avant sur des centaines de set()).
+    const count = Math.min(Math.max(1, Math.floor(times)), Math.floor(totalOwned / cost));
+    const outputs: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const output = pickEquipmentUpgradeOutput(slot, nextRarity);
+      if (!output) break;
+      outputs.push(output.id);
+    }
+    if (outputs.length === 0) return { ok: false, reason: 'Aucun objet disponible à cette rareté' };
 
     // Consomme en priorité les objets génériques (non spéciaux) avant de
     // piocher dans les objets spéciaux (bonusFor), pour éviter de fusionner
@@ -58,7 +66,7 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
     const consumeOrder = [...fodderGroup].sort((a, b) => Number(!!a.bonusFor) - Number(!!b.bonusFor));
 
     set(s => {
-      let toConsume = cost;
+      let toConsume = cost * outputs.length;
       const newInv = { ...s.equipmentInventory };
       for (const item of consumeOrder) {
         if (toConsume <= 0) break;
@@ -67,11 +75,11 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
         newInv[item.id] = have - take;
         toConsume -= take;
       }
-      newInv[output.id] = (newInv[output.id] ?? 0) + 1;
+      for (const id of outputs) newInv[id] = (newInv[id] ?? 0) + 1;
       return { equipmentInventory: newInv };
     });
 
-    return { ok: true, resultId: output.id };
+    return { ok: true, resultId: outputs[outputs.length - 1], count: outputs.length };
   },
   fuseSpecialWeapons: (rarity) => {
     if (!isSpecialWeaponFusionRarity(rarity)) {

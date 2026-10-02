@@ -1,5 +1,5 @@
 'use client';
-import { useSyncExternalStore, memo } from 'react';
+import { useSyncExternalStore, memo, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, getGoldChestCost, getGoldChestMultiplier } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
@@ -251,62 +251,76 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
   );
 });
 
-// ── PAGE ──────────────────────────────────────────────────────────────────
-export function UpgradesPage() {
-  const { pixelCoins, nekoGems, getTotalDps, collection, equippedTeam, collectionFilters, charMastery, inventory, sellItem } = useGameStore(useShallow(s => ({
+// ── Stats du haut : seule partie qui suit les coins et le DPS en direct ───
+function UpgradesStats() {
+  const { pixelCoins, nekoGems, getTotalDps } = useGameStore(useShallow(s => ({
     pixelCoins: s.pixelCoins,
     nekoGems: s.nekoGems,
     getTotalDps: s.getTotalDps,
+  })));
+  return (
+    <div className="upgrades-stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
+      {[
+        { label:'PIXEL-COINS', val:formatNumber(pixelCoins),    color:'var(--gold)',    icon:'🪙' },
+        { label:'NEKO-GEMMES', val:formatNumber(nekoGems),      color:'var(--cyan-hi)', icon:'💎' },
+        { label:'DPS',         val:formatNumber(getTotalDps()), color:'var(--green)',   icon:'🔥' },
+      ].map(s=>(
+        <div key={s.label} className="panel upgrades-stat-tile" style={{ padding:'16px 18px' }}>
+          <div className="upgrades-stat-tile__label" style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
+          <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.7, color:s.color, lineHeight:1.05 }}>{s.val}</div>
+          {s.label === 'DPS' && <div className="upgrades-stat-tile__extra" style={{ marginTop:6 }}><CohesionBadge size="md" /></div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── PAGE ──────────────────────────────────────────────────────────────────
+// Ne souscrit ni aux coins ni à la maîtrise (sauf tri par maîtrise) : les deux
+// changent à chaque kill, ce qui re-triait toute la liste en permanence.
+export function UpgradesPage() {
+  const { collection, equippedTeam, collectionFilters, charMastery, inventory, sellItem } = useGameStore(useShallow(s => ({
     collection: s.collection,
     equippedTeam: s.equippedTeam,
     collectionFilters: s.collectionFilters,
-    charMastery: s.charMastery,
+    charMastery: s.collectionFilters.sortKey === 'mastery' ? s.charMastery : undefined,
     inventory: s.inventory,
     sellItem: s.sellItem,
   })));
-  const equippedSet = new Set(equippedTeam.filter((id): id is string => !!id));
-  const ownedItems = Object.entries(inventory).filter(([id, qty]) => qty > 0 && !ITEM_DEFS[id]?.isCoin);
-  const ownedIds = Object.keys(collection).sort((a, b) => {
+  const ownedItems = useMemo(() => Object.entries(inventory).filter(([id, qty]) => qty > 0 && !ITEM_DEFS[id]?.isCoin), [inventory]);
+  const ownedIds = useMemo(() => Object.keys(collection).sort((a, b) => {
     const aRarity = getCharacterById(parseInstanceKey(a).templateId)?.rarity ?? 'C';
     const bRarity = getCharacterById(parseInstanceKey(b).templateId)?.rarity ?? 'C';
     return RARITY_PRIORITY[aRarity] - RARITY_PRIORITY[bRarity];
-  });
+  }), [collection]);
   const mounted = useIsClient();
-  const universeOptions = (Array.from(new Set(ownedIds.map(id => getCharacterById(parseInstanceKey(id).templateId)?.universe).filter(Boolean))) as string[]).sort();
-  const filteredIds = ownedIds.filter(id => {
-    const tpl = getCharacterById(parseInstanceKey(id).templateId);
-    return !!tpl && matchesCharacterFilters(tpl, collectionFilters);
-  }).sort((a, b) => {
-    // Personnages déjà équipés en priorité, avant tout autre critère de tri.
-    const aEquipped = equippedSet.has(a);
-    const bEquipped = equippedSet.has(b);
-    if (aEquipped !== bEquipped) return aEquipped ? -1 : 1;
-    return compareCharacters(
-      { tpl: getCharacterById(parseInstanceKey(a).templateId)!, owned: collection[a] ?? null },
-      { tpl: getCharacterById(parseInstanceKey(b).templateId)!, owned: collection[b] ?? null },
-      collectionFilters.sortKey, collectionFilters.sortReversed, charMastery,
-    );
-  });
+  const universeOptions = useMemo(
+    () => (Array.from(new Set(ownedIds.map(id => getCharacterById(parseInstanceKey(id).templateId)?.universe).filter(Boolean))) as string[]).sort(),
+    [ownedIds],
+  );
+  const filteredIds = useMemo(() => {
+    const equippedSet = new Set(equippedTeam.filter((id): id is string => !!id));
+    // Template + carte résolus une fois par perso, pas à chaque comparaison.
+    const entries = ownedIds.flatMap(id => {
+      const tpl = getCharacterById(parseInstanceKey(id).templateId);
+      return tpl && matchesCharacterFilters(tpl, collectionFilters)
+        ? [{ id, tpl, owned: collection[id] ?? null, equipped: equippedSet.has(id) }]
+        : [];
+    });
+    entries.sort((a, b) => {
+      // Personnages déjà équipés en priorité, avant tout autre critère de tri.
+      if (a.equipped !== b.equipped) return a.equipped ? -1 : 1;
+      return compareCharacters(a, b, collectionFilters.sortKey, collectionFilters.sortReversed, charMastery);
+    });
+    return entries.map(e => e.id);
+  }, [ownedIds, collection, equippedTeam, collectionFilters, charMastery]);
   if (!mounted) return null;
 
   return (
     <div className="page-pad" style={{ height:'100%', overflowY:'auto' }}>
       <div style={{ maxWidth:900, margin:'0 auto', display:'flex', flexDirection:'column', gap:24 }}>
 
-        {/* Stats */}
-        <div className="upgrades-stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
-          {[
-            { label:'PIXEL-COINS', val:formatNumber(pixelCoins),    color:'var(--gold)',    icon:'🪙' },
-            { label:'NEKO-GEMMES', val:formatNumber(nekoGems),      color:'var(--cyan-hi)', icon:'💎' },
-            { label:'DPS',         val:formatNumber(getTotalDps()), color:'var(--green)',   icon:'🔥' },
-          ].map(s=>(
-            <div key={s.label} className="panel upgrades-stat-tile" style={{ padding:'16px 18px' }}>
-              <div className="upgrades-stat-tile__label" style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
-              <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.7, color:s.color, lineHeight:1.05 }}>{s.val}</div>
-              {s.label === 'DPS' && <div className="upgrades-stat-tile__extra" style={{ marginTop:6 }}><CohesionBadge size="md" /></div>}
-            </div>
-          ))}
-        </div>
+        <UpgradesStats />
 
         {/* Améliorations générales */}
         <div>

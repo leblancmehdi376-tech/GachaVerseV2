@@ -153,7 +153,8 @@ export interface EquipmentActions {
   setLastEquipmentDrop: (id: string | null) => void;
   focusExpedition: (id: string | null) => void;
   unlockEquipRarity: (rarity: Rarity) => void;
-  upgradeEquipment: (slot: EquipmentSlot, rarity: Rarity) => { ok: boolean; reason?: string; resultId?: string };
+  /** Fusionne jusqu'à `times` fois (1 par défaut) en un seul set() ; `count` = fusions réussies. */
+  upgradeEquipment: (slot: EquipmentSlot, rarity: Rarity, times?: number) => { ok: boolean; reason?: string; resultId?: string; count?: number };
   // Fusion d'armes spéciales (3 armes de perso Cosmique+ d'une rareté → 1 arme
   // de perso aléatoire de la MÊME rareté — pas de changement de rareté).
   fuseSpecialWeapons: (rarity: Rarity) => { ok: boolean; reason?: string; resultId?: string };

@@ -27,7 +27,7 @@ export const EDITION_LOGO_VARIANTS: { id: EditionLogoVariant; label: string; des
   { id: 'ring12', label: 'D12 · D10 à police contrastée', description: 'D10 dont le chiffre prend la couleur (noir ou blanc) qui contraste le plus avec la pierre.' },
   { id: 'ring13', label: 'D13 · D12 sans sertissage', description: 'D12 sans le cadre de métal : la pierre occupe tout le badge, les arcs s\'allument sur son contour.' },
   { id: 'ring14', label: 'D14 · D12 sans biseautage', description: 'D12 avec une pierre lisse (sans facettes ni table centrale).' },
-  { id: 'ring15', label: 'D15 · Anneau des éditions', description: 'L\'anneau est découpé en 6 arcs, chacun à la couleur d\'une édition (Bronze, Or, Émeraude, Rubis, Diamant, Obsidienne). Ils s\'allument au fil des paliers : l\'anneau raconte le parcours de la carte.' },
+  { id: 'ring15', label: 'D15 · Anneau des éditions', description: 'L\'anneau est découpé en 6 arcs, chacun à la couleur d\'une édition (Bronze, Or, Émeraude, Diamant, Rubis, Obsidienne). Ils s\'allument au fil des paliers : l\'anneau raconte le parcours de la carte.' },
   { id: 'ring16', label: 'D16 · Éclosion', description: 'Des pétales poussent autour de la gemme : 1 au Bronze, 7 au Prismatique (arc-en-ciel). La fleur s\'ouvre au fil des paliers.' },
   { id: 'ring17', label: 'D17 · Rayonnement', description: 'La gemme rayonne : 4 rayons au Bronze, 2 de plus par palier, 16 au Prismatique. Plus la carte est rare, plus elle brille.' },
   { id: 'ring18', label: 'D18 · Fiole', description: 'Une fiole ronde qui se remplit du liquide de l\'édition : un septième par palier, pleine et arc-en-ciel au Prismatique.' },
@@ -111,9 +111,9 @@ const FACETED: Record<CardEdition, { outline: string; girdle: Pt[]; table: Pt[] 
   emerald:   { outline: 'M13 4h14l8 8v16l-8 8H13l-8-8V12z',                                                                         // émeraude
                girdle: [[13, 4], [27, 4], [35, 12], [35, 28], [27, 36], [13, 36], [5, 28], [5, 12]],
                table: [[15.5, 11], [24.5, 11], [28, 14.5], [28, 25.5], [24.5, 29], [15.5, 29], [12, 25.5], [12, 14.5]] },
-  ruby:      { outline: 'M20 3a12.5 17 0 1 0 0.01 0z', girdle: ring(8, 12.5, 17, Math.PI / 8), table: ring(8, 6, 9, Math.PI / 8) },   // ovale
   diamond:   { outline: 'M11 7h18l7 9-16 19L4 16z',                                                                                // brillant
                girdle: [[11, 7], [29, 7], [36, 16], [20, 35], [4, 16]], table: [[16, 16], [24, 16], [24, 16], [20, 35], [16, 16]] },
+  ruby:      { outline: 'M20 3a12.5 17 0 1 0 0.01 0z', girdle: ring(8, 12.5, 17, Math.PI / 8), table: ring(8, 6, 9, Math.PI / 8) },   // ovale
   obsidian:  { outline: 'M22 3l11 14-6 18-14 2-6-15z',                                                                             // éclat
                girdle: [[22, 3], [33, 17], [27, 35], [13, 37], [7, 22]], table: [[19, 19], [19, 19], [19, 19], [19, 19], [19, 19]] },
   prismatic: { outline: 'M20 4L36 33H4z',                                                                                          // trillion
@@ -143,14 +143,14 @@ const PALETTE: Record<CardEdition, [string, string, string]> = {
   bronze:    ['#f0b27a', '#cd7f32', '#6b3410'],
   gold:      ['#fde68a', '#f59e0b', '#92400e'],
   emerald:   ['#6ee7b7', '#059669', '#064e3b'],
-  ruby:      ['#fda4af', '#e11d48', '#881337'],
   diamond:   ['#ecfeff', '#22d3ee', '#0e7490'],
+  ruby:      ['#fda4af', '#e11d48', '#881337'],
   obsidian:  ['#a78bfa', '#2e1065', '#0a0a0f'],
   prismatic: ['#ffffff', '#e879f9', '#6d28d9'],
 };
 const RAINBOW = ['#f87171', '#fbbf24', '#4ade80', '#22d3ee', '#818cf8', '#e879f9'];
 const EMOJI: Record<CardEdition, string> = {
-  base: '', bronze: '🪙', gold: '✨', emerald: '❇️', ruby: '♦️', diamond: '💎', obsidian: '🌑', prismatic: '🌈',
+  base: '', bronze: '🪙', gold: '✨', emerald: '❇️', diamond: '💎', ruby: '♦️', obsidian: '🌑', prismatic: '🌈',
 };
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
@@ -160,8 +160,8 @@ const CUT_PATHS: Record<CardEdition, string> = {
   bronze:    'M20 5a15 15 0 1 0 0.01 0z',                                              // pièce
   gold:      'M20 4l4.6 10.2 11 1.1-8.3 7.4 2.4 10.9L20 28l-9.7 5.6 2.4-10.9-8.3-7.4 11-1.1z', // étoile
   emerald:   'M13 5h14l8 8v14l-8 8H13l-8-8V13z',                                        // taille émeraude
-  ruby:      'M20 35C9 27 4 20.5 4 14.5 4 9 8 5.5 12.6 5.5c3.2 0 5.6 1.8 7.4 4.4 1.8-2.6 4.2-4.4 7.4-4.4C32 5.5 36 9 36 14.5 36 20.5 31 27 20 35z', // cœur
   diamond:   'M11 7h18l7 9-16 19L4 16z',                                                // brillant
+  ruby:      'M20 35C9 27 4 20.5 4 14.5 4 9 8 5.5 12.6 5.5c3.2 0 5.6 1.8 7.4 4.4 1.8-2.6 4.2-4.4 7.4-4.4C32 5.5 36 9 36 14.5 36 20.5 31 27 20 35z', // cœur
   obsidian:  'M22 3l11 14-6 18-14 2-6-15z',                                             // éclat
   prismatic: 'M20 3l15 9v16l-15 9-15-9V12z',                                            // prisme
 };
@@ -190,21 +190,20 @@ export function EditionLogo({ edition, variant, size = 32 }: { edition: CardEdit
   const [light, mid, dark] = PALETTE[edition];
   const tier = editionTier(edition);
   const glow = edition === 'prismatic' ? '#e879f9' : mid;
-  const anim = edition === 'prismatic' ? 'editionPrism 4s linear infinite' : undefined;
 
   if (variant === 'emoji') {
     return (
       <span style={{
         width: size, height: size, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         background: `radial-gradient(circle at 35% 30%, #fff, ${mid})`, border: `1.5px solid ${mid}`,
-        boxShadow: `0 0 10px ${glow}`, fontSize: Math.round(size * 0.55), animation: anim, flexShrink: 0,
+        boxShadow: `0 0 10px ${glow}`, fontSize: Math.round(size * 0.55), flexShrink: 0,
       }}>
         {EMOJI[edition] || '·'}
       </span>
     );
   }
 
-  const shadow = { filter: `drop-shadow(0 0 ${Math.max(2, size / 8)}px ${glow})`, animation: anim, flexShrink: 0 } as const;
+  const shadow = { filter: `drop-shadow(0 0 ${Math.max(2, size / 8)}px ${glow})`, flexShrink: 0 } as const;
 
   if (variant === 'gem') {
     return (

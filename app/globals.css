@@ -1853,10 +1853,21 @@ html, body {
 .cf-pop { animation: cfPop .18s ease-out; }
 .cf-scroll { scrollbar-width: thin; scrollbar-color: var(--border-lit) transparent; }
 @keyframes cfPop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
-@keyframes editionPrism {
-  from { filter: hue-rotate(0deg); }
-  to   { filter: hue-rotate(360deg); }
+/* Effets des cartes à édition (CharacterCardThumb) : uniquement transform et
+   opacity, animés par le compositeur sans repeindre la carte. Coupés hors
+   écran (data-fx-off, voir hooks/useInView) et en mouvement réduit. */
+.ed-shine {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
+  z-index: 12; pointer-events: none;
+  transform: translateX(-150%);
+  animation: editionShine 2.4s ease-in-out infinite;
 }
+@keyframes editionShine {
+  from { transform: translateX(-150%); }
+  to   { transform: translateX(300%); }
+}
+.ed-halo { animation: editionPulse 1.8s ease-in-out infinite; }
+[data-fx-off] .ed-fx { animation: none; }
 @media (prefers-reduced-motion: reduce) {
-  [style*="editionPrism"] { animation: none !important; }
+  .ed-fx { animation: none !important; }
 }

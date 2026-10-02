@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge } from '@/components/ui/RarityBadge';
@@ -60,8 +61,8 @@ function UltimateBlurb({ ult }: { ult: UltimateDef }) {
 
 // ── Panel synergies actives ───────────────────────────────────────────────
 function SynergiesPanel() {
-  const { equippedTeam } = useGameStore();
-  const active = computeActiveSynergies(equippedTeam);
+  const equippedTeam = useGameStore(s => s.equippedTeam);
+  const active = useMemo(() => computeActiveSynergies(equippedTeam), [equippedTeam]);
   const allSynergies = SYNERGIES_LIST;
 
   return (
@@ -398,15 +399,17 @@ function EquipmentInventoryCard({
 }
 
 // ── Carte de la collection ──────────────────────────────────────────────────
-function CollectionCard({
-  tpl, owned, isEquipped, isSelecting, isLocked, onClick,
+// memo + onClick stable : un clic ne re-rend que les cartes dont l'état change.
+const CollectionCard = memo(function CollectionCard({
+  instanceKey, tpl, owned, isEquipped, isSelecting, isLocked, onClick,
 }: {
+  instanceKey: string;
   tpl: CharacterTemplate;
   owned: OwnedCharacter;
   isEquipped: boolean;
   isSelecting: boolean;
   isLocked: boolean;
-  onClick: () => void;
+  onClick: (instanceKey: string, isLocked: boolean) => void;
 }) {
   const cfg = RARITY_CONFIG[tpl.rarity];
   const dps = calcCharDps(tpl, owned);
@@ -415,7 +418,7 @@ function CollectionCard({
   return (
     <div
       className="companion-item-card"
-      onClick={onClick}
+      onClick={() => onClick(instanceKey, isLocked)}
       style={{
         cursor: 'pointer',
         position: 'relative',
@@ -469,7 +472,7 @@ function CollectionCard({
       </div>
     </div>
   );
-}
+});
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export function CompanionsPage() {
@@ -478,26 +481,41 @@ export function CompanionsPage() {
     equippedTeam,
     equipCharacter,
     unequipCharacter,
-    getRunPeakPalier,
     equipmentInventory,
     equipItem,
     unequipItem,
     collectionFilters,
-    getTeamCohesion,
     charMastery,
-  } = useGameStore();
+  } = useGameStore(useShallow(s => ({
+    collection: s.collection,
+    equippedTeam: s.equippedTeam,
+    equipCharacter: s.equipCharacter,
+    unequipCharacter: s.unequipCharacter,
+    equipmentInventory: s.equipmentInventory,
+    equipItem: s.equipItem,
+    unequipItem: s.unequipItem,
+    collectionFilters: s.collectionFilters,
+    charMastery: s.charMastery,
+  })));
+  // Valeurs dérivées sélectionnées directement : la page ne se re-rend plus
+  // à chaque tick du combat, seulement quand elles changent.
+  const runPeakPalier = useGameStore(s => s.getRunPeakPalier());
+  const cohesionMult = useGameStore(s => s.getTeamCohesion().mult);
 
   const [selSlot, setSelSlot] = useState<number | null>(null);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
 
-  const owned = Object.entries(collection).sort(([, a], [, b]) => {
+  const owned = useMemo(() => Object.entries(collection).sort(([, a], [, b]) => {
     const aRarity = getCharacterById(a.templateId)?.rarity ?? 'C';
     const bRarity = getCharacterById(b.templateId)?.rarity ?? 'C';
     return RARITY_PRIORITY[aRarity] - RARITY_PRIORITY[bRarity];
-  });
-  const universeOptions = (Array.from(new Set(Object.values(collection).map(c => getCharacterById(c.templateId)?.universe).filter(Boolean))) as string[]).sort();
+  }), [collection]);
+  const universeOptions = useMemo(
+    () => (Array.from(new Set(Object.values(collection).map(c => getCharacterById(c.templateId)?.universe).filter(Boolean))) as string[]).sort(),
+    [collection],
+  );
 
-  const filteredCollection = owned
+  const filteredCollection = useMemo(() => owned
     .filter(([, ownedChar]) => {
       const tpl = getCharacterById(ownedChar.templateId);
       return !!tpl && matchesCharacterFilters(tpl, collectionFilters);
@@ -506,17 +524,20 @@ export function CompanionsPage() {
       { tpl: getCharacterById(a.templateId)!, owned: a },
       { tpl: getCharacterById(b.templateId)!, owned: b },
       collectionFilters.sortKey, collectionFilters.sortReversed, charMastery,
-    ));
+    )), [owned, collectionFilters, charMastery]);
 
-  const ownedEquipment = Object.entries(equipmentInventory).filter(([, qty]) => qty > 0);
+  const ownedEquipment = useMemo(() => Object.entries(equipmentInventory).filter(([, qty]) => qty > 0), [equipmentInventory]);
 
   const selectedCharacter = selectedCharacterId ? collection[selectedCharacterId] : null;
   const selectedTpl = selectedCharacter ? getCharacterById(selectedCharacter.templateId) : null;
-  const activeSynergies = computeActiveSynergies(equippedTeam);
+  const activeSynergies = useMemo(() => computeActiveSynergies(equippedTeam), [equippedTeam]);
   const selectedSynergy = selectedTpl ? activeSynergies.find(s => s.def.universe === selectedTpl.universe) ?? null : null;
 
   // DPS affiché = DPS de l'accueil hors bonus globaux : on y applique la cohésion d'équipe.
-  const totalDps = bnMulScalar(calculateEquippedTeamDps(equippedTeam, collection, charMastery), getTeamCohesion().mult);
+  const totalDps = useMemo(
+    () => bnMulScalar(calculateEquippedTeamDps(equippedTeam, collection, charMastery), cohesionMult),
+    [equippedTeam, collection, charMastery, cohesionMult],
+  );
 
   const selectedDps = selectedTpl && selectedCharacter ? calcCharDps(selectedTpl, selectedCharacter) : 0;
   const selectedEquipMult = selectedCharacter && selectedTpl ? getEquipmentMultiplier(selectedCharacter, selectedTpl) : 1;
@@ -556,15 +577,15 @@ export function CompanionsPage() {
     }
   };
 
-  const handleCollectionCardClick = (instanceKey: string, isLocked: boolean) => {
+  const handleCollectionCardClick = useCallback((instanceKey: string, isLocked: boolean) => {
     if (selSlot !== null) {
       if (isLocked) return;
       equipCharacter(instanceKey, selSlot);
       setSelSlot(null);
     } else {
-      setSelectedCharacterId(instanceKey === selectedCharacterId ? null : instanceKey);
+      setSelectedCharacterId(prev => (instanceKey === prev ? null : instanceKey));
     }
-  };
+  }, [selSlot, equipCharacter]);
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', padding: '24px 28px' }}>
@@ -665,20 +686,21 @@ export function CompanionsPage() {
               <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13.4, color: 'var(--text-muted)' }}>Va dans l'onglet Gacha pour invoquer !</div>
             </div>
           ) : (
-            <div className="companion-item-grid">
+            <div className="upgrades-ally-grid">
               {filteredCollection.map(([instanceKey, ownedChar]) => {
                 const tpl = getCharacterById(ownedChar.templateId);
                 if (!tpl) return null;
-                const isLocked = getRunPeakPalier() < RARITY_GATES[tpl.rarity].unlockPalier;
+                const isLocked = runPeakPalier < RARITY_GATES[tpl.rarity].unlockPalier;
                 return (
                   <CollectionCard
                     key={instanceKey}
+                    instanceKey={instanceKey}
                     tpl={tpl}
                     owned={ownedChar}
                     isEquipped={equippedTeam.includes(instanceKey)}
                     isSelecting={selSlot !== null}
                     isLocked={isLocked}
-                    onClick={() => handleCollectionCardClick(instanceKey, isLocked)}
+                    onClick={handleCollectionCardClick}
                   />
                 );
               })}

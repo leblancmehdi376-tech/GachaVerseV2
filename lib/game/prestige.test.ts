@@ -62,7 +62,8 @@ describe('Mémoire des Pierres', () => {
     expect(stoneMemoryCapPoints(0)).toBe(0);
     expect(stoneMemoryCapEdition(1)).toBe('bronze');
     expect(stoneMemoryCapPoints(1)).toBe(2);
-    expect(stoneMemoryCapEdition(5)).toBe('diamond');
+    expect(stoneMemoryCapEdition(4)).toBe('diamond');
+    expect(stoneMemoryCapEdition(5)).toBe('ruby');
     expect(stoneMemoryCapEdition(7)).toBe('prismatic');
     expect(stoneMemoryCapPoints(7)).toBe(128);
   });

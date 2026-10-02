@@ -694,8 +694,17 @@ export function computeEquippedMultiplier(
 // Tous les objets d'un slot+rareté donnés (générique + variantes personnalisées
 // "bonusFor" le cas échéant). Sert à la fois de pool de fodder et de pool de
 // sortie pour la fusion d'équipement (upgradeEquipment dans gameStore.ts).
+// Mis en cache : EQUIPMENT_DEFS est statique, et la page Équipement / la
+// fusion appellent ceci des dizaines de fois par rendu. Ne pas muter le résultat.
+const equipmentGroupCache = new Map<string, EquipmentDef[]>();
 export function getEquipmentGroup(slot: EquipmentDef['slot'], rarity: string): EquipmentDef[] {
-  return Object.values(EQUIPMENT_DEFS).filter(item => item.slot === slot && item.rarity === rarity);
+  const key = `${slot}|${rarity}`;
+  let group = equipmentGroupCache.get(key);
+  if (!group) {
+    group = Object.values(EQUIPMENT_DEFS).filter(item => item.slot === slot && item.rarity === rarity);
+    equipmentGroupCache.set(key, group);
+  }
+  return group;
 }
 
 // Tirage pondéré du résultat d'une fusion d'équipement (N → 1 rareté sup.,

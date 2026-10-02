@@ -9,6 +9,7 @@
 import { create } from 'zustand';
 import { DEFAULT_COLLECTION_FILTERS } from '@/lib/game/collectionFilters';
 import { persist } from 'zustand/middleware';
+import { createThrottledStorage } from './throttledStorage';
 import { OwnedCharacter, HeroState, Rarity } from '@/types/game';
 import { generateEnemy } from '@/lib/game/enemies';
 import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
@@ -266,6 +267,8 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
+      // Écriture différée (≤ 1/s) au lieu d'un JSON.stringify synchrone à chaque set().
+      storage: createThrottledStorage(),
       merge: (persisted, current) => {
         // Réhydratation tardive (voir waitForAllHydrated dans lib/firebase/cloudSaveSync.ts,
         // filet de sécurité 3s) : si `current` porte déjà un `savedAt` plus

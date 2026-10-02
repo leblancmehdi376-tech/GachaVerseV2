@@ -106,6 +106,16 @@ describe('migrateEditionSave', () => {
     expect(res.equipmentInventory).toEqual({});
   });
 
+  it('une ancienne carte Diamant reste Diamant (16 points, sous Rubis)', () => {
+    const res = migrateEditionSave({
+      collection: { d: owned({ templateId: 'd' }), 'd::diamond': owned({ templateId: 'd', edition: 'diamond' }) },
+      equippedTeam: [], equipmentInventory: {}
+    })!;
+    expect(res.collection.d.editionPoints).toBe(1 + 16);
+    expect(res.collection.d.edition).toBe('diamond');
+    expect(nextEdition('diamond')).toBe('ruby');
+  });
+
   it('plafonne la jauge à Prismatique', () => {
     const res = migrateEditionSave({
       collection: { c: owned({ templateId: 'c', copies: 7, edition: 'obsidian' }) },

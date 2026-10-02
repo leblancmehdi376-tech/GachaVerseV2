@@ -3,7 +3,7 @@ import { useGameStore } from '@/store/gameStore';
 import { killAchievementPatch, bossFailPatch, gachaStatsPatch, addStats, maxStats } from './achievementStats';
 import {
   ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES, ACHIEVEMENT_SERIES, ACHIEVEMENT_ENTRIES, CHAL, EGG, STAT, EV_PERFECT, WORLD_TOTAL, ALL_SECRET_KEYS,
-  computeDerivedStats, getMasteryMilestones, getMasteryPct, getMasteryDpsBonus, getMasteryDpsMult, MASTERY_RARITY_MULT, pageStatKey, EXPLORABLE_PAGES,
+  computeDerivedStats, getMasteryMilestones, getMasteryPct, getMasteryDpsBonus, getMasteryDpsMult, MASTERY_RARITY_MULT, bankMasteryLevel, pageStatKey, EXPLORABLE_PAGES,
 } from './achievements';
 import { CHARACTER_POOL, getCharacterById } from './characters';
 import { getPalierConfig } from './paliers';
@@ -229,6 +229,27 @@ describe('mergeMonotonicState — statistiques de succès', () => {
     expect(merged.achievementStats).toEqual({ a: 5, b: 4, c: 1 });
     expect(merged.charMastery.x).toEqual({ k: 10, w: 2, lv: 9, f: 1 });
     expect(merged.charMastery.y.k).toBe(1);
+  });
+
+  it("ne ressuscite pas le niveau d'avant un Prestige", () => {
+    useGameStore.setState({ prestigeLevel: 2, charMastery: { x: { k: 10, w: 1, lv: 50, f: 0, lb: 1000 } } });
+    const stale = mergeMonotonicState({ prestigeLevel: 1, charMastery: { x: { k: 8, w: 1, lv: 1300, f: 0 } } }, null);
+    expect(stale.charMastery.x).toEqual({ k: 10, w: 1, lv: 50, f: 0, lb: 1000 });
+    const newer = mergeMonotonicState({ prestigeLevel: 3, charMastery: { x: { k: 12, w: 1, lv: 20, f: 0, lb: 1500 } } }, null);
+    expect(newer.charMastery.x).toEqual({ k: 12, w: 1, lv: 20, f: 0, lb: 1500 });
+  });
+});
+
+describe('bankMasteryLevel', () => {
+  it('garde les paliers de niveau validés mais pas l’avancement partiel', () => {
+    const banked = bankMasteryLevel({ k: 0, w: 0, lv: 1300, f: 0 });
+    expect(banked).toEqual({ k: 0, w: 0, lv: 0, f: 0, lb: 1000 });
+    const lv = getMasteryMilestones(banked).filter(m => m.id.startsWith('lv'));
+    expect(lv.map(m => m.done)).toEqual([true, true, false, false, false, false]);
+    expect(lv[2].value).toBe(0);
+    // Un palier banqué n'est jamais perdu, même après un prestige à bas niveau.
+    expect(bankMasteryLevel({ ...banked, lv: 200 }).lb).toBe(1000);
+    expect(bankMasteryLevel({ k: 0, w: 0, lv: 300, f: 0 })).toEqual({ k: 0, w: 0, lv: 0, f: 0 });
   });
 });
 

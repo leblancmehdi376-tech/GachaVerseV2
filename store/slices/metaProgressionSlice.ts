@@ -8,6 +8,7 @@ import { auth } from '@/lib/firebase/config';
 import { cancelAllActiveListings } from '@/lib/firebase/marketplace';
 import { calcTokensAwarded } from '@/lib/game/prestige';
 import { getEditionPoints } from '@/lib/game/editions';
+import { bankMasteryLevel } from '@/lib/game/achievements';
 import { toast } from '@/hooks/useToast';
 import {
   OFFLINE_MULT_TIERS, OFFLINE_REWARD_SCALE_TIERS, OFFLINE_CAP_TIERS_H,
@@ -145,6 +146,8 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
   //            jauge d'édition max banquée (historicalEditionPoints),
   //            récupérable à la re-obtention seulement via le bonus de
   //            Prestige "Mémoire des Pierres" (voir addToCollection).
+  //            Maîtrise : combats et boss vaincus conservés, niveau remis à 0
+  //            mais paliers de niveau déjà validés gardés (bankMasteryLevel).
   doPrestige: async () => {
     const state = get();
     const runPeak = runPeakPalierOf(state);
@@ -186,6 +189,12 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
     // zéro par le set() ci-dessous (voir commentaire "Conservé" plus haut).
     get().bumpRaidQuest('e_prestige_1', 1);
 
+    // Maîtrise : niveau de la run remis à 0, paliers de niveau validés banqués
+    // (combats et boss vaincus conservés) — voir bankMasteryLevel.
+    const newCharMastery = Object.fromEntries(
+      Object.entries(state.charMastery ?? {}).map(([id, m]) => [id, bankMasteryLevel(m)])
+    );
+
     set({
       // ── Reset ──
       equipmentInventory: {},
@@ -195,6 +204,7 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       collection: {},
       championInventory: {},
       historicalEditionPoints: newHistoricalEditionPoints,
+      charMastery: newCharMastery,
       equippedTeam: [null, null, null, null],
       inventory: {},
       raidCharacterPurchases: {},

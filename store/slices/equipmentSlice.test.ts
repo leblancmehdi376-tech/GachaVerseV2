@@ -18,6 +18,21 @@ describe('equipmentSlice — coût de fusion dépendant de la rareté', () => {
     expect(res.reason).toContain('10');
   });
 
+  it('fusionne plusieurs fois en un seul appel, borné par le stock', () => {
+    useGameStore.setState({
+      equipmentInventory: { helmet_common: 35 },
+      unlockedEquipRarities: ['C', 'U'],
+    });
+    const res = useGameStore.getState().upgradeEquipment('helmet', 'C', 100);
+    expect(res.ok).toBe(true);
+    expect(res.count).toBe(3);
+    const inv = useGameStore.getState().equipmentInventory;
+    expect(inv.helmet_common).toBe(5);
+    const uncommon = Object.entries(inv).filter(([id]) => id.startsWith('helmet_') && id !== 'helmet_common')
+      .reduce((sum, [, n]) => sum + n, 0);
+    expect(uncommon).toBe(3);
+  });
+
   it('C→U coûte exactement 10 objets communs', () => {
     useGameStore.setState({
       equipmentInventory: { helmet_common: 10 },

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { getEquipmentGroup, getEquipmentDef, type EquipmentDef } from '@/lib/game/items';
 import {
@@ -29,15 +29,22 @@ export function EquipmentUpgradePage() {
   const [selected, setSelected] = useState<{ slot: EquipmentSlot; rarity: Rarity } | null>(null);
   const [lastResult, setLastResult] = useState<string | null>(null);
 
-  const groups: GroupInfo[] = [];
-  for (const slot of EQUIPMENT_SLOTS) {
-    for (const rarity of RARITY_ORDER_ASC) {
-      const items = getEquipmentGroup(slot, rarity);
-      const qty = items.reduce((sum, item) => sum + (equipmentInventory[item.id] ?? 0), 0);
-      const specialQty = items.filter(item => !!item.bonusFor).reduce((sum, item) => sum + (equipmentInventory[item.id] ?? 0), 0);
-      if (qty > 0) groups.push({ slot, rarity, qty, specialQty });
+  const groups = useMemo(() => {
+    const out: GroupInfo[] = [];
+    for (const slot of EQUIPMENT_SLOTS) {
+      for (const rarity of RARITY_ORDER_ASC) {
+        let qty = 0;
+        let specialQty = 0;
+        for (const item of getEquipmentGroup(slot, rarity)) {
+          const n = equipmentInventory[item.id] ?? 0;
+          qty += n;
+          if (item.bonusFor) specialQty += n;
+        }
+        if (qty > 0) out.push({ slot, rarity, qty, specialQty });
+      }
     }
-  }
+    return out;
+  }, [equipmentInventory]);
   const totalItems = groups.reduce((sum, g) => sum + g.qty, 0);
   const upgradableGroups = groups.filter(g => g.qty >= getEquipmentUpgradeCost(g.rarity)).length;
 
@@ -58,20 +65,14 @@ export function EquipmentUpgradePage() {
 
   const doUpgrade = (times: number) => {
     if (!selected || times < 1) return;
-    let succeeded = 0;
-    let lastId: string | null = null;
-    let failReason: string | null = null;
-    for (let i = 0; i < times; i++) {
-      const res = upgradeEquipment(selected.slot, selected.rarity);
-      if (!res.ok) { failReason = res.reason ?? 'Échec de la fusion'; break; }
-      succeeded++;
-      lastId = res.resultId ?? lastId;
-    }
-    if (succeeded > 0 && lastId) {
-      const def = getEquipmentDef(lastId);
-      setLastResult(`✦ ${succeeded} fusion${succeeded > 1 ? 's' : ''} réussie${succeeded > 1 ? 's' : ''} — dernier objet obtenu : ${def?.name ?? lastId}`);
-    } else if (failReason) {
-      setLastResult(failReason);
+    // Une seule mise à jour du store, quel que soit le nombre de fusions.
+    const res = upgradeEquipment(selected.slot, selected.rarity, times);
+    const succeeded = res.count ?? 0;
+    if (res.ok && succeeded > 0 && res.resultId) {
+      const def = getEquipmentDef(res.resultId);
+      setLastResult(`✦ ${succeeded} fusion${succeeded > 1 ? 's' : ''} réussie${succeeded > 1 ? 's' : ''} — dernier objet obtenu : ${def?.name ?? res.resultId}`);
+    } else {
+      setLastResult(res.reason ?? 'Échec de la fusion');
     }
   };
 

@@ -226,7 +226,7 @@ export function trackMastery(charMastery: Record<string, CharMastery>) {
   for (const [id, m] of Object.entries(charMastery)) {
     const tpl = getCharacterById(id);
     if (!tpl) continue;
-    lv = Math.max(lv, m.lv); k = Math.max(k, m.k); w = Math.max(w, m.w);
+    lv = Math.max(lv, m.lv, m.lb ?? 0); k = Math.max(k, m.k); w = Math.max(w, m.w);
     if (getMasteryPct(getMasteryMilestones(m, tpl.rarity)) >= 100) full++;
   }
   s.setProgress('mastery_lv_10',  Math.min(lv, 10));

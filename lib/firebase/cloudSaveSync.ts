@@ -209,14 +209,22 @@ export function mergeMonotonicState(
   }
   const charMastery: Record<string, CharMastery> = { ...(current.charMastery ?? {}) };
   const remoteMastery = remote?.charMastery as Record<string, Partial<CharMastery>> | undefined;
+  // lv est le niveau de la RUN (remis à 0 au Prestige, voir bankMasteryLevel) :
+  // un remote d'un prestige antérieur ne doit pas ressusciter l'ancien niveau,
+  // et un remote d'un prestige plus récent remplace le niveau local périmé.
+  const localPrestige = current.prestigeLevel ?? 0;
+  const remotePrestige = Number(remote?.prestigeLevel) || 0;
   if (remoteMastery) for (const [id, r] of Object.entries(remoteMastery)) {
     if (!r || typeof r !== 'object') continue;
     const l = charMastery[id] ?? { k: 0, w: 0, lv: 0, f: 0 };
+    const rlv = Number(r.lv) || 0;
+    const lb = Math.max(l.lb ?? 0, Number(r.lb) || 0);
     charMastery[id] = {
       k:  Math.max(l.k,  Number(r.k)  || 0),
       w:  Math.max(l.w,  Number(r.w)  || 0),
-      lv: Math.max(l.lv, Number(r.lv) || 0),
+      lv: remotePrestige < localPrestige ? l.lv : remotePrestige > localPrestige ? rlv : Math.max(l.lv, rlv),
       f:  Math.max(l.f,  Number(r.f)  || 0),
+      ...(lb > 0 ? { lb } : {}),
     };
   }
 
@@ -233,7 +241,8 @@ export function mergeMonotonicState(
 // ── Rafraîchissement local de savedAt ──────────────────────────────────────
 // La vraie persistance locale est déjà assurée par le middleware `persist` de
 // Zustand (voir store/gameStore.ts, clé 'nekoz-world-v8'), qui réécrit le
-// disque à CHAQUE set() pertinent — pas besoin de dupliquer l'état ici.
+// disque au plus une fois par seconde (store/throttledStorage.ts) — pas
+// besoin de dupliquer l'état ici.
 // Cette fonction ne fait donc que rafraîchir `savedAt` sur le store en
 // mémoire (le prochain set() le fera persister via ce même middleware), pour
 // que loadAndApply puisse détecter une session locale "récemment active"

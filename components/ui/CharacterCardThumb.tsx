@@ -7,6 +7,7 @@ import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets'
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { EditionLogo, OFFICIAL_EDITION_LOGO } from '@/components/ui/EditionLogo';
+import { useInView } from '@/hooks/useInView';
 
 interface Props {
   templateId: string;
@@ -20,6 +21,15 @@ interface Props {
   frameOverlay?: boolean;
   badge?: (size: number) => React.ReactNode; // remplace la pastille d'édition
 }
+
+const PRISM_HALO = '0 0 12px #e879f9aa, -5px -5px 20px #f8717166, 5px -5px 20px #fbbf2466, 5px 5px 20px #22d3ee66, -5px 5px 20px #818cf866';
+const PRISM_BORDER: React.CSSProperties = {
+  padding: 2,
+  background: 'conic-gradient(#f87171, #fbbf24, #4ade80, #22d3ee, #818cf8, #e879f9, #f87171)',
+  WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+  WebkitMaskComposite: 'xor',
+  mask: 'linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)',
+};
 
 // Carte de personnage avec repli en cascade.
 // Le cadre superposé est toujours affiché à ses dimensions exactes,
@@ -39,8 +49,9 @@ export function CharacterCardThumb({
   const cfg = RARITY_CONFIG[rarity];
   const ed = EDITION_CONFIG[edition] ?? EDITION_CONFIG.base;
   const isShiny = ed !== EDITION_CONFIG.base;
-  // Prismatique : bordure, halo et badge défilent sur tout l'arc-en-ciel.
-  const prismAnim = edition === 'prismatic' ? 'editionPrism 4s linear infinite' : undefined;
+  const isPrismatic = edition === 'prismatic';
+  // Effets animés coupés quand la carte sort de l'écran (grilles de collection).
+  const [fxRef, fxVisible] = useInView<HTMLDivElement>(isShiny);
   const frameSrc = frameOverlay ? RARITY_FRAME_SRC[rarity] : null;
 
   // Les fichiers de public/sprites/new_cards_processed sont recadrés en
@@ -274,6 +285,8 @@ export function CharacterCardThumb({
   // l'intérieur contient les effets dans les dimensions exactes du cadre.
   return (
     <div
+      ref={fxRef}
+      data-fx-off={fxVisible ? undefined : ''}
       style={{
         position: 'relative',
         ...boxStyle,
@@ -293,18 +306,10 @@ export function CharacterCardThumb({
         {frameImg}
         {nameOverlay}
 
-        {/* Reflet animé qui balaie la carte */}
+        {/* Reflet animé qui balaie la carte (translateX, voir .ed-shine) */}
         <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            width: '40%',
-            background: `linear-gradient(90deg, transparent, ${ed.color}66, transparent)`,
-            animation: 'shimmerSlide 2.4s ease-in-out infinite',
-            zIndex: 12,
-            pointerEvents: 'none',
-          }}
+          className="ed-fx ed-shine"
+          style={{ background: `linear-gradient(90deg, transparent, ${ed.color}66, transparent)` }}
         />
       </div>
 
@@ -316,10 +321,10 @@ export function CharacterCardThumb({
           pointerEvents: 'none',
           // cut les corners pour s'aligner parfaitement au cadre, pour correspondre au border-radius du cadre et ne pas déborder sur le badge d'édition.
           borderRadius: 8,
-          boxShadow: `0 0 12px ${ed.glow}aa, 0 0 28px ${ed.glow}55`,
+          boxShadow: isPrismatic ? PRISM_HALO : `0 0 12px ${ed.glow}aa, 0 0 28px ${ed.glow}55`,
           zIndex: 13,
-          animation: prismAnim ? `editionPulse 1.8s ease-in-out infinite, ${prismAnim}` : 'editionPulse 1.8s ease-in-out infinite',
         }}
+        className="ed-fx ed-halo"
       />
 
       {/* Bordure shiny : rendue au-dessus du cadre illustré (celui-ci a
@@ -332,10 +337,11 @@ export function CharacterCardThumb({
           position: 'absolute',
           inset: 0,
           borderRadius: 8,
-          border: shinyBorder,
           pointerEvents: 'none',
           zIndex: 15,
-          animation: prismAnim,
+          // Prismatique : bordure arc-en-ciel fixe (dégradé détouré par un
+          // masque) plutôt qu'un hue-rotate animé, qui repeignait tout à chaque frame.
+          ...(isPrismatic ? PRISM_BORDER : { border: shinyBorder }),
         }}
       />
 

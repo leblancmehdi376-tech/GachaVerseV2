@@ -11,11 +11,11 @@ import type { EquippedItems } from '@/types/game';
 
 // 'base'/'gold'/'diamond' gardent leurs ids historiques (sauvegardes existantes).
 export type CardEdition =
-  | 'base' | 'bronze' | 'gold' | 'emerald' | 'ruby' | 'diamond' | 'obsidian' | 'prismatic';
+  | 'base' | 'bronze' | 'gold' | 'emerald' | 'diamond' | 'ruby' | 'obsidian' | 'prismatic';
 
 // Ordre croissant de rareté.
 export const EDITION_ORDER: CardEdition[] =
-  ['base', 'bronze', 'gold', 'emerald', 'ruby', 'diamond', 'obsidian', 'prismatic'];
+  ['base', 'bronze', 'gold', 'emerald', 'diamond', 'ruby', 'obsidian', 'prismatic'];
 
 export interface EditionInfo {
   label: string;      // nom court ("Or")
@@ -39,8 +39,8 @@ export const EDITION_CONFIG: Record<CardEdition, EditionInfo> = {
   bronze:    { label: 'Bronze',      icon: '🪙', color: '#e9a066', glow: '#b8672e', border: '#cd7f32', points: 2,   statMult: 1.5, powBonus: POW_BONUS_PER_TIER * 1, dropChancePct: 5 },
   gold:      { label: 'Or',          icon: '✨', color: '#fbbf24', glow: '#f59e0b', border: '#fbbf24', points: 4,   statMult: 2.5, powBonus: POW_BONUS_PER_TIER * 2, dropChancePct: 2 },
   emerald:   { label: 'Émeraude',    icon: '❇️', color: '#34d399', glow: '#059669', border: '#059669', points: 8,   statMult: 3,   powBonus: POW_BONUS_PER_TIER * 3, dropChancePct: 0.7 },
-  ruby:      { label: 'Rubis',       icon: '♦️', color: '#fb7185', glow: '#e11d48', border: '#e11d48', points: 16,  statMult: 3.7, powBonus: POW_BONUS_PER_TIER * 4, dropChancePct: 0.2 },
-  diamond:   { label: 'Diamant',     icon: '💎', color: '#67e8f9', glow: '#22d3ee', border: '#67e8f9', points: 32,  statMult: 4.5, powBonus: POW_BONUS_PER_TIER * 5, dropChancePct: 0.08 },
+  diamond:   { label: 'Diamant',     icon: '💎', color: '#67e8f9', glow: '#22d3ee', border: '#67e8f9', points: 16,  statMult: 3.7, powBonus: POW_BONUS_PER_TIER * 4, dropChancePct: 0.2 },
+  ruby:      { label: 'Rubis',       icon: '♦️', color: '#fb7185', glow: '#e11d48', border: '#e11d48', points: 32,  statMult: 4.5, powBonus: POW_BONUS_PER_TIER * 5, dropChancePct: 0.08 },
   obsidian:  { label: 'Obsidienne',  icon: '🌑', color: '#a78bfa', glow: '#6d28d9', border: '#2e1065', points: 64,  statMult: 6,   powBonus: POW_BONUS_PER_TIER * 6, dropChancePct: 0.02 },
   prismatic: { label: 'Prismatique', icon: '🌈', color: '#f0abfc', glow: '#e879f9', border: '#f87171', points: 128, statMult: 8,   powBonus: POW_BONUS_PER_TIER * 7, dropChancePct: 0.005 },
 };
