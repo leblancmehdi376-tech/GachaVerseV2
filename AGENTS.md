@@ -13,6 +13,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Modals, popups and overlays must fit the mobile viewport (max height with inner scroll, reachable close button).
 - Check how existing components already handle mobile (e.g. `components/layout/GameLayout.tsx`) and stay consistent with them.
 
+# Font sizes
+
+**No text may be smaller than 14px**, on every screen size (desktop, tablet and mobile), including labels, badges, counters, tooltips, notification dots and `@media` overrides.
+- Applies to inline `fontSize`, CSS `font-size` (in `app/globals.css` and `<style>` blocks) and Tailwind classes (no `text-xs` or `text-[<14px]`).
+- Computed sizes (e.g. `size * 0.3`) must be clamped: `Math.max(14, ...)`.
+- If 14px text no longer fits its container, fix the layout (widen it, stack label above value, let rows wrap, enlarge the pill/badge) instead of shrinking the text.
+- Exception: text drawn inside SVG icons/logos (e.g. numerals in `components/ui/EditionLogo.tsx`), which scales with the icon.
+
 # Patch notes
 
 The game has an in-app Patch Notes popup (accessible from the left navbar in `components/layout/GameLayout.tsx`, rendered by `components/layout/PatchNotesModal.tsx`), backed by `lib/game/patchNotes.ts`.

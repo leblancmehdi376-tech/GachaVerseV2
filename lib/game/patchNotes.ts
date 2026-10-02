@@ -19,7 +19,7 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '01/10/2026',
+    date: '02/10/2026',
     title: 'Maj v2.7.7',
     sections: [
       {
@@ -81,6 +81,19 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Au Prestige, les **combats** et **boss vaincus** de chaque personnage sont conservés.",
           "Le **niveau** de maîtrise repart de zéro, mais les **paliers de niveau déjà validés restent acquis**.",
           "Seule la progression vers le **prochain palier de niveau** est remise à zéro.",
+        ],
+      },
+      {
+        icon: '🔠',
+        title: 'Lisibilité',
+        changes: [
+          "**Textes agrandis partout** : plus aucun texte sous **14px**, sur ordinateur comme sur téléphone.",
+          "Les titres et grands chiffres grossissent aussi pour garder les proportions.",
+          "Barres latérales un peu plus larges pour accueillir les textes plus grands.",
+          "**Cartes de l'équipe en combat** : chaque stat (Base, Type, DPS) affiche son libellé au-dessus de sa valeur.",
+          "Pastilles de notification, badges de rareté et onglets de **Succès** redimensionnés pour ne plus se chevaucher.",
+          "**Textes plus nets** : ils ne sont plus légèrement flous après le changement de page (notamment dans **Maîtrise**).",
+          "**Succès** : une série terminée affiche un compteur **vert** « ✓ 4/4 » au lieu d'une pastille qui chevauchait le compteur.",
         ],
       },
     ],

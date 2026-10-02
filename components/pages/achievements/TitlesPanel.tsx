@@ -21,22 +21,22 @@ function TitleCard({ icon, title, subtitle, unlocked, active, onSelect }: {
         transition:'all 0.15s',
       }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
-        <span style={{ fontSize:'20.6px' }}>{icon}</span>
-        {active && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:700, color:'#fbbf24', letterSpacing:'1px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.3)', padding:'2px 7px', borderRadius:'4px' }}>ACTIF</span>}
-        {!unlocked && <span style={{ fontSize:'12.4px' }}>🔒</span>}
+        <span style={{ fontSize:'22.6px' }}>{icon}</span>
+        {active && <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', fontWeight:700, color:'#fbbf24', letterSpacing:'1px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.3)', padding:'2px 7px', borderRadius:'4px' }}>ACTIF</span>}
+        {!unlocked && <span style={{ fontSize:'14.4px' }}>🔒</span>}
       </div>
-      <div style={{ fontFamily:'var(--f-title)', fontSize:'15.5px', fontWeight:700, color: active ? '#fbbf24' : unlocked ? 'var(--text)' : 'var(--text-muted)', letterSpacing:'1px', marginBottom:'3px' }}>
+      <div style={{ fontFamily:'var(--f-title)', fontSize:'17.5px', fontWeight:700, color: active ? '#fbbf24' : unlocked ? 'var(--text)' : 'var(--text-muted)', letterSpacing:'1px', marginBottom:'3px' }}>
         « {title} »
       </div>
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{subtitle}</div>
-      <div style={{ marginTop:'6px', fontFamily:'var(--f-num)', fontSize:'12px', fontWeight:800, color: unlocked ? 'var(--gold-hi)' : 'var(--text-muted)' }}>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>{subtitle}</div>
+      <div style={{ marginTop:'6px', fontFamily:'var(--f-num)', fontSize:'14px', fontWeight:800, color: unlocked ? 'var(--gold-hi)' : 'var(--text-muted)' }}>
         🪙 +{TITLE_GOLD_BONUS_PCT[title] ?? 0}% d&apos;or
       </div>
     </div>
   );
 }
 
-const SECTION_LABEL = { fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:2, marginTop:'8px' } as const;
+const SECTION_LABEL = { fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'var(--text-dim)', letterSpacing:2, marginTop:'8px' } as const;
 const GRID = { display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:'10px' } as const;
 
 export function TitlesPanel() {
@@ -50,16 +50,16 @@ export function TitlesPanel() {
     <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
       <div className="panel" style={{ padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', flexWrap:'wrap', borderColor:'#fbbf2466', background:'rgba(251,191,36,0.08)' }}>
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--text-dim)', letterSpacing:2 }}>BONUS D&apos;OR TOTAL DES TITRES</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', marginTop:'2px' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'var(--text-dim)', letterSpacing:2 }}>BONUS D&apos;OR TOTAL DES TITRES</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', marginTop:'2px' }}>
             {unlockedTitles.length} titre{unlockedTitles.length > 1 ? 's' : ''} débloqué{unlockedTitles.length > 1 ? 's' : ''} — tous les bonus se cumulent
           </div>
         </div>
-        <div style={{ fontFamily:'var(--f-num)', fontSize:'24px', fontWeight:900, color:'var(--gold-hi)' }}>
+        <div style={{ fontFamily:'var(--f-num)', fontSize:'26px', fontWeight:900, color:'var(--gold-hi)' }}>
           🪙 +{totalBonusPct}%
         </div>
       </div>
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12.4px', color:'var(--text-dim)' }}>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14.4px', color:'var(--text-dim)' }}>
         Chaque titre débloqué ajoute son bonus d&apos;or, qu&apos;il soit équipé ou non. Choisis celui affiché sur ton profil.
       </div>
       <div style={GRID}>

@@ -59,7 +59,7 @@ export function AvatarVisual({ size = 36, champion, fallbackLetter, maxPalierRea
             height={size}
           />
         ) : (
-          <span style={{ fontFamily: 'var(--f-title)', fontWeight: 900, fontSize: size * 0.45, color: '#e2d9ff' }}>
+          <span style={{ fontFamily: 'var(--f-title)', fontWeight: 900, fontSize: Math.max(14, size * 0.45), color: '#e2d9ff' }}>
             {fallbackLetter}
           </span>
         )}

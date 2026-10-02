@@ -113,7 +113,7 @@ export function SplashScreen({ onComplete }: Props) {
         {LOGO_CHARS.map((ch, i) => (
           <span key={i} style={{
             fontFamily: "'Orbitron', sans-serif",
-            fontSize: 49.4,
+            fontSize: 52.4,
             fontWeight: 900,
             letterSpacing: 6,
             background: 'linear-gradient(135deg, #e879f9 0%, #c084fc 35%, #9333ea 65%, #7c3aed 100%)',
@@ -128,7 +128,7 @@ export function SplashScreen({ onComplete }: Props) {
       {/* Subtitle */}
       <div style={{
         fontFamily: "'Rajdhani', sans-serif",
-        fontSize: 13.4,
+        fontSize: 15.4,
         fontWeight: 700,
         letterSpacing: 6,
         color: 'rgba(192,132,252,0.45)',
@@ -163,7 +163,7 @@ export function SplashScreen({ onComplete }: Props) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{
             fontFamily: "'Rajdhani', sans-serif",
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 700,
             color: 'rgba(255,255,255,0.3)',
             letterSpacing: 1,
@@ -172,7 +172,7 @@ export function SplashScreen({ onComplete }: Props) {
           </span>
           <span style={{
             fontFamily: "'Orbitron', sans-serif",
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 700,
             color: 'rgba(192,132,252,0.6)',
           }}>
@@ -186,7 +186,7 @@ export function SplashScreen({ onComplete }: Props) {
         position: 'absolute',
         bottom: 28,
         fontFamily: "'Orbitron', sans-serif",
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 400,
         color: 'rgba(255,255,255,0.1)',
         letterSpacing: 2,

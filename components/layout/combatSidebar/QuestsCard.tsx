@@ -4,7 +4,7 @@ import { formatNumber } from '@/lib/game/format';
 
 type Quest = { id:string; icon:string; label:string; current:number; target:number; reward:number; rewardType:string; done:boolean };
 
-// Grossissement au survol : le petit encart de la sidebar (224px) n'a pas la
+// Grossissement au survol : le petit encart de la sidebar (244px) n'a pas la
 // place d'afficher un libellé complet ni une barre de progression lisible.
 // Au lieu d'agrandir la carte en place (ce qui pousserait ses voisines, et
 // resterait de toute façon découpé par l'overflow:auto de la liste), on clone
@@ -39,18 +39,18 @@ export function QuestsCard({ quests, claimQuest }: { quests: Quest[]; claimQuest
       <>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px', gap:'8px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'6px', flex:1, minWidth:0 }}>
-            <span style={{ fontSize:'13.4px', flexShrink:0 }}>{q.icon}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'12.4px', color:'var(--text-sub)', lineHeight:1.3,
+            <span style={{ fontSize:'15.4px', flexShrink:0 }}>{q.icon}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'14.4px', color:'var(--text-sub)', lineHeight:1.3,
               overflow: expanded ? 'visible' : 'hidden', textOverflow: expanded ? 'clip' : 'ellipsis', whiteSpace: expanded ? 'normal' : 'nowrap' }}>{q.label}</span>
           </div>
-          {q.done ? <span style={{ fontSize:'15.5px', flexShrink:0 }}>✅</span>
+          {q.done ? <span style={{ fontSize:'17.5px', flexShrink:0 }}>✅</span>
             : canClaim ? (
               <button onClick={() => claimQuest(q.id)}
-                style={{ background:'linear-gradient(135deg,#3b0764,#5b21b6)', border:'1px solid var(--purple)', borderRadius:'6px', padding:'6px 9px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'white', flexShrink:0, boxShadow:'0 0 8px rgba(124,58,237,0.35)', whiteSpace:'nowrap' }}>
+                style={{ background:'linear-gradient(135deg,#3b0764,#5b21b6)', border:'1px solid var(--purple)', borderRadius:'6px', padding:'6px 9px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'white', flexShrink:0, boxShadow:'0 0 8px rgba(124,58,237,0.35)', whiteSpace:'nowrap' }}>
                 RÉCUP
               </button>
             ) : (
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12px', color:'var(--gold)', background:'rgba(245,166,35,0.1)', border:'1px solid rgba(245,166,35,0.2)', padding:'2px 7px', borderRadius:'5px', flexShrink:0, whiteSpace:'nowrap' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'var(--gold)', background:'rgba(245,166,35,0.1)', border:'1px solid rgba(245,166,35,0.2)', padding:'2px 7px', borderRadius:'5px', flexShrink:0, whiteSpace:'nowrap' }}>
                 {q.rewardType==='gems'?'💎':'🪙'} {q.reward}
               </span>
             )
@@ -60,7 +60,7 @@ export function QuestsCard({ quests, claimQuest }: { quests: Quest[]; claimQuest
           <div style={{ flex:1, height:'5px', background:'rgba(255,255,255,0.05)', borderRadius:'3px', overflow:'hidden' }}>
             <div style={{ height:'100%', width:`${pct}%`, background:q.done?'linear-gradient(90deg,#166534,#4ade80)':'linear-gradient(90deg,#4c1d95,#a855f7)', borderRadius:'3px', transition:'width 0.3s', boxShadow:canClaim?'0 0 6px #a855f766':undefined }} />
           </div>
-          <span style={{ fontFamily:'var(--f-num)', fontSize:'11px', color:'var(--text-muted)', flexShrink:0 }}>{formatNumber(q.current)}/{formatNumber(q.target)}</span>
+          <span style={{ fontFamily:'var(--f-num)', fontSize:'14px', color:'var(--text-muted)', flexShrink:0 }}>{formatNumber(q.current)}/{formatNumber(q.target)}</span>
         </div>
       </>
     );
@@ -73,12 +73,12 @@ export function QuestsCard({ quests, claimQuest }: { quests: Quest[]; claimQuest
       <button onClick={() => setCollapsed(v => !v)}
         // Zone de clic agrandie (padding) sans décaler le visuel (marges négatives).
         style={{ background:'none', border:'none', cursor:'pointer', padding:'10px 0', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, margin: collapsed ? '-10px 0' : '-10px 0 0' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color:'var(--text-dim)', letterSpacing:'2px' }}>QUÊTES QUOTIDIENNES</span>
+        <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color:'var(--text-dim)', letterSpacing:'2px' }}>QUÊTES QUOTIDIENNES</span>
         <span style={{ display:'flex', alignItems:'center', gap:6 }}>
           {claimableCount > 0 && (
-            <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12px', color:'#e9d5ff', background:'rgba(168,85,247,0.18)', borderRadius:'999px', padding:'1px 7px' }}>{claimableCount}</span>
+            <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14px', color:'#e9d5ff', background:'rgba(168,85,247,0.18)', borderRadius:'999px', padding:'1px 7px' }}>{claimableCount}</span>
           )}
-          <span style={{ color:'var(--text-muted)', fontSize:'11px', transform: collapsed ? 'rotate(-90deg)' : 'none', transition:'transform 0.15s' }}>▾</span>
+          <span style={{ color:'var(--text-muted)', fontSize:'14px', transform: collapsed ? 'rotate(-90deg)' : 'none', transition:'transform 0.15s' }}>▾</span>
         </span>
       </button>
       {!collapsed && (
@@ -113,7 +113,7 @@ export function QuestsCard({ quests, claimQuest }: { quests: Quest[]; claimQuest
             style={{
               position:'fixed',
               // Ancré par le bord DROIT (fixe) plutôt que par la gauche : un nom
-              // trop long pour tenir dans les 224px de la sidebar doit pouvoir
+              // trop long pour tenir dans les 244px de la sidebar doit pouvoir
               // s'étaler vers la GAUCHE, par-dessus la zone de jeu, sans jamais
               // sortir de l'écran à droite.
               right: hover.right,

@@ -199,7 +199,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
             color:'rgba(255,255,255,0.7)',
             fontFamily:'var(--f-ui)',
             fontWeight:700,
-            fontSize:12.4,
+            fontSize:14.4,
             letterSpacing:1,
             display:'flex',
             alignItems:'center',
@@ -251,13 +251,16 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
               className="boss-name"
               style={{
                 fontFamily:'var(--f-title)',
-                fontSize:16.5,
+                fontSize:18.5,
                 fontWeight:900,
                 color:'white',
                 letterSpacing:2,
                 whiteSpace:'nowrap',
                 overflow:'hidden',
-                textOverflow:'ellipsis'
+                textOverflow:'ellipsis',
+                // Le nom garde sa largeur : c'est le sous-titre qui se tronque en premier
+                flexShrink:0,
+                maxWidth:'100%'
               }}
             >
               {boss.name.toUpperCase()}
@@ -266,8 +269,10 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
             <span
               className="boss-subtitle"
               style={{
+                flex:'0 1 auto',
+                minWidth:0,
                 fontFamily:'var(--f-ui)',
-                fontSize:12,
+                fontSize:14,
                 color:'rgba(255,255,255,0.4)',
                 fontWeight:600,
                 whiteSpace:'nowrap',
@@ -291,7 +296,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 padding:'2px 9px',
                 fontFamily:'var(--f-ui)',
                 fontWeight:700,
-                fontSize:12,
+                fontSize:14,
                 color:AFFINITY_CONFIG[bossAffinity].color,
                 whiteSpace:'nowrap',
                 flexShrink:0
@@ -324,7 +329,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
               : 'rgba(255,255,255,0.7)',
             fontFamily:'var(--f-ui)',
             fontWeight:700,
-            fontSize:12.4,
+            fontSize:14.4,
             letterSpacing:1,
             display:'flex',
             alignItems:'center',
@@ -361,7 +366,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 style={{
                   fontFamily:'var(--f-num)',
                   fontWeight:900,
-                  fontSize:15.5,
+                  fontSize:17.5,
                   color:'white',
                   whiteSpace:'nowrap'
                 }}
@@ -373,7 +378,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 className="stat-label"
                 style={{
                   fontFamily:'var(--f-ui)',
-                  fontSize:12,
+                  fontSize:14,
                   color:'rgba(255,255,255,0.35)'
                 }}
               >
@@ -420,7 +425,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
               style={{
                 fontFamily:'var(--f-ui)',
                 fontWeight:700,
-                fontSize:13.4,
+                fontSize:15.4,
                 color:'white'
               }}
             >
@@ -431,7 +436,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
               style={{
                 fontFamily:'var(--f-ui)',
                 fontWeight:700,
-                fontSize:13.4,
+                fontSize:15.4,
                 color:hpColor,
                 whiteSpace:'nowrap'
               }}
@@ -468,7 +473,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 textAlign:'center',
                 fontFamily:'var(--f-ui)',
                 fontWeight:700,
-                fontSize:12,
+                fontSize:14,
                 color:durationMult < 1 ? '#4ade80' : '#f87171'
               }}
             >
@@ -507,7 +512,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 pointerEvents:'none',
                 fontFamily:'var(--f-ui)',
                 fontWeight:900,
-                fontSize:d.crit ? 20 : 14,
+                fontSize:d.crit ? 22 : 16,
                 color:d.crit ? '#fbbf24' : '#c084fc',
                 textShadow:d.crit
                   ? '0 0 10px #fbbf24'
@@ -538,7 +543,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 style={{
                   fontFamily:'var(--f-title)',
                   fontWeight:900,
-                  fontSize:22.7,
+                  fontSize:24.7,
                   color:'#c084fc',
                   textShadow:'0 0 20px #c084fc',
                   letterSpacing:2
@@ -555,7 +560,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
             style={{
               fontFamily:'var(--f-ui)',
               fontWeight:700,
-              fontSize:13.4,
+              fontSize:15.4,
               color:'rgba(255,255,255,0.5)',
               animation:'pulse 1s infinite'
             }}
@@ -569,7 +574,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
             className="attack-hint"
             style={{
               fontFamily:'var(--f-ui)',
-              fontSize:12,
+              fontSize:14,
               color:'rgba(255,255,255,0.3)',
               textAlign:'center'
             }}
@@ -594,7 +599,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
         <div
           style={{
             fontFamily:'var(--f-ui)',
-            fontSize:12,
+            fontSize:14,
             color:'rgba(255,255,255,0.3)',
             marginBottom:8,
             letterSpacing:1
@@ -668,7 +673,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                     minWidth:0
                   }}
                 >
-                  <span style={{ fontSize:14.4 }}>
+                  <span style={{ fontSize:16.4 }}>
                     {icon}
                   </span>
 
@@ -676,7 +681,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                     style={{
                       fontFamily:'var(--f-ui)',
                       fontWeight:700,
-                      fontSize:12,
+                      fontSize:14,
                       color,
                       whiteSpace:'nowrap',
                       overflow:'hidden',
@@ -689,7 +694,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                   <span
                     style={{
                       fontFamily:'var(--f-ui)',
-                      fontSize:12,
+                      fontSize:14,
                       color:'rgba(255,255,255,0.3)',
                       whiteSpace:'nowrap'
                     }}
@@ -757,7 +762,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
 
           .boss-back {
             padding:6px 9px !important;
-            font-size:11px !important;
+            font-size:14px !important;
           }
 
           /* Ligne 1 : retour + boss */
@@ -772,7 +777,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-name {
-            font-size:14px !important;
+            font-size:16px !important;
             letter-spacing:1px !important;
           }
 
@@ -781,7 +786,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-affinity {
-            font-size:10px !important;
+            font-size:14px !important;
             padding:2px 6px !important;
           }
 
@@ -791,7 +796,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
 
             /* Taille PC conservée */
             padding:7px 14px !important;
-            font-size:12.4px !important;
+            font-size:14.4px !important;
             letter-spacing:1px !important;
 
             /* Nouvelle ligne complète */
@@ -810,7 +815,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .stat-label {
-            font-size:10px !important;
+            font-size:14px !important;
           }
 
           .boss-main {
@@ -829,7 +834,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .attack-hint {
-            font-size:10px !important;
+            font-size:14px !important;
           }
 
           .boss-rewards {
@@ -861,15 +866,15 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-name {
-            font-size:12.5px !important;
+            font-size:14.5px !important;
           }
 
           .boss-affinity {
-            font-size:9px !important;
+            font-size:14px !important;
           }
 
           .companion-button {
-            font-size:9px !important;
+            font-size:14px !important;
             padding:5px 7px !important;
           }
 
@@ -878,7 +883,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-stats > div > div:first-child {
-            font-size:12px !important;
+            font-size:14px !important;
           }
 
           .boss-main {
@@ -892,7 +897,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-rewards {
-            font-size:10px;
+            font-size:14px;
           }
         }
       `}</style>

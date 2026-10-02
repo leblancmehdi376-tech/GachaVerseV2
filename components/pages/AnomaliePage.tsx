@@ -43,19 +43,19 @@ function AnomalyCard({ anomaly, onToggleLock }: { anomaly: Anomaly; onToggleLock
       display: 'flex', flexDirection: 'column', gap: 8,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: cfg.color, textTransform: 'uppercase' }}>{cfg.label}</span>
+        <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 800, letterSpacing: 1.5, color: cfg.color, textTransform: 'uppercase' }}>{cfg.label}</span>
         <button onClick={onToggleLock}
           title={anomaly.locked ? 'Déverrouiller' : 'Verrouiller (protège du prochain reroll)'}
-          style={{ background: anomaly.locked ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${anomaly.locked ? '#fbbf24' : 'var(--border)'}`, borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14 }}>
+          style={{ background: anomaly.locked ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${anomaly.locked ? '#fbbf24' : 'var(--border)'}`, borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>
           {anomaly.locked ? '🔒' : '🔓'}
         </button>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 20.6 }}>{def.icon}</span>
-        <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12.4, color: 'var(--text)' }}>{def.label}</span>
+        <span style={{ fontSize: 22.6 }}>{def.icon}</span>
+        <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: 'var(--text)' }}>{def.label}</span>
       </div>
-      {target && <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.5, color: 'var(--text-dim)' }}>Cible : {target}</div>}
-      <div style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 20.6, color: cfg.color }}>
+      {target && <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)' }}>Cible : {target}</div>}
+      <div style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 22.6, color: cfg.color }}>
         +{anomaly.value.toFixed(decimals)}%
       </div>
     </div>
@@ -64,7 +64,7 @@ function AnomalyCard({ anomaly, onToggleLock }: { anomaly: Anomaly; onToggleLock
 
 function EmptySlot() {
   return (
-    <div style={{ borderRadius: 12, padding: '16px', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 118, color: 'var(--text-muted)', fontFamily: 'var(--f-ui)', fontSize: 12.4 }}>
+    <div style={{ borderRadius: 12, padding: '16px', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 118, color: 'var(--text-muted)', fontFamily: 'var(--f-ui)', fontSize: 14.4 }}>
       Emplacement vide
     </div>
   );
@@ -77,10 +77,10 @@ function RarityTable() {
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1100 }}>
         <thead>
           <tr>
-            <th style={{ textAlign: 'left', padding: '8px 10px', fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-dim)', letterSpacing: 1 }}>RARETÉ</th>
-            <th style={{ textAlign: 'right', padding: '8px 10px', fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-dim)', letterSpacing: 1 }}>TAUX</th>
+            <th style={{ textAlign: 'left', padding: '8px 10px', fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)', letterSpacing: 1 }}>RARETÉ</th>
+            <th style={{ textAlign: 'right', padding: '8px 10px', fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)', letterSpacing: 1 }}>TAUX</th>
             {bonusTypes.map(t => (
-              <th key={t} style={{ textAlign: 'right', padding: '8px 10px', fontFamily: 'var(--f-ui)', fontSize: 11, color: 'var(--text-dim)', letterSpacing: 1, whiteSpace: 'nowrap' }}>
+              <th key={t} style={{ textAlign: 'right', padding: '8px 10px', fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)', letterSpacing: 1, whiteSpace: 'nowrap' }}>
                 {ANOMALY_BONUS_DEFS[t].icon} {ANOMALY_BONUS_DEFS[t].label}
               </th>
             ))}
@@ -93,13 +93,13 @@ function RarityTable() {
             return (
               <tr key={r} style={{ borderTop: '1px solid var(--border)' }}>
                 <td style={{ padding: '8px 10px' }}>
-                  <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: cfg.color }}>{cfg.label}</span>
+                  <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: cfg.color }}>{cfg.label}</span>
                 </td>
-                <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--f-num)', fontSize: 12, color: 'var(--text-sub)' }}>
+                <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--f-num)', fontSize: 14, color: 'var(--text-sub)' }}>
                   {row.dropRate}%
                 </td>
                 {bonusTypes.map(t => (
-                  <td key={t} style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--f-num)', fontSize: 12, color: cfg.color, whiteSpace: 'nowrap' }}>
+                  <td key={t} style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--f-num)', fontSize: 14, color: cfg.color, whiteSpace: 'nowrap' }}>
                     {formatBonusRange(t, row.ranges[t])}
                   </td>
                 ))}
@@ -259,7 +259,7 @@ export function AnomaliePage() {
           }
 
           .anomaly-table-panel > button > span:last-child {
-            font-size: 11px !important;
+            font-size: 14px !important;
           }
         }
       `}</style>
@@ -277,23 +277,23 @@ export function AnomaliePage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <div style={{ width: 4, height: 20, background: 'linear-gradient(180deg,#e879f9,#9333ea)', borderRadius: 2, boxShadow: '0 0 8px #c084fc' }} />
-              <span style={{ fontFamily: 'var(--f-title)', fontSize: 18.5, fontWeight: 700, color: '#e879f9', letterSpacing: 3 }}>🌀 ANOMALIES</span>
+              <span style={{ fontFamily: 'var(--f-title)', fontSize: 20.5, fontWeight: 700, color: '#e879f9', letterSpacing: 3 }}>🌀 ANOMALIES</span>
             </div>
-            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)', maxWidth: 520, lineHeight: 1.6 }}>
+            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-dim)', maxWidth: 520, lineHeight: 1.6 }}>
               Bonus passifs PERMANENTS — jamais réinitialisés par le Prestige. Gagne 1 Jeton d&apos;Anomalie tous les 100 tirages gacha. Verrouille une anomalie pour la protéger du prochain tirage (chaque verrou double le coût du reroll).
             </div>
           </div>
-          <div style={{ fontFamily: 'var(--f-num)', fontSize: 14.4, fontWeight: 700, color: '#e879f9', flexShrink: 0 }}>🌀 {formatNumber(anomalyTokens)}</div>
+          <div style={{ fontFamily: 'var(--f-num)', fontSize: 16.4, fontWeight: 700, color: '#e879f9', flexShrink: 0 }}>🌀 {formatNumber(anomalyTokens)}</div>
         </div>
 
         {/* Emplacements */}
         <div>
           <div className="anomaly-slots-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-dim)', letterSpacing: 2 }}>
+            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: 'var(--text-dim)', letterSpacing: 2 }}>
               EMPLACEMENTS ({anomalySlots}/{ANOMALY_MAX_SLOTS})
             </div>
             <button onClick={rerollAnomalies} disabled={!canReroll} className={canReroll ? 'btn-primary' : 'btn-secondary'}
-              style={{ padding: '10px 18px', fontSize: 12.4, cursor: canReroll ? 'pointer' : 'not-allowed', opacity: canReroll ? 1 : 0.5 }}>
+              style={{ padding: '10px 18px', fontSize: 14.4, cursor: canReroll ? 'pointer' : 'not-allowed', opacity: canReroll ? 1 : 0.5 }}>
               🌀 TIRER — {rerollCost} jeton{rerollCost > 1 ? 's' : ''} {lockedCount > 0 ? `(${lockedCount} verrouillée${lockedCount > 1 ? 's' : ''})` : ''}
             </button>
           </div>
@@ -307,21 +307,21 @@ export function AnomaliePage() {
 
         {/* Extension d'emplacements (Boss Crowns, post-Prestige) */}
         <div className="panel anomaly-extension" style={{ padding: '18px 20px' }}>
-          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-dim)', letterSpacing: 2, marginBottom: 10 }}>EXTENSION D&apos;EMPLACEMENTS</div>
+          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: 'var(--text-dim)', letterSpacing: 2, marginBottom: 10 }}>EXTENSION D&apos;EMPLACEMENTS</div>
           {prestigeLevel < 1 ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-muted)', fontFamily: 'var(--f-ui)', fontSize: 12.4 }}>
-              <span style={{ fontSize: 20.6 }}>🔒</span> Débloqué après ton premier Prestige.
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-muted)', fontFamily: 'var(--f-ui)', fontSize: 14.4 }}>
+              <span style={{ fontSize: 22.6 }}>🔒</span> Débloqué après ton premier Prestige.
             </div>
           ) : slotsMaxed ? (
-            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--green)' }}>✓ Nombre maximum d&apos;emplacements atteint.</div>
+            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--green)' }}>✓ Nombre maximum d&apos;emplacements atteint.</div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
-              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-sub)' }}>
+              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-sub)' }}>
                 Emplacement suivant ({anomalySlots + 1}/{ANOMALY_MAX_SLOTS})
               </div>
               <button onClick={buyAnomalySlot} disabled={slotCost === null || bossCrowns < slotCost}
                 className={slotCost !== null && bossCrowns >= slotCost ? 'btn-primary' : 'btn-secondary'}
-                style={{ padding: '10px 18px', fontSize: 12.4, cursor: slotCost !== null && bossCrowns >= slotCost ? 'pointer' : 'not-allowed', opacity: slotCost !== null && bossCrowns >= slotCost ? 1 : 0.5 }}>
+                style={{ padding: '10px 18px', fontSize: 14.4, cursor: slotCost !== null && bossCrowns >= slotCost ? 'pointer' : 'not-allowed', opacity: slotCost !== null && bossCrowns >= slotCost ? 1 : 0.5 }}>
                 👑 {slotCost !== null ? formatNumber(slotCost) : '—'}
               </button>
             </div>
@@ -331,9 +331,9 @@ export function AnomaliePage() {
         {/* Tableau récapitulatif */}
         <div className="panel anomaly-table-panel" style={{ overflow: 'hidden' }}>
           <button onClick={() => setShowTable(!showTable)}
-            style={{ width: '100%', padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: 'var(--text-sub)', letterSpacing: 1 }}>
+            style={{ width: '100%', padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.4, color: 'var(--text-sub)', letterSpacing: 1 }}>
             <span>{showTable ? '▲' : '▼'} TABLEAU DES RARETÉS & BONUS</span>
-            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: '#c084fc', fontWeight: 700 }}>{RARITY_ORDER_ASC.length} paliers</span>
+            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: '#c084fc', fontWeight: 700 }}>{RARITY_ORDER_ASC.length} paliers</span>
           </button>
           {showTable && (
             <div style={{ padding: '0 18px 18px' }}>

@@ -33,7 +33,7 @@ const C = {
 
 function NewBadge() {
   return (
-    <span style={{ position:'absolute', top:-7, right:-7, background:C.green, color:'#052e12', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:10, letterSpacing:0.3, padding:'2px 7px', borderRadius:999, boxShadow:'0 0 8px rgba(74,222,128,0.5)', zIndex:30 }}>
+    <span style={{ position:'absolute', top:-7, right:-7, background:C.green, color:'#052e12', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, letterSpacing:0.3, padding:'2px 7px', borderRadius:999, boxShadow:'0 0 8px rgba(74,222,128,0.5)', zIndex:30 }}>
       NEW
     </span>
   );
@@ -56,7 +56,7 @@ function ChestReelPopup({ itemId, tier, onClose }: { itemId: string; tier: Chest
       revealedTitle="ÉQUIPEMENT OBTENU"
       onClose={onClose}
       revealed={(
-        <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:item?.color ?? '#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
+        <div style={{ fontFamily:'var(--f-title)', fontSize:22.6, fontWeight:900, color:item?.color ?? '#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
           <span>{item?.icon}</span>{item?.name ?? itemId}
         </div>
       )}
@@ -90,7 +90,7 @@ function writeRerollConfirmPref(enabled: boolean) {
 function ToggleSwitch({ checked, onChange, label, color }: { checked: boolean; onChange: (v: boolean) => void; label: string; color: string }) {
   return (
     <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-      style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'0 4px', background:'none', border:'none', cursor:'pointer', color:'var(--text-sub)', fontFamily:'var(--f-ui)', fontSize:12.4, fontWeight:600, textAlign:'left' }}>
+      style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'0 4px', background:'none', border:'none', cursor:'pointer', color:'var(--text-sub)', fontFamily:'var(--f-ui)', fontSize:14.4, fontWeight:600, textAlign:'left' }}>
       <span style={{ position:'relative', flexShrink:0, width:38, height:22, borderRadius:999, background: checked ? color : 'rgba(255,255,255,0.12)', border:`1px solid ${checked ? color : 'rgba(255,255,255,0.2)'}`, transition:'background 0.15s' }}>
         <span style={{ position:'absolute', top:2, left: checked ? 18 : 2, width:16, height:16, borderRadius:'50%', background:'#fff', transition:'left 0.15s' }} />
       </span>
@@ -148,8 +148,8 @@ function Balance({ icon, value, label, hint, color }: { icon: string; value: str
       <span className="shop-balance__icon">{icon}</span>
       <div style={{ minWidth: 0 }}>
         <div className="shop-balance__label">TON SOLDE · {label}</div>
-        <div style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:22, lineHeight:1.15, color }}>{value}</div>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'var(--text-dim)', lineHeight:1.3 }}>{hint}</div>
+        <div style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:24, lineHeight:1.15, color }}>{value}</div>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', lineHeight:1.3 }}>{hint}</div>
       </div>
     </div>
   );
@@ -246,10 +246,10 @@ export function ShopPage() {
           <div className="shop-starter">
             <div style={{ flex:'1 1 280px', minWidth:0 }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom:6 }}>
-                <span style={{ fontFamily:'var(--f-title)', fontSize:18, fontWeight:700, color:'#e9d5ff', letterSpacing:1 }}>✦ PACK DE BIENVENUE ✦</span>
+                <span style={{ fontFamily:'var(--f-title)', fontSize:20, fontWeight:700, color:'#e9d5ff', letterSpacing:1 }}>✦ PACK DE BIENVENUE ✦</span>
                 <span className="shop-chip" style={{ ['--acc' as string]: C.orb }}>⏳ Expire dans {formatDuration(starterTimeLeft)}</span>
               </div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:13.4, color:'var(--text-sub)' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:15.4, color:'var(--text-sub)' }}>
                 Offre limitée aux 24 premières heures du jeu. Gratuit, juste pour toi !
               </div>
             </div>
@@ -259,9 +259,9 @@ export function ShopPage() {
                 { icon:'✦',  val:STARTER_PACK_REWARDS.stellaire,  label:'Perso. Stellaire aléatoire' },
               ].map(r => (
                 <div key={r.label} className="shop-starter__reward">
-                  <span style={{ fontSize:20 }}>{r.icon}</span>
-                  <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:17, color:'#fff' }}>{r.val}</span>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'var(--text-dim)', textAlign:'center' }}>{r.label}</span>
+                  <span style={{ fontSize:22 }}>{r.icon}</span>
+                  <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:19, color:'#fff' }}>{r.val}</span>
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textAlign:'center' }}>{r.label}</span>
                 </div>
               ))}
             </div>
@@ -269,7 +269,7 @@ export function ShopPage() {
                 const result = claimStarterPack();
                 if (result) setStarterResult(result);
               }}
-              style={{ flex:'0 0 auto', padding:'12px 22px', fontSize:14.5 }}>
+              style={{ flex:'0 0 auto', padding:'12px 22px', fontSize:16.5 }}>
               RÉCLAMER GRATUITEMENT
             </BuyButton>
           </div>
@@ -281,17 +281,17 @@ export function ShopPage() {
             <div className="shop-notice" style={{ ['--acc' as string]: C.green, justifyContent:'flex-start', gap:14 }}>
               <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} edition={starterResult.edition} width={56} height={78} frameOverlay />
               <div>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13.4, color:C.green, marginBottom:4 }}>Personnage obtenu !</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:15.5, color:'#fff', marginBottom:4 }}>{tpl.name}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:15.4, color:C.green, marginBottom:4 }}>Personnage obtenu !</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:17.5, color:'#fff', marginBottom:4 }}>{tpl.name}</div>
                 <RarityBadge rarity={tpl.rarity} size="xs" />
               </div>
-              <button type="button" onClick={() => setStarterResult(null)} style={{ marginLeft:'auto', alignSelf:'flex-start', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:16.5 }}>✕</button>
+              <button type="button" onClick={() => setStarterResult(null)} style={{ marginLeft:'auto', alignSelf:'flex-start', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:18.5 }}>✕</button>
             </div>
           );
         })()}
         {starterPackClaimed && !starterResult && (
           <div className="shop-notice" style={{ ['--acc' as string]: C.green, padding:'8px 16px' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:C.green }}>✓ Pack de bienvenue déjà réclamé</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:C.green }}>✓ Pack de bienvenue déjà réclamé</span>
           </div>
         )}
 
@@ -299,8 +299,8 @@ export function ShopPage() {
         <div className={`shop-bar shop-bar--standalone${slotMaxed ? ' shop-bar--maxed' : ''}`}>
           <span className="shop-section__icon" style={{ ['--acc' as string]: C.gold }}>🧭</span>
           <div style={{ flex:'1 1 200px', minWidth:0 }}>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:'var(--text)' }}>Emplacements d&apos;Expédition</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:16.4, color:'var(--text)' }}>Emplacements d&apos;Expédition</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>
               Lance {maxActive} expédition{maxActive>1?'s':''} en simultané{slotMaxed ? ' — MAXIMUM ATTEINT' : ''}
             </div>
           </div>
@@ -324,13 +324,13 @@ export function ShopPage() {
                   <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                     <span className="shop-boost__icon">{b.icon}</span>
                     <div style={{ minWidth:0 }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{b.label}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)' }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:17, color:'var(--text)' }}>{b.label}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>
                         +{Math.round((BOOST_MULTIPLIER-1)*100)}% pendant {BOOST_DURATION_MS/60000} min
                       </div>
                     </div>
                   </div>
-                  <div style={{ minHeight:18, fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:C.green }}>
+                  <div style={{ minHeight:18, fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:C.green }}>
                     {b.active && <>✓ ACTIF — {formatDuration(b.endsAt - now)} restant</>}
                   </div>
                   <BuyButton color={C.green} enabled={bossCrowns >= BOOST_COST_CROWNS} onClick={b.buy}>
@@ -369,7 +369,7 @@ export function ShopPage() {
                 return (
                   <PackCard key={p.id} icon="💰" value={`${formatNumber(scaledCoins)} or`} valueColor={C.gold} accent={C.gold}
                     bonus={p.bonusLabel}
-                    lines={<span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)' }}>≈ {p.killsEquivalent} kills</span>}
+                    lines={<span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)' }}>≈ {p.killsEquivalent} kills</span>}
                     button={
                       <BuyButton color={C.cyan} enabled={nekoGems >= p.gems} onClick={() => buyGoldWithGems(p.id)}>
                         💎 {p.gems}
@@ -397,7 +397,7 @@ export function ShopPage() {
 
         {/* ══ BOUTIQUE DU JOUR ════════════════════════════════════════════ */}
         <ShopSection icon="🛒" title="BOUTIQUE DU JOUR" accent={C.orb}
-          subtitle={<>⏳ Renouvellement dans <b style={{ color:'var(--text-sub)', fontFamily:'var(--f-num)', fontSize:12 }}>{formatDuration(msUntilNextMidnight())}</b></>}
+          subtitle={<>⏳ Renouvellement dans <b style={{ color:'var(--text-sub)', fontFamily:'var(--f-num)', fontSize:14 }}>{formatDuration(msUntilNextMidnight())}</b></>}
           right={
             <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'flex-end', gap:'4px 12px' }}>
               <ToggleSwitch checked={rerollConfirmEnabled} onChange={toggleRerollConfirm} color={C.orb}
@@ -428,7 +428,7 @@ export function ShopPage() {
                     <div style={{ flex:1 }} />
                     <div className="shop-char__price">
                       <span className="shop-balance__label">PRIX</span>
-                      <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:18, color:bought ? C.green : C.orb }}>🔮 {price}</span>
+                      <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:20, color:bought ? C.green : C.orb }}>🔮 {price}</span>
                     </div>
                     <BuyButton color={bought ? C.green : C.orb} enabled={canBuy} onClick={() => buyShopCharacter(dailyShop.characterIds.indexOf(id))}
                       style={bought ? { opacity:1, color:C.green, borderColor:'rgba(74,222,128,0.4)', background:'rgba(74,222,128,0.1)' } : undefined}>
@@ -444,8 +444,8 @@ export function ShopPage() {
         {showRerollConfirm && (
           <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setShowRerollConfirm(false)}>
             <div onClick={e => e.stopPropagation()} style={{ background:'var(--bg-panel)', border:'1px solid rgba(192,132,252,0.4)', borderRadius:14, padding:'22px 24px', maxWidth:360, width:'90%', boxShadow:'0 12px 40px rgba(0,0,0,0.6)' }}>
-              <div style={{ fontFamily:'var(--f-title)', fontSize:15.5, fontWeight:700, color:'#e9d5ff', marginBottom:10 }}>⚠️ Personnage inédit en boutique</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:13.4, color:'var(--text-sub)', marginBottom:18, lineHeight:1.5 }}>
+              <div style={{ fontFamily:'var(--f-title)', fontSize:17.5, fontWeight:700, color:'#e9d5ff', marginBottom:10 }}>⚠️ Personnage inédit en boutique</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:15.4, color:'var(--text-sub)', marginBottom:18, lineHeight:1.5 }}>
                 La boutique du jour contient un personnage que tu ne possèdes pas encore. Reroll la boutique risque de le faire disparaître. Confirmer ?
               </div>
               <div style={{ display:'flex', gap:10 }}>
@@ -485,7 +485,7 @@ export function ShopPage() {
                     <div style={{ flex:1 }} />
                     <div className="shop-char__price">
                       <span className="shop-balance__label">PIÈCES</span>
-                      <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:13, color: canBuy ? C.gold : 'var(--text-dim)' }}>
+                      <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color: canBuy ? C.gold : 'var(--text-dim)' }}>
                         {coin?.icon ?? '🪙'} {formatNumber(owned)} / {formatNumber(cost)}
                       </span>
                     </div>
@@ -509,7 +509,7 @@ export function ShopPage() {
                 return (
                   <div key={chest.id} className="shop-chest" style={{ ['--acc' as string]: chest.color }}>
                     <span className="shop-chest__icon" style={{ filter:`drop-shadow(0 0 8px ${chest.glow})` }}>{chest.emoji}</span>
-                    <span style={{ flex:1, minWidth:0, fontFamily:'var(--f-title)', fontSize:14, fontWeight:700, color:chest.color, letterSpacing:1 }}>{chest.label.toUpperCase()}</span>
+                    <span style={{ flex:1, minWidth:0, fontFamily:'var(--f-title)', fontSize:16, fontWeight:700, color:chest.color, letterSpacing:1 }}>{chest.label.toUpperCase()}</span>
                     <BuyButton color={C.cyan} enabled={canBuy} style={{ width:'auto', minWidth:110 }} onClick={() => {
                         const tier = chest.id.replace('chest_', '') as ChestTier;
                         const result = buyEquipmentChest(tier);
@@ -534,7 +534,7 @@ export function ShopPage() {
                   {EQUIPMENT_CHESTS.map(chest => {
                     const pct = chest.dropRates[i]?.pct ?? '';
                     return (
-                      <span key={chest.id} style={{ textAlign:'right', fontFamily:'var(--f-num)', fontSize:11, color: parseFloat(pct) > 0 ? 'var(--text-sub)' : 'var(--text-muted)' }}>
+                      <span key={chest.id} style={{ textAlign:'right', fontFamily:'var(--f-num)', fontSize:14, color: parseFloat(pct) > 0 ? 'var(--text-sub)' : 'var(--text-muted)' }}>
                         {pct}
                       </span>
                     );
@@ -547,9 +547,9 @@ export function ShopPage() {
 
         {/* Solde gemmes (rappel) */}
         <div className="shop-notice" style={{ ['--acc' as string]: C.cyan }}>
-          <span style={{ fontSize:17 }}>💎</span>
-          <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:14.5, color:C.cyan }}>{formatNumber(nekoGems)}</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)' }}>Neko-Gemmes — utilisables dans l&apos;onglet GACHA</span>
+          <span style={{ fontSize:19 }}>💎</span>
+          <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:16.5, color:C.cyan }}>{formatNumber(nekoGems)}</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>Neko-Gemmes — utilisables dans l&apos;onglet GACHA</span>
         </div>
 
       </div>

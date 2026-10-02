@@ -114,7 +114,7 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
 
           {/* Titre */}
           <div style={{
-            fontFamily:'var(--f-title)', fontSize:13.4, color:'var(--purple-glow)',
+            fontFamily:'var(--f-title)', fontSize:15.4, color:'var(--purple-glow)',
             letterSpacing:4, fontWeight:700, opacity:0.7,
             animation:'gvFadeUp 0.4s ease',
           }}>
@@ -157,7 +157,7 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
             {!autoFlip && (
               <button onClick={() => setAutoFlip(true)}
                 style={{
-                  fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13.4, letterSpacing:1,
+                  fontFamily:'var(--f-ui)', fontWeight:700, fontSize:15.4, letterSpacing:1,
                   color:'#c084fc', background:'rgba(168,85,247,0.12)',
                   border:'1px solid rgba(168,85,247,0.4)', borderRadius:8,
                   padding:'11px 28px', cursor:'pointer',
@@ -167,7 +167,7 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
               disabled={skipRequested}
               className="btn-primary"
               style={{
-                padding:'11px 28px', fontSize:13.4, letterSpacing:1,
+                padding:'11px 28px', fontSize:15.4, letterSpacing:1,
                 opacity: skipRequested ? 0.6 : 1,
                 cursor: skipRequested ? 'default' : 'pointer',
               }}>

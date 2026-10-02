@@ -123,7 +123,7 @@ export function BattleZone() {
         </div>
         {dmgs.map(d=>(
           <div key={d.id} style={{ position:'absolute', left:`${d.x}%`, top:`${d.y}%`, pointerEvents:'none', transform:'translate(-50%,-50%)',
-            fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'18px', color:'#fbbf24',
+            fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'20px', color:'#fbbf24',
             textShadow:'0 0 12px #f59e0b',
             animation:'floatDmg 0.8s ease-out forwards', whiteSpace:'nowrap', zIndex:10 }}>
             {formatNumber(d.val)}

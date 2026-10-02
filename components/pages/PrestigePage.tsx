@@ -25,71 +25,71 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
     <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(4,3,14,0.95)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' }}>
       <div className="panel panel--glow" style={{ width:'100%', maxWidth:480, maxHeight:'calc(100vh - 48px)', overflowY:'auto', padding:'32px 28px', display:'flex', flexDirection:'column', gap:20, textAlign:'center' }}>
 
-        <div style={{ fontSize:53.6 }}>⭐</div>
+        <div style={{ fontSize:56.8 }}>⭐</div>
 
         <div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:22.7, fontWeight:900, color:'var(--purple-glow)', letterSpacing:3, marginBottom:8 }}>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:24.7, fontWeight:900, color:'var(--purple-glow)', letterSpacing:3, marginBottom:8 }}>
             PRESTIGE {prestigeLevel + 1}
           </div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:13.4, color:'var(--text-dim)', lineHeight:1.7 }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:15.4, color:'var(--text-dim)', lineHeight:1.7 }}>
             Ton run va être réinitialisé. Tu gagnes <strong style={{ color:'#fbbf24' }}>+{tokensToGain} jeton{tokensToGain > 1 ? 's' : ''} de Prestige</strong>.
           </div>
         </div>
 
         {/* Ce qui reset */}
         <div style={{ background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:10, padding:'14px 18px', textAlign:'left' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#f87171', letterSpacing:2, marginBottom:8 }}>✕ RÉINITIALISÉ</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#f87171', letterSpacing:2, marginBottom:8 }}>✕ RÉINITIALISÉ</div>
           {[
             'Équipements (fusion + inventaire)', 'Pixel-Coins → 0',
             'Collection : rang, forme et niveau de chaque carte',
             'Pièces perso de raid', 'Objets de la Forge', 'Niveau héros → 1', 'Palier → 1',
           ].map(item => (
-            <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(248,113,113,0.8)', marginBottom:3 }}>• {item}</div>
+            <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'rgba(248,113,113,0.8)', marginBottom:3 }}>• {item}</div>
           ))}
         </div>
 
         {/* Ce qui reste */}
         <div style={{ background:'rgba(74,222,128,0.06)', border:'1px solid rgba(74,222,128,0.2)', borderRadius:10, padding:'14px 18px', textAlign:'left' }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#4ade80', letterSpacing:2, marginBottom:8 }}>✓ CONSERVÉ</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#4ade80', letterSpacing:2, marginBottom:8 }}>✓ CONSERVÉ</div>
           {[
             'Neko-Gemmes', 'Succès & Titres', 'Quêtes', 'BossCrowns & VoidOrbs',
             'Palier max atteint (classement)', 'Bonus de Prestige déjà obtenus',
             'Jauge d\'édition max déjà atteinte par chaque carte : récupérable à la re-obtention selon le niveau de "Mémoire des Pierres"',
           ].map(item => (
-            <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'rgba(74,222,128,0.8)', marginBottom:3 }}>• {item}</div>
+            <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'rgba(74,222,128,0.8)', marginBottom:3 }}>• {item}</div>
           ))}
         </div>
 
         {/* Confirmation saisie */}
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)', marginBottom:8 }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)', marginBottom:8 }}>
             Tape <strong style={{ color:'var(--purple-glow)' }}>{CONFIRM_WORD}</strong> pour confirmer
           </div>
           <input
             value={typed}
             onChange={e => setTyped(e.target.value.toUpperCase())}
             placeholder="PRESTIGE"
-            style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.04)', border:`1px solid ${ready ? 'rgba(147,51,234,0.6)' : 'var(--border)'}`, borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-num)', fontSize:16.5, color:'var(--purple-glow)', textAlign:'center', letterSpacing:4, outline:'none', transition:'border-color 0.2s' }}
+            style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.04)', border:`1px solid ${ready ? 'rgba(147,51,234,0.6)' : 'var(--border)'}`, borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-num)', fontSize:18.5, color:'var(--purple-glow)', textAlign:'center', letterSpacing:4, outline:'none', transition:'border-color 0.2s' }}
           />
         </div>
 
         <div style={{ display:'flex', gap:10 }}>
           <button onClick={onCancel} disabled={saving} className="btn-secondary"
-            style={{ flex:1, padding:'12px', fontSize:13.4, opacity: saving ? 0.35 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
+            style={{ flex:1, padding:'12px', fontSize:15.4, opacity: saving ? 0.35 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
             {syncPending ? 'FERMER' : 'ANNULER'}
           </button>
           <button onClick={onConfirm} disabled={!ready} className="btn-primary"
-            style={{ flex:1, padding:'12px', fontSize:13.4, opacity: ready ? 1 : 0.35, cursor: ready ? 'pointer' : 'not-allowed' }}>
+            style={{ flex:1, padding:'12px', fontSize:15.4, opacity: ready ? 1 : 0.35, cursor: ready ? 'pointer' : 'not-allowed' }}>
             {saving ? '⏳ SAUVEGARDE…' : '⭐ CONFIRMER'}
           </button>
         </div>
         {saving && (
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'var(--text-dim)' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>
             Ne ferme pas le jeu ni ne change d'appareil pendant la sauvegarde…
           </div>
         )}
         {syncPending && (
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'#f87171' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#f87171' }}>
             Sauvegarde cloud pas encore confirmée — un nouvel essai est en cours en arrière-plan. Évite de changer d'appareil pour l'instant.
           </div>
         )}
@@ -131,7 +131,7 @@ function PrestigeReelPopup({ results, onClose }: { results: PrestigeBonusType[];
           {(Object.entries(counts) as [PrestigeBonusType, number][]).map(([type, n]) => {
             const def = PRESTIGE_BONUS_DEFS[type];
             return (
-              <div key={type} style={{ fontFamily:'var(--f-title)', fontSize: results.length > 1 ? 16.5 : 20.6, fontWeight:900, color:'#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
+              <div key={type} style={{ fontFamily:'var(--f-title)', fontSize: results.length > 1 ? 18.5 : 22.6, fontWeight:900, color:'#fbbf24', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{def.icon}</span>{def.label}{n > 1 ? ` ×${n}` : ''}
               </div>
             );
@@ -223,14 +223,14 @@ export function PrestigePage() {
           <div style={{ minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6, flexWrap:'wrap' }}>
               <div style={{ width:4, height:20, background:'linear-gradient(180deg,#c084fc,#7c3aed)', borderRadius:2, boxShadow:'0 0 8px #c084fc' }} />
-              <span style={{ fontFamily:'var(--f-title)', fontSize:18.5, fontWeight:700, color:'var(--purple-glow)', letterSpacing:'3px' }}>NEW GAME+</span>
+              <span style={{ fontFamily:'var(--f-title)', fontSize:20.5, fontWeight:700, color:'var(--purple-glow)', letterSpacing:'3px' }}>NEW GAME+</span>
               {level > 0 && (
-                <div style={{ background:'rgba(147,51,234,0.2)', border:'1px solid rgba(147,51,234,0.5)', borderRadius:6, padding:'2px 10px', fontFamily:'var(--f-num)', fontWeight:900, fontSize:14.4, color:'#c084fc' }}>
+                <div style={{ background:'rgba(147,51,234,0.2)', border:'1px solid rgba(147,51,234,0.5)', borderRadius:6, padding:'2px 10px', fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.4, color:'#c084fc' }}>
                   {'⭐'.repeat(Math.min(level, 5))} {level > 5 ? `×${level}` : ''}
                 </div>
               )}
             </div>
-            <div className="prestige-header-text" style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)', maxWidth:420, lineHeight:1.6 }}>
+            <div className="prestige-header-text" style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)', maxWidth:420, lineHeight:1.6 }}>
               Réinitialise ton run depuis le palier 1 en échange de jetons de Prestige, à dépenser sur des bonus permanents tirés au hasard. Disponible dès le palier {PRESTIGE_PALIER_REQUIRED}, jamais obligatoire.
             </div>
           </div>
@@ -238,15 +238,15 @@ export function PrestigePage() {
           <div className="prestige-header-right" style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, flexShrink:0 }}>
             {eligible ? (
               <button onClick={() => { setSyncPending(false); setShowConfirm(true); }} className="btn-primary"
-                style={{ padding:'14px 28px', fontSize:15.5, letterSpacing:2, display:'flex', alignItems:'center', gap:10 }}>
+                style={{ padding:'14px 28px', fontSize:17.5, letterSpacing:2, display:'flex', alignItems:'center', gap:10 }}>
                 ⭐ PRESTIGE {level + 1}
               </button>
             ) : (
               <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:10, padding:'12px 20px', textAlign:'center' }}>
-                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:'var(--text-dim)' }}>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:16.4, color:'var(--text-dim)' }}>
                   🔒 Palier {runPeakPalier} / {PRESTIGE_PALIER_REQUIRED}
                 </div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)', marginTop:3 }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)', marginTop:3 }}>
                   Atteins le palier {PRESTIGE_PALIER_REQUIRED} pour débloquer
                 </div>
                 <div className="prog-track" style={{ marginTop:8, width:160 }}>
@@ -255,7 +255,7 @@ export function PrestigePage() {
               </div>
             )}
             {eligible && (
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>
                 Rapporte <strong style={{ color:'#fbbf24' }}>+{tokensToGain} jeton{tokensToGain > 1 ? 's' : ''}</strong>
               </div>
             )}
@@ -265,15 +265,15 @@ export function PrestigePage() {
         {/* Jetons + tirage */}
         <div className="panel prestige-row" style={{ padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
           <div>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:4 }}>JETONS DE PRESTIGE</div>
-            <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26.8, color:'#fbbf24' }}>🎫 {tokens}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:4 }}>JETONS DE PRESTIGE</div>
+            <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:28.8, color:'#fbbf24' }}>🎫 {tokens}</div>
           </div>
           <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
             {[1, MULTI_SPIN_COUNT].map(count => {
               const can = tokens >= count && rollResults === null;
               return (
                 <button key={count} onClick={() => handleSpendTokens(count)} disabled={!can} className={can ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding:'12px 24px', fontSize:14.4, cursor: can ? 'pointer' : 'not-allowed', opacity: can ? 1 : 0.4 }}>
+                  style={{ padding:'12px 24px', fontSize:16.4, cursor: can ? 'pointer' : 'not-allowed', opacity: can ? 1 : 0.4 }}>
                   {count === 1 ? '🎲 Utiliser un jeton — bonus aléatoire' : `🎲 Utiliser ${count} jetons`}
                 </button>
               );
@@ -285,11 +285,11 @@ export function PrestigePage() {
         <div className="panel prestige-row" style={{ padding:'18px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
           <div style={{ flex:1, minWidth:220 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-              <span style={{ fontSize:18.5 }}>💎</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'var(--text)' }}>Mémoire des Pierres</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)' }}>Niveau {stoneMemoryLevel} / {STONE_MEMORY_MAX_LEVEL}</span>
+              <span style={{ fontSize:20.5 }}>💎</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:'var(--text)' }}>Mémoire des Pierres</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>Niveau {stoneMemoryLevel} / {STONE_MEMORY_MAX_LEVEL}</span>
             </div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', lineHeight:1.6, maxWidth:460 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', lineHeight:1.6, maxWidth:460 }}>
               {(() => {
                 const cap = stoneMemoryCapEdition(stoneMemoryLevel);
                 return cap
@@ -304,7 +304,7 @@ export function PrestigePage() {
             const canBuy = !maxed && tokens >= cost!;
             return (
               <button onClick={buyStoneMemory} disabled={!canBuy} className={canBuy ? 'btn-primary' : 'btn-secondary'}
-                style={{ padding:'12px 24px', fontSize:14.4, cursor: canBuy ? 'pointer' : 'not-allowed', opacity: maxed ? 0.6 : canBuy ? 1 : 0.4, whiteSpace:'nowrap' }}>
+                style={{ padding:'12px 24px', fontSize:16.4, cursor: canBuy ? 'pointer' : 'not-allowed', opacity: maxed ? 0.6 : canBuy ? 1 : 0.4, whiteSpace:'nowrap' }}>
                 {maxed ? '✓ NIVEAU MAX' : `💎 Améliorer — 🎫 ${formatNumber(cost!)}`}
               </button>
             );
@@ -313,7 +313,7 @@ export function PrestigePage() {
 
         {/* Bonus actifs */}
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>BONUS DE PRESTIGE</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:12 }}>BONUS DE PRESTIGE</div>
           <div className="prestige-bonus-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:10 }}>
             {PRESTIGE_BONUS_TYPES.map(type => {
               const def = PRESTIGE_BONUS_DEFS[type];
@@ -322,13 +322,13 @@ export function PrestigePage() {
               return (
                 <div key={type} className="panel" style={{ padding:'16px 18px', borderColor: maxed ? 'rgba(74,222,128,0.35)' : undefined }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-                    <span style={{ fontSize:18.5 }}>{def.icon}</span>
-                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'var(--text)' }}>{def.label}</span>
+                    <span style={{ fontSize:20.5 }}>{def.icon}</span>
+                    <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:'var(--text)' }}>{def.label}</span>
                   </div>
-                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:20.6, color: maxed ? '#4ade80' : 'var(--gold-hi)', lineHeight:1.05 }}>
+                  <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.6, color: maxed ? '#4ade80' : 'var(--gold-hi)', lineHeight:1.05 }}>
                     {formatBonusValue(type, bLevel)}
                   </div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:4 }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginTop:4 }}>
                     Niveau {bLevel}{def.maxLevel ? ` / ${def.maxLevel}` : ''}
                   </div>
                   {def.maxLevel && (

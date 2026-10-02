@@ -48,8 +48,8 @@ export function TrophiesPanel() {
       <div className="trophy-stage">
         <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:12, flexWrap:'wrap', marginBottom:18 }}>
           <div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:10.5, fontWeight:900, letterSpacing:3, color:'var(--gold-hi)' }}>VITRINE DU PROFIL</div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:22, fontWeight:900, color:'#fff', letterSpacing:2 }}>TROPHÉES</div>
+            <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:900, letterSpacing:3, color:'var(--gold-hi)' }}>VITRINE DU PROFIL</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:24, fontWeight:900, color:'#fff', letterSpacing:2 }}>TROPHÉES</div>
           </div>
           <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
             <div className="ach-stat"><span className="ach-stat__val" style={{ color:'#fde68a' }}>{prestige}</span><span className="ach-stat__lbl">PRESTIGE</span></div>
@@ -68,8 +68,8 @@ export function TrophiesPanel() {
             </button>
           ) : (
             <div key={`empty-${i}`} className="trophy-slot is-empty" style={{ ['--i' as string]: i } as CSSProperties}>
-              <span style={{ fontSize:26, opacity:0.25 }}>🏆</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:11.5, color:'var(--text-muted)', fontWeight:700 }}>Emplacement libre</span>
+              <span style={{ fontSize:28, opacity:0.25 }}>🏆</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)', fontWeight:700 }}>Emplacement libre</span>
               <span className="trophy-slot__plinth" style={{ opacity:0.4 }} />
             </div>
           ))}
@@ -80,20 +80,20 @@ export function TrophiesPanel() {
 
       {roomOpen && (
         <div className="trophy-room">
-          <div style={{ fontFamily:'var(--f-num)', fontSize:10.5, fontWeight:900, letterSpacing:3, color:'#a78bfa' }}>SALLE SECRÈTE</div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:19, fontWeight:900, color:'#ede9fe', margin:'4px 0 8px' }}>Les Archives Oubliées</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:13.4, color:'var(--text-sub)', lineHeight:1.6 }}>
+          <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:900, letterSpacing:3, color:'#a78bfa' }}>SALLE SECRÈTE</div>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:21, fontWeight:900, color:'#ede9fe', margin:'4px 0 8px' }}>Les Archives Oubliées</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:15.4, color:'var(--text-sub)', lineHeight:1.6 }}>
             Derrière la vitrine, des étagères couvertes de poussière d&apos;étoile. On y lit, gravé dans le cristal :
             <em style={{ color:'#e9d5ff' }}> « Le multivers garde dix secrets. Le chat errant en connaît certains. Le code des anciens en ouvre un autre. Et certains ne se révèlent qu&apos;à 3h33… »</em>
           </div>
-          <div style={{ marginTop:10, fontFamily:'var(--f-ui)', fontSize:12, color:'#a78bfa', fontWeight:700 }}>
+          <div style={{ marginTop:10, fontFamily:'var(--f-ui)', fontSize:14, color:'#a78bfa', fontWeight:700 }}>
             {roomFound ? '✓ Salle secrète découverte' : ''}
           </div>
         </div>
       )}
 
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)' }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>
           Choisis jusqu&apos;à {MAX_SHOWCASED_TROPHIES} succès à exposer sur ton profil. Clique à nouveau pour les retirer.
         </div>
         <div className="ach-chips">
@@ -122,7 +122,7 @@ export function TrophiesPanel() {
                     <span className="ach-card__name">{a.name}</span>
                     <span className="ach-tier">{TIER_META[getAchievementTier(a)].label}</span>
                   </div>
-                  <div className="ach-card__desc" style={{ fontSize:11.5 }}>{CATEGORY_META[a.category].icon} {CATEGORY_META[a.category].label} · {rewardLabel(a)}</div>
+                  <div className="ach-card__desc" style={{ fontSize:14 }}>{CATEGORY_META[a.category].icon} {CATEGORY_META[a.category].label} · {rewardLabel(a)}</div>
                   <div className="ach-state" style={{ color: picked ? '#fbbf24' : 'var(--text-dim)' }}>{picked ? '★ EXPOSÉ' : full ? 'VITRINE PLEINE' : '+ EXPOSER'}</div>
                 </div>
               </button>

@@ -283,15 +283,15 @@ export function GameLayout() {
     return (
       <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'radial-gradient(circle at center, rgba(168,85,247,0.18), rgba(2,6,23,1) 52%)', padding:'24px' }}>
         <div style={{ width:'min(560px, 92vw)', background:'rgba(12,10,30,0.92)', border:'1px solid rgba(192,132,252,0.45)', borderRadius:'20px', boxShadow:'0 0 40px rgba(168,85,247,0.35)', padding:'28px 26px', textAlign:'center' }}>
-          <div style={{ fontSize:'51.5px', marginBottom:'14px' }}>🚫</div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:'28.8px', fontWeight:900, letterSpacing:'2px', color:'#f5d0fe', marginBottom:'12px' }}>CONNEXION BLOQUÉE</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:'16.5px', lineHeight:1.6, color:'var(--text-sub)', marginBottom:'22px' }}>
+          <div style={{ fontSize:'54.6px', marginBottom:'14px' }}>🚫</div>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:'30.8px', fontWeight:900, letterSpacing:'2px', color:'#f5d0fe', marginBottom:'12px' }}>CONNEXION BLOQUÉE</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'18.5px', lineHeight:1.6, color:'var(--text-sub)', marginBottom:'22px' }}>
             Ce compte est déjà actif sur un autre appareil ou navigateur.<br />
             Pour éviter les doubles sessions, l’accès au jeu est refusé tant que la session conflictuelle reste ouverte.
           </div>
           <button
             onClick={async () => { dismissKickedOut(); await logout(); }}
-            style={{ background:'linear-gradient(135deg,#7c3aed,#a855f7)', border:'none', borderRadius:'12px', padding:'14px 22px', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'14.4px', color:'white', cursor:'pointer', boxShadow:'0 12px 28px rgba(168,85,247,0.35)' }}
+            style={{ background:'linear-gradient(135deg,#7c3aed,#a855f7)', border:'none', borderRadius:'12px', padding:'14px 22px', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'16.4px', color:'white', cursor:'pointer', boxShadow:'0 12px 28px rgba(168,85,247,0.35)' }}
           >
             SE DÉCONNECTER ET REESSAYER
           </button>
@@ -347,17 +347,17 @@ export function GameLayout() {
         {/* Hamburger (mobile) */}
         {isMobile && (
           <button onClick={() => setDrawerOpen(v => !v)} aria-label="Menu"
-            style={{ flexShrink:0, width:38, height:38, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border-lit)', borderRadius:'8px', cursor:'pointer', color:'var(--purple-glow)', fontSize:18.5, lineHeight:1 }}>
+            style={{ flexShrink:0, width:38, height:38, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border-lit)', borderRadius:'8px', cursor:'pointer', color:'var(--purple-glow)', fontSize:20.5, lineHeight:1 }}>
             ☰
           </button>
         )}
 
         {/* Logo */}
-        <div style={{ width:isMobile?'auto':'200px', flexShrink:0 }}>
-          <div key={logoFlash} onClick={clickLogo} className={logoFlash ? 'gv-logo-secret' : undefined} style={{ cursor:'default', userSelect:'none', fontFamily:'var(--f-title)', fontSize:isMobile?'13.5px':'18.5px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
+        <div style={{ width:isMobile?'auto':'216px', flexShrink:0 }}>
+          <div key={logoFlash} onClick={clickLogo} className={logoFlash ? 'gv-logo-secret' : undefined} style={{ cursor:'default', userSelect:'none', fontFamily:'var(--f-title)', fontSize:isMobile?'14px':'17px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
             {isNarrowHeader ? 'GV' : 'GACHAVERSE'}
           </div>
-          {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'12px', color:'var(--text-muted)', letterSpacing:'4px', marginTop:'3px' }}>MULTIVERS RPG</div>}
+          {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'14px', color:'var(--text-muted)', letterSpacing:'1px', marginTop:'4px', lineHeight:1 }}>MULTIVERS RPG</div>}
         </div>
 
         {/* Avatar / Bouton connexion */}
@@ -381,11 +381,11 @@ export function GameLayout() {
           </PlayerAvatar>
           {!isMobile && <div style={{ textAlign:'left' }}>
             {user ? (<>
-              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
             </>) : (<>
-              <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'13.4px', color:'#e9d5ff', lineHeight:1.2, letterSpacing:'0.5px' }}>SE CONNECTER</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'rgba(233,213,255,0.6)', lineHeight:1 }}>ou créer un compte</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'15.4px', color:'#e9d5ff', lineHeight:1.2, letterSpacing:'0.5px' }}>SE CONNECTER</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'rgba(233,213,255,0.6)', lineHeight:1 }}>ou créer un compte</div>
             </>)}
           </div>}
         </button>
@@ -401,12 +401,12 @@ export function GameLayout() {
             { icon:'🪙', val:formatNumber(pixelCoins), color:'var(--gold)',  bg:'rgba(120,53,15,0.22)',  border:'rgba(245,158,11,0.35)'  },
             { icon:'💎', val:formatNumber(nekoGems),   color:'var(--cyan-hi)',  bg:'rgba(6,182,212,0.15)',    border:'rgba(34,211,238,0.35)' },
           ].map((r,i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:isMobile?'4px':'7px', background:r.bg, border:`1px solid ${r.border}`, borderRadius:'20px', padding:isMobile?'4px 8px':'5px 16px', cursor:'pointer', transition:'all 0.15s', boxShadow:`inset 0 1px 0 rgba(255,255,255,0.06)` }}
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:isMobile?'4px':'7px', background:r.bg, border:`1px solid ${r.border}`, borderRadius:'20px', padding:isMobile?'4px 7px':'5px 16px', cursor:'pointer', transition:'all 0.15s', boxShadow:`inset 0 1px 0 rgba(255,255,255,0.06)` }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.2)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
-              <span style={{ fontSize:isMobile?'13.4px':'15.5px' }}>{r.icon}</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:isMobile?'12.4px':'14.4px', color:r.color }}>{r.val}</span>
-              {!isMobile && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.5px', color:r.color, opacity:0.45 }}>+</span>}
+              <span style={{ fontSize:isMobile?'14px':'15px' }}>{r.icon}</span>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14px', color:r.color }}>{r.val}</span>
+              {!isMobile && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15px', color:r.color, opacity:0.45 }}>+</span>}
             </div>
           ))}
         </div>
@@ -425,7 +425,7 @@ export function GameLayout() {
         {/* Breadcrumb page — masqué en mode compact pour laisser la place aux icônes */}
         {!isMobile && !isCompactHeader && <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 14px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'8px' }}>
           {(() => { const Icon = NAV_ICONS[currentNav.id]; return Icon ? <Icon size={14} color={currentNav.accent ?? 'var(--text-sub)'} /> : null; })()}
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', color: currentNav.accent ?? 'var(--text-sub)', letterSpacing:'1px' }}>{currentNav.label}</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color: currentNav.accent ?? 'var(--text-sub)', letterSpacing:'1px' }}>{currentNav.label}</span>
         </div>}
 
         {/* Icônes droite */}
@@ -435,7 +435,7 @@ export function GameLayout() {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
             <NAV_ICONS.dailyReward size={18} color="currentColor" />
-            {!isCompactHeader && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>CALENDRIER</span>}
+            {!isCompactHeader && <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', fontWeight:600, letterSpacing:'0.5px' }}>CALENDRIER</span>}
             {!dailyRewardClaimedToday && (
               <div style={{ position:'absolute', top:'2px', right:'2px', width:10, height:10, background:'#ef4444', borderRadius:'50%', border:'1px solid var(--bg-dark)' }} />
             )}
@@ -452,9 +452,9 @@ export function GameLayout() {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
               {Icon && <Icon size={18} color="currentColor" />}
-              {!isCompactHeader && <span style={{ fontFamily:'var(--f-ui)', fontSize:'12px', fontWeight:600, letterSpacing:'0.5px' }}>{n.label}</span>}
+              {!isCompactHeader && <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', fontWeight:600, letterSpacing:'0.5px' }}>{n.label}</span>}
               {n.id === 'quests' && claimable > 0 && (
-                <div style={{ position:'absolute', top:'2px', right:'2px', width:14, height:14, background:'#ef4444', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12px', color:'white', border:'1px solid var(--bg-dark)' }}>
+                <div style={{ position:'absolute', top:'1px', right:'1px', minWidth:16, height:16, padding:'0 3px', boxSizing:'border-box', lineHeight:1, background:'#ef4444', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14px', color:'white', border:'1px solid var(--bg-dark)' }}>
                   {claimable}
                 </div>
               )}
@@ -475,7 +475,7 @@ export function GameLayout() {
 
         {/* ── SIDEBAR GAUCHE (tiroir sur mobile) ─────────────────────────── */}
         <aside style={{
-            width:'210px', flexShrink:0,
+            width:'236px', flexShrink:0,
             background:'linear-gradient(180deg,var(--bg-dark) 0%,var(--bg-void) 100%)',
             borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column',
             padding:'10px 8px', gap:'2px', overflowY:'auto',
@@ -489,7 +489,7 @@ export function GameLayout() {
           {[...(isMobile ? [...NAV_GROUPS, { title:'RACCOURCIS', items: NAV_MOBILE_EXTRA }] : NAV_GROUPS), ...(canSeeDevTabs ? [NAV_DEV_GROUP] : [])].map((group, gi) => (
             <div key={gi} style={{ display:'flex', flexDirection:'column', gap:2 }}>
               {group.title && (
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:800, letterSpacing:2, color:'var(--text-muted)', padding:'10px 12px 4px', textTransform:'uppercase' }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:800, letterSpacing:2, color:'var(--text-muted)', padding:'10px 12px 4px', textTransform:'uppercase' }}>
                   {group.title}
                 </div>
               )}
@@ -506,13 +506,13 @@ export function GameLayout() {
                   <span>{item.label}</span>
                   {/* Progression Compadex */}
                   {item.id === 'collection' && (
-                    <span style={{ marginLeft:'auto', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'11px', color: isActive ? item.accent ?? '#60a5fa' : 'var(--text-muted)' }}>
+                    <span style={{ marginLeft:'auto', fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14px', color: isActive ? item.accent ?? '#60a5fa' : 'var(--text-muted)' }}>
                       {compadexCount}/{compadexTotal}
                     </span>
                   )}
                   {/* Badge quêtes */}
                   {item.id === 'quests' && claimable > 0 && (
-                    <div style={{ position:'absolute', right:'10px', width:18, height:18, background:'linear-gradient(135deg,#dc2626,#ef4444)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:12, color:'white', boxShadow:'0 0 8px rgba(239,68,68,0.6)' }}>{claimable}</div>
+                    <div style={{ position:'absolute', right:'10px', minWidth:22, height:22, padding:'0 5px', boxSizing:'border-box', background:'linear-gradient(135deg,#dc2626,#ef4444)', borderRadius:'11px', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--f-num)', fontWeight:700, fontSize:14, color:'white', boxShadow:'0 0 8px rgba(239,68,68,0.6)' }}>{claimable}</div>
                   )}
                 </div>
                 );
@@ -534,10 +534,10 @@ export function GameLayout() {
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.15)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
             <div style={{ position:'absolute', top:'-15px', right:'-15px', width:'80px', height:'80px', background:'radial-gradient(circle,rgba(168,85,247,0.16),transparent)', borderRadius:'50%' }} />
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>📋 PATCH NOTES</div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:'12.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>{latestPatchNote.title}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>Découvre les dernières nouveautés du jeu</div>
-            <div style={{ marginTop:'8px', fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', display:'flex', alignItems:'center', gap:'5px' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>📋 PATCH NOTES</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>{latestPatchNote.title}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1.5 }}>Découvre les dernières nouveautés du jeu</div>
+            <div style={{ marginTop:'8px', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', display:'flex', alignItems:'center', gap:'5px' }}>
               <span>🕒</span><span>{latestPatchNote.date}</span>
             </div>
           </div>
@@ -554,7 +554,7 @@ export function GameLayout() {
                 <BattleZone />
               </div>
               {/* Sidebar droite de combat (passe en dessous sur mobile) */}
-              <aside style={{ width:isMobile?'100%':'224px', flexShrink:0, display:'flex', flexDirection:'column', gap:'10px', overflowY:isMobile?'visible':'auto' }}>
+              <aside style={{ width:isMobile?'100%':'244px', flexShrink:0, display:'flex', flexDirection:'column', gap:'10px', overflowY:isMobile?'visible':'auto' }}>
                 <ProgressCard palier={palier} wave={wave} progressPct={progressPct} cfg={cfg} />
                 <QuestsCard quests={quests} claimQuest={useGameStore.getState().claimQuest} />
                 <StatsCard maxPalierReached={maxPalierReached} />
@@ -567,7 +567,7 @@ export function GameLayout() {
               <div style={{ padding:isMobile?'12px 16px 10px':'16px 28px 12px', borderBottom:'1px solid var(--border)', background:'linear-gradient(180deg,var(--bg-dark),transparent)', flexShrink:0, display:'flex', alignItems:'center', gap:'10px' }}>
                 <div style={{ width:'4px', height:'18px', background:`linear-gradient(180deg,${contentNav.accent??'var(--purple-hi)'},transparent)`, borderRadius:'2px', boxShadow:`0 0 8px ${contentNav.accent??'var(--purple-hi)'}` }} />
                 {(() => { const Icon = NAV_ICONS[contentNav.id]; return Icon ? <span style={{ color: contentNav.accent ?? 'var(--purple-hi)', display:'flex' }}><Icon size={20} color="currentColor" /></span> : null; })()}
-                <span style={{ fontFamily:'var(--f-title)', fontSize:'16.5px', fontWeight:700, color:contentNav.accent??'var(--text)', letterSpacing:'2px' }}>{contentNav.label}</span>
+                <span style={{ fontFamily:'var(--f-title)', fontSize:'18.5px', fontWeight:700, color:contentNav.accent??'var(--text)', letterSpacing:'2px' }}>{contentNav.label}</span>
               </div>
               <div style={{ flex:1, overflow:'hidden' }}>
                 <Suspense fallback={null}>

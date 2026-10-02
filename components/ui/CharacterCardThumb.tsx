@@ -142,7 +142,7 @@ export function CharacterCardThumb({
         style={{
           fontFamily: 'var(--f-ui)',
           fontWeight: 900,
-          fontSize: Math.round(width * 0.32),
+          fontSize: Math.max(14, Math.round(width * 0.32)),
           color: cfg.color,
           lineHeight: 1,
         }}
@@ -231,7 +231,7 @@ export function CharacterCardThumb({
           fontFamily: 'var(--f-avallon)',
           color: '#fff',
           fontSize: Math.max(
-            9,
+            14,
             Math.round(width * 0.17 * nameScale)
           ),
           lineHeight: 1,

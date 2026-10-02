@@ -20,14 +20,14 @@ export function ActiveBoostsBar() {
     <div style={{ position:'relative', zIndex:3, display:'flex', gap:8, padding:'0 18px 8px', flexShrink:0 }}>
       {dpsActive && (
         <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(248,113,113,0.12)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:8, padding:'4px 10px' }}>
-          <span style={{ fontSize:12.4 }}>⚡</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#f87171' }}>+20% DPS — {fmt(dpsBoostEndsAt)}</span>
+          <span style={{ fontSize:14.4 }}>⚡</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#f87171' }}>+20% DPS — {fmt(dpsBoostEndsAt)}</span>
         </div>
       )}
       {goldActive && (
         <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(74,222,128,0.12)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:8, padding:'4px 10px' }}>
-          <span style={{ fontSize:12.4 }}>💰</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#4ade80' }}>+20% Or — {fmt(goldBoostEndsAt)}</span>
+          <span style={{ fontSize:14.4 }}>💰</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#4ade80' }}>+20% Or — {fmt(goldBoostEndsAt)}</span>
         </div>
       )}
     </div>

@@ -123,22 +123,22 @@ export function EquipmentUpgradePage() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ fontSize: 22.7 }}>{item?.icon ?? '❔'}</div>
+                        <div style={{ fontSize: 24.7 }}>{item?.icon ?? '❔'}</div>
                         <div>
-                          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: cfg.color, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.4, color: cfg.color, display: 'flex', alignItems: 'center', gap: 6 }}>
                             {EQUIPMENT_SLOT_LABELS[g.slot]} — {cfg.label}
                             {g.specialQty > 0 && (
-                              <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11, fontWeight: 700, color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 9999, padding: '1px 7px' }}>
+                              <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 9999, padding: '1px 7px' }}>
                                 ⚠️ {g.specialQty} {specialLabel(g.specialQty)}
                               </span>
                             )}
                           </div>
-                          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-muted)' }}>
+                          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>
                             {groupUpgrades} fusion{groupUpgrades !== 1 ? 's' : ''} possible{groupUpgrades !== 1 ? 's' : ''}
                           </div>
                         </div>
                       </div>
-                      <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 14.4, color: 'var(--text)' }}>×{g.qty}</div>
+                      <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 16.4, color: 'var(--text)' }}>×{g.qty}</div>
                     </div>
                   </button>
                 );
@@ -161,25 +161,25 @@ export function EquipmentUpgradePage() {
                         {currentItem?.icon ?? '❔'}
                       </div>
                       <div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: RARITY_CONFIG[selected.rarity].color }}>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16.4, color: RARITY_CONFIG[selected.rarity].color }}>
                           {EQUIPMENT_SLOT_LABELS[selected.slot]} — {RARITY_CONFIG[selected.rarity].label}
                         </div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)' }}>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-muted)' }}>
                           ×{qty} possédé{qty > 1 ? 's' : ''}
                           {specialQty > 0 && <span style={{ color: '#fbbf24', fontWeight: 700 }}> · {specialQty} {specialLabel(specialQty)}</span>}
                         </div>
                       </div>
                     </div>
-                    <div style={{ fontSize: 26.8 }}>→</div>
+                    <div style={{ fontSize: 28.8 }}>→</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: nextRarity && isUnlocked ? 1 : 0.45 }}>
                       <div className="companion-slot-card__icon" style={{ background: nextRarity ? `${RARITY_CONFIG[nextRarity].color}22` : 'rgba(255,255,255,0.05)' }}>
                         {nextRarity ? (isUnlocked ? (nextItem?.icon ?? '❔') : '🔒') : '—'}
                       </div>
                       <div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: nextRarity ? RARITY_CONFIG[nextRarity].color : 'var(--text-dim)' }}>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16.4, color: nextRarity ? RARITY_CONFIG[nextRarity].color : 'var(--text-dim)' }}>
                           {nextRarity ? RARITY_CONFIG[nextRarity].label : 'Rareté maximale'}
                         </div>
-                        {nextRarity && <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)' }}>{isUnlocked ? 'Débloqué' : 'Verrouillé'}</div>}
+                        {nextRarity && <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-muted)' }}>{isUnlocked ? 'Débloqué' : 'Verrouillé'}</div>}
                       </div>
                     </div>
                   </div>
@@ -199,7 +199,7 @@ export function EquipmentUpgradePage() {
                   )}
                   {nextRarity && isUnlocked && (
                     <>
-                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)' }}>
+                      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-muted)' }}>
                         {upgradeCost} objets par fusion — {maxUpgrades} fusion{maxUpgrades !== 1 ? 's' : ''} possible{maxUpgrades !== 1 ? 's' : ''}
                       </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

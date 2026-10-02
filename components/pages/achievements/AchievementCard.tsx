@@ -117,8 +117,11 @@ export const AchievementCard = memo(function AchievementCard({ entry, progress, 
 
       <div className="ach-medal-wrap">
         <Medal a={cur} icon={series?.icon} concealed={concealed} />
-        {st.allDone && <div className="ach-check" aria-label="Terminé">✓</div>}
-        {multi && !concealed && <div className="ach-lvl-badge">{st.doneCount}/{levels.length}</div>}
+        {multi && !concealed ? (
+          <div className={`ach-lvl-badge${st.allDone ? ' is-done' : ''}`} aria-label={st.allDone ? 'Terminé' : undefined}>
+            {st.allDone && '✓ '}{st.doneCount}/{levels.length}
+          </div>
+        ) : st.allDone && <div className="ach-check" aria-label="Terminé">✓</div>}
       </div>
 
       <div className="ach-card__body">

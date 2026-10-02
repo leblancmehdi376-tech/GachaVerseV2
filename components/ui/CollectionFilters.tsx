@@ -29,7 +29,7 @@ const STATUSES: { key: Exclude<CollectionStatus, 'all'>; label: string; color: s
   { key: 'missing', label: '❌ MANQUANTS', color: '#f87171', glow: '#dc2626' },
 ];
 
-const SECTION_LABEL: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', color: 'var(--text-muted)', marginBottom: '7px' };
+const SECTION_LABEL: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: '14px', fontWeight: 700, letterSpacing: '1.5px', color: 'var(--text-muted)', marginBottom: '7px' };
 
 // ─── Briques ──────────────────────────────────────────────────────────────
 
@@ -118,7 +118,7 @@ function UniverseDropdown({ universes, value, onChange }: { universes: string[];
       }}>
         <UniverseIcon universe={value} size={18} />
         <span style={{ color: active ? 'var(--purple-glow)' : 'var(--text-sub)' }}>{active ? value : 'Tous les univers'}</span>
-        <span style={{ color: 'var(--text-muted)', fontSize: '10px', transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '14px', transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
       </button>
       {open && (
         <div className="cf-pop cf-frame" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100, width: '260px' }}>
@@ -130,7 +130,7 @@ function UniverseDropdown({ universes, value, onChange }: { universes: string[];
             <div className="cf-scroll" style={{ maxHeight: '260px', overflowY: 'auto' }}>
               <UniverseRow universe="all" label="Tous les univers" on={!active} onClick={() => pick('all')} />
               {list.map(u => <UniverseRow key={u} universe={u} label={u} on={value === u} onClick={() => pick(u)} />)}
-              {list.length === 0 && <div style={{ padding: '8px', fontFamily: 'var(--f-ui)', fontSize: '12px', color: 'var(--text-muted)' }}>Aucun univers</div>}
+              {list.length === 0 && <div style={{ padding: '8px', fontFamily: 'var(--f-ui)', fontSize: '14px', color: 'var(--text-muted)' }}>Aucun univers</div>}
             </div>
           </div>
         </div>

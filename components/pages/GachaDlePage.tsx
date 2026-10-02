@@ -55,7 +55,7 @@ function Cell({ state, delay, children }: { state: CellState; delay: number; chi
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
       minHeight: 64, padding: '6px 8px', borderRadius: 8, textAlign: 'center',
       background: c.bg, border: `1px solid ${c.border}`, boxShadow: `inset 0 0 14px ${c.border}33`,
-      fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12.4, color: 'var(--text)', lineHeight: 1.2,
+      fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 14.4, color: 'var(--text)', lineHeight: 1.2,
       animation: `dleFlip 0.45s ${delay}s both`,
     }}>
       {children}
@@ -71,7 +71,7 @@ function OrderCell({ match, delay, higherHint, lowerHint, children }: {
     <Cell state={match === 'correct' ? 'correct' : 'wrong'} delay={delay}>
       {children}
       {match !== 'correct' && (
-        <span title={match === 'higher' ? higherHint : lowerHint} style={{ fontSize: 16, color: 'var(--text)' }}>
+        <span title={match === 'higher' ? higherHint : lowerHint} style={{ fontSize: 18, color: 'var(--text)' }}>
           {match === 'higher' ? '▲' : '▼'}
         </span>
       )}
@@ -96,14 +96,14 @@ function GuessRow({ tpl, target, animate }: { tpl: CharacterTemplate; target: Ch
         </div>
       </Cell>
       <Cell state={cmp.gender} delay={d(1)}>
-        <span style={{ fontSize: 18, lineHeight: 1, color: gender.color }}>{gender.icon}</span>
+        <span style={{ fontSize: 20, lineHeight: 1, color: gender.color }}>{gender.icon}</span>
         <span style={{ color: gender.color }}>{gender.label.toUpperCase()}</span>
       </Cell>
       <OrderCell match={cmp.rarity} delay={d(2)} higherHint="Le personnage mystère est plus rare" lowerHint="Le personnage mystère est moins rare">
         <span style={{ color: rarity.color, textShadow: `0 0 8px ${rarity.glow}88`, letterSpacing: 0.5 }}>{rarity.label.toUpperCase()}</span>
       </OrderCell>
       <Cell state={cmp.affinity} delay={d(3)}>
-        <span style={{ fontSize: 18, lineHeight: 1 }}>{aff.icon}</span>
+        <span style={{ fontSize: 20, lineHeight: 1 }}>{aff.icon}</span>
         <span style={{ color: aff.color }}>{aff.label.toUpperCase()}</span>
       </Cell>
       <Cell state={cmp.universe} delay={d(4)}>
@@ -111,7 +111,7 @@ function GuessRow({ tpl, target, animate }: { tpl: CharacterTemplate; target: Ch
         <span>{tpl.universe ?? '—'}</span>
       </Cell>
       <OrderCell match={cmp.forms} delay={d(5)} higherHint="Le personnage mystère a plus de formes" lowerHint="Le personnage mystère a moins de formes">
-        <span style={{ fontFamily: 'var(--f-num)', fontSize: 16 }}>{forms}</span>
+        <span style={{ fontFamily: 'var(--f-num)', fontSize: 18 }}>{forms}</span>
       </OrderCell>
     </div>
   );
@@ -120,7 +120,7 @@ function GuessRow({ tpl, target, animate }: { tpl: CharacterTemplate; target: Ch
 function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button type="button" onClick={onClick} className={active ? 'btn-primary' : 'btn-secondary'}
-      style={{ padding: '8px 14px', fontSize: 12.4, whiteSpace: 'nowrap' }}>
+      style={{ padding: '8px 14px', fontSize: 14.4, whiteSpace: 'nowrap' }}>
       {children}
     </button>
   );
@@ -139,10 +139,10 @@ function DleQuestsPanel() {
   return (
     <div className="panel" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-        <span style={{ fontFamily: 'var(--f-title)', fontSize: 15, fontWeight: 700, color: '#38bdf8', letterSpacing: 2 }}>📜 QUÊTES GACHADLE</span>
-        <span style={{ fontFamily: 'var(--f-num)', fontSize: 12.4, color: 'var(--text-dim)' }}>{doneCount} / {DLE_QUESTS.length}</span>
+        <span style={{ fontFamily: 'var(--f-title)', fontSize: 17, fontWeight: 700, color: '#38bdf8', letterSpacing: 2 }}>📜 QUÊTES GACHADLE</span>
+        <span style={{ fontFamily: 'var(--f-num)', fontSize: 14.4, color: 'var(--text-dim)' }}>{doneCount} / {DLE_QUESTS.length}</span>
       </div>
-      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>
         Seuls les défis du jour comptent pour les quêtes : les parties libres ne font pas progresser.
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -150,31 +150,34 @@ function DleQuestsPanel() {
           const ready = p.done && !isClaimed;
           return (
             <div key={q.id} style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', borderRadius: 8,
+              display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 12px', padding: '8px 12px', borderRadius: 8,
               background: ready ? 'rgba(56,189,248,0.10)' : 'var(--bg-deep)',
               border: `1px solid ${ready ? 'rgba(56,189,248,0.5)' : 'var(--border)'}`,
               opacity: isClaimed ? 0.55 : 1,
             }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{q.label}</div>
+              {/* flex-basis 200px : sur téléphone, le bloc de droite passe sous le libellé plutôt que de l'écraser */}
+              <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{q.label}</div>
                 {p.target > 1 && (
                   <div style={{ marginTop: 5, height: 5, borderRadius: 3, background: 'var(--border)', overflow: 'hidden' }}>
                     <div style={{ width: `${(p.current / p.target) * 100}%`, height: '100%', background: p.done ? OK.color : '#38bdf8' }} />
                   </div>
                 )}
               </div>
-              {p.target > 1 && (
-                <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>{p.current}/{p.target}</span>
-              )}
-              <span style={{ fontFamily: 'var(--f-num)', fontSize: 12.4, color: '#38bdf8', whiteSpace: 'nowrap', minWidth: 60, textAlign: 'right' }}>+{q.gems} 💎</span>
-              {isClaimed ? (
-                <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 11.5, color: OK.color, minWidth: 64, textAlign: 'center' }}>✓ REÇU</span>
-              ) : (
-                <button type="button" className={ready ? 'btn-primary' : 'btn-secondary'} disabled={!ready}
-                  onClick={() => claimDleQuest(q.id)} style={{ padding: '6px 10px', fontSize: 11.5, minWidth: 64 }}>
-                  RÉCUP
-                </button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
+                {p.target > 1 && (
+                  <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>{p.current}/{p.target}</span>
+                )}
+                <span style={{ fontFamily: 'var(--f-num)', fontSize: 14.4, color: '#38bdf8', whiteSpace: 'nowrap', minWidth: 60, textAlign: 'right' }}>+{q.gems} 💎</span>
+                {isClaimed ? (
+                  <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 14, color: OK.color, minWidth: 64, textAlign: 'center' }}>✓ REÇU</span>
+                ) : (
+                  <button type="button" className={ready ? 'btn-primary' : 'btn-secondary'} disabled={!ready}
+                    onClick={() => claimDleQuest(q.id)} style={{ padding: '6px 10px', fontSize: 14, minWidth: 64 }}>
+                    RÉCUP
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
@@ -252,7 +255,7 @@ export function GachaDlePage() {
     else if (e.key === 'Escape') setOpen(false);
   };
 
-  const headCell: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: 'var(--text-muted)', textAlign: 'center', paddingBottom: 4, borderBottom: '1px solid var(--border-lit)' };
+  const headCell: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 800, letterSpacing: 1.5, color: 'var(--text-muted)', textAlign: 'center', paddingBottom: 4, borderBottom: '1px solid var(--border-lit)' };
   const aff = AFFINITY_CONFIG[getAffinityForId(target.id)];
 
   return (
@@ -265,9 +268,9 @@ export function GachaDlePage() {
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <div style={{ width: 4, height: 20, background: 'linear-gradient(180deg,#38bdf8,#0369a1)', borderRadius: 2, boxShadow: '0 0 8px #38bdf8' }} />
-              <span style={{ fontFamily: 'var(--f-title)', fontSize: 18.5, fontWeight: 700, color: '#38bdf8', letterSpacing: '3px' }}>❓ GACHADLE</span>
+              <span style={{ fontFamily: 'var(--f-title)', fontSize: 20.5, fontWeight: 700, color: '#38bdf8', letterSpacing: '3px' }}>❓ GACHADLE</span>
             </div>
-            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)', maxWidth: 480, lineHeight: 1.6 }}>
+            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-dim)', maxWidth: 480, lineHeight: 1.6 }}>
               Devine le personnage mystère ! Chaque proposition révèle si son <b>genre</b>, sa <b>rareté</b>, son <b>type</b>, son <b>univers</b> et son <b>nombre de formes</b> correspondent. ▲/▼ : le mystère a une valeur plus haute ou plus basse. Type en <b style={{ color: CLOSE.color }}>orange</b> : voisin dans le cycle des types.
             </div>
           </div>
@@ -276,7 +279,7 @@ export function GachaDlePage() {
               <ModeButton active={mode === 'daily'} onClick={() => switchMode('daily')}>📅 DÉFI DU JOUR</ModeButton>
               <ModeButton active={mode === 'free'} onClick={() => switchMode('free')}>🎲 PARTIE LIBRE</ModeButton>
             </div>
-            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12, color: 'var(--text-dim)', textAlign: 'right' }}>
+            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)', textAlign: 'right' }}>
               🔥 Série : <b style={{ color: streak > 0 ? CLOSE.color : 'var(--text-dim)' }}>{streak}</b>
               {' · '}Défi du jour : <b style={{ color: dailyWon ? OK.color : '#38bdf8' }}>{dailyWon ? 'réussi ✓' : `+${getDleDailyReward(streak + 1)} 💎`}</b>
             </div>
@@ -288,18 +291,18 @@ export function GachaDlePage() {
           <div className="panel panel--gold" style={{ padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', animation: 'fadeIn 0.5s 0.8s both' }}>
             <CharacterCardThumb templateId={target.id} name={target.name} rarity={target.rarity} width={72} height={98} />
             <div style={{ flex: 1, minWidth: 180 }}>
-              <div style={{ fontFamily: 'var(--f-title)', fontSize: 16.5, fontWeight: 700, color: 'var(--gold-hi)', letterSpacing: 2 }}>🎉 BIEN JOUÉ !</div>
-              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 13.4, color: 'var(--text-sub)', marginTop: 4, lineHeight: 1.5 }}>
+              <div style={{ fontFamily: 'var(--f-title)', fontSize: 18.5, fontWeight: 700, color: 'var(--gold-hi)', letterSpacing: 2 }}>🎉 BIEN JOUÉ !</div>
+              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 15.4, color: 'var(--text-sub)', marginTop: 4, lineHeight: 1.5 }}>
                 C&apos;était <b style={{ color: RARITY_CONFIG[target.rarity].color }}>{target.name}</b> ({target.universe}, {aff.icon} {aff.label}),
                 trouvé en <b>{guesses.length}</b> essai{guesses.length > 1 ? 's' : ''}.
               </div>
               {mode === 'daily' && (
-                <div style={{ fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)', marginTop: 4 }}>
+                <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-dim)', marginTop: 4 }}>
                   🔥 Série de <b style={{ color: CLOSE.color }}>{streak}</b> jour{streak > 1 ? 's' : ''}. Reviens dans <Countdown type="daily" /> pour un nouveau personnage mystère, en même temps que les quêtes journalières.
                 </div>
               )}
             </div>
-            <button type="button" className="btn-primary" onClick={newFreeGame} style={{ padding: '10px 16px', fontSize: 12.4 }}>
+            <button type="button" className="btn-primary" onClick={newFreeGame} style={{ padding: '10px 16px', fontSize: 14.4 }}>
               {mode === 'daily' ? '🎲 JOUER EN LIBRE' : '🔄 NOUVELLE PARTIE'}
             </button>
           </div>
@@ -322,10 +325,10 @@ export function GachaDlePage() {
                 style={{
                   flex: 1, minWidth: 0, padding: '11px 14px', borderRadius: 8,
                   background: 'var(--bg-deep)', border: '1px solid var(--border-lit)', outline: 'none',
-                  fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4, color: 'var(--text)',
+                  fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16.4, color: 'var(--text)',
                 }}
               />
-              <span style={{ fontFamily: 'var(--f-num)', fontSize: 12.4, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: 'var(--f-num)', fontSize: 14.4, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
                 {guesses.length} essai{guesses.length > 1 ? 's' : ''}
               </span>
             </div>
@@ -338,7 +341,7 @@ export function GachaDlePage() {
                 animation: 'cfPop 0.12s both',
               }}>
                 {suggestions.length === 0 ? (
-                  <div style={{ padding: '12px 14px', fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)' }}>Aucun personnage trouvé.</div>
+                  <div style={{ padding: '12px 14px', fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-dim)' }}>Aucun personnage trouvé.</div>
                 ) : suggestions.map((s, i) => (
                   <div key={s.id} role="option" aria-selected={i === highlight}
                     // mousedown (et pas click) : se déclenche avant le blur de l'input qui fermerait la liste.
@@ -350,7 +353,7 @@ export function GachaDlePage() {
                       borderBottom: i < suggestions.length - 1 ? '1px solid var(--border)' : 'none',
                     }}>
                     <CharacterCardThumb templateId={s.id} name={s.name} rarity={s.rarity} width={32} height={44} style={{ flexShrink: 0 }} />
-                    <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: 'var(--text)' }}>{s.name}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.4, color: 'var(--text)' }}>{s.name}</span>
                   </div>
                 ))}
               </div>
@@ -379,7 +382,7 @@ export function GachaDlePage() {
         )}
 
         {guesses.length === 0 && (
-          <div style={{ textAlign: 'center', fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-muted)', padding: '12px 0' }}>
+          <div style={{ textAlign: 'center', fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-muted)', padding: '12px 0' }}>
             {DLE_POOL.length} personnages possibles. À toi de jouer !
           </div>
         )}

@@ -111,8 +111,8 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="panel" style={{ width:'100%', maxWidth:480, maxHeight:'85vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ padding:'16px 20px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:cfg.color, letterSpacing:1 }}>{tpl.name}</div>
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:20.6 }}>✕</button>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:18.5, color:cfg.color, letterSpacing:1 }}>{tpl.name}</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:22.6 }}>✕</button>
         </div>
 
         <div style={{ flex:1, overflowY:'auto', padding:'18px 20px', display:'flex', flexDirection:'column', gap:14 }}>
@@ -127,41 +127,41 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
           </div>
 
           {tpl.description && (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)', lineHeight:1.5, textAlign:'center' }}>{tpl.description}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)', lineHeight:1.5, textAlign:'center' }}>{tpl.description}</div>
           )}
 
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>DPS de base</div>
-              <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{formatNumber(tpl.baseDps)}/s</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>DPS de base</div>
+              <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:17, color:'var(--text)' }}>{formatNumber(tpl.baseDps)}/s</div>
             </div>
             <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Formes</div>
-              <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{forms.length > 0 ? forms.length : 1}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Formes</div>
+              <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:17, color:'var(--text)' }}>{forms.length > 0 ? forms.length : 1}</div>
             </div>
           </div>
 
           {owned ? (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>DPS actuel</div>
-                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--green)' }}>{formatNumber(dps!)}/s</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>DPS actuel</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:17, color:'var(--green)' }}>{formatNumber(dps!)}/s</div>
               </div>
               <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Copies</div>
-                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{owned.copies}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Copies</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:17, color:'var(--text)' }}>{owned.copies}</div>
               </div>
               <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Niveau</div>
-                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{owned.level}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Niveau</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:17, color:'var(--text)' }}>{owned.level}</div>
               </div>
               <div className="panel" style={{ padding:'10px 12px', textAlign:'center' }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Forme</div>
-                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{owned.currentForm + 1}/{forms.length > 0 ? forms.length : 1}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5 }}>Forme</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:17, color:'var(--text)' }}>{owned.currentForm + 1}/{forms.length > 0 ? forms.length : 1}</div>
               </div>
             </div>
           ) : (
-            <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-muted)' }}>
+            <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)' }}>
               {seen ? '🕓 Déjà obtenu par le passé — non possédé actuellement' : '🔒 Personnage jamais obtenu'}
             </div>
           )}
@@ -169,13 +169,13 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 
           {forms.length > 0 && (
             <div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 }}>Formes d&apos;évolution</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 }}>Formes d&apos;évolution</div>
               <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
                 {forms.map((f, i) => (
                   <div key={f.formId} style={{ display:'flex', justifyContent:'space-between', gap:8, padding:'4px 8px', borderRadius:8,
                     background: owned && owned.currentForm === i ? `${cfg.color}18` : 'rgba(255,255,255,0.03)' }}>
-                    <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color: owned && owned.currentForm === i ? cfg.color : 'var(--text-dim)', fontWeight: owned && owned.currentForm === i ? 700 : 400 }}>{i + 1}. {f.name}</span>
-                    <span style={{ fontFamily:'var(--f-num)', fontSize:12, color:'var(--text-muted)' }}>×{f.dpsFormMult}</span>
+                    <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color: owned && owned.currentForm === i ? cfg.color : 'var(--text-dim)', fontWeight: owned && owned.currentForm === i ? 700 : 400 }}>{i + 1}. {f.name}</span>
+                    <span style={{ fontFamily:'var(--f-num)', fontSize:14, color:'var(--text-muted)' }}>×{f.dpsFormMult}</span>
                   </div>
                 ))}
               </div>
@@ -273,7 +273,7 @@ export function CollectionPage() {
               <div className="prog-track" style={{ width:'100%' }}>
                 <div className="prog-fill" style={{ width:`${headerPct}%`, background:'linear-gradient(90deg,#1d4ed8,#60a5fa)', boxShadow:'0 0 8px #60a5fa88' }} />
               </div>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'12.4px', color:'#60a5fa' }}>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14.4px', color:'#60a5fa' }}>
                 {headerPct}%{headerPct >= 100 && ' 🏆'}
               </span>
             </div>
@@ -287,7 +287,7 @@ export function CollectionPage() {
             { key:'equipment' as const,  label:'ÉQUIPEMENT' },
           ]).map(tab => (
             <button key={tab.key} onClick={() => setView(tab.key)}
-              style={{ padding:'8px 16px', borderRadius:'10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'12.4px', letterSpacing:'0.5px',
+              style={{ padding:'8px 16px', borderRadius:'10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', letterSpacing:'0.5px',
                 background: view===tab.key ? 'rgba(96,165,250,0.18)' : 'var(--bg-card)',
                 border: `1px solid ${view===tab.key ? '#60a5fa66' : 'var(--border)'}`,
                 color: view===tab.key ? '#60a5fa' : 'var(--text-dim)' }}>
@@ -303,7 +303,7 @@ export function CollectionPage() {
 
             {/* ── RÉSULTATS ────────────────────────────────────────────────── */}
             {sorted.length === 0 && (
-              <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'13.4px' }}>
+              <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'15.4px' }}>
                 Aucun personnage ne correspond à ces filtres.
               </div>
             )}
@@ -351,16 +351,16 @@ export function CollectionPage() {
               return (
                 <div key={item.id} className="panel" style={{ padding:'14px', borderColor:`${item.color}33`, opacity: seen ? 1 : 0.6 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
-                    <div style={{ width:53, height:53, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24.7px', flexShrink:0 }}>{item.icon}</div>
+                    <div style={{ width:53, height:53, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'26.7px', flexShrink:0 }}>{item.icon}</div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'13.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.4px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
                     </div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'11px', color: badge.color, background: stock > 0 ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)', border:`1px solid ${stock > 0 ? 'rgba(74,222,128,0.3)' : 'var(--border)'}`, borderRadius:999, padding:'2px 8px', flexShrink:0, whiteSpace:'nowrap' }}>
+                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color: badge.color, background: stock > 0 ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)', border:`1px solid ${stock > 0 ? 'rgba(74,222,128,0.3)' : 'var(--border)'}`, borderRadius:999, padding:'2px 8px', flexShrink:0, whiteSpace:'nowrap' }}>
                       {badge.label}
                     </div>
                   </div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'12px', color:'var(--text-dim)', lineHeight:1.5 }}>{item.description}</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1.5 }}>{item.description}</div>
                 </div>
               );
             })}

@@ -99,7 +99,7 @@ export function InvocationPortal({ onDone }: { onDone: () => void }) {
         transition:'transform 0.3s ease',
       }}>
         <div style={{
-          fontFamily:'var(--f-title)', fontSize:28.8, fontWeight:900,
+          fontFamily:'var(--f-title)', fontSize:30.8, fontWeight:900,
           color:'#e9d5ff', letterSpacing:4,
           textShadow:'0 0 30px rgba(192,132,252,0.8), 0 0 60px rgba(109,40,217,0.5)',
           marginBottom:8,
@@ -107,7 +107,7 @@ export function InvocationPortal({ onDone }: { onDone: () => void }) {
           INVOCATION
         </div>
         <div style={{
-          fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(192,132,252,0.5)',
+          fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(192,132,252,0.5)',
           letterSpacing:3, fontWeight:700,
         }}>
           EN COURS...

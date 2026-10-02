@@ -79,9 +79,9 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
             <div style={{ width:4, height:20, background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:2, boxShadow:'0 0 8px #fbbf24' }} />
-            <span style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:700, color:'#fbbf24', letterSpacing:'3px' }}>RAIDS</span>
+            <span style={{ fontFamily:'var(--f-title)', fontSize:22.6, fontWeight:700, color:'#fbbf24', letterSpacing:'3px' }}>RAIDS</span>
           </div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-dim)' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>
             Choisis un raid et affronte les boss pour obtenir des récompenses exclusives
           </div>
         </div>
@@ -92,17 +92,17 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
             { icon:'💎', val:formatNumber(nekoGems), label:'Neko-Gemmes', color:'var(--cyan-hi)' },
           ].map((s,i) => (
             <div key={i} className="panel" style={{ padding:'10px 18px', display:'flex', alignItems:'center', gap:10 }}>
-              <span style={{ fontSize:22.7 }}>{s.icon}</span>
+              <span style={{ fontSize:24.7 }}>{s.icon}</span>
               <div>
-                <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:s.color }}>{s.val}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', fontWeight:700 }}>{s.label}</div>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:20.5, color:s.color }}>{s.val}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', fontWeight:700 }}>{s.label}</div>
               </div>
             </div>
           ))}
         </div>
 
         <div>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--text-dim)', letterSpacing:2, marginBottom:14 }}>RAIDS DISPONIBLES</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:14 }}>RAIDS DISPONIBLES</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap:16 }}>
             {RAID_BOSSES.map(raid => {
               const charTpl   = getCharacterById(raid.characterId);
@@ -129,28 +129,28 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                       <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:6, padding:'3px 10px' }}>
                         <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', animation:'pulse 2s infinite' }} />
-                        <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#4ade80', letterSpacing:1 }}>ACTIF</span>
+                        <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#4ade80', letterSpacing:1 }}>ACTIF</span>
                       </div>
-                      <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>⏰ Permanent</span>
+                      <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.4)', fontWeight:600 }}>⏰ Permanent</span>
                     </div>
                     <div>
-                      <div style={{ fontFamily:'var(--f-title)', fontSize:20.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:5, textShadow:`0 0 20px ${raid.accentColor}bb` }}>{raid.name}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:1, marginBottom:6 }}>{raid.subtitle}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.68)', lineHeight:1.6, maxWidth:'88%' }}>{raid.description}</div>
+                      <div style={{ fontFamily:'var(--f-title)', fontSize:22.6, fontWeight:900, color:'white', letterSpacing:2, marginBottom:5, textShadow:`0 0 20px ${raid.accentColor}bb` }}>{raid.name}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:1, marginBottom:6 }}>{raid.subtitle}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.68)', lineHeight:1.6, maxWidth:'88%' }}>{raid.description}</div>
                     </div>
 
                     {charTpl && charRare && (
                       <div style={{ display:'inline-flex', alignItems:'center', gap:8, alignSelf:'flex-start',
                         background:`linear-gradient(90deg, ${charRare.color}22, transparent)`, border:`1px solid ${charRare.color}88`,
                         borderRadius:8, padding:'5px 10px', boxShadow:`0 0 14px ${charRare.glow}33` }}>
-                        <span style={{ fontSize:14 }}>🎁</span>
-                        <span style={{ fontFamily:'var(--f-ui)', fontSize:11.5, fontWeight:800, color:charRare.color, letterSpacing:0.5 }}>{charTpl.name}</span>
-                        <span style={{ fontFamily:'var(--f-ui)', fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.6)', letterSpacing:1, textTransform:'uppercase' }}>{charRare.label}</span>
+                        <span style={{ fontSize:16 }}>🎁</span>
+                        <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:800, color:charRare.color, letterSpacing:0.5 }}>{charTpl.name}</span>
+                        <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.6)', letterSpacing:1, textTransform:'uppercase' }}>{charRare.label}</span>
                       </div>
                     )}
 
                     <div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:10.5, fontWeight:700, color:'rgba(255,255,255,0.4)', letterSpacing:1.5, marginBottom:6 }}>MEILLEURS BUTINS</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.4)', letterSpacing:1.5, marginBottom:6 }}>MEILLEURS BUTINS</div>
                       <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                         {rareDrops.map((entry, i) => {
                           const r = entry.result;
@@ -167,18 +167,18 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
                               padding: isRarest ? '5px 10px' : '3px 8px',
                               boxShadow: isRarest ? `0 0 12px ${color}55` : 'none',
                               animation: isRarest ? 'rareGlow 1.8s ease-in-out infinite' : 'none' }}>
-                              <span style={{ fontSize: isRarest ? 14 : 12 }}>{icon}</span>
-                              <span style={{ fontFamily:'var(--f-ui)', fontSize: isRarest ? 12.5 : 12, fontWeight:800, color }}>{label}</span>
+                              <span style={{ fontSize: isRarest ? 16 : 14 }}>{icon}</span>
+                              <span style={{ fontFamily:'var(--f-ui)', fontSize: isRarest ? 14.5 : 14, fontWeight:800, color }}>{label}</span>
                             </div>
                           );
                         })}
                       </div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:10.5, color:'rgba(255,255,255,0.35)', marginTop:6 }}>+ Gemmes & Couronnes garanties à chaque victoire</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.35)', marginTop:6 }}>+ Gemmes & Couronnes garanties à chaque victoire</div>
                     </div>
 
                     <button onClick={e => { e.stopPropagation(); onSelect(raid.id); }}
                       className="btn-primary"
-                      style={{ marginTop:'auto', padding:'12px', fontSize:14.4, letterSpacing:2, display:'flex', alignItems:'center', justifyContent:'center', gap:8, cursor:'pointer' }}>
+                      style={{ marginTop:'auto', padding:'12px', fontSize:16.4, letterSpacing:2, display:'flex', alignItems:'center', justifyContent:'center', gap:8, cursor:'pointer' }}>
                       ⚔ ENTRER
                     </button>
                   </div>
@@ -189,10 +189,10 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
             {COMING_SOON_RAIDS.map(ev => (
               <div key={ev.id} style={{ borderRadius:16, overflow:'hidden', position:'relative', border:'1px solid rgba(255,255,255,0.08)', background:'linear-gradient(135deg,#0a0a14,#14101e)', minHeight:220, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:14 }}>
                 <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)' }} />
-                <span style={{ fontSize:41.2, opacity:0.3 }}>🔒</span>
+                <span style={{ fontSize:43.7, opacity:0.3 }}>🔒</span>
                 <div style={{ textAlign:'center', padding:'0 20px' }}>
-                  <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, fontWeight:700, color:'rgba(255,255,255,0.25)', letterSpacing:3, marginBottom:8 }}>COMING SOON</div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(255,255,255,0.2)' }}>Prochain raid bientôt disponible...</div>
+                  <div style={{ fontFamily:'var(--f-title)', fontSize:18.5, fontWeight:700, color:'rgba(255,255,255,0.25)', letterSpacing:3, marginBottom:8 }}>COMING SOON</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.2)' }}>Prochain raid bientôt disponible...</div>
                 </div>
               </div>
             ))}

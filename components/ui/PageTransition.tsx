@@ -48,17 +48,21 @@ export function PageTransition({ pageKey, children }: Props) {
         width: '100%',
         height: '100%',
         opacity: phase === 'out' ? 0 : 1,
+        // Au repos : aucune transformation ni will-change. Sinon toute la page
+        // reste dans un calque GPU permanent où le texte, posé sur des
+        // positions à fraction de pixel, est rendu flou (pas d'alignement
+        // sur la grille de pixels ni d'antialiasing sous-pixel).
         transform: phase === 'out'
           ? 'translateY(6px) scale(0.995)'
           : phase === 'in'
             ? 'translateY(-4px) scale(0.997)'
-            : 'translateY(0) scale(1)',
+            : 'none',
         transition: phase === 'out'
           ? 'opacity 0.15s ease, transform 0.15s ease'
           : phase === 'in'
             ? 'opacity 0.22s ease, transform 0.22s cubic-bezier(0.175,0.885,0.32,1.275)'
             : 'none',
-        willChange: 'opacity, transform',
+        willChange: phase === 'idle' ? 'auto' : 'opacity, transform',
       }}
     >
       {shownChildren}

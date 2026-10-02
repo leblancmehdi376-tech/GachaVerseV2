@@ -112,7 +112,7 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
               display:'flex', alignItems:'flex-end', justifyContent:'center', paddingBottom:12,
             }}>
               <span style={{
-                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12,
+                fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14,
                 color:cfg.color, letterSpacing:1, background:'rgba(0,0,0,0.7)',
                 borderRadius:5, padding:'3px 10px', border:`1px solid ${cfg.color}55`,
               }}>RÉVÉLER</span>
@@ -165,8 +165,9 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
                   zIndex: 12,
                   pointerEvents:'none',
                 }}>
-                  <span style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'#4ade80', fontWeight:800, letterSpacing:1, textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}>
-                    ✦ NOUVEAU
+                  {/* Pastille sombre sans ✦ : à 14px le libellé doit tenir dans la largeur de la carte */}
+                  <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#4ade80', fontWeight:800, letterSpacing:0.3, lineHeight:1.2, padding:'1px 6px', borderRadius:999, background:'rgba(5,4,15,0.75)', textShadow:'0 1px 4px rgba(0,0,0,0.9)', whiteSpace:'nowrap' }}>
+                    NOUVEAU
                   </span>
                 </div>
               )}

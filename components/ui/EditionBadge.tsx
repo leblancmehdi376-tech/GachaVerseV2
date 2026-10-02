@@ -13,7 +13,7 @@ export function EditionBadge({ edition, style }: { edition?: CardEdition; style?
   const ed = EDITION_CONFIG[edition];
   return (
     <span style={{
-      fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 12, letterSpacing: 0.5, whiteSpace: 'nowrap',
+      fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 14, letterSpacing: 0.5, whiteSpace: 'nowrap',
       color: ed.color, background: `${ed.glow}22`, border: `1px solid ${ed.glow}77`,
       borderRadius: 999, padding: '2px 8px', ...style,
     }}>
@@ -45,7 +45,7 @@ export function EditionGaugeMini({ owned, style }: { owned: Pick<OwnedCharacter,
         style={{ flex: 1, minWidth: 0, height: 6, borderRadius: 999, background: 'rgba(0,0,0,0.4)', border: `1px solid ${ed.glow}55`, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: fill }} />
       </div>
-      <span style={{ fontFamily: 'var(--f-num)', fontSize: 11, fontWeight: 700, color: 'var(--text-sub)', whiteSpace: 'nowrap' }}>
+      <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 700, color: 'var(--text-sub)', whiteSpace: 'nowrap' }}>
         {next ? `${points}/${to}` : 'MAX'}
       </span>
     </div>
@@ -58,8 +58,8 @@ export function EditionGauge({ owned }: { owned: Pick<OwnedCharacter, 'edition' 
   return (
     <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>JAUGE D&apos;ÉDITION</span>
-        <span style={{ fontFamily: 'var(--f-num)', fontSize: 12, fontWeight: 700, color: 'var(--text-sub)' }}>
+        <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>JAUGE D&apos;ÉDITION</span>
+        <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 700, color: 'var(--text-sub)' }}>
           {next ? `${points} / ${to}` : `${points} / ${EDITION_MAX_POINTS} · MAX`}
         </span>
       </div>
@@ -69,7 +69,7 @@ export function EditionGauge({ owned }: { owned: Pick<OwnedCharacter, 'edition' 
       >
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: fill, transition: 'width 0.4s ease' }} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700 }}>
         <span style={{ color: ed.color }}><EditionIcon edition={edition} size={14} /> {ed.label}</span>
         {next
           ? <span style={{ color: EDITION_CONFIG[next].color }}><EditionIcon edition={next} size={14} /> {EDITION_CONFIG[next].label} dans {to - points} pt{to - points > 1 ? 's' : ''}</span>

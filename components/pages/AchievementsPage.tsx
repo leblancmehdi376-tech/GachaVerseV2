@@ -45,23 +45,23 @@ const RAIN_ICONS = ['🏆', '🥇', '⭐', '💎', '👑', '✨'];
 
 // Anneau de progression global.
 function Ring({ pct }: { pct: number }) {
-  const r = 46, c = 2 * Math.PI * r;
+  const r = 52, c = 2 * Math.PI * r;
   return (
-    <div style={{ position:'relative', width:112, height:112, flexShrink:0 }}>
-      <svg width="112" height="112" className="ach-ring">
+    <div style={{ position:'relative', width:126, height:126, flexShrink:0 }}>
+      <svg width="126" height="126" className="ach-ring">
         <defs>
           <linearGradient id="achRingGrad" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#c084fc" />
             <stop offset="100%" stopColor="#fbbf24" />
           </linearGradient>
         </defs>
-        <circle cx="56" cy="56" r={r} fill="none" strokeWidth="9" className="ach-ring__track" />
-        <circle cx="56" cy="56" r={r} fill="none" strokeWidth="9" strokeLinecap="round" className="ach-ring__fill"
+        <circle cx="63" cy="63" r={r} fill="none" strokeWidth="9" className="ach-ring__track" />
+        <circle cx="63" cy="63" r={r} fill="none" strokeWidth="9" strokeLinecap="round" className="ach-ring__fill"
           stroke="url(#achRingGrad)" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
       </svg>
       <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24, color:'#fde68a', lineHeight:1 }}>{pct}%</span>
-        <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:10.5, color:'var(--text-dim)', letterSpacing:1.5 }}>COMPLÉTION</span>
+        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26, color:'#fde68a', lineHeight:1 }}>{pct}%</span>
+        <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, color:'var(--text-dim)', letterSpacing:0.5 }}>COMPLÉTION</span>
       </div>
     </div>
   );
@@ -187,16 +187,16 @@ export const AchievementsPage = memo(function AchievementsPage() {
             <div className="ach-hero__brand">GACHAVERSE</div>
             <div className="ach-hero__title" onClick={tapTitle}>SUCCÈS</div>
             <div style={{ display:'flex', alignItems:'baseline', gap:8, flexWrap:'wrap' }}>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22, color:'#fff' }}>{doneCount}</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:15, color:'var(--text-dim)' }}>/ {total} succès</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:15, color:'#fbbf24', marginLeft:'auto' }}>{pct}%</span>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24, color:'#fff' }}>{doneCount}</span>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:17, color:'var(--text-dim)' }}>/ {total} succès</span>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:800, fontSize:17, color:'#fbbf24', marginLeft:'auto' }}>{pct}%</span>
             </div>
             <div className="ach-bar"><div className="ach-bar__fill" style={{ width:`${pct}%` }} /></div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
               {TIER_ORDER.map(t => (
                 <div key={t} className="ach-stat" style={{ flexDirection:'row', alignItems:'center', gap:7, padding:'6px 10px' }}>
                   <span style={{ width:10, height:10, borderRadius:'50%', background:TIER_META[t].color, boxShadow:`0 0 8px ${TIER_META[t].glow}` }} />
-                  <span className="ach-stat__val" style={{ fontSize:13.5, color:TIER_META[t].color }}>{tierCounts[t]}</span>
+                  <span className="ach-stat__val" style={{ fontSize:15.5, color:TIER_META[t].color }}>{tierCounts[t]}</span>
                   <span className="ach-stat__lbl">{TIER_META[t].label}</span>
                 </div>
               ))}
@@ -207,7 +207,7 @@ export const AchievementsPage = memo(function AchievementsPage() {
             {claimableCount > 0 ? (
               <button className="ach-claim-all" onClick={() => claimAllAchievements()}>🎁 TOUT RÉCUPÉRER ({claimableCount})</button>
             ) : (
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)' }}>Aucune récompense en attente</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'var(--text-dim)' }}>Aucune récompense en attente</div>
             )}
           </div>
         </div>
@@ -253,13 +253,13 @@ export const AchievementsPage = memo(function AchievementsPage() {
           {/* ── Bandeau de la catégorie choisie ── */}
           {meta && catStats && (
             <div key={meta.id} className="ach-catbar" style={categoryVars(meta.accent)}>
-              <span style={{ fontSize:28, filter:`drop-shadow(0 0 10px ${meta.accent})` }}>{meta.icon}</span>
+              <span style={{ fontSize:30, filter:`drop-shadow(0 0 10px ${meta.accent})` }}>{meta.icon}</span>
               <div style={{ flex:'1 1 240px', minWidth:0 }}>
-                <div style={{ fontFamily:'var(--f-title)', fontWeight:900, fontSize:17, letterSpacing:2, color:meta.accent }}>{meta.label}</div>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12.4, color:'var(--text-sub)' }}>{meta.blurb}</div>
+                <div style={{ fontFamily:'var(--f-title)', fontWeight:900, fontSize:19, letterSpacing:2, color:meta.accent }}>{meta.label}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-sub)' }}>{meta.blurb}</div>
               </div>
               <div style={{ flex:'0 1 220px', minWidth:160 }}>
-                <div style={{ display:'flex', justifyContent:'space-between', fontFamily:'var(--f-num)', fontSize:12, fontWeight:800, marginBottom:5 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', fontFamily:'var(--f-num)', fontSize:14, fontWeight:800, marginBottom:5 }}>
                   <span style={{ color:'var(--text-sub)' }}>{catStats.done} / {catStats.total}</span>
                   <span style={{ color:meta.accent }}>{Math.floor((catStats.done / catStats.total) * 100)}%</span>
                 </div>

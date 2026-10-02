@@ -49,12 +49,12 @@ export function ForgeRevealOverlay({ characterId, recipeIcon, onClose }: { chara
             }} />
           ))}
           {/* Icône de la recette qui se charge */}
-          <div style={{ fontSize:64, animation:`forgeCharge ${CHARGE_MS}ms ease-in forwards` }}>{recipeIcon}</div>
+          <div style={{ fontSize:67.8, animation:`forgeCharge ${CHARGE_MS}ms ease-in forwards` }}>{recipeIcon}</div>
         </div>
       ) : (
         <>
           <div style={{ position:'fixed', inset:0, background:'#fff', pointerEvents:'none', animation:'forgeFlash 0.6s ease-out forwards' }} />
-          <div style={{ fontFamily:'var(--f-title)', fontSize:20, letterSpacing:4, color:'#e879f9', textShadow:'0 0 12px rgba(232,121,249,0.6)', animation:'forgeRise 0.5s ease-out both' }}>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:22, letterSpacing:4, color:'#e879f9', textShadow:'0 0 12px rgba(232,121,249,0.6)', animation:'forgeRise 0.5s ease-out both' }}>
             ⚗ FORGE RÉUSSIE
           </div>
           <div style={{
@@ -69,8 +69,8 @@ export function ForgeRevealOverlay({ characterId, recipeIcon, onClose }: { chara
             />
           </div>
           <div style={{ textAlign:'center', animation:'forgeRise 0.5s ease-out 0.3s both' }}>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:22, color:cfg.color, letterSpacing:1 }}>{tpl.name}</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:6 }}>Clique pour continuer</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:24, color:cfg.color, letterSpacing:1 }}>{tpl.name}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginTop:6 }}>Clique pour continuer</div>
           </div>
         </>
       )}

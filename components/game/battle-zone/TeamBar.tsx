@@ -64,7 +64,7 @@ export function TeamBar({
         }}>
           <span style={{
             fontFamily:'var(--f-ui)',
-            fontSize:12,
+            fontSize:14,
             fontWeight:700,
             color:'rgba(255,255,255,0.35)',
             letterSpacing:2,
@@ -110,10 +110,10 @@ export function TeamBar({
           {hasSynergyProgress && (
             <div className="combat-info__cell" style={{ padding:'7px 12px' }}>
             <SynergyBreakdownTooltip>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', minHeight:16 }}>
               {syns.length === 0 && (
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:12, color:'rgba(255,255,255,0.3)', whiteSpace:'nowrap' }}>Aucune active</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:14, color:'rgba(255,255,255,0.3)', whiteSpace:'nowrap' }}>Aucune active</span>
               )}
               {syns.map(s => (
                 <div key={s.def.id}
@@ -122,9 +122,9 @@ export function TeamBar({
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={`/sprites/synergies/${s.def.id}.webp`} alt={s.def.label}
                       style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:2 }}
-                      onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:12px">${s.def.icon}</span>`; }} />
+                      onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:14px">${s.def.icon}</span>`; }} />
                   </div>
-                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:s.def.color, whiteSpace:'nowrap' }}>
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:s.def.color, whiteSpace:'nowrap' }}>
                     {s.threshold.dpsBonus > 0 ? `+${s.threshold.dpsBonus}%` : `+${s.threshold.globalBonus}% glb`}
                   </span>
                 </div>
@@ -137,22 +137,22 @@ export function TeamBar({
           {/* Butin de l'ennemi courant — détail de l'or au survol (voir GoldBreakdownTooltip) */}
           <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
             <GoldBreakdownTooltip>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
-              <div style={{ fontFamily:'var(--f-num)', fontSize:13.4, fontWeight:700, color:'var(--gold)' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ fontFamily:'var(--f-num)', fontSize:15.4, fontWeight:700, color:'var(--gold)' }}>
                 +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
-                {realGold && <span style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
+                {realGold && <span style={{ fontSize:14, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
               </div>
             </GoldBreakdownTooltip>
-            {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:12.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:11.4, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
+            {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>
 
           {/* DPS d'équipe — détail au survol (voir DpsBreakdownTooltip) */}
           <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
             <DpsBreakdownTooltip>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS <span style={{ fontSize:10.5, opacity:0.8 }}>ⓘ</span></div>
-              <div style={{ fontFamily:'var(--f-num)', fontSize:19.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
-                {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:12, marginLeft:2 }}>×{dpsUltMult}</span>}
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ fontFamily:'var(--f-num)', fontSize:21.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
+                {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:14, marginLeft:2 }}>×{dpsUltMult}</span>}
               </div>
             </DpsBreakdownTooltip>
             <div style={{ marginTop:3 }}><CohesionBadge /></div>
@@ -168,8 +168,8 @@ export function TeamBar({
             onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.12)')}
             title="Abandonner le boss et retourner à la vague 1"
           >
-            <span style={{ fontSize:16.5 }}>🏳️</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
+            <span style={{ fontSize:18.5 }}>🏳️</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
           </button>
         )}
         {bossAvoided && !bossActive && wave !== 10 && (
@@ -180,8 +180,8 @@ export function TeamBar({
             onMouseLeave={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.08)')}
             title="Retenter le boss"
           >
-            <span style={{ fontSize:16.5 }}>⚡</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
+            <span style={{ fontSize:18.5 }}>⚡</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
           </button>
         )}
       </div>

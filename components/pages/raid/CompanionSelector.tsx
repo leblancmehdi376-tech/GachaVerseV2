@@ -22,13 +22,13 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
       <div className="panel" style={{ width:'100%', maxWidth:640, maxHeight:'80vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:16.5, color:'var(--purple-glow)', letterSpacing:2 }}>🤝 Compagnons ({selected.length}/{MAX_RAID_COMPANIONS})</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginTop:2, display:'flex', alignItems:'center', gap:6 }}>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:18.5, color:'var(--purple-glow)', letterSpacing:2 }}>🤝 Compagnons ({selected.length}/{MAX_RAID_COMPANIONS})</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginTop:2, display:'flex', alignItems:'center', gap:6 }}>
               Boss : <span style={{ color:AFFINITY_CONFIG[bossAffinity].color, fontWeight:700 }}>{AFFINITY_CONFIG[bossAffinity].icon} {AFFINITY_CONFIG[bossAffinity].label}</span>
               — un type fort réduit le combat de 10%, un type faible l&apos;allonge de 10%
             </div>
           </div>
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:20.6 }}>✕</button>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:22.6 }}>✕</button>
         </div>
 
         <div style={{ flex:1, overflowY:'auto', padding:'12px 16px', display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:8 }}>
@@ -51,23 +51,23 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
                   display:'flex', flexDirection:'column', alignItems:'center', gap:5,
                   boxShadow: isSelected ? `0 0 14px ${cfg.glow}44` : 'none',
                   transition:'all 0.15s' }}>
-                <span style={{ fontSize:20.6 }}>{isSelected ? '✅' : cfg.icon}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color: isSelected ? cfg.color : 'var(--text)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:kindColor, fontWeight:700 }}>{kindLabel}</div>
-                {onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#fb923c' }}>EN MISSION</span>}
-                {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
+                <span style={{ fontSize:22.6 }}>{isSelected ? '✅' : cfg.icon}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color: isSelected ? cfg.color : 'var(--text)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:kindColor, fontWeight:700 }}>{kindLabel}</div>
+                {onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#fb923c' }}>EN MISSION</span>}
+                {inTeam && !onExpedition && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#60a5fa' }}>DANS L&apos;ÉQUIPE</span>}
               </button>
             );
           })}
           {owned.length === 0 && (
-            <div style={{ gridColumn:'1/-1', textAlign:'center', color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:12.4, padding:24 }}>
+            <div style={{ gridColumn:'1/-1', textAlign:'center', color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:14.4, padding:24 }}>
               Aucun personnage disponible.
             </div>
           )}
         </div>
 
         <div style={{ padding:'14px 22px', borderTop:'1px solid var(--border)', display:'flex', justifyContent:'flex-end' }}>
-          <button onClick={onClose} className="btn-primary" style={{ padding:'10px 24px', fontSize:13.4 }}>VALIDER</button>
+          <button onClick={onClose} className="btn-primary" style={{ padding:'10px 24px', fontSize:15.4 }}>VALIDER</button>
         </div>
       </div>
     </div>

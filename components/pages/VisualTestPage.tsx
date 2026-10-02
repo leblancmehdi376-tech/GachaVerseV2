@@ -18,8 +18,8 @@ const SAMPLES = RARITY_ORDER_ASC
 const GAUGE_SAMPLES = [1, 3, 6, 13, 27, 50, 100, 128];
 
 const sectionStyle = { display: 'flex', flexDirection: 'column', gap: 12 } as const;
-const titleStyle = { fontFamily: 'var(--f-title)', fontSize: 15, letterSpacing: 1, color: 'var(--text)' } as const;
-const hintStyle = { fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-dim)', lineHeight: 1.5 } as const;
+const titleStyle = { fontFamily: 'var(--f-title)', fontSize: 17, letterSpacing: 1, color: 'var(--text)' } as const;
+const hintStyle = { fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-dim)', lineHeight: 1.5 } as const;
 
 export function VisualTestPage() {
   const [sampleId, setSampleId] = useState(SAMPLES.find(c => c.rarity === 'L')?.id ?? SAMPLES[0]?.id);
@@ -33,7 +33,7 @@ export function VisualTestPage() {
           <p style={{ ...hintStyle, margin: 0, maxWidth: 560 }}>
             Banc d&apos;essai des visuels d&apos;édition. Rien ici ne modifie ta partie. Choisis un personnage d&apos;exemple pour voir chaque proposition sur son cadre de rareté.
           </p>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--f-ui)', fontSize: 12.4, color: 'var(--text-sub)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-sub)' }}>
             Carte d&apos;exemple
             <select value={sample?.id} onChange={e => setSampleId(e.target.value)}
               style={{ minHeight: 40, padding: '6px 10px', borderRadius: 8, background: 'var(--bg-card)', color: 'var(--text)', border: '1px solid var(--border)', fontFamily: 'var(--f-ui)' }}>
@@ -51,11 +51,11 @@ export function VisualTestPage() {
               <div key={v.id} className="panel" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 12, borderColor: isChosen ? 'var(--purple-hi)' : undefined }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                    <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 14, color: 'var(--text)' }}>{v.label}</span>
+                    <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 16, color: 'var(--text)' }}>{v.label}</span>
                     <span style={hintStyle}>{v.description}</span>
                   </div>
                   <button onClick={() => setChosen(isChosen ? null : v.id)}
-                    style={{ minHeight: 40, padding: '6px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12.4,
+                    style={{ minHeight: 40, padding: '6px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14.4,
                       background: isChosen ? 'var(--purple-hi)' : 'rgba(255,255,255,0.04)', color: isChosen ? '#fff' : 'var(--text-sub)', border: '1px solid var(--border)' }}>
                     {isChosen ? '★ Favori' : 'Marquer favori'}
                   </button>
@@ -66,7 +66,7 @@ export function VisualTestPage() {
                   {LOGO_EDITIONS.map(ed => (
                     <div key={ed} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '8px 4px', borderRadius: 10, background: 'rgba(0,0,0,0.25)' }}>
                       <EditionLogo edition={ed} variant={v.id} size={40} />
-                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 11.5, fontWeight: 700, color: EDITION_CONFIG[ed].color, textAlign: 'center' }}>{EDITION_CONFIG[ed].label}</span>
+                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: EDITION_CONFIG[ed].color, textAlign: 'center' }}>{EDITION_CONFIG[ed].label}</span>
                     </div>
                   ))}
                 </div>
@@ -96,7 +96,7 @@ export function VisualTestPage() {
                   {ed === 'base'
                     ? <span style={{ ...hintStyle, fontWeight: 700 }}>Normale</span>
                     : <EditionBadge edition={ed} />}
-                  <span style={{ fontFamily: 'var(--f-num)', fontSize: 11.5, color: 'var(--text-muted)' }}>×{EDITION_CONFIG[ed].statMult} · +{EDITION_CONFIG[ed].powBonus.toFixed(4)}</span>
+                  <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, color: 'var(--text-muted)' }}>×{EDITION_CONFIG[ed].statMult} · +{EDITION_CONFIG[ed].powBonus.toFixed(4)}</span>
                 </div>
               ))}
             </div>

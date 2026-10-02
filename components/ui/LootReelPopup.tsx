@@ -14,8 +14,8 @@ const REEL_SKIP_MS = 280;
 const REEL_EASING = 'cubic-bezier(0.12,0.72,0.18,1)';
 
 const SIZES = {
-  normal:  { itemWidth:130, gap:14, height:118, icon:32, pad:'14px 8px', label:10.5 },
-  compact: { itemWidth:100, gap:10, height:80,  icon:24, pad:'8px 6px',  label:9.5 },
+  normal:  { itemWidth:140, gap:14, height:128, icon:34, pad:'14px 8px', label:14 },
+  compact: { itemWidth:112, gap:10, height:92,  icon:26, pad:'8px 6px',  label:14 },
 };
 
 export interface LootReelItem {
@@ -150,7 +150,7 @@ export function LootReelPopup({ reel, reels, revealedTitle, revealed, onClose }:
   return (
     <div style={{ position:'fixed', inset:0, zIndex:9995, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.82)', padding:16 }}>
       <div className="panel panel--glow" style={{ width:'100%', maxWidth:680, maxHeight:'calc(100vh - 32px)', overflowY:'auto', padding:'26px 20px', display:'flex', flexDirection:'column', alignItems:'center', gap: compact ? 8 : 14 }}>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', letterSpacing:2 }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', letterSpacing:2 }}>
           {isRevealed ? revealedTitle : 'TIRAGE EN COURS…'}
         </div>
 
@@ -163,7 +163,7 @@ export function LootReelPopup({ reel, reels, revealedTitle, revealed, onClose }:
         ))}
 
         {!isRevealed && (
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:11, color:'rgba(255,255,255,0.35)' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.35)' }}>
             Cliquez sur {compact ? 'une bande' : 'la bande'} pour accélérer
           </div>
         )}
@@ -171,7 +171,7 @@ export function LootReelPopup({ reel, reels, revealedTitle, revealed, onClose }:
         {isRevealed && (
           <>
             {revealed}
-            <button onClick={onClose} className="btn-primary" style={{ padding:'10px 30px', fontSize:13.4, marginTop:4 }}>FERMER</button>
+            <button onClick={onClose} className="btn-primary" style={{ padding:'10px 30px', fontSize:15.4, marginTop:4 }}>FERMER</button>
           </>
         )}
       </div>

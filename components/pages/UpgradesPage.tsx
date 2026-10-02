@@ -26,7 +26,7 @@ function SectionHead({ color, children }: { color: string; children: React.React
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
       <div style={{ width:4, height:18, background:`linear-gradient(180deg,${color},${color}66)`, borderRadius:2, boxShadow:`0 0 8px ${color}` }} />
-      <span style={{ fontFamily:'var(--f-title)', fontSize:13.4, fontWeight:700, color, letterSpacing:2 }}>{children}</span>
+      <span style={{ fontFamily:'var(--f-title)', fontSize:15.4, fontWeight:700, color, letterSpacing:2 }}>{children}</span>
     </div>
   );
 }
@@ -46,7 +46,7 @@ function LevelBar({ level, color }: { level: number; color: string }) {
       <div style={{ flex:1, height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden' }}>
         <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${color}88,${color})`, borderRadius:3, boxShadow:`0 0 5px ${color}66`, transition:'width 0.3s' }} />
       </div>
-      <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color, whiteSpace:'nowrap' }}>Niv.{level}<span style={{ color:'rgba(255,255,255,0.25)', fontWeight:400 }}>/{nextTier}</span></span>
+      <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color, whiteSpace:'nowrap' }}>Niv.{level}<span style={{ color:'rgba(255,255,255,0.25)', fontWeight:400 }}>/{nextTier}</span></span>
     </div>
   );
 }
@@ -86,26 +86,26 @@ function GoldUpgradeCard() {
     <div className="panel" style={{ borderColor:canAfford?'#4ade80':'var(--border)', padding:16, transition:'all 0.2s', boxShadow:canAfford?'0 0 24px rgba(74,222,128,0.14)':'none' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
         <div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:13.4, color:'#4ade80', marginBottom:8 }}>🪙 COFFRE D&apos;OR</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu. Chaque palier atteint débloque un niveau supplémentaire.</div>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:15.4, color:'#4ade80', marginBottom:8 }}>🪙 COFFRE D&apos;OR</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginBottom:8, lineHeight:1.6 }}>Augmente les coins obtenus par ennemi vaincu. Chaque palier atteint débloque un niveau supplémentaire.</div>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)' }}>Bonus du coffre :</span>
-            <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.5, color:'#4ade80' }}>×{formatNumber(mult)}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>Bonus du coffre :</span>
+            <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#4ade80' }}>×{formatNumber(mult)}</span>
           </div>
         </div>
         <div style={{ background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)', borderRadius:8, padding:'8px 14px', textAlign:'center', flexShrink:0 }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'rgba(74,222,128,0.6)', display:'block', letterSpacing:1 }}>NIV.</span>
-          <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26.8, color:'#4ade80', lineHeight:1 }}>{level}/{maxLevel}</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(74,222,128,0.6)', display:'block', letterSpacing:1 }}>NIV.</span>
+          <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:28.8, color:'#4ade80', lineHeight:1 }}>{level}/{maxLevel}</span>
         </div>
       </div>
 
       {locked ? (
-        <div style={{ padding:'10px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:8, textAlign:'center', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12.4, color:'var(--text-dim)' }}>
+        <div style={{ padding:'10px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:8, textAlign:'center', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:'var(--text-dim)' }}>
           🔒 Prochain niveau débloqué au palier {level + 1}
         </div>
       ) : (
         <button onClick={() => upgradeGold()} disabled={!canAfford} className={canAfford?'btn-primary':'btn-secondary'}
-          style={{ width:'100%', padding:'10px', fontSize:13.4, display:'flex', alignItems:'center', justifyContent:'center', gap:10, background:canAfford?undefined:'rgba(255,255,255,0.03)' }}>
+          style={{ width:'100%', padding:'10px', fontSize:15.4, display:'flex', alignItems:'center', justifyContent:'center', gap:10, background:canAfford?undefined:'rgba(255,255,255,0.03)' }}>
           <span>AMÉLIORER → ×{formatNumber(nextMult)}</span>
           <span style={{ fontFamily:'var(--f-num)', color:'#4ade80' }}>{formatNumber(nextCost)} 🪙</span>
         </button>
@@ -166,25 +166,25 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
         <div className="upgrade-char-card__thumb" style={{ position:'relative' }}>
           <CharacterCardThumb templateId={pureId} formIndex={owned.currentForm} name={name} rarity={tpl.rarity} edition={owned.edition} width={70} height={97} frameOverlay />
           {tpl.forms && tpl.forms.length > 1 && (
-            <div style={{ position:'absolute', bottom:-5, right:-5, zIndex:30, background:cfg.color, borderRadius:'50%', width:18, height:18, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, border:'2px solid var(--bg-deep)', fontWeight:700, color:'#000' }}>{owned.currentForm+1}</div>
+            <div style={{ position:'absolute', bottom:-6, right:-6, zIndex:30, background:cfg.color, borderRadius:'50%', width:22, height:22, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, border:'2px solid var(--bg-deep)', fontWeight:700, color:'#000' }}>{owned.currentForm+1}</div>
           )}
         </div>
         {/* Infos */}
         <div className="upgrade-char-card__info">
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:13.4, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
-            <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:'var(--green)', flexShrink:0, marginLeft:8 }}>{formatNumber(dps)}/s</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:15.4, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
+            <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:16.4, color:'var(--green)', flexShrink:0, marginLeft:8 }}>{formatNumber(dps)}/s</span>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
             <RarityBadge rarity={tpl.rarity} size="xs" />
             {tpl.universe && (
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', padding:'1px 6px', borderRadius:4 }}>{tpl.universe}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', padding:'1px 6px', borderRadius:4 }}>{tpl.universe}</span>
             )}
           </div>
           <LevelBar level={owned.level} color={cfg.color} />
           <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
             {tpl.forms && tpl.forms.length > 1 && (
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'var(--text-dim)', whiteSpace:'nowrap' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', whiteSpace:'nowrap' }}>
                 Forme {owned.currentForm+1}/{tpl.forms.length}
               </span>
             )}
@@ -196,28 +196,28 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
       <div className="upgrade-char-card__actions">
         <button className="upgrade-char-card__lvl" onClick={() => levelUpCharacter(templateId)} disabled={!canAffordLv}
           style={{ padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:canAffordLv?cfg.color:'var(--text-muted)' }}>⬆ LVL UP</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--gold)' }}>{formatNumber(lvCost)} 🪙</span>
         </button>
         <button className="upgrade-char-card__multi" onClick={handleLevelUpX10} disabled={!canAffordLv} title="Améliore jusqu'à 10 niveaux d'affilée"
           style={{ padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}> × 10 </span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:canAffordLv?cfg.color:'var(--text-muted)' }}> × 10 </span>
         </button>
         <button className="upgrade-char-card__multi" onClick={handleLevelUpX100} disabled={!canAffordLv} title="Améliore jusqu'à 100 niveaux d'affilée"
           style={{ padding:'8px 10px', background:canAffordLv?`${cfg.color}18`:'rgba(255,255,255,0.03)', border:`1px solid ${canAffordLv?cfg.color+'55':'var(--border)'}`, borderRadius:8, cursor:canAffordLv?'pointer':'not-allowed', transition:'all 0.15s' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:canAffordLv?cfg.color:'var(--text-muted)' }}> × 100 </span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:canAffordLv?cfg.color:'var(--text-muted)' }}> × 100 </span>
         </button>
       </div>
       {canEvolveAtAll && (
         <div className="upgrade-char-card__evo">
           {!canEvo_ && reqItems.length > 0 && (
             <div style={{ padding:'7px 10px', background:'rgba(168,85,247,0.08)', border:'1px solid rgba(168,85,247,0.25)', borderRadius:8, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#c084fc' }}>Requiert :</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#c084fc' }}>Requiert :</span>
               {reqItems.map(d => {
                 const have = (inventory[d.id] ?? 0) >= 1;
                 return (
-                  <span key={d.id} style={{ fontFamily:'var(--f-ui)', fontSize:12, color: have ? '#4ade80' : '#c084fc', display:'flex', alignItems:'center', gap:4, opacity: have ? 0.7 : 1 }}>
-                    <span style={{ fontSize:14.4 }}>{d.icon}</span><b>{d.name}</b>{have && <span>✓</span>}
+                  <span key={d.id} style={{ fontFamily:'var(--f-ui)', fontSize:14, color: have ? '#4ade80' : '#c084fc', display:'flex', alignItems:'center', gap:4, opacity: have ? 0.7 : 1 }}>
+                    <span style={{ fontSize:16.4 }}>{d.icon}</span><b>{d.name}</b>{have && <span>✓</span>}
                   </span>
                 );
               })}
@@ -230,18 +230,18 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
               onMouseEnter={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='var(--purple-glow)'; (e.currentTarget as HTMLElement).style.background='rgba(192,132,252,0.1)'; } : undefined}
               onMouseLeave={evoStoneExpedition ? e => { (e.currentTarget as HTMLElement).style.borderColor='rgba(96,165,250,0.25)'; (e.currentTarget as HTMLElement).style.background='rgba(96,165,250,0.08)'; } : undefined}
             >
-              <span style={{ fontSize:14.4 }}>{evoStoneDrop?.icon ?? '🔷'}</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:12, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b></span>
+              <span style={{ fontSize:16.4 }}>{evoStoneDrop?.icon ?? '🔷'}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#60a5fa' }}>Pierres d&apos;Évolution : <b>{stonesHave}/{stonesNeeded}</b></span>
             </div>
           )}
           {canEvo_ && (
             <button onClick={() => evolveCharacter(templateId)} disabled={!canAffordEvo}
               style={{ padding:'8px 10px', background:canAffordEvo?'linear-gradient(135deg,#451a03,#78350f)':'rgba(255,255,255,0.03)', border:`1px solid ${canAffordEvo?'#d97706':'var(--border)'}`, borderRadius:8, cursor:canAffordEvo?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.15s', boxShadow:canAffordEvo?'0 0 12px rgba(217,119,6,0.3)':'none' }}>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:12, color:canAffordEvo?'#fbbf24':'var(--text-muted)' }}>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, color:canAffordEvo?'#fbbf24':'var(--text-muted)' }}>
                 {reqItems.length > 0 ? `${reqItems.map(d => d.icon).join('')} ÉVOLUER` : '✦ ÉVOLUER'}
               </span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:12, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--gold)' }}>{formatNumber(evoCostV)} 🪙</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#60a5fa' }}>{stonesNeeded} {evoStoneDrop?.icon ?? '🔷'}</span>
             </button>
           )}
         </div>
@@ -266,8 +266,8 @@ function UpgradesStats() {
         { label:'DPS',         val:formatNumber(getTotalDps()), color:'var(--green)',   icon:'🔥' },
       ].map(s=>(
         <div key={s.label} className="panel upgrades-stat-tile" style={{ padding:'16px 18px' }}>
-          <div className="upgrades-stat-tile__label" style={{ fontFamily:'var(--f-ui)', fontSize:12, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
-          <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:22.7, color:s.color, lineHeight:1.05 }}>{s.val}</div>
+          <div className="upgrades-stat-tile__label" style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8, display:'flex', gap:4 }}><span>{s.icon}</span><span>{s.label}</span></div>
+          <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24.7, color:s.color, lineHeight:1.05 }}>{s.val}</div>
           {s.label === 'DPS' && <div className="upgrades-stat-tile__extra" style={{ marginTop:6 }}><CohesionBadge size="md" /></div>}
         </div>
       ))}
@@ -353,10 +353,10 @@ export function UpgradesPage() {
                     style={{ borderColor: `${item.color}40`, background: `${item.color}11` }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                      <div style={{ fontSize: 26.8 }}>{item.icon}</div>
+                      <div style={{ fontSize: 28.8 }}>{item.icon}</div>
                       <div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 13.4, color: item.color }}>{item.name}</div>
-                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 15.5, color: 'var(--text)' }}>×{qty}</div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.4, color: item.color }}>{item.name}</div>
+                        <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 17.5, color: 'var(--text)' }}>×{qty}</div>
                       </div>
                     </div>
                     {/* Boutons de vente */}
@@ -366,7 +366,7 @@ export function UpgradesPage() {
                         style={{
                           flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(251,191,36,0.35)',
                           background: 'rgba(251,191,36,0.08)', cursor: 'pointer',
-                          fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: '#fbbf24',
+                          fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: '#fbbf24',
                           lineHeight: 1.3, textAlign: 'center',
                         }}
                       >
@@ -379,7 +379,7 @@ export function UpgradesPage() {
                           style={{
                             flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(248,113,113,0.35)',
                             background: 'rgba(248,113,113,0.08)', cursor: 'pointer',
-                            fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 12, color: '#f87171',
+                            fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: '#f87171',
                             lineHeight: 1.3, textAlign: 'center',
                           }}
                         >
@@ -408,8 +408,8 @@ export function UpgradesPage() {
 
         {ownedIds.length === 0 && (
           <div style={{ textAlign:'center', padding:48, background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, opacity:0.6 }}>
-            <div style={{ fontSize:41.2, marginBottom:12 }}>📭</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:13.4, color:'var(--text-dim)', lineHeight:1.7 }}>Aucun allié à améliorer<br/>Invoque des personnages dans GACHA !</div>
+            <div style={{ fontSize:43.7, marginBottom:12 }}>📭</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:15.4, color:'var(--text-dim)', lineHeight:1.7 }}>Aucun allié à améliorer<br/>Invoque des personnages dans GACHA !</div>
           </div>
         )}
       </div>
