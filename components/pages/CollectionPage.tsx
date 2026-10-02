@@ -5,7 +5,6 @@ import { useProgressiveCount } from '@/hooks/useProgressiveCount';
 import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL, getCharFormName } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
-import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { Rarity, RARITY_CONFIG, OwnedCharacter } from '@/types/game';
@@ -17,6 +16,7 @@ import { COLLECTION_RARITY_ORDER, compareCharacters, matchesCharacterFilters, ty
 import { EditionBadge, EditionGauge, EditionGaugeMini } from '@/components/ui/EditionBadge';
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
+import { CompadexEquipment, EQUIPMENT_LIST } from './CompadexEquipment';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 
@@ -196,14 +196,14 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 
 export function CollectionPage() {
   // Sélecteur ciblé : sans lui, la page (et ses ~500 cartes) se re-rendait à
-  // chaque tick de combat.
-  const { collection, collectionFilters, charMastery, compadexCharactersSeen, compadexEquipmentSeen, equipmentInventory } = useGameStore(useShallow(s => ({
+  // chaque tick de combat. Le stock d'équipement n'est lu que par
+  // CompadexEquipment, pour que les drops ne re-rendent pas cette page.
+  const { collection, collectionFilters, charMastery, compadexCharactersSeen, compadexEquipmentSeen } = useGameStore(useShallow(s => ({
     collection: s.collection,
     collectionFilters: s.collectionFilters,
     charMastery: s.charMastery,
     compadexCharactersSeen: s.compadexCharactersSeen,
     compadexEquipmentSeen: s.compadexEquipmentSeen,
-    equipmentInventory: s.equipmentInventory,
   })));
   const [view, setView] = useState<'characters' | 'equipment'>('characters');
   const [detailKey, setDetailKey] = useState<string | null>(null);
@@ -243,19 +243,12 @@ export function CollectionPage() {
     return map;
   }, [sorted, collectionFilters.sortKey]);
 
-  const equipmentList = useMemo(() =>
-    Object.values(EQUIPMENT_DEFS).sort((a, b) => {
-      const order = RARITY_ORDER.slice().reverse();
-      return order.indexOf(a.rarity as Rarity) - order.indexOf(b.rarity as Rarity);
-    }),
-  []);
-
   // Compadex équipements : nombre d'ids DÉJÀ obtenus au moins une fois, à vie
   // (jamais remis à zéro par le Prestige — voir compadexEquipmentSeen).
   const compadexEquipCount = useMemo(() => countSeenEquipment(compadexEquipmentSeen), [compadexEquipmentSeen]);
 
   const charPct  = Math.round((compadexCharCount / CHARACTER_POOL.length) * 100);
-  const equipPct = Math.round((compadexEquipCount / equipmentList.length) * 100);
+  const equipPct = Math.round((compadexEquipCount / EQUIPMENT_LIST.length) * 100);
   const headerPct = view === 'characters' ? charPct : equipPct;
 
   return (
@@ -265,7 +258,7 @@ export function CollectionPage() {
         <SectionHeader
           eyebrow={view === 'characters'
             ? `${compadexCharCount} / ${CHARACTER_POOL.length} personnages compadexés · ${filtered.length} affichés`
-            : `${compadexEquipCount} / ${equipmentList.length} équipements compadexés`}
+            : `${compadexEquipCount} / ${EQUIPMENT_LIST.length} équipements compadexés`}
           title="COMPADEX"
           accent="#60a5fa"
           right={
@@ -281,16 +274,12 @@ export function CollectionPage() {
         />
 
         {/* Onglets vue */}
-        <div style={{ display:'flex', gap:'8px' }}>
+        <div className="compadex-tabs" role="tablist" aria-label="Catégorie du Compadex">
           {([
             { key:'characters' as const, label:'PERSONNAGES' },
             { key:'equipment' as const,  label:'ÉQUIPEMENT' },
           ]).map(tab => (
-            <button key={tab.key} onClick={() => setView(tab.key)}
-              style={{ padding:'8px 16px', borderRadius:'10px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', letterSpacing:'0.5px',
-                background: view===tab.key ? 'rgba(96,165,250,0.18)' : 'var(--bg-card)',
-                border: `1px solid ${view===tab.key ? '#60a5fa66' : 'var(--border)'}`,
-                color: view===tab.key ? '#60a5fa' : 'var(--text-dim)' }}>
+            <button key={tab.key} type="button" role="tab" aria-selected={view===tab.key} className="compadex-tab" onClick={() => setView(tab.key)}>
               {tab.label}
             </button>
           ))}
@@ -339,32 +328,7 @@ export function CollectionPage() {
           </>
         ) : (
           /* ── ÉQUIPEMENT ──────────────────────────────────────────────────── */
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(230px, 1fr))', gap:'12px' }}>
-            {equipmentList.map(item => {
-              const stock = equipmentInventory[item.id] ?? 0;
-              const seen  = !!compadexEquipmentSeen[item.id];
-              const badge = stock > 0
-                ? { label:`×${stock}`, color:'#4ade80' }
-                : seen
-                  ? { label:'🕓 Obtenu', color:'var(--text-muted)' }
-                  : { label:'🔒 Jamais obtenu', color:'var(--text-muted)' };
-              return (
-                <div key={item.id} className="panel" style={{ padding:'14px', borderColor:`${item.color}33`, opacity: seen ? 1 : 0.6 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
-                    <div style={{ width:53, height:53, borderRadius:'12px', background:`${item.color}15`, border:`1px solid ${item.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px', flexShrink:0 }}>{item.icon}</div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>{item.slot.toUpperCase()} · <span style={{ color:item.color }}>{item.rarity}</span></div>
-                    </div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color: badge.color, background: stock > 0 ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)', border:`1px solid ${stock > 0 ? 'rgba(74,222,128,0.3)' : 'var(--border)'}`, borderRadius:999, padding:'2px 8px', flexShrink:0, whiteSpace:'nowrap' }}>
-                      {badge.label}
-                    </div>
-                  </div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1.5 }}>{item.description}</div>
-                </div>
-              );
-            })}
-          </div>
+          <CompadexEquipment />
         )}
 
         {detailKey && (() => {

@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { getEquipmentGroup, getEquipmentDef, type EquipmentDef } from '@/lib/game/items';
+import { EquipmentIcon } from '@/components/ui/EquipmentIcon';
 import {
   EQUIPMENT_SLOTS, EQUIPMENT_SLOT_LABELS, RARITY_CONFIG, RARITY_ORDER_ASC, getNextRarity, getEquipmentUpgradeCost,
   type EquipmentSlot, type Rarity,
@@ -123,7 +124,7 @@ export function EquipmentUpgradePage() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ fontSize: 24 }}>{item?.icon ?? '❔'}</div>
+                        {item ? <EquipmentIcon item={item} size={32} /> : <div style={{ fontSize: 24 }}>❔</div>}
                         <div>
                           <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: cfg.color, display: 'flex', alignItems: 'center', gap: 6 }}>
                             {EQUIPMENT_SLOT_LABELS[g.slot]} — {cfg.label}
@@ -158,7 +159,7 @@ export function EquipmentUpgradePage() {
                   <div className="companion-slot-card">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div className="companion-slot-card__icon" style={{ background: `${RARITY_CONFIG[selected.rarity].color}22` }}>
-                        {currentItem?.icon ?? '❔'}
+                        {currentItem ? <EquipmentIcon item={currentItem} size={34} /> : '❔'}
                       </div>
                       <div>
                         <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: RARITY_CONFIG[selected.rarity].color }}>
@@ -173,7 +174,7 @@ export function EquipmentUpgradePage() {
                     <div style={{ fontSize: 28 }}>→</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: nextRarity && isUnlocked ? 1 : 0.45 }}>
                       <div className="companion-slot-card__icon" style={{ background: nextRarity ? `${RARITY_CONFIG[nextRarity].color}22` : 'rgba(255,255,255,0.05)' }}>
-                        {nextRarity ? (isUnlocked ? (nextItem?.icon ?? '❔') : '🔒') : '—'}
+                        {nextRarity ? (isUnlocked ? (nextItem ? <EquipmentIcon item={nextItem} size={34} /> : '❔') : '🔒') : '—'}
                       </div>
                       <div>
                         <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: nextRarity ? RARITY_CONFIG[nextRarity].color : 'var(--text-dim)' }}>

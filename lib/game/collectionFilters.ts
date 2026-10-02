@@ -7,12 +7,13 @@ import { getAffinityForId, type Affinity } from './affinities';
 import { calcCharDps } from './formulas';
 import { BN_ZERO, bnCompare } from './bignum';
 import { getMasteryMilestones, getMasteryPct, type CharMastery } from './achievements';
+import { editionTier } from './editions';
 
 /** Ordre croissant C → T (affichage des boutons de rareté). */
 export const COLLECTION_RARITY_ORDER: Rarity[] = ['C', 'U', 'R', 'E', 'L', 'M', 'S', 'CO', 'P', 'T'];
 
 export type CollectionStatus = 'all' | 'owned' | 'missing';
-export type CollectionSortKey = 'rarity' | 'dps' | 'mastery' | 'name';
+export type CollectionSortKey = 'rarity' | 'edition' | 'dps' | 'mastery' | 'name';
 export type CharMasteryMap = Record<string, CharMastery>;
 
 export interface CollectionFilterState {
@@ -22,7 +23,7 @@ export interface CollectionFilterState {
   universe: string | 'all';
   affinity: Affinity | 'all';
   sortKey: CollectionSortKey;
-  /** false = ordre naturel (plus rare / plus fort / plus maîtrisé d'abord, noms A→Z). */
+  /** false = ordre naturel (plus rare / meilleure édition / plus fort / plus maîtrisé d'abord, noms A→Z). */
   sortReversed: boolean;
   search: string;
 }
@@ -86,6 +87,10 @@ export function compareCharacters(a: SortableCharacter, b: SortableCharacter, so
     primary = getCharMasteryPct(charMastery, b.tpl) - getCharMasteryPct(charMastery, a.tpl);
   } else if (sortKey === 'rarity') {
     primary = (RARITY_RANK[b.tpl.rarity] ?? 0) - (RARITY_RANK[a.tpl.rarity] ?? 0);
+  } else if (sortKey === 'edition') {
+    // Non possédé = sous la Normale ; à édition égale, le plus rare d'abord.
+    primary = (b.owned ? editionTier(b.owned.edition) : -1) - (a.owned ? editionTier(a.owned.edition) : -1)
+      || (RARITY_RANK[b.tpl.rarity] ?? 0) - (RARITY_RANK[a.tpl.rarity] ?? 0);
   } else if (sortKey === 'dps') {
     primary = bnCompare(
       b.owned ? calcCharDps(b.tpl, b.owned) : BN_ZERO,

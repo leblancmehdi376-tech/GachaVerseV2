@@ -20,6 +20,53 @@ export interface PatchNoteEntry {
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '02/10/2026',
+    title: 'Maj v2.8.1',
+    sections: [
+      {
+        icon: '📖',
+        title: 'Compadex — onglet Équipement',
+        changes: [
+          "Les équipements sont maintenant **classés par rareté**, avec un compteur par rareté comme pour les personnages.",
+          "La rareté s'affiche en toutes lettres (**Cosmique**, **Transcendant**…) et l'emplacement en français (**Casque**, **Plastron**…).",
+          "Chaque carte indique le **bonus de DPS** de l'objet et, pour les objets personnalisés, le **bonus perso** et le personnage concerné.",
+          "Nouveaux **filtres** : recherche (par objet ou par personnage), obtenus / manquants, **personnalisés**, emplacement et rareté.",
+          "Toucher une carte ouvre sa **fiche détaillée** (description, bonus, stock).",
+          "Les objets **jamais obtenus** ont leur icône éteinte avec un cadenas, et les objets **déjà obtenus** une bordure verte.",
+          "Onglets **Personnages / Équipement** plus faciles à toucher sur téléphone.",
+        ],
+      },
+      {
+        icon: '🛡️',
+        title: 'Nouvelles icônes d\'équipement',
+        changes: [
+          "**Tous les équipements** ont de **nouvelles icônes dessinées**, à la place des emojis.",
+          "Équipements génériques : une silhouette par emplacement, de plus en plus décorée avec la rareté (rivets, gemme, **filigrane doré**, pointes, étincelles, orbite, flammes et **halo** pour le Transcendant).",
+          "Les **63 équipements personnalisés** ont chacun leur **propre dessin**, inspiré de leur personnage (l'œil de **Gojo**, l'épée pixel de **Steve**, la **Master Ball** de Rayquaza…).",
+          "Visibles dans le **Compadex**, l'**Équipement**, les **Compagnons** et le **Marché**.",
+          "**Compagnons** : l'emplacement des objets de l'inventaire s'affiche désormais en français.",
+        ],
+      },
+      {
+        icon: '🔎',
+        title: 'Filtres des personnages',
+        changes: [
+          "Nouveau tri **ÉDITION** : les meilleures éditions d'abord (**Prismatique** → **Normale**), les persos non obtenus en dernier.",
+          "À édition égale, les plus rares passent devant ; la flèche ↓ inverse l'ordre.",
+        ],
+      },
+      {
+        icon: '🤝',
+        title: 'Compagnons (accueil)',
+        changes: [
+          "Les infos des compagnons (**niveau**, **ulti**, **DPS**) sont remontées en haut de la carte, sans grand vide au-dessus.",
+          "Les lignes restent **alignées d'une carte à l'autre**, même quand le multiplicateur de **Type** n'est pas affiché.",
+          "Sur téléphone, le portrait est légèrement descendu : le **logo d'édition** n'est plus coupé en haut de la carte.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '02/10/2026',
     title: 'Maj v2.8.0',
     sections: [
       {

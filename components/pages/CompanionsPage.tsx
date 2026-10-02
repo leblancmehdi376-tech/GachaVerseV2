@@ -20,6 +20,7 @@ import { CohesionBadge } from '@/components/ui/CohesionBadge';
 import { EditionBadge, EditionGauge, EditionGaugeMini } from '@/components/ui/EditionBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
+import { EquipmentIcon } from '@/components/ui/EquipmentIcon';
 import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
 import { RARITY_GATES } from '@/lib/game/gacha';
 
@@ -330,7 +331,7 @@ function EquipmentSlotsCard({
           <div key={slot} className="companion-slot-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div className="companion-slot-card__icon" style={{ background: equippedDef ? `${equippedDef.color}15` : 'rgba(255,255,255,0.04)' }}>
-                {equippedDef ? equippedDef.icon : '—'}
+                {equippedDef ? <EquipmentIcon item={equippedDef} size={34} /> : '—'}
               </div>
               <div>
                 <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{EQUIPMENT_SLOT_LABELS[slot]}</div>
@@ -371,10 +372,10 @@ function EquipmentInventoryCard({
             <div key={equipmentId} className="companion-item-card" style={{ borderColor: `${item.color}30`, background: `${item.color}12` }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ fontSize: 24 }}>{item.icon}</div>
+                  <EquipmentIcon item={item} size={32} />
                   <div>
                     <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: item.color }}>{item.name}</div>
-                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>{item.slot}</div>
+                    <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>{EQUIPMENT_SLOT_LABELS[item.slot]}</div>
                   </div>
                 </div>
                 <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>×{qty}</div>

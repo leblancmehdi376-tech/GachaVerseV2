@@ -7,6 +7,7 @@ import { formatNumber } from '@/lib/game/format';
 import { getCharacterById } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { getEquipmentDef, ITEM_DEFS } from '@/lib/game/items';
+import { EquipmentIcon } from '@/components/ui/EquipmentIcon';
 import {
   MarketplaceListing, ListingCurrency, ListingType,
   getActiveListings, getMyListings,
@@ -52,6 +53,13 @@ export function getListingIcon(l: MarketplaceListing): string {
   if (l.type === 'character') return '🧬';
   if (l.type === 'equipment') return getEquipmentDef(l.itemId)?.icon ?? '🔧';
   return ITEM_DEFS[l.itemId]?.icon ?? '📦';
+}
+
+// Équipement générique : icône SVG (voir EquipmentIcon) ; sinon l'emoji de getListingIcon.
+function ListingIcon({ l }: { l: MarketplaceListing }) {
+  const def = l.type === 'equipment' ? getEquipmentDef(l.itemId) : undefined;
+  if (def) return <EquipmentIcon item={def} size={32} style={{ justifySelf:'center' }} />;
+  return <span style={{ fontSize:'24px', textAlign:'center' }}>{getListingIcon(l)}</span>;
 }
 
 export function MarketplacePage() {
@@ -277,7 +285,7 @@ export function MarketplacePage() {
                 const canBuy  = !isOwn && canAfford;
                 return (
                   <div key={l.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'10px', padding:'12px 16px', display:'grid', gridTemplateColumns:'36px 1fr auto auto', gap:'12px', alignItems:'center' }}>
-                    <span style={{ fontSize:'24px', textAlign:'center' }}>{getListingIcon(l)}</span>
+                    <ListingIcon l={l} />
                     <div>
                       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'var(--text-hi)' }}>
                         {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}
@@ -390,7 +398,7 @@ export function MarketplacePage() {
             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
               {myListings.map(l => (
                 <div key={l.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${l.status==='active'?'rgba(255,255,255,0.08)':l.status==='sold'?'rgba(74,222,128,0.2)':'rgba(255,255,255,0.04)'}`, borderRadius:'10px', padding:'12px 16px', display:'grid', gridTemplateColumns:'36px 1fr auto auto', gap:'12px', alignItems:'center' }}>
-                  <span style={{ fontSize:'24px', textAlign:'center' }}>{getListingIcon(l)}</span>
+                  <ListingIcon l={l} />
                   <div>
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'var(--text-hi)' }}>
                       {getListingLabel(l)}{l.quantity > 1 ? ` ×${l.quantity}` : ''}

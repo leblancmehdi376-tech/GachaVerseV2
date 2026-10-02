@@ -78,10 +78,12 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
       <style>{`
         .ally-card-badge-inline { display: none; }
         .ally-card-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1.1; }
+        .ally-card-type-empty { display: none !important; }
         @media (min-width: 1800px), (max-width: 820px) {
           .ally-card-root { flex-direction: row !important; }
           .ally-card-illu { width: 84px !important; flex-shrink: 0; }
-          .ally-card-info { flex: 1; min-width: 0; border-top: none !important; justify-content: center !important; padding: 6px 10px !important; }
+          .ally-card-info { flex: 1; min-width: 0; border-top: none !important; justify-content: flex-start !important; padding: 4px 10px 6px !important; }
+          .ally-card-type-empty { display: flex !important; visibility: hidden; }
           .ally-card-badge-float { display: none !important; }
           .ally-card-badge-inline { display: inline-flex !important; }
         }
@@ -90,8 +92,11 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
         }
         @media (max-width: 820px) {
           .ally-card-root { padding-top: 0 !important; }
-          .ally-card-illu { width: 72px !important; }
-          .ally-card-info { padding: 6px !important; align-items: stretch; }
+          /* Marge haute : le logo d'édition déborde de 8px au-dessus de
+             l'illustration (CharacterCardThumb) et serait coupé par
+             l'overflow hidden de la carte. */
+          .ally-card-illu { width: 72px !important; margin: 9px 0 6px; }
+          .ally-card-info { padding: 4px 6px 6px !important; align-items: stretch; }
           .ally-card-badge-inline { justify-content: center; }
           .ally-card-ult-label { white-space: normal !important; text-align: center; line-height: 1.1; }
         }
@@ -149,8 +154,16 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
           <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 900, color: finalCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(final)}</span>
         </div>
         {/* Multiplicateur de type sur sa propre ligne : à côté du libellé, il
-            faisait déborder la ligne DPS hors de la carte. */}
-        {typeMult !== 1 && (
+            faisait déborder la ligne DPS hors de la carte. Quand le type est
+            neutre, la ligne reste présente mais invisible dans les affichages
+            côte à côte (.ally-card-type-empty), pour que toutes les cartes
+            gardent les mêmes positions de lignes. */}
+        {typeMult === 1 ? (
+          <div className="ally-card-stat ally-card-type-empty" aria-hidden style={{ marginTop: -4 }}>
+            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 600, letterSpacing: 0.5 }}>Type</span>
+            <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, lineHeight: 1 }}>×1.00</span>
+          </div>
+        ) : (
           <div className="ally-card-stat" style={{ marginTop: -4 }}>
             <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.5 }}>Type</span>
             <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: multCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{multTxt}</span>

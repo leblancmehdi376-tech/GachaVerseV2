@@ -18,6 +18,7 @@ import {
 
 const SORTS: { key: CollectionSortKey; label: string; natural: string; reversed: string }[] = [
   { key: 'rarity', label: 'RARETÉ', natural: 'Plus rares d’abord',  reversed: 'Plus communs d’abord' },
+  { key: 'edition', label: 'ÉDITION', natural: 'Meilleures éditions d’abord', reversed: 'Éditions les plus basses d’abord' },
   { key: 'dps',    label: 'DPS',    natural: 'Plus forts d’abord',  reversed: 'Plus faibles d’abord' },
   { key: 'mastery', label: 'MAÎTRISE', natural: 'Plus maîtrisés d’abord', reversed: 'Moins maîtrisés d’abord' },
   { key: 'name',   label: 'NOM',    natural: 'A → Z',               reversed: 'Z → A' },

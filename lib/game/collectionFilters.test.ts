@@ -71,6 +71,15 @@ describe('compareCharacters', () => {
     expect(compareCharacters(strong, none, 'dps', true)).toBeGreaterThan(0);
   });
 
+  it("édition : la meilleure d'abord, non possédé en dernier, inversion symétrique", () => {
+    const ruby = { tpl: tplA, owned: owned(tplA.id, { edition: 'ruby' }) };
+    const base = { tpl: tplB, owned: owned(tplB.id) };
+    const none = { tpl: tplB, owned: null };
+    expect(compareCharacters(ruby, base, 'edition', false)).toBeLessThan(0);
+    expect(compareCharacters(ruby, base, 'edition', true)).toBeGreaterThan(0);
+    expect(compareCharacters(base, none, 'edition', false)).toBeLessThan(0);
+  });
+
   it("maîtrise : le plus maîtrisé d'abord, jamais joué = 0, inversion symétrique", () => {
     const mastery = { [tplA.id]: { k: 1_000_000, w: 1_000_000, lv: 1_000 } };
     const A = { tpl: tplA, owned: null };
