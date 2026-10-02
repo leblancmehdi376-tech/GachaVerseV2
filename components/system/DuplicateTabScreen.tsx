@@ -28,7 +28,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: "'Press Start 2P', monospace",
+      fontFamily: 'var(--f-pixel)',
       zIndex: 9999,
       padding: '24px',
     }}>
@@ -57,7 +57,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
       {/* Titre */}
       <h1 style={{
         color: '#f59e0b',
-        fontSize: '16.4px',
+        fontSize: '16px',
         marginBottom: 16,
         textAlign: 'center',
         lineHeight: 1.6,
@@ -67,7 +67,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
 
       {/* Sous-titre */}
       <p style={{
-        color: '#6b7280',
+        color: '#9ca3af',
         fontSize: '14px',
         marginBottom: 48,
         textAlign: 'center',
@@ -89,7 +89,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
               background: 'transparent',
               border: '2px solid #7c3aed',
               color: '#a78bfa',
-              fontFamily: "'Press Start 2P', monospace",
+              fontFamily: 'var(--f-pixel)',
               fontSize: '14px',
               padding: '14px 24px',
               cursor: 'pointer',
@@ -114,8 +114,8 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
             style={{
               background: 'transparent',
               border: '2px solid #374151',
-              color: '#6b7280',
-              fontFamily: "'Press Start 2P', monospace",
+              color: '#9ca3af',
+              fontFamily: 'var(--f-pixel)',
               fontSize: '14px',
               padding: '14px 24px',
               cursor: 'pointer',
@@ -124,11 +124,11 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
             }}
             onMouseEnter={(e) => {
               (e.target as HTMLButtonElement).style.borderColor = '#6b7280';
-              (e.target as HTMLButtonElement).style.color = '#9ca3af';
+              (e.target as HTMLButtonElement).style.color = '#e5e7eb';
             }}
             onMouseLeave={(e) => {
               (e.target as HTMLButtonElement).style.borderColor = '#374151';
-              (e.target as HTMLButtonElement).style.color = '#6b7280';
+              (e.target as HTMLButtonElement).style.color = '#9ca3af';
             }}
           >
             ✕ FERMER
@@ -140,7 +140,7 @@ export function DuplicateTabScreen({ onTakeover, isTakingOver }: DuplicateTabScr
       <div style={{
         position: 'absolute',
         bottom: 24,
-        color: '#1f2937',
+        color: '#6b7280',
         fontSize: '14px',
       }}>
         GACHAVERSE — INSTANCE GUARD v1.0

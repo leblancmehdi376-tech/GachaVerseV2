@@ -119,7 +119,7 @@ function CharSelector({ def, onConfirm, onClose }: {
         {/* Header */}
         <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:18.5, color:'var(--purple-glow)', letterSpacing:2 }}>{def.icon} {def.name}</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:18, color:'var(--purple-glow)', letterSpacing:2 }}>{def.icon} {def.name}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginTop:2 }}>
               Sélectionne jusqu&apos;à {def.slots} personnage{def.slots > 1 ? 's' : ''} · DPS requis : {formatNumber(def.minTeamDps)}
             </div>
@@ -132,7 +132,7 @@ function CharSelector({ def, onConfirm, onClose }: {
               }
             </div>
           </div>
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:22.6 }}>✕</button>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:22 }}>✕</button>
         </div>
 
         {/* Score */}
@@ -144,7 +144,7 @@ function CharSelector({ def, onConfirm, onClose }: {
                 background: reqMet ? 'linear-gradient(90deg,#166534,#4ade80)' : undefined,
                 boxShadow: reqMet ? (justGainedRoll ? '0 0 16px #4ade80cc' : '0 0 8px #4ade8088') : undefined }} />
             </div>
-            <span style={{ fontFamily:'var(--f-num)', fontSize:16.4, color: reqMet ? '#4ade80' : 'var(--text-dim)', whiteSpace:'nowrap' }}>
+            <span style={{ fontFamily:'var(--f-num)', fontSize:16, color: reqMet ? '#4ade80' : 'var(--text-dim)', whiteSpace:'nowrap' }}>
               {formatNumber(score)} / {atCap ? formatNumber(segLower) : formatNumber(segUpper)}
             </span>
           </div>
@@ -178,7 +178,7 @@ function CharSelector({ def, onConfirm, onClose }: {
                   display:'flex', flexDirection:'column', alignItems:'center', gap:5,
                   boxShadow: isSelected ? `0 0 14px ${cfg.glow}44` : 'none',
                   transition:'all 0.15s' }}>
-                <span style={{ fontSize:22.6 }}>{isSelected ? '✅' : '👤'}</span>
+                <span style={{ fontSize:22 }}>{isSelected ? '✅' : '👤'}</span>
                 <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color: isSelected ? cfg.color : 'var(--text)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:cfg.color, background:`${cfg.color}15`, border:`1px solid ${cfg.color}33`, borderRadius:4, padding:'1px 6px' }}>{tpl.rarity}</div>
                 <span style={{ fontFamily:'var(--f-num)', fontSize:14, color:'var(--text-dim)' }}>⚡ {formatNumber(getCharacterExpeditionDps(collection, tpl.id))}</span>
@@ -193,7 +193,7 @@ function CharSelector({ def, onConfirm, onClose }: {
             );
           })}
           {owned.length === 0 && (
-            <div style={{ gridColumn:'1/-1', textAlign:'center', color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:14.4, padding:24 }}>
+            <div style={{ gridColumn:'1/-1', textAlign:'center', color:'var(--text-dim)', fontFamily:'var(--f-ui)', fontSize:14, padding:24 }}>
               Aucun personnage disponible. Obtenus via le Gacha !
             </div>
           )}
@@ -201,11 +201,11 @@ function CharSelector({ def, onConfirm, onClose }: {
 
         {/* Footer */}
         <div style={{ padding:'14px 22px', borderTop:'1px solid var(--border)', display:'flex', gap:10, justifyContent:'flex-end' }}>
-          <button onClick={onClose} className="btn-secondary" style={{ padding:'10px 20px', fontSize:15.4, cursor:'pointer' }}>ANNULER</button>
+          <button onClick={onClose} className="btn-secondary" style={{ padding:'10px 20px', fontSize:16, cursor:'pointer' }}>ANNULER</button>
           <button onClick={() => { if (selected.length > 0 && reqMet) onConfirm(selected); }}
             className="btn-primary"
             disabled={selected.length === 0 || !reqMet}
-            style={{ padding:'10px 24px', fontSize:15.4 }}>
+            style={{ padding:'10px 24px', fontSize:16 }}>
             LANCER ({selected.length}/{def.slots})
           </button>
         </div>
@@ -236,9 +236,9 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
     <div className="panel" style={{ padding:'14px 16px', borderColor: done ? 'rgba(74,222,128,0.4)' : 'var(--border)', boxShadow: done ? '0 0 20px rgba(74,222,128,0.12)' : 'none', transition:'all 0.3s' }}>
       {done && <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,#4ade80,transparent)', borderRadius:'8px 8px 0 0' }} />}
       <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
-        <div style={{ fontSize:30.8, flexShrink:0 }}>{def.icon}</div>
+        <div style={{ fontSize:32, flexShrink:0 }}>{def.icon}</div>
         <div style={{ flex:1 }}>
-          <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:16.4, color:'var(--text)', marginBottom:3 }}>{def.name}</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:16, color:'var(--text)', marginBottom:3 }}>{def.name}</div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginBottom:8 }}>{def.universe}</div>
           {/* Persos */}
           <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:8 }}>
@@ -282,7 +282,7 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
         {/* Actions */}
         <div style={{ display:'flex', flexDirection:'column', gap:6, flexShrink:0 }}>
           {done
-            ? <button onClick={() => claimExpedition(exp.id)} className="btn-primary" style={{ padding:'8px 16px', fontSize:14.4 }}>RÉCLAMER</button>
+            ? <button onClick={() => claimExpedition(exp.id)} className="btn-primary" style={{ padding:'8px 16px', fontSize:14 }}>RÉCLAMER</button>
             : <button onClick={() => cancelExpedition(exp.id)} className="btn-secondary" style={{ padding:'6px 12px', fontSize:14, cursor:'pointer' }}>ANNULER</button>
           }
           {!done && isLocalDev && (
@@ -296,7 +296,7 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
               }}
             >
               <span style={{ fontSize:16 }}>⏩</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14.4, color:'#f87171', letterSpacing:0.5 }}>FINIR</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#f87171', letterSpacing:0.5 }}>FINIR</span>
             </button>
           )}
         </div>
@@ -345,9 +345,9 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
         </div>
       )}
       <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
-        <div style={{ fontSize:35, flexShrink:0 }}>{def.icon}</div>
+        <div style={{ fontSize:36, flexShrink:0 }}>{def.icon}</div>
         <div style={{ flex:1 }}>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:16.4, color:'var(--text)', letterSpacing:1, marginBottom:3, paddingRight: def.isFarming ? 96 : 0 }}>{def.name}</div>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:16, color:'var(--text)', letterSpacing:1, marginBottom:3, paddingRight: def.isFarming ? 96 : 0 }}>{def.name}</div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, letterSpacing:1, marginBottom:5, display:'flex', alignItems:'center', gap:5,
             color: !requiredAffinity ? 'var(--purple-glow)' : AFFINITY_CONFIG[requiredAffinity].color }}>
             {whitelist ? <>Réservée à {whitelist.map(id => CHARACTER_POOL.find(c => c.id === id)?.name ?? id).join(' ou ')}</>
@@ -363,7 +363,7 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
             ].map((s,i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:6, padding:'4px 8px' }}>
                 <span style={{ fontSize:14 }}>{s.icon}</span>
-                <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:'var(--text)' }}>{s.val}</span>
+                <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:14, color:'var(--text)' }}>{s.val}</span>
                 <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>{s.label}</span>
               </div>
             ))}
@@ -419,7 +419,7 @@ function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionD
                 </div>
               : busy
                 ? <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)', fontWeight:700 }}>⏳ Une expédition est déjà en cours</div>
-                : <button onClick={onSelect} className="btn-primary" style={{ padding:'9px 20px', fontSize:15.4 }}>ENVOYER ✦</button>
+                : <button onClick={onSelect} className="btn-primary" style={{ padding:'9px 20px', fontSize:16 }}>ENVOYER ✦</button>
           }
         </div>
       </div>
@@ -495,19 +495,19 @@ export function ExpeditionsPage() {
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5 }}>
               <div style={{ width:4, height:18, background:'linear-gradient(180deg,#fb923c,#f59e0b)', borderRadius:2, boxShadow:'0 0 8px #fb923c' }} />
-              <span style={{ fontFamily:'var(--f-title)', fontSize:18.5, fontWeight:700, color:'#fb923c', letterSpacing:'2px' }}>EXPÉDITIONS</span>
+              <span className="page-title" style={{ color:'#fb923c' }}>EXPÉDITIONS</span>
             </div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>
               Envoie tes personnages récolter des ressources et des objets rares
             </div>
           </div>
           <div style={{ display:'flex', gap:8 }}>
             {finished.length > 0 && (
-              <div className="anim-ultra" style={{ background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:8, padding:'6px 14px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:'#4ade80' }}>
+              <div className="anim-ultra" style={{ background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:8, padding:'6px 14px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#4ade80' }}>
                 ✅ {finished.length} terminée{finished.length > 1 ? 's' : ''}
               </div>
             )}
-            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 14px', fontFamily:'var(--f-num)', fontWeight:700, fontSize:14.4, color:'var(--purple-glow)' }}>
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 14px', fontFamily:'var(--f-num)', fontWeight:700, fontSize:14, color:'var(--purple-glow)' }}>
               {runningExp.length} / {maxActive} active
             </div>
           </div>

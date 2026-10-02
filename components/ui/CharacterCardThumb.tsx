@@ -141,7 +141,7 @@ export function CharacterCardThumb({
       <span
         style={{
           fontFamily: 'var(--f-ui)',
-          fontWeight: 900,
+          fontWeight: 700,
           fontSize: Math.max(14, Math.round(width * 0.32)),
           color: cfg.color,
           lineHeight: 1,

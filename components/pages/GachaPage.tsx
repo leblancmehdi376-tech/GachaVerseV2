@@ -56,11 +56,11 @@ function PullButton({ theme, count, cost, enabled, pulling, onClick, onInsuffici
       {discount && (
         <div style={{ position:'absolute', top:0, right:0, background:theme.accent, color:'white', fontFamily:'var(--f-num)', fontWeight:900, fontSize:14, lineHeight:1.2, padding:'3px 7px', borderRadius:'0 11px 0 8px' }}>{discount}</div>
       )}
-      <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, letterSpacing:1.5, color:enabled?theme.hi:'var(--text-muted)' }}>TIRAGE</span>
-      <span style={{ fontFamily:'var(--f-num)', fontSize:30, fontWeight:900, lineHeight:1, color:enabled?'white':'var(--text-muted)', textShadow:enabled?`0 0 14px ${theme.accent}`:'none' }}>×{count}</span>
+      <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, letterSpacing:2, color:enabled?theme.hi:'var(--text-muted)' }}>TIRAGE</span>
+      <span style={{ fontFamily:'var(--f-num)', fontSize:28, fontWeight:900, lineHeight:1, color:enabled?'white':'var(--text-muted)', textShadow:enabled?`0 0 14px ${theme.accent}`:'none' }}>×{count}</span>
       <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(0,0,0,0.35)', border:`1px solid ${theme.accent}55`, borderRadius:8, padding:'5px 14px' }}>
-        <span style={{ fontSize:15 }}>💎</span>
-        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:19, color:enabled?theme.hi:'var(--text-muted)' }}>{cost}</span>
+        <span style={{ fontSize:16 }}>💎</span>
+        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:20, color:enabled?theme.hi:'var(--text-muted)' }}>{cost}</span>
       </div>
     </button>
   );
@@ -147,9 +147,9 @@ export function GachaPage() {
                 style={{ flex:1, padding:'10px 14px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:active?`linear-gradient(135deg,${t.dark},${t.deep})`:'var(--bg-card)', border:`1px solid ${active?t.accent:'var(--border)'}`, boxShadow:active?`0 0 18px ${t.glow}`:'none', display:'flex', flexDirection:'column', alignItems:'center', gap:2, position:'relative', overflow:'hidden' }}>
                 {b.isNew && (
                   // Ruban en diagonale sur le coin haut-gauche, façon paquet cadeau.
-                  <span className="gacha-new-ribbon" style={{ position:'absolute', top:9, left:-26, width:88, background:'linear-gradient(90deg,#f59e0b,#fde047,#f59e0b)', color:'#3b1d00', fontFamily:'var(--f-num)', fontWeight:900, fontSize:14, letterSpacing:1.5, textAlign:'center', padding:'2px 0', boxShadow:'0 2px 6px rgba(0,0,0,0.5)', borderTop:'1px solid rgba(255,255,255,0.6)', borderBottom:'1px solid rgba(120,53,15,0.6)', pointerEvents:'none' }}>NEW</span>
+                  <span className="gacha-new-ribbon" style={{ position:'absolute', top:9, left:-26, width:88, background:'linear-gradient(90deg,#f59e0b,#fde047,#f59e0b)', color:'#3b1d00', fontFamily:'var(--f-num)', fontWeight:900, fontSize:14, letterSpacing:2, textAlign:'center', padding:'2px 0', boxShadow:'0 2px 6px rgba(0,0,0,0.5)', borderTop:'1px solid rgba(255,255,255,0.6)', borderBottom:'1px solid rgba(120,53,15,0.6)', pointerEvents:'none' }}>NEW</span>
                 )}
-                <span style={{ fontFamily:'var(--f-title)', fontSize:15.4, fontWeight:900, letterSpacing:1.5, color:active?'white':'var(--text-sub)' }}>{b.title}</span>
+                <span style={{ fontFamily:'var(--f-title)', fontSize:16, fontWeight:900, letterSpacing:2, color:active?'white':'var(--text-sub)' }}>{b.title}</span>
                 <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:active?t.hi:'var(--text-muted)' }}>{b.subtitle} · {b.pool.length}</span>
               </button>
             );
@@ -191,12 +191,12 @@ export function GachaPage() {
           </div>
           <div style={{ background:`linear-gradient(90deg, ${theme.dark}, ${theme.deep}66 50%, ${theme.dark})`, borderTop:`1px solid ${theme.accent}88`, padding:'12px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
             <div>
-              <div style={{ fontFamily:'var(--f-title)', fontSize:22.6, fontWeight:900, color:'white', letterSpacing:2, textShadow:`0 0 18px ${theme.accent}, 0 2px 4px rgba(0,0,0,0.8)` }}>{banner.title}</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:`${theme.hi}bb` }}>
+              <div style={{ fontFamily:'var(--f-title)', fontSize:22, fontWeight:900, color:'white', letterSpacing:2, textShadow:`0 0 18px ${theme.accent}, 0 2px 4px rgba(0,0,0,0.8)` }}>{banner.title}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:`${theme.hi}bb` }}>
                 {banner.pool.length} personnages · 10 raretés · cartes shiny
               </div>
             </div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:theme.hi, letterSpacing:3, border:`1px solid ${theme.accent}77`, borderRadius:20, padding:'4px 12px', background:'rgba(0,0,0,0.3)' }}>✦ BANNIÈRE EXCLUSIVE</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:theme.hi, letterSpacing:2, border:`1px solid ${theme.accent}77`, borderRadius:20, padding:'4px 12px', background:'rgba(0,0,0,0.3)' }}>✦ BANNIÈRE EXCLUSIVE</div>
           </div>
         </div>
 
@@ -204,9 +204,9 @@ export function GachaPage() {
         <div className="gacha-pull-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr 1fr 1fr', gap:12, alignItems:'stretch' }}>
           {/* Gemmes */}
           <div key={gemShake} className={`panel${gemShake > 0 ? ' gacha-gems--short' : ''}`} style={{ borderColor:'rgba(34,211,238,0.3)', padding:'16px 20px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, boxShadow:'0 0 24px rgba(34,211,238,0.1)' }}>
-            <span style={{ fontSize:30.8 }}>💎</span>
-            <span className="gacha-gems__count" style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26.7, color:'var(--cyan-hi)' }}>{formatNumber(nekoGems)}</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', fontWeight:700, letterSpacing:1.5 }}>NEKO-GEMMES</span>
+            <span style={{ fontSize:32 }}>💎</span>
+            <span className="gacha-gems__count" style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:28, color:'var(--cyan-hi)' }}>{formatNumber(nekoGems)}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', fontWeight:700, letterSpacing:2 }}>NEKO-GEMMES</span>
           </div>
 
           <PullButton theme={theme} count={1}   cost={costs.single}   enabled={canS}    pulling={pulling} onInsufficient={onInsufficient} onClick={doSingle} />
@@ -216,18 +216,18 @@ export function GachaPage() {
 
         {/* Progression vers le prochain Jeton d'Anomalie */}
         <div className="panel" style={{ padding:'14px 18px', display:'flex', alignItems:'center', gap:14 }}>
-          <span style={{ fontSize:24.7, flexShrink:0 }}>🌀</span>
+          <span style={{ fontSize:24, flexShrink:0 }}>🌀</span>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#e879f9', letterSpacing:1.5 }}>PROCHAIN JETON D&apos;ANOMALIE</span>
-              <span style={{ fontFamily:'var(--f-num)', fontSize:14.4, color:'var(--text-dim)' }}>{pullsInCycle}/100 tirages</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#e879f9', letterSpacing:2 }}>PROCHAIN JETON D&apos;ANOMALIE</span>
+              <span style={{ fontFamily:'var(--f-num)', fontSize:14, color:'var(--text-dim)' }}>{pullsInCycle}/100 tirages</span>
             </div>
             <div className="prog-track">
               <div className="prog-fill" style={{ width:`${pullsInCycle}%`, background:'linear-gradient(90deg,#9333ea,#e879f9)', boxShadow:'0 0 6px #c084fc' }} />
             </div>
           </div>
           <div style={{ flexShrink:0, textAlign:'right' }}>
-            <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color:'#e879f9' }}>🌀 {formatNumber(anomalyTokens ?? 0)}</div>
+            <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18, color:'#e879f9' }}>🌀 {formatNumber(anomalyTokens ?? 0)}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)' }}>encore {pullsToNextToken}</div>
           </div>
         </div>
@@ -235,7 +235,7 @@ export function GachaPage() {
         {/* Taux de drop dynamiques */}
         <div className="panel" style={{ overflow:'hidden' }}>
           <button onClick={() => setShowPool(!showPool)}
-            style={{ width:'100%', padding:'14px 18px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:15.4, color:'var(--text-sub)', letterSpacing:1, transition:'background 0.15s' }}
+            style={{ width:'100%', padding:'14px 18px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:16, color:'var(--text-sub)', letterSpacing:1, transition:'background 0.15s' }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='none'}>
             <span>{showPool ? '▲' : '▼'} TAUX DE DROP & POOL</span>
@@ -265,7 +265,7 @@ export function GachaPage() {
                         <div className="prog-fill" style={{ width:`${fillPct}%`, background:`linear-gradient(90deg,${cfg2.color}88,${cfg2.color})`, boxShadow:`0 0 6px ${cfg2.glow}` }} />
                       </div>
                       <div style={{ display:'flex', gap:10, flexShrink:0, alignItems:'center' }}>
-                        <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:16.4, color:cfg2.color, minWidth:64, textAlign:'right' }}>{rateTxt}</span>
+                        <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:16, color:cfg2.color, minWidth:64, textAlign:'right' }}>{rateTxt}</span>
                       </div>
                     </div>
                   );
@@ -274,7 +274,7 @@ export function GachaPage() {
 
               {/* Pool */}
               <div style={{ borderTop:'1px solid var(--border)', paddingTop:14 }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:10 }}>TOUS LES PERSONNAGES</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:10 }}>TOUS LES PERSONNAGES</div>
                 <div className="gacha-pool-grid" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
                   {banner.pool.map(tpl => {
                     const cfg       = RARITY_CONFIG[tpl.rarity];

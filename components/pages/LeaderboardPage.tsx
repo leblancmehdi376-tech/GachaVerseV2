@@ -187,7 +187,7 @@ export function LeaderboardPage() {
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:'10px' }}>
           <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:'2px', boxShadow:'0 0 8px #fbbf24' }} />
-          <span style={{ fontFamily:'var(--f-title)', fontSize:'18.5px', fontWeight:700, color:'#fbbf24', letterSpacing:'2px' }}>🏆 CLASSEMENT</span>
+          <span className="page-title" style={{ color:'#fbbf24' }}>🏆 CLASSEMENT</span>
           <button onClick={handleManualRefresh} disabled={loading}
             style={{ marginLeft:4, padding:'4px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'6px', fontFamily:'var(--f-ui)', fontSize:'14px', fontWeight:700, color:'var(--text-muted)', cursor: loading ? 'not-allowed' : 'pointer' }}>
             {loading ? '⏳' : '🔄'} Actualiser
@@ -203,27 +203,27 @@ export function LeaderboardPage() {
           <div className="panel" style={{ padding:'18px 20px' }}>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', letterSpacing:'1px', marginBottom:'10px' }}>TON PSEUDO PUBLIC</div>
             {!user ? (
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'14.4px', color:'var(--text-dim)' }}>Connecte-toi pour définir ton pseudo et apparaître dans le classement.</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>Connecte-toi pour définir ton pseudo et apparaître dans le classement.</div>
             ) : (
               <>
                 <div style={{ display:'flex', gap:'8px' }}>
                   <input value={nameInput} onChange={e => { setNameInput(e.target.value); setFeedback(null); }}
                     onKeyDown={e => e.key === 'Enter' && handleSaveName()}
                     maxLength={20} placeholder="Ton pseudo..."
-                    style={{ flex:1, padding:'10px 12px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'8px', color:'var(--text)', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.4px' }} />
+                    style={{ flex:1, padding:'10px 12px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'8px', color:'var(--text)', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px' }} />
                   <button onClick={handleSaveName} disabled={saving || !nameInput.trim()}
-                    style={{ padding:'10px 16px', background: saving||!nameInput.trim() ? 'rgba(255,255,255,0.04)' : 'linear-gradient(135deg,#6d28d9,#a855f7)', border:`1px solid ${saving||!nameInput.trim() ? 'var(--border)' : '#c084fc'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color: saving||!nameInput.trim() ? 'var(--text-muted)' : 'white', cursor: saving||!nameInput.trim() ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}>
+                    style={{ padding:'10px 16px', background: saving||!nameInput.trim() ? 'rgba(255,255,255,0.04)' : 'linear-gradient(135deg,#6d28d9,#a855f7)', border:`1px solid ${saving||!nameInput.trim() ? 'var(--border)' : '#c084fc'}`, borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color: saving||!nameInput.trim() ? 'var(--text-muted)' : 'white', cursor: saving||!nameInput.trim() ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}>
                     {saving ? '...' : 'SAUVEGARDER'}
                   </button>
                 </div>
                 {feedback && (
-                  <div style={{ marginTop:'10px', fontFamily:'var(--f-ui)', fontSize:'14.4px', fontWeight:700,
+                  <div style={{ marginTop:'10px', fontFamily:'var(--f-ui)', fontSize:'14px', fontWeight:700,
                     color: feedback.ok ? 'var(--green)' : 'var(--red)' }}>
                     {feedback.ok ? '✅' : '❌'} {feedback.msg}
                   </div>
                 )}
                 {myRank && (
-                  <div style={{ marginTop:'10px', fontFamily:'var(--f-ui)', fontSize:'14.4px', color:'var(--text-dim)' }}>
+                  <div style={{ marginTop:'10px', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>
                     Tu es classé <span style={{ color:'#fbbf24', fontWeight:700 }}>#{myRank}</span> sur {entries.length} joueurs
                   </div>
                 )}
@@ -241,7 +241,7 @@ export function LeaderboardPage() {
               ].map(item => (
                 <div key={item.label} style={{ padding:'10px 12px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px' }}>
                   <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', letterSpacing:'1px' }}>{item.label.toUpperCase()}</div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'17.5px', color:'var(--text)', marginTop:2 }}>{item.value}</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'18px', color:'var(--text)', marginTop:2 }}>{item.value}</div>
                 </div>
               ))}
             </div>
@@ -252,7 +252,7 @@ export function LeaderboardPage() {
         <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
           {([['palier', '🏆 Palier max'], ['dle', '📅 GachaDle du jour']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)}
-              style={{ padding:'8px 14px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', cursor:'pointer',
+              style={{ padding:'8px 14px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', cursor:'pointer',
                 background: tab === id ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${tab === id ? '#fbbf24' : 'var(--border)'}`,
                 color: tab === id ? '#fbbf24' : 'var(--text-muted)' }}>
@@ -270,13 +270,13 @@ export function LeaderboardPage() {
         {/* Tableau */}
         {tab === 'palier' && (
         <div className="panel" style={{ padding:'20px' }}>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:'16.4px', fontWeight:700, color:'var(--text)', letterSpacing:'1px', marginBottom:'16px' }}>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:'16px', fontWeight:700, color:'var(--text)', letterSpacing:'1px', marginBottom:'16px' }}>
             TOP {entries.length} JOUEURS
           </div>
           {loading && entries.length === 0 ? (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'15.4px', color:'var(--text-dim)', padding:'20px 0' }}>Chargement…</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'16px', color:'var(--text-dim)', padding:'20px 0' }}>Chargement…</div>
           ) : entries.length === 0 ? (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'15.4px', color:'var(--text-dim)', padding:'20px 0' }}>Aucun joueur enregistré pour l&apos;instant.</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'16px', color:'var(--text-dim)', padding:'20px 0' }}>Aucun joueur enregistré pour l&apos;instant.</div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {entries.map((entry, idx) => {
@@ -304,7 +304,7 @@ export function LeaderboardPage() {
                     <div className="leaderboard-name" style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
                       <PlayerAvatar entry={entry} />
                       <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0, overflow:'hidden' }}>
-                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                           {entry.username}{isMe && ' (toi)'}
                         </div>
                         {entry.activeTitle && (
@@ -322,17 +322,17 @@ export function LeaderboardPage() {
                       {/* Palier max atteint (ne redescend jamais après un prestige) */}
                       <div style={{ textAlign:'center' }}>
                         <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>PALIER MAX</div>
-                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16.4px', color:'var(--text)' }}>{entry.maxPalierReached}</div>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'var(--text)' }}>{entry.maxPalierReached}</div>
                       </div>
                       {/* Nombre de prestiges — affichage uniquement, n'influence pas le tri */}
                       <div style={{ textAlign:'center' }}>
                         <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>PRESTIGE</div>
-                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16.4px', color:'#a855f7' }}>{entry.prestigeLevel}</div>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'#a855f7' }}>{entry.prestigeLevel}</div>
                       </div>
                       {/* Pixel-Coins */}
                       <div style={{ textAlign:'center' }}>
                         <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>PIXEL-COINS</div>
-                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.4px', color:'#fbbf24' }}>{formatNumber(entry.pixelCoins)}</div>
+                        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'#fbbf24' }}>{formatNumber(entry.pixelCoins)}</div>
                       </div>
                     </div>
                   </div>
@@ -384,11 +384,11 @@ function DleDailyTable({ rows, loading, myUid, day, onDayChange, myRow, iWonDay,
   onOpenProfile: (uid: string) => void;
 }) {
   const today = day === 'today';
-  const emptyStyle = { fontFamily:'var(--f-ui)', fontSize:'15.4px', color:'var(--text-dim)', padding:'20px 0' } as const;
+  const emptyStyle = { fontFamily:'var(--f-ui)', fontSize:'16px', color:'var(--text-dim)', padding:'20px 0' } as const;
   return (
     <div className="panel" style={{ padding:'20px' }}>
       <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'6px' }}>
-        <div style={{ fontFamily:'var(--f-title)', fontSize:'16.4px', fontWeight:700, color:'var(--text)', letterSpacing:'1px' }}>
+        <div style={{ fontFamily:'var(--f-title)', fontSize:'16px', fontWeight:700, color:'var(--text)', letterSpacing:'1px' }}>
           {today ? 'DÉFI GACHADLE DU JOUR' : "DÉFI GACHADLE D'HIER"}
         </div>
         <div style={{ display:'flex', gap:'4px', marginLeft:'auto' }}>
@@ -403,7 +403,7 @@ function DleDailyTable({ rows, loading, myUid, day, onDayChange, myRow, iWonDay,
           ))}
         </div>
       </div>
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14.4px', color:'var(--text-muted)', marginBottom:'16px' }}>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', marginBottom:'16px' }}>
         {myRow
           ? <>{today ? 'Tu es classé' : 'Tu as fini'} <span style={{ color:'#fbbf24', fontWeight:700 }}>#{myRow.rank}</span> sur {rows.length} avec <b>{myRow.guesses}</b> essai{myRow.guesses > 1 ? 's' : ''}.</>
           : iWonDay ? 'Ta victoire apparaîtra ici à la prochaine actualisation.'
@@ -434,13 +434,13 @@ function DleDailyTable({ rows, loading, myUid, day, onDayChange, myRow, iWonDay,
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
                   <PlayerAvatar entry={entry} />
-                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.4px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {entry.username}{isMe && ' (toi)'}
                   </div>
                 </div>
                 <div style={{ textAlign:'center', minWidth:70 }}>
                   <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>ESSAIS</div>
-                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'17.5px', color:'#fbbf24' }}>{guesses}</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'18px', color:'#fbbf24' }}>{guesses}</div>
                 </div>
               </div>
             );

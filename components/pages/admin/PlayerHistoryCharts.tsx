@@ -330,7 +330,7 @@ function ChartModal({ charts, activeId, onSelect, onClose, range, onRange, scale
   return createPortal(
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[200] flex items-center justify-center overscroll-contain bg-[#030208]/85 p-2 font-sans backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-[200] flex items-center justify-center overscroll-contain bg-[#030208]/85 p-2 font-(family-name:--f-ui) backdrop-blur-sm sm:p-6"
     >
       <div
         role="dialog"

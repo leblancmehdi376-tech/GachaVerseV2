@@ -21,11 +21,11 @@ function TitleCard({ icon, title, subtitle, unlocked, active, onSelect }: {
         transition:'all 0.15s',
       }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
-        <span style={{ fontSize:'22.6px' }}>{icon}</span>
+        <span style={{ fontSize:'22px' }}>{icon}</span>
         {active && <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', fontWeight:700, color:'#fbbf24', letterSpacing:'1px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.3)', padding:'2px 7px', borderRadius:'4px' }}>ACTIF</span>}
-        {!unlocked && <span style={{ fontSize:'14.4px' }}>🔒</span>}
+        {!unlocked && <span style={{ fontSize:'14px' }}>🔒</span>}
       </div>
-      <div style={{ fontFamily:'var(--f-title)', fontSize:'17.5px', fontWeight:700, color: active ? '#fbbf24' : unlocked ? 'var(--text)' : 'var(--text-muted)', letterSpacing:'1px', marginBottom:'3px' }}>
+      <div style={{ fontFamily:'var(--f-title)', fontSize:'18px', fontWeight:700, color: active ? '#fbbf24' : unlocked ? 'var(--text)' : 'var(--text-muted)', letterSpacing:'1px', marginBottom:'3px' }}>
         « {title} »
       </div>
       <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>{subtitle}</div>
@@ -55,11 +55,11 @@ export function TitlesPanel() {
             {unlockedTitles.length} titre{unlockedTitles.length > 1 ? 's' : ''} débloqué{unlockedTitles.length > 1 ? 's' : ''} — tous les bonus se cumulent
           </div>
         </div>
-        <div style={{ fontFamily:'var(--f-num)', fontSize:'26px', fontWeight:900, color:'var(--gold-hi)' }}>
+        <div style={{ fontFamily:'var(--f-num)', fontSize:'24px', fontWeight:900, color:'var(--gold-hi)' }}>
           🪙 +{totalBonusPct}%
         </div>
       </div>
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14.4px', color:'var(--text-dim)' }}>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>
         Chaque titre débloqué ajoute son bonus d&apos;or, qu&apos;il soit équipé ou non. Choisis celui affiché sur ton profil.
       </div>
       <div style={GRID}>

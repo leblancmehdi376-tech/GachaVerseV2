@@ -75,7 +75,7 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
 
       <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', padding:'0 40px' }}>
         <div style={{
-          fontFamily:'var(--f-ui)', fontSize:15, letterSpacing:4, fontWeight:700,
+          fontFamily:'var(--f-ui)', fontSize:16, letterSpacing:4, fontWeight:700,
           color:cfg.color, opacity:0.85, marginBottom:20, textAlign:'center',
           animation:'gvGlowPulse 2s ease-in-out infinite',
         }}>
@@ -126,7 +126,7 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
                       zIndex: 12,
                       pointerEvents:'none',
                     }}>
-                      <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#4ade80', fontWeight:800, letterSpacing:0.3, lineHeight:1.2, padding:'1px 6px', borderRadius:999, background:'rgba(5,4,15,0.75)', textShadow:'0 1px 4px rgba(0,0,0,0.9)', whiteSpace:'nowrap' }}>
+                      <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#4ade80', fontWeight:700, letterSpacing:0.5, lineHeight:1.2, padding:'1px 6px', borderRadius:999, background:'rgba(5,4,15,0.75)', textShadow:'0 1px 4px rgba(0,0,0,0.9)', whiteSpace:'nowrap' }}>
                         NOUVEAU
                       </span>
                     </div>
@@ -145,7 +145,7 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
           « {quote} »
         </div>
 
-        <div style={{ marginTop:24, fontFamily:'var(--f-ui)', fontSize:14, letterSpacing:1, color:'rgba(255,255,255,0.3)' }}>
+        <div style={{ marginTop:24, fontFamily:'var(--f-ui)', fontSize:14, letterSpacing:1, color:'rgba(255,255,255,0.55)' }}>
           cliquer pour passer
         </div>
       </div>

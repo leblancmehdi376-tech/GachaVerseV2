@@ -73,8 +73,8 @@ export function PlayerProfileModal({ entry, rank, rankColor, isMe, onClose }: Pr
           />
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'baseline', gap:10, flexWrap:'wrap' }}>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:17, color:rankColor }}>#{rank}</span>
-              <span style={{ fontFamily:'var(--f-title)', fontSize:23, fontWeight:900, color: isMe ? '#c084fc' : 'var(--text)', letterSpacing:1.5, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18, color:rankColor }}>#{rank}</span>
+              <span style={{ fontFamily:'var(--f-title)', fontSize:22, fontWeight:900, color: isMe ? '#c084fc' : 'var(--text)', letterSpacing:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                 {entry.username}{isMe && ' (toi)'}
               </span>
             </div>
@@ -96,8 +96,8 @@ export function PlayerProfileModal({ entry, rank, rankColor, isMe, onClose }: Pr
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(150px, 1fr))', gap:8 }}>
           {stats.map(s => (
             <div key={s.label} style={{ padding:'10px 12px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:8, minWidth:0 }}>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'var(--text-dim)', letterSpacing:1.2 }}>{s.label}</div>
-              <div style={{ fontFamily: s.small ? 'var(--f-ui)' : 'var(--f-num)', fontWeight:900, fontSize: s.small ? 15 : 19, color:s.color, marginTop:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={s.val}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'var(--text-dim)', letterSpacing:1 }}>{s.label}</div>
+              <div style={{ fontFamily: s.small ? 'var(--f-ui)' : 'var(--f-num)', fontWeight:900, fontSize: s.small ? 16 : 20, color:s.color, marginTop:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={s.val}>
                 {s.val}
               </div>
             </div>
@@ -108,7 +108,7 @@ export function PlayerProfileModal({ entry, rank, rankColor, isMe, onClose }: Pr
         <div>
           <div style={sectionTitle}>👥 ÉQUIPE ACTIVE</div>
           {team.length === 0 ? (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-muted)' }}>Aucune équipe équipée.</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)' }}>Aucune équipe équipée.</div>
           ) : (
             <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
               {team.map((m, i) => (
@@ -131,7 +131,7 @@ export function PlayerProfileModal({ entry, rank, rankColor, isMe, onClose }: Pr
             <div style={{ fontFamily:'var(--f-num)', fontSize:14, color:'var(--text-dim)' }}>{trophies.length} / {MAX_SHOWCASED_TROPHIES}</div>
           </div>
           {trophies.length === 0 ? (
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)', textAlign:'center', padding:'8px 0' }}>Aucun trophée exposé.</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', textAlign:'center', padding:'8px 0' }}>Aucun trophée exposé.</div>
           ) : (
             <div className="trophy-shelf">
               {trophies.map((a, i) => (

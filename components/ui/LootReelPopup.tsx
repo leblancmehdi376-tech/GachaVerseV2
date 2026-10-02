@@ -163,7 +163,7 @@ export function LootReelPopup({ reel, reels, revealedTitle, revealed, onClose }:
         ))}
 
         {!isRevealed && (
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.35)' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)' }}>
             Cliquez sur {compact ? 'une bande' : 'la bande'} pour accélérer
           </div>
         )}
@@ -171,7 +171,7 @@ export function LootReelPopup({ reel, reels, revealedTitle, revealed, onClose }:
         {isRevealed && (
           <>
             {revealed}
-            <button onClick={onClose} className="btn-primary" style={{ padding:'10px 30px', fontSize:15.4, marginTop:4 }}>FERMER</button>
+            <button onClick={onClose} className="btn-primary" style={{ padding:'10px 30px', fontSize:16, marginTop:4 }}>FERMER</button>
           </>
         )}
       </div>

@@ -173,7 +173,7 @@ export function MarketplaceTab() {
                   l.status === 'active' ? 'text-emerald-300' : l.status === 'sold' ? 'text-sky-300' : 'text-white/70')}>
                   {STATUS_LABEL[l.status]}
                 </span>
-                <span className={cx('ml-auto font-mono text-base font-black whitespace-nowrap sm:ml-0',
+                <span className={cx('ml-auto font-(family-name:--f-num) text-base font-black whitespace-nowrap sm:ml-0',
                   l.currency === 'gems' ? 'text-violet-300' : l.currency === 'crowns' ? 'text-amber-300' : 'text-amber-200')}>
                   {CURRENCY_ICON[l.currency]} {formatNumber(l.price)}
                 </span>

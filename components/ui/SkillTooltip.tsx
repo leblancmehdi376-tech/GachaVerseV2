@@ -63,15 +63,15 @@ export function SkillTooltip({ ult, children }: { ult: UltimateDef | undefined; 
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-        <span style={{ fontSize: 15.4 }}>⚡</span>
-        <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 14, letterSpacing: 0.5, color: '#c084fc', textShadow: '0 0 10px rgba(192,132,252,0.6)' }}>
+        <span style={{ fontSize: 16 }}>⚡</span>
+        <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, letterSpacing: 0.5, color: '#c084fc', textShadow: '0 0 10px rgba(192,132,252,0.6)' }}>
           {ult.name}
         </span>
       </div>
       <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, marginBottom: 6 }}>
         {ult.description}
       </div>
-      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5 }}>
+      <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.5 }}>
         Durée {ult.duration}s · Cooldown {ult.cooldown}s
       </div>
     </div>

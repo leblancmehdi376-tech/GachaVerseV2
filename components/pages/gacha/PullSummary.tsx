@@ -28,7 +28,7 @@ export function PullSummary({ results, onClose }: { results: Res[]; onClose: () 
             background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)',
             borderRadius:10, padding:'10px 18px', textAlign:'center', minWidth:80,
           }}>
-            <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24.7, color:s.color }}>{s.val}</div>
+            <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:24, color:s.color }}>{s.val}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'var(--text-dim)', letterSpacing:1, marginTop:2 }}>{s.label}</div>
           </div>
         ))}
@@ -53,12 +53,12 @@ export function PullSummary({ results, onClose }: { results: Res[]; onClose: () 
                   boxShadow:`0 0 16px ${cfg.glow}44`,
                   animation:'gvCardIn 0.4s ease both',
                 }}>
-                  <span style={{ fontSize:18.5 }}>{cfg.color ? '✦' : '★'}</span>
+                  <span style={{ fontSize:18 }}>{cfg.color ? '✦' : '★'}</span>
                   <div>
-                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14.4, color:cfg.color }}>{tpl.name}</div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:cfg.color }}>{tpl.name}</div>
                     <RarityBadge rarity={tpl.rarity} size="xs" />
                   </div>
-                  {r.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#4ade80', fontWeight:800 }}>NEW</span>}
+                  {r.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#4ade80', fontWeight:700 }}>NEW</span>}
                 </div>
               );
             })}
@@ -68,7 +68,7 @@ export function PullSummary({ results, onClose }: { results: Res[]; onClose: () 
 
       {/* Bouton fermer */}
       <button onClick={onClose} className="btn-primary"
-        style={{ padding:'12px 40px', fontSize:16.4, letterSpacing:2 }}>
+        style={{ padding:'12px 40px', fontSize:16, letterSpacing:2 }}>
         CONTINUER
       </button>
     </div>

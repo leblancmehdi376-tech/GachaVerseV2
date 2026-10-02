@@ -9,7 +9,7 @@ export function RarityBadge({ rarity, size = 'sm' }: { rarity: Rarity; size?: 'x
       color: cfg.color, border: `1px solid ${cfg.color}66`,
       boxShadow: `0 0 8px ${cfg.glow}33`,
       background: `${cfg.color}15`,
-      borderRadius: '4px', whiteSpace: 'nowrap', letterSpacing: '0.3px',
+      borderRadius: '4px', whiteSpace: 'nowrap', letterSpacing: '0.5px',
     }}>
       {cfg.label.toUpperCase()}
     </span>

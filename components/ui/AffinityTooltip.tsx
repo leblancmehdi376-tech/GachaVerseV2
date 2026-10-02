@@ -25,7 +25,7 @@ function CycleNode({ affinity, active }: { affinity: Affinity; active: boolean }
         width: active ? 22 : 18,
         height: active ? 22 : 18,
         borderRadius: '50%',
-        fontSize: active ? 14.4 : 14,
+        fontSize: active ? 16 : 14,
         background: active ? `${color}33` : 'rgba(255,255,255,0.04)',
         border: active ? `1.5px solid ${color}` : '1px solid rgba(255,255,255,0.1)',
         boxShadow: active ? `0 0 10px ${color}88` : 'none',
@@ -121,7 +121,7 @@ export function AffinityTooltip({ affinity, children }: { affinity: Affinity; ch
       }}
     >
       <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 14, letterSpacing: 1, color: config.color, textShadow: `0 0 10px ${config.color}88`, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: 15.4 }}>{config.icon}</span>
+        <span style={{ fontSize: 16 }}>{config.icon}</span>
         {config.label.toUpperCase()}
       </div>
 
@@ -129,7 +129,7 @@ export function AffinityTooltip({ affinity, children }: { affinity: Affinity; ch
         {AFFINITY_ORDER.map((a) => (
           <span key={a} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <CycleNode affinity={a} active={a === affinity} />
-            <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 14 }}>→</span>
+            <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14 }}>→</span>
           </span>
         ))}
         <CycleNode affinity={AFFINITY_ORDER[0]} active={AFFINITY_ORDER[0] === affinity} />

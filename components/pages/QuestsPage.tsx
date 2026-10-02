@@ -66,11 +66,11 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
       transition:'all 0.2s', position:'relative', overflow:'hidden',
     }}>
       {canClaim && <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,var(--purple-hi),transparent)' }} />}
-      <span style={{ fontSize:'30.8px', flexShrink:0 }}>{q.icon}</span>
+      <span style={{ fontSize:'32px', flexShrink:0 }}>{q.icon}</span>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', marginBottom:'8px', gap:'6px 10px' }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16.4px', color:'var(--text)' }}>{q.label}</span>
-          <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'15.4px', color:'var(--gold)', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', padding:'3px 12px', borderRadius:'6px', flexShrink:0 }}>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'var(--text)' }}>{q.label}</span>
+          <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'16px', color:'var(--gold)', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', padding:'3px 12px', borderRadius:'6px', flexShrink:0 }}>
             {q.rewardType === 'gems' ? '💎' : '🪙'} {formatNumber(q.reward)}
           </span>
         </div>
@@ -83,15 +83,15 @@ function QuestCard({ q, onClaim }: { q: QuestItem; onClaim: (id: string) => void
             boxShadow: q.done ? '0 0 8px #4ade8066' : canClaim ? '0 0 10px #9333ea88' : 'none',
           }} />
         </div>
-        <div style={{ fontFamily:'var(--f-num)', fontSize:'14.4px', color:'var(--text-dim)', fontWeight:700 }}>
+        <div style={{ fontFamily:'var(--f-num)', fontSize:'14px', color:'var(--text-dim)', fontWeight:700 }}>
           {formatNumber(q.current)} / {formatNumber(q.target)}
         </div>
       </div>
       {q.done ? (
-        <span style={{ fontSize:'28.8px', flexShrink:0 }}>✅</span>
+        <span style={{ fontSize:'28px', flexShrink:0 }}>✅</span>
       ) : canClaim ? (
         <button onClick={() => onClaim(q.id)} className="btn-primary quest-card__claim"
-          style={{ padding:'10px 18px', fontSize:'15.4px', letterSpacing:'0.5px', flexShrink:0 }}>
+          style={{ padding:'10px 18px', fontSize:'16px', letterSpacing:'0.5px', flexShrink:0 }}>
           RÉCUPÉRER
         </button>
       ) : (
@@ -160,7 +160,7 @@ export function QuestsPage() {
                 <div style={{ width:'100%', height:3, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden' }}>
                   <div style={{ height:'100%', width:`${pct}%`, background:t.color, borderRadius:2, transition:'width 0.4s' }} />
                 </div>
-                <span style={{ fontFamily:'var(--f-num)', fontSize:14.4, color:t.color }}>{t.count}</span>
+                <span style={{ fontFamily:'var(--f-num)', fontSize:14, color:t.color }}>{t.count}</span>
               </button>
             );
           })}

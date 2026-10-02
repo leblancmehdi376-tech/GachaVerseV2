@@ -283,15 +283,15 @@ export function GameLayout() {
     return (
       <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'radial-gradient(circle at center, rgba(168,85,247,0.18), rgba(2,6,23,1) 52%)', padding:'24px' }}>
         <div style={{ width:'min(560px, 92vw)', background:'rgba(12,10,30,0.92)', border:'1px solid rgba(192,132,252,0.45)', borderRadius:'20px', boxShadow:'0 0 40px rgba(168,85,247,0.35)', padding:'28px 26px', textAlign:'center' }}>
-          <div style={{ fontSize:'54.6px', marginBottom:'14px' }}>🚫</div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:'30.8px', fontWeight:900, letterSpacing:'2px', color:'#f5d0fe', marginBottom:'12px' }}>CONNEXION BLOQUÉE</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:'18.5px', lineHeight:1.6, color:'var(--text-sub)', marginBottom:'22px' }}>
+          <div style={{ fontSize:'56px', marginBottom:'14px' }}>🚫</div>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:'32px', fontWeight:900, letterSpacing:'2px', color:'#f5d0fe', marginBottom:'12px' }}>CONNEXION BLOQUÉE</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'18px', lineHeight:1.6, color:'var(--text-sub)', marginBottom:'22px' }}>
             Ce compte est déjà actif sur un autre appareil ou navigateur.<br />
             Pour éviter les doubles sessions, l’accès au jeu est refusé tant que la session conflictuelle reste ouverte.
           </div>
           <button
             onClick={async () => { dismissKickedOut(); await logout(); }}
-            style={{ background:'linear-gradient(135deg,#7c3aed,#a855f7)', border:'none', borderRadius:'12px', padding:'14px 22px', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'16.4px', color:'white', cursor:'pointer', boxShadow:'0 12px 28px rgba(168,85,247,0.35)' }}
+            style={{ background:'linear-gradient(135deg,#7c3aed,#a855f7)', border:'none', borderRadius:'12px', padding:'14px 22px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'white', cursor:'pointer', boxShadow:'0 12px 28px rgba(168,85,247,0.35)' }}
           >
             SE DÉCONNECTER ET REESSAYER
           </button>
@@ -347,14 +347,14 @@ export function GameLayout() {
         {/* Hamburger (mobile) */}
         {isMobile && (
           <button onClick={() => setDrawerOpen(v => !v)} aria-label="Menu"
-            style={{ flexShrink:0, width:38, height:38, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border-lit)', borderRadius:'8px', cursor:'pointer', color:'var(--purple-glow)', fontSize:20.5, lineHeight:1 }}>
+            style={{ flexShrink:0, width:38, height:38, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border-lit)', borderRadius:'8px', cursor:'pointer', color:'var(--purple-glow)', fontSize:20, lineHeight:1 }}>
             ☰
           </button>
         )}
 
         {/* Logo */}
         <div style={{ width:isMobile?'auto':'216px', flexShrink:0 }}>
-          <div key={logoFlash} onClick={clickLogo} className={logoFlash ? 'gv-logo-secret' : undefined} style={{ cursor:'default', userSelect:'none', fontFamily:'var(--f-title)', fontSize:isMobile?'14px':'17px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
+          <div key={logoFlash} onClick={clickLogo} className={logoFlash ? 'gv-logo-secret' : undefined} style={{ cursor:'default', userSelect:'none', fontFamily:'var(--f-title)', fontSize:isMobile?'14px':'18px', fontWeight:900, letterSpacing:isMobile?'0.5px':'3px', background:'linear-gradient(90deg,#e879f9,#c084fc,#9333ea)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, filter:'drop-shadow(0 0 12px rgba(147,51,234,0.35))', whiteSpace:'nowrap' }}>
             {isNarrowHeader ? 'GV' : 'GACHAVERSE'}
           </div>
           {!isMobile && <div style={{ fontFamily:'var(--f-num)', fontSize:'14px', color:'var(--text-muted)', letterSpacing:'1px', marginTop:'4px', lineHeight:1 }}>MULTIVERS RPG</div>}
@@ -381,10 +381,10 @@ export function GameLayout() {
           </PlayerAvatar>
           {!isMobile && <div style={{ textAlign:'left' }}>
             {user ? (<>
-              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15.4px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
             </>) : (<>
-              <div style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:'15.4px', color:'#e9d5ff', lineHeight:1.2, letterSpacing:'0.5px' }}>SE CONNECTER</div>
+              <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'#e9d5ff', lineHeight:1.2, letterSpacing:'0.5px' }}>SE CONNECTER</div>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'rgba(233,213,255,0.6)', lineHeight:1 }}>ou créer un compte</div>
             </>)}
           </div>}
@@ -404,9 +404,9 @@ export function GameLayout() {
             <div key={i} style={{ display:'flex', alignItems:'center', gap:isMobile?'4px':'7px', background:r.bg, border:`1px solid ${r.border}`, borderRadius:'20px', padding:isMobile?'4px 7px':'5px 16px', cursor:'pointer', transition:'all 0.15s', boxShadow:`inset 0 1px 0 rgba(255,255,255,0.06)` }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.2)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
-              <span style={{ fontSize:isMobile?'14px':'15px' }}>{r.icon}</span>
+              <span style={{ fontSize:isMobile?'14px':'16px' }}>{r.icon}</span>
               <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14px', color:r.color }}>{r.val}</span>
-              {!isMobile && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'15px', color:r.color, opacity:0.45 }}>+</span>}
+              {!isMobile && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:r.color, opacity:0.45 }}>+</span>}
             </div>
           ))}
         </div>
@@ -425,7 +425,7 @@ export function GameLayout() {
         {/* Breadcrumb page — masqué en mode compact pour laisser la place aux icônes */}
         {!isMobile && !isCompactHeader && <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 14px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'8px' }}>
           {(() => { const Icon = NAV_ICONS[currentNav.id]; return Icon ? <Icon size={14} color={currentNav.accent ?? 'var(--text-sub)'} /> : null; })()}
-          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', color: currentNav.accent ?? 'var(--text-sub)', letterSpacing:'1px' }}>{currentNav.label}</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color: currentNav.accent ?? 'var(--text-sub)', letterSpacing:'1px' }}>{currentNav.label}</span>
         </div>}
 
         {/* Icônes droite */}
@@ -489,7 +489,7 @@ export function GameLayout() {
           {[...(isMobile ? [...NAV_GROUPS, { title:'RACCOURCIS', items: NAV_MOBILE_EXTRA }] : NAV_GROUPS), ...(canSeeDevTabs ? [NAV_DEV_GROUP] : [])].map((group, gi) => (
             <div key={gi} style={{ display:'flex', flexDirection:'column', gap:2 }}>
               {group.title && (
-                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:800, letterSpacing:2, color:'var(--text-muted)', padding:'10px 12px 4px', textTransform:'uppercase' }}>
+                <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, letterSpacing:2, color:'var(--text-muted)', padding:'10px 12px 4px', textTransform:'uppercase' }}>
                   {group.title}
                 </div>
               )}
@@ -534,8 +534,8 @@ export function GameLayout() {
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.15)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
             <div style={{ position:'absolute', top:'-15px', right:'-15px', width:'80px', height:'80px', background:'radial-gradient(circle,rgba(168,85,247,0.16),transparent)', borderRadius:'50%' }} />
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'1.5px', marginBottom:'5px' }}>📋 PATCH NOTES</div>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:'14.4px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>{latestPatchNote.title}</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--purple-glow)', fontWeight:700, letterSpacing:'2px', marginBottom:'5px' }}>📋 PATCH NOTES</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:'14px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>{latestPatchNote.title}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1.5 }}>Découvre les dernières nouveautés du jeu</div>
             <div style={{ marginTop:'8px', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', display:'flex', alignItems:'center', gap:'5px' }}>
               <span>🕒</span><span>{latestPatchNote.date}</span>
@@ -567,7 +567,7 @@ export function GameLayout() {
               <div style={{ padding:isMobile?'12px 16px 10px':'16px 28px 12px', borderBottom:'1px solid var(--border)', background:'linear-gradient(180deg,var(--bg-dark),transparent)', flexShrink:0, display:'flex', alignItems:'center', gap:'10px' }}>
                 <div style={{ width:'4px', height:'18px', background:`linear-gradient(180deg,${contentNav.accent??'var(--purple-hi)'},transparent)`, borderRadius:'2px', boxShadow:`0 0 8px ${contentNav.accent??'var(--purple-hi)'}` }} />
                 {(() => { const Icon = NAV_ICONS[contentNav.id]; return Icon ? <span style={{ color: contentNav.accent ?? 'var(--purple-hi)', display:'flex' }}><Icon size={20} color="currentColor" /></span> : null; })()}
-                <span style={{ fontFamily:'var(--f-title)', fontSize:'18.5px', fontWeight:700, color:contentNav.accent??'var(--text)', letterSpacing:'2px' }}>{contentNav.label}</span>
+                <span className="page-title" style={{ color:contentNav.accent??'var(--text)' }}>{contentNav.label}</span>
               </div>
               <div style={{ flex:1, overflow:'hidden' }}>
                 <Suspense fallback={null}>

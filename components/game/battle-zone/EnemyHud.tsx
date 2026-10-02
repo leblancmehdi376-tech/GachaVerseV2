@@ -31,9 +31,9 @@ export function EnemyHud({
       <div style={{ position:'relative', zIndex:3, padding:'12px 18px 10px', background:'linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%)', flexShrink:0 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:8, flexWrap:'wrap' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, color:cfg.accentColor, letterSpacing:2 }}>{cfg.universe.toUpperCase()}</span>
-            <span style={{ color:'rgba(255,255,255,0.2)' }}>·</span>
-            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.3)', letterSpacing:1 }}>{cfg.arc}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:cfg.accentColor, letterSpacing:2 }}>{cfg.universe.toUpperCase()}</span>
+            <span style={{ color:'rgba(255,255,255,0.55)' }}>·</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)', letterSpacing:1 }}>{cfg.arc}</span>
             <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:currentEnemy.isBoss?'rgba(127,29,29,0.8)':isFarming?'rgba(52,211,153,0.15)':'rgba(0,0,0,0.5)', border:`1px solid ${currentEnemy.isBoss?'rgba(239,68,68,0.5)':isFarming?'rgba(52,211,153,0.5)':cfg.accentColor+'33'}`, borderRadius:6, padding:'2px 10px' }}>
               <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:currentEnemy.isBoss?'#f87171':isFarming?'#34d399':cfg.accentColor }}>
                 {currentEnemy.isBoss ? '★ BOSS' : isFarming ? `🔁 FARM · ÉTAGE ${wave}/9` : `ÉTAGE ${wave} / 10`}
@@ -52,7 +52,7 @@ export function EnemyHud({
                 }}
               >
                 <span style={{ fontSize:14 }}>🗺</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, color:'var(--purple-glow)', letterSpacing:1 }}>VOYAGER</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--purple-glow)', letterSpacing:1 }}>VOYAGER</span>
               </button>
             )}
             {isFarming && (
@@ -68,25 +68,25 @@ export function EnemyHud({
                 onMouseLeave={e => { e.currentTarget.style.filter='none'; }}
               >
                 <span style={{ fontSize:14 }}>↩</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, color:'#34d399', letterSpacing:1 }}>RETOUR · P{runPeakPalier}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#34d399', letterSpacing:1 }}>RETOUR · P{runPeakPalier}</span>
               </button>
             )}
           </div>
           {bossActive && (
             <div style={{ display:'flex', alignItems:'center', gap:8, background:'rgba(127,29,29,0.85)', border:'1px solid rgba(239,68,68,0.5)', borderRadius:8, padding:'5px 14px' }}>
-              <span style={{ fontSize:15.4, animation:'warnFlash 0.5s infinite' }}>⚠</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:15.4, color:'#f87171' }}>BOSS — {bossTimeLeft}s</span>
+              <span style={{ fontSize:16, animation:'warnFlash 0.5s infinite' }}>⚠</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:16, color:'#f87171' }}>BOSS — {bossTimeLeft}s</span>
             </div>
           )}
           {isFarming && !bossActive && (
             <div style={{ display:'flex', alignItems:'center', gap:7, background:'rgba(52,211,153,0.12)', border:'1px solid rgba(52,211,153,0.4)', borderRadius:8, padding:'4px 12px' }}>
-              <span style={{ fontSize:14.4 }}>🔁</span>
+              <span style={{ fontSize:14 }}>🔁</span>
               <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#34d399' }}>Farm en boucle · boss désactivé</span>
             </div>
           )}
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom:8 }}>
-          <h2 style={{ fontFamily:'var(--f-title)', fontSize:currentEnemy.isBoss?'20px':'17px', fontWeight:700, color:'white', letterSpacing:2, textShadow:currentEnemy.isBoss?'0 0 24px rgba(239,68,68,0.7)':'0 0 16px rgba(255,255,255,0.2)', margin:0 }}>
+          <h2 style={{ fontFamily:'var(--f-title)', fontSize:currentEnemy.isBoss?'20px':'18px', fontWeight:700, color:'white', letterSpacing:2, textShadow:currentEnemy.isBoss?'0 0 24px rgba(239,68,68,0.7)':'0 0 16px rgba(255,255,255,0.2)', margin:0 }}>
             {currentEnemy.name}
           </h2>
           <AffinityTooltip affinity={enemyAffinity}>
@@ -105,9 +105,9 @@ export function EnemyHud({
           })()}
         </div>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4, gap:8 }}>
-          <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.35)', letterSpacing:1 }}>HP</span>
+          <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1 }}>HP</span>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ fontFamily:'var(--f-num)', fontSize:14.4, fontWeight:700, color:'rgba(255,255,255,0.75)' }}>{formatNumber(currentEnemy.currentHp)} / {formatNumber(currentEnemy.maxHp)}</span>
+            <span style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.75)' }}>{formatNumber(currentEnemy.currentHp)} / {formatNumber(currentEnemy.maxHp)}</span>
             {onDebugKill && (
               <button
                 onClick={e => { e.stopPropagation(); onDebugKill(); }}
@@ -120,7 +120,7 @@ export function EnemyHud({
                 }}
               >
                 <span style={{ fontSize:18 }}>☠</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:16, color:'#f87171', letterSpacing:1 }}>KILL</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:16, color:'#f87171', letterSpacing:1 }}>KILL</span>
               </button>
             )}
           </div>

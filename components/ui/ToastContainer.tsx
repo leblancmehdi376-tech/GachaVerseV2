@@ -59,7 +59,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           border: `1px solid ${style.accent}44`,
           borderRadius: '8px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '18.5px',
+          fontSize: '18px',
         }}>
           {toast.icon}
         </div>
@@ -68,10 +68,10 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontFamily: 'var(--f-ui)',
-            fontWeight: 800,
-            fontSize: '15.4px',
+            fontWeight: 700,
+            fontSize: '16px',
             color: style.accent,
-            letterSpacing: '0.3px',
+            letterSpacing: '0.5px',
             marginBottom: toast.message ? '3px' : 0,
             whiteSpace: 'nowrap',
             overflow: 'hidden',

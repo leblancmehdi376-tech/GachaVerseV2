@@ -33,12 +33,12 @@ export function PalierTravelModal({
         {/* En-tête */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', borderBottom:'1px solid var(--border)' }}>
           <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-            <span style={{ fontFamily:'var(--f-title)', fontSize:18.5, fontWeight:700, color:'var(--purple-glow)', letterSpacing:2 }}>🗺 CARTE DES MONDES</span>
+            <span style={{ fontFamily:'var(--f-title)', fontSize:18, fontWeight:700, color:'var(--purple-glow)', letterSpacing:2 }}>🗺 CARTE DES MONDES</span>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-sub)', letterSpacing:0.5 }}>
               Voyage vers un palier déjà atteint pour re-farmer coins &amp; ressources
             </span>
           </div>
-          <button onClick={onClose} className="btn-secondary" style={{ padding:'6px 12px', fontSize:14.4 }}>✕</button>
+          <button onClick={onClose} className="btn-secondary" style={{ padding:'6px 12px', fontSize:14 }}>✕</button>
         </div>
 
         {/* Grille des paliers */}
@@ -64,10 +64,10 @@ export function PalierTravelModal({
                 onMouseLeave={e => { if (!isHere) { e.currentTarget.style.transform='none'; e.currentTarget.style.borderColor=cfg.accentColor+'44'; } }}
               >
                 <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
-                  <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:15.4, color:cfg.accentColor }}>P{p}</span>
-                  {isHere && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:800, color:'var(--purple-glow)', letterSpacing:1, border:'1px solid var(--purple-glow)', borderRadius:4, padding:'1px 5px' }}>ICI</span>}
+                  <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16, color:cfg.accentColor }}>P{p}</span>
+                  {isHere && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'var(--purple-glow)', letterSpacing:1, border:'1px solid var(--purple-glow)', borderRadius:4, padding:'1px 5px' }}>ICI</span>}
                   {drops.length > 0 && (
-                    <span title={drops.map(d => d.name).join(', ')} style={{ marginLeft:'auto', fontSize:14.4, filter:'drop-shadow(0 0 4px rgba(245,158,11,0.6))' }}>
+                    <span title={drops.map(d => d.name).join(', ')} style={{ marginLeft:'auto', fontSize:14, filter:'drop-shadow(0 0 4px rgba(245,158,11,0.6))' }}>
                       {drops.map(d => d.icon).join('')}
                     </span>
                   )}

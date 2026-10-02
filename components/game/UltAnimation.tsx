@@ -40,7 +40,7 @@ export function ActiveUltsBar() {
             <div style={{ height:3, background:'rgba(255,255,255,0.1)', borderRadius:2, overflow:'hidden' }}>
               <div style={{ height:'100%', width:`${pct}%`, background:'linear-gradient(90deg,#7c3aed,#c084fc)', borderRadius:2, transition:'width 1s linear' }} />
             </div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.4)', marginTop:2, textAlign:'right' }}>{remaining}s</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)', marginTop:2, textAlign:'right' }}>{remaining}s</div>
           </div>
         );
       })}

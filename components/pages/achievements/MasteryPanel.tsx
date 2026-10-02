@@ -129,7 +129,7 @@ const MasteryRow = memo(function MasteryRow({ tpl, mastery, index, isOpen, isEqu
         <CharacterCardThumb templateId={tpl.id} name={tpl.name} rarity={tpl.rarity} width={40} height={54} />
         <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:5 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-            <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:16, color:'var(--text)' }}>{tpl.name}</span>
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:16, color:'var(--text)' }}>{tpl.name}</span>
             <RarityBadge rarity={tpl.rarity} size="xs" />
             {isEquipped && <span className="ach-tier" style={{ ['--acc' as string]: '#4ade80' } as CSSProperties}>ÉQUIPÉ</span>}
             {pct >= 100 && <span className="ach-tier" style={{ ['--acc' as string]: '#fbbf24' } as CSSProperties}>MAÎTRISÉ</span>}
@@ -149,7 +149,7 @@ const MasteryRow = memo(function MasteryRow({ tpl, mastery, index, isOpen, isEqu
           {milestones.map(ms => (
             <div key={ms.id} className={`mastery-ms${ms.done ? ' is-done' : ''}`}>
               <div style={{ display:'flex', justifyContent:'space-between', gap:6, marginBottom:6 }}>
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14.4, color: ms.done ? '#4ade80' : 'var(--text-sub)' }}>{ms.icon} {ms.label}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color: ms.done ? '#4ade80' : 'var(--text-sub)' }}>{ms.icon} {ms.label}</span>
                 {ms.done && <span style={{ color:'#4ade80', fontWeight:900 }}>✓</span>}
               </div>
               <div className="ach-prog__track" style={{ ['--acc' as string]: acc } as CSSProperties}>

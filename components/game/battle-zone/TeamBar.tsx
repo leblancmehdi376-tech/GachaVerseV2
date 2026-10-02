@@ -66,7 +66,7 @@ export function TeamBar({
             fontFamily:'var(--f-ui)',
             fontSize:14,
             fontWeight:700,
-            color:'rgba(255,255,255,0.35)',
+            color:'rgba(255,255,255,0.55)',
             letterSpacing:2,
             //center text
             alignSelf:'center',
@@ -110,10 +110,10 @@ export function TeamBar({
           {hasSynergyProgress && (
             <div className="combat-info__cell" style={{ padding:'7px 12px' }}>
             <SynergyBreakdownTooltip>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', minHeight:16 }}>
               {syns.length === 0 && (
-                <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:14, color:'rgba(255,255,255,0.3)', whiteSpace:'nowrap' }}>Aucune active</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:14, color:'rgba(255,255,255,0.55)', whiteSpace:'nowrap' }}>Aucune active</span>
               )}
               {syns.map(s => (
                 <div key={s.def.id}
@@ -137,21 +137,21 @@ export function TeamBar({
           {/* Butin de l'ennemi courant — détail de l'or au survol (voir GoldBreakdownTooltip) */}
           <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
             <GoldBreakdownTooltip>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
-              <div style={{ fontFamily:'var(--f-num)', fontSize:15.4, fontWeight:700, color:'var(--gold)' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ fontFamily:'var(--f-num)', fontSize:16, fontWeight:700, color:'var(--gold)' }}>
                 +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
                 {realGold && <span style={{ fontSize:14, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
               </div>
             </GoldBreakdownTooltip>
-            {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14.4, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
+            {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>
 
           {/* DPS d'équipe — détail au survol (voir DpsBreakdownTooltip) */}
           <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
             <DpsBreakdownTooltip>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.35)', letterSpacing:1.5 }}>🔥 DPS <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
-              <div style={{ fontFamily:'var(--f-num)', fontSize:21.6, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'rgba(255,255,255,0.55)', letterSpacing:2 }}>🔥 DPS <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+              <div style={{ fontFamily:'var(--f-num)', fontSize:22, fontWeight:900, color: dpsUltMult > 1 ? '#4ade80' : 'var(--green)', lineHeight:1, textShadow:'0 0 10px rgba(74,222,128,0.35)' }}>
                 {formatNumber(dps)}{dpsUltMult > 1 && <span style={{ fontSize:14, marginLeft:2 }}>×{dpsUltMult}</span>}
               </div>
             </DpsBreakdownTooltip>
@@ -168,7 +168,7 @@ export function TeamBar({
             onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.12)')}
             title="Abandonner le boss et retourner à la vague 1"
           >
-            <span style={{ fontSize:18.5 }}>🏳️</span>
+            <span style={{ fontSize:18 }}>🏳️</span>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#f87171', letterSpacing:1 }}>RETRAITE</span>
           </button>
         )}
@@ -180,7 +180,7 @@ export function TeamBar({
             onMouseLeave={e => (e.currentTarget.style.background = 'rgba(234,179,8,0.08)')}
             title="Retenter le boss"
           >
-            <span style={{ fontSize:18.5 }}>⚡</span>
+            <span style={{ fontSize:18 }}>⚡</span>
             <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#fbbf24', letterSpacing:1 }}>BOSS</span>
           </button>
         )}

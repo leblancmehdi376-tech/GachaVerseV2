@@ -112,10 +112,10 @@ export function SplashScreen({ onComplete }: Props) {
       }}>
         {LOGO_CHARS.map((ch, i) => (
           <span key={i} style={{
-            fontFamily: "'Orbitron', sans-serif",
-            fontSize: 52.4,
+            fontFamily: 'var(--f-num)',
+            fontSize: 56,
             fontWeight: 900,
-            letterSpacing: 6,
+            letterSpacing: 4,
             background: 'linear-gradient(135deg, #e879f9 0%, #c084fc 35%, #9333ea 65%, #7c3aed 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -127,10 +127,10 @@ export function SplashScreen({ onComplete }: Props) {
 
       {/* Subtitle */}
       <div style={{
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: 15.4,
+        fontFamily: 'var(--f-ui)',
+        fontSize: 16,
         fontWeight: 700,
-        letterSpacing: 6,
+        letterSpacing: 4,
         color: 'rgba(192,132,252,0.45)',
         marginBottom: 64,
         animation: `splashSubIn 0.5s ease ${200 + LOGO_CHARS.length * 85 + 100}ms both`,
@@ -162,16 +162,16 @@ export function SplashScreen({ onComplete }: Props) {
         {/* Step label + percentage */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{
-            fontFamily: "'Rajdhani', sans-serif",
+            fontFamily: 'var(--f-ui)',
             fontSize: 14,
             fontWeight: 700,
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.55)',
             letterSpacing: 1,
           }}>
             {currentStep}
           </span>
           <span style={{
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: 'var(--f-num)',
             fontSize: 14,
             fontWeight: 700,
             color: 'rgba(192,132,252,0.6)',
@@ -185,10 +185,10 @@ export function SplashScreen({ onComplete }: Props) {
       <div style={{
         position: 'absolute',
         bottom: 28,
-        fontFamily: "'Orbitron', sans-serif",
+        fontFamily: 'var(--f-num)',
         fontSize: 14,
         fontWeight: 400,
-        color: 'rgba(255,255,255,0.1)',
+        color: 'rgba(255,255,255,0.55)',
         letterSpacing: 2,
       }}>
         v1.0.0 · GACHAVERSE

@@ -49,7 +49,7 @@ export function RandomEventOverlay() {
           <div
             onClick={e => { e.stopPropagation(); setBossNotice(false); }}
             style={{ pointerEvents:'auto', cursor:'pointer', display:'inline-block', padding:'12px 22px', borderRadius:12, background:'rgba(3,2,10,0.85)', border:'1px solid rgba(239,68,68,0.5)', boxShadow:'0 0 30px rgba(239,68,68,0.3)' }}>
-            <div style={{ fontFamily:'var(--f-title)', fontSize:17.5, fontWeight:900, color:'#f87171', letterSpacing:1.5 }}>⚔ BOSS MAJEUR ATTEINT</div>
+            <div style={{ fontFamily:'var(--f-title)', fontSize:18, fontWeight:900, color:'#f87171', letterSpacing:2 }}>⚔ BOSS MAJEUR ATTEINT</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-sub)', marginTop:3 }}>Fin de l’événement</div>
           </div>
         </div>

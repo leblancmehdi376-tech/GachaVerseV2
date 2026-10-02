@@ -48,7 +48,7 @@ export function TrophiesPanel() {
       <div className="trophy-stage">
         <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:12, flexWrap:'wrap', marginBottom:18 }}>
           <div>
-            <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:900, letterSpacing:3, color:'var(--gold-hi)' }}>VITRINE DU PROFIL</div>
+            <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:900, letterSpacing:2, color:'var(--gold-hi)' }}>VITRINE DU PROFIL</div>
             <div style={{ fontFamily:'var(--f-title)', fontSize:24, fontWeight:900, color:'#fff', letterSpacing:2 }}>TROPHÉES</div>
           </div>
           <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
@@ -80,9 +80,9 @@ export function TrophiesPanel() {
 
       {roomOpen && (
         <div className="trophy-room">
-          <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:900, letterSpacing:3, color:'#a78bfa' }}>SALLE SECRÈTE</div>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:21, fontWeight:900, color:'#ede9fe', margin:'4px 0 8px' }}>Les Archives Oubliées</div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:15.4, color:'var(--text-sub)', lineHeight:1.6 }}>
+          <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:900, letterSpacing:2, color:'#a78bfa' }}>SALLE SECRÈTE</div>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:20, fontWeight:900, color:'#ede9fe', margin:'4px 0 8px' }}>Les Archives Oubliées</div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:16, color:'var(--text-sub)', lineHeight:1.6 }}>
             Derrière la vitrine, des étagères couvertes de poussière d&apos;étoile. On y lit, gravé dans le cristal :
             <em style={{ color:'#e9d5ff' }}> « Le multivers garde dix secrets. Le chat errant en connaît certains. Le code des anciens en ouvre un autre. Et certains ne se révèlent qu&apos;à 3h33… »</em>
           </div>
@@ -93,7 +93,7 @@ export function TrophiesPanel() {
       )}
 
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>
           Choisis jusqu&apos;à {MAX_SHOWCASED_TROPHIES} succès à exposer sur ton profil. Clique à nouveau pour les retirer.
         </div>
         <div className="ach-chips">

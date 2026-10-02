@@ -28,8 +28,8 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
         }
       `}</style>
       <div className="ally-card-empty-illu" style={{ width:'100%', aspectRatio:'287 / 458', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
-        <span style={{ fontSize:24.7, color:'rgba(255,255,255,0.2)' }}>+</span>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.2)', fontWeight:600, letterSpacing:1 }}>VIDE</span>
+        <span style={{ fontSize:24, color:'rgba(255,255,255,0.2)' }}>+</span>
+        <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)', fontWeight:600, letterSpacing:1 }}>VIDE</span>
       </div>
     </div>
   );
@@ -93,7 +93,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
               1800px ; masqué au-delà (repris par .ally-card-badge-inline,
               placé dans le bloc d'infos à droite). */}
           <div className="ally-card-badge-float" style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', zIndex: 30, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(0,0,0,0.4)', border: `1px solid ${rc.color}55`, borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}>
-            <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.3 }}>LV{owned.level}</span>
+            <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.5 }}>LV{owned.level}</span>
           </div>
         </div>
       </SkillTooltip>
@@ -109,7 +109,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
         {/* Niveau — repris ici pour l'affichage large (voir
             .ally-card-badge-float, masqué au-delà de 1800px). */}
         <div className="ally-card-badge-inline" style={{ alignItems: 'center', gap: 5, marginBottom: 2 }}>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.3 }}>LV{owned.level}</span>
+          <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.5 }}>LV{owned.level}</span>
         </div>
         <div onClick={() => clickable && activateCharacterUltimate(templateId, formIdx)}
           title={queued ? "En file d'attente — cliquer pour annuler" : undefined}
@@ -117,20 +117,20 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
             background: queued ? 'rgba(59,130,246,0.35)' : ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',
             border: queued ? '1px solid #60a5fa' : ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)' }}>
           {!ready && !queued && <span style={{ fontSize: 14 }}>⏳</span>}
-          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 800, fontSize: 14, color: queued ? '#bfdbfe' : ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: queued ? '#bfdbfe' : ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
             {queued ? `EN FILE #${queuePos}` : ready ? 'ULTI PRÊT' : ultLabel}
           </span>
         </div>
         <div className="ally-card-stat">
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, flexShrink: 0 }}>BASE</span>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.5, flexShrink: 0 }}>BASE</span>
           <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.8)', lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(base)}</span>
         </div>
         <div className="ally-card-stat">
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5, flexShrink: 0 }}>TYPE</span>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.5, flexShrink: 0 }}>TYPE</span>
           <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 900, color: multCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{multTxt}</span>
         </div>
         <div className="ally-card-stat" style={{ marginTop: 2, paddingTop: 3, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5, flexShrink: 0 }}>DPS</span>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.5, flexShrink: 0 }}>DPS</span>
           <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 900, color: finalCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(final)}</span>
         </div>
       </div>

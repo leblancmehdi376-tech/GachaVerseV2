@@ -160,7 +160,7 @@ export default function AdminPage() {
 
   if (!user || !isAdmin) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#050410] px-4 font-sans">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#050410] px-4 font-(family-name:--f-ui)">
         <div className="text-center text-base text-white/80">
           {user ? 'Ce compte n\'est pas administrateur.' : 'Connexion administrateur requise.'}
         </div>
@@ -178,7 +178,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="h-screen overflow-y-auto bg-[#050410] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.12),transparent_60%)] font-sans text-white">
+    <div className="h-screen overflow-y-auto bg-[#050410] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.12),transparent_60%)] font-(family-name:--f-ui) text-white">
       {/* ── Barre du haut (reste visible au défilement) ─────────────── */}
       <header className="sticky top-0 z-20 border-b border-white/15 bg-[#050410]/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">

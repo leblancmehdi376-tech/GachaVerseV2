@@ -5,8 +5,8 @@ export function StatsCard({ maxPalierReached }: { maxPalierReached: number }) {
     <div className="panel panel--flat" style={{ padding:'12px', flexShrink:0 }}>
       <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'var(--text-dim)', letterSpacing:'2px', marginBottom:'8px' }}>STATISTIQUES</div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px 0', borderTop:'1px solid var(--border)' }}>
-        <span style={{ fontFamily:'var(--f-ui)', fontSize:'14.4px', color:'var(--text-dim)' }}>Palier max atteint</span>
-        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'18.5px', color:'var(--purple-glow)' }}>{maxPalierReached}</span>
+        <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)' }}>Palier max atteint</span>
+        <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:'18px', color:'var(--purple-glow)' }}>{maxPalierReached}</span>
       </div>
     </div>
   );

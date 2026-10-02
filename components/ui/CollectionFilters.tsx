@@ -29,7 +29,7 @@ const STATUSES: { key: Exclude<CollectionStatus, 'all'>; label: string; color: s
   { key: 'missing', label: '❌ MANQUANTS', color: '#f87171', glow: '#dc2626' },
 ];
 
-const SECTION_LABEL: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: '14px', fontWeight: 700, letterSpacing: '1.5px', color: 'var(--text-muted)', marginBottom: '7px' };
+const SECTION_LABEL: CSSProperties = { fontFamily: 'var(--f-ui)', fontSize: '14px', fontWeight: 700, letterSpacing: '2px', color: 'var(--text-muted)', marginBottom: '7px' };
 
 // ─── Briques ──────────────────────────────────────────────────────────────
 

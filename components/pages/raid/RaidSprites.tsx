@@ -24,7 +24,7 @@ export function BossSprite({ boss, deadStyle }: { boss: RaidBossDef; deadStyle: 
   const { src, failed, onError } = useFallbackImage(buildImageCandidates(stripKnownExtension(boss.spritePath)));
   if (failed || !src) return (
     <div style={{ width:336, height:448, background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:122.3, color:boss.accentColor, filter:`drop-shadow(0 0 20px ${boss.accentColor})` }}>{bossInitials(boss.name)}</span>
+      <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:120, color:boss.accentColor, filter:`drop-shadow(0 0 20px ${boss.accentColor})` }}>{bossInitials(boss.name)}</span>
     </div>
   );
   return (

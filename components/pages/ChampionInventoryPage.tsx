@@ -100,16 +100,16 @@ export function ChampionInventoryPage() {
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
         <div style={{ width:'4px', height:'22px', background:'linear-gradient(180deg,#fbbf24,#f59e0b)', borderRadius:'2px', boxShadow:'0 0 10px #fbbf24' }} />
-        <span style={{ fontFamily:'var(--f-title)', fontSize:'18.5px', fontWeight:700, color:'#fbbf24', letterSpacing:'3px' }}>INVENTAIRE DES CHAMPIONS</span>
+        <span className="page-title" style={{ color:'#fbbf24' }}>INVENTAIRE DES CHAMPIONS</span>
       </div>
 
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14.4px', color:'var(--text-muted)', lineHeight:1.6 }}>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', lineHeight:1.6 }}>
         Doublons obtenus lorsque tes personnages sont déjà en édition <strong style={{ color:'#f0abfc' }}>Prismatique</strong>. Recycle-les contre des Orbes du Néant ou mets-les en vente à l&apos;Hôtel de Ville.
       </div>
 
       {/* Feedback */}
       {feedback && (
-        <div style={{ position:'absolute', left:'50%', transform:'translateX(-50%)', top: '72px', zIndex:30, padding:'10px 16px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontSize:'15.4px', fontWeight:700,
+        <div style={{ position:'absolute', left:'50%', transform:'translateX(-50%)', top: '72px', zIndex:30, padding:'10px 16px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontSize:'16px', fontWeight:700,
           background: feedback.ok?'rgba(74,222,128,0.1)':'rgba(239,68,68,0.1)',
           border:`1px solid ${feedback.ok?'rgba(74,222,128,0.4)':'rgba(239,68,68,0.4)'}`,
           color: feedback.ok?'#4ade80':'#f87171',
@@ -140,8 +140,8 @@ export function ChampionInventoryPage() {
       )}
 
       {champions.length === 0 ? (
-        <div style={{ textAlign:'center', padding:'60px 20px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'15.4px' }}>
-          <div style={{ fontSize:'43.7px', marginBottom:'12px' }}>🏆</div>
+        <div style={{ textAlign:'center', padding:'60px 20px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:'16px' }}>
+          <div style={{ fontSize:'40px', marginBottom:'12px' }}>🏆</div>
           Aucun doublon Prismatique pour le moment.<br/>Continue à pull pour remplir cet inventaire !
         </div>
       ) : (
@@ -157,11 +157,11 @@ export function ChampionInventoryPage() {
 
                 {/* Infos perso */}
                 <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                  <div style={{ width:'44px', height:'44px', borderRadius:'8px', background:`${cfg.color}22`, border:`1px solid ${cfg.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22.6px' }}>
+                  <div style={{ width:'44px', height:'44px', borderRadius:'8px', background:`${cfg.color}22`, border:`1px solid ${cfg.color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}>
                     🧬
                   </div>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16.4px', color:cfg.color }}>{tpl.name}</div>
+                    <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:cfg.color }}>{tpl.name}</div>
                     <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>{cfg.label} · {qty > 1 ? `×${qty} exemplaires` : '1 exemplaire'}</div>
                   </div>
                 </div>
@@ -173,24 +173,24 @@ export function ChampionInventoryPage() {
                       <input
                         type='number' min={1} placeholder='Prix'
                         value={sellPrice} onChange={e => setSellPrice(e.target.value)}
-                        style={{ flex:1, padding:'7px 10px', borderRadius:'6px', background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'14.4px' }}
+                        style={{ flex:1, padding:'7px 10px', borderRadius:'6px', background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-hi)', fontFamily:'var(--f-ui)', fontSize:'14px' }}
                       />
                       {(['coins','gems','crowns'] as const).map(c => (
                         <button key={c} onClick={() => setSellCurr(c)} style={{
                           padding:'6px 10px', borderRadius:'6px', cursor:'pointer',
                           background: sellCurr===c?'rgba(255,255,255,0.12)':'rgba(255,255,255,0.03)',
                           border:`1px solid ${sellCurr===c?'rgba(255,255,255,0.3)':'var(--border)'}`,
-                          fontSize:'16.4px',
+                          fontSize:'16px',
                         }}>{CURRENCY_ICON[c]}</button>
                       ))}
                     </div>
                     <div style={{ display:'flex', gap:'6px' }}>
                       <button onClick={() => handleSell(id)} disabled={sellLoading || !sellPrice}
-                        style={{ flex:1, padding:'8px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', background:'rgba(249,115,22,0.2)', border:'1px solid #f9731666', color:'#f97316' }}>
+                        style={{ flex:1, padding:'8px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', background:'rgba(249,115,22,0.2)', border:'1px solid #f9731666', color:'#f97316' }}>
                         {sellLoading ? '...' : '📢 Publier'}
                       </button>
                       <button onClick={() => { setSelling(null); setSellPrice(''); }}
-                        style={{ padding:'8px 12px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14.4px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', color:'var(--text-muted)' }}>
+                        style={{ padding:'8px 12px', borderRadius:'7px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', color:'var(--text-muted)' }}>
                         ✕
                       </button>
                     </div>

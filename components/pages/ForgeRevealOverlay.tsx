@@ -49,7 +49,7 @@ export function ForgeRevealOverlay({ characterId, recipeIcon, onClose }: { chara
             }} />
           ))}
           {/* Icône de la recette qui se charge */}
-          <div style={{ fontSize:67.8, animation:`forgeCharge ${CHARGE_MS}ms ease-in forwards` }}>{recipeIcon}</div>
+          <div style={{ fontSize:64, animation:`forgeCharge ${CHARGE_MS}ms ease-in forwards` }}>{recipeIcon}</div>
         </div>
       ) : (
         <>

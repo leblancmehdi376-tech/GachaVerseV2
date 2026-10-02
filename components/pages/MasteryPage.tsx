@@ -12,7 +12,7 @@ export function MasteryPage() {
         title="MAÎTRISE"
         accent="#f472b6"
       />
-      <div style={{ fontFamily:'var(--f-ui)', fontSize:15, color:'var(--text-sub)', lineHeight:1.5 }}>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:16, color:'var(--text-sub)', lineHeight:1.5 }}>
         Chaque personnage progresse en montant de niveau, en combattant dans ton équipe et en vainquant des boss.
         Sa maîtrise lui donne un <strong style={{ color:'#f9a8d4' }}>bonus de DPS personnel</strong>, qui ne s&apos;applique qu&apos;à lui.
         La maîtrise est conservée après un Prestige.

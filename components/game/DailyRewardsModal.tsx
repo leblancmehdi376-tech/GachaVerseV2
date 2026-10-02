@@ -21,18 +21,18 @@ export function DailyRewardsModal({ onClose }: { onClose: () => void }) {
         style={{ width: 'min(720px, 100%)', maxHeight: '88vh', overflowY: 'auto', borderRadius: 14, border: '1px solid var(--border-lit)', background: '#0f0c20', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', padding: 'clamp(14px, 4vw, 22px)' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-          <div style={{ fontFamily: 'var(--f-title)', fontSize: 18.5, fontWeight: 800, letterSpacing: 1.5, color: 'var(--purple-glow)' }}>
+          <div style={{ fontFamily: 'var(--f-title)', fontSize: 18, fontWeight: 800, letterSpacing: 2, color: 'var(--purple-glow)' }}>
             📅 RÉCOMPENSES JOURNALIÈRES
           </div>
           <button onClick={onClose} aria-label="Fermer" style={{ flexShrink: 0, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
-        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-sub)', marginBottom: 16 }}>
+        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-sub)', marginBottom: 16 }}>
           Jour {dailyRewardCurrentDay} / {DAILY_REWARD_CYCLE_LENGTH} — connecte-toi chaque jour pour avancer dans le cycle
         </div>
 
         {weeks.map((week, wi) => (
           <div key={wi} style={{ marginBottom: 14 }}>
-            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 800, letterSpacing: 1.5, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+            <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, letterSpacing: 2, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
               Semaine {wi + 1}
             </div>
             {/* 7 colonnes sur desktop, 4 sur téléphone (voir .daily-grid dans globals.css) */}
@@ -63,7 +63,7 @@ export function DailyRewardsModal({ onClose }: { onClose: () => void }) {
                     </div>
                     {def.items.map((item, ii) => (
                       <div key={ii} style={{ marginTop: ii > 0 ? 6 : 0 }}>
-                        <div style={{ fontSize: item.kind === 'title' ? 16 : 19, lineHeight: 1.3 }}>{item.icon}</div>
+                        <div style={{ fontSize: item.kind === 'title' ? 16 : 20, lineHeight: 1.3 }}>{item.icon}</div>
                         <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.25, marginTop: 1 }}>
                           {formatDailyRewardLabel(item)}
                         </div>
@@ -82,11 +82,11 @@ export function DailyRewardsModal({ onClose }: { onClose: () => void }) {
         ))}
 
         {dailyRewardClaimedToday ? (
-          <div style={{ textAlign: 'center', fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--green)', fontWeight: 700, marginTop: 6 }}>
+          <div style={{ textAlign: 'center', fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--green)', fontWeight: 700, marginTop: 6 }}>
             ✓ Récompense du jour déjà réclamée — reviens demain !
           </div>
         ) : (
-          <button onClick={claimDailyReward} className="btn-primary" style={{ width: '100%', padding: 11, fontSize: 16.4, marginTop: 10 }}>
+          <button onClick={claimDailyReward} className="btn-primary" style={{ width: '100%', padding: 11, fontSize: 16, marginTop: 10 }}>
             RÉCLAMER LE JOUR {dailyRewardCurrentDay}
           </button>
         )}

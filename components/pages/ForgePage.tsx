@@ -46,9 +46,9 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
       onMouseEnter={clickable ? e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--purple-glow)'; (e.currentTarget as HTMLElement).style.background = 'rgba(192,132,252,0.06)'; } : undefined}
       onMouseLeave={clickable ? e => { (e.currentTarget as HTMLElement).style.borderColor = ok ? 'rgba(74,222,128,0.25)' : 'var(--border)'; (e.currentTarget as HTMLElement).style.background = ok ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.02)'; } : undefined}
     >
-      <span style={{ fontSize:20.5 }}>{type === 'drop' ? (PALIER_DROPS.find(d => d.id === id)?.icon ?? '📦') : '👤'}</span>
+      <span style={{ fontSize:20 }}>{type === 'drop' ? (PALIER_DROPS.find(d => d.id === id)?.icon ?? '📦') : '👤'}</span>
       <div style={{ flex:1 }}>
-        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color: ok ? 'var(--text)' : 'var(--text-dim)' }}>{label} × {quantity}</div>
+        <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color: ok ? 'var(--text)' : 'var(--text-dim)' }}>{label} × {quantity}</div>
         {type === 'drop' && (
           <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>
             {PALIER_DROPS.find(d => d.id === id)?.description}
@@ -68,7 +68,7 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
         )}
       </div>
       <div style={{ textAlign:'right', flexShrink:0 }}>
-        <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18.5, color: ok ? '#4ade80' : '#f87171' }}>
+        <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18, color: ok ? '#4ade80' : '#f87171' }}>
           {have} / {quantity}
         </div>
         <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color: ok ? '#4ade80' : '#f87171', fontWeight:700 }}>
@@ -113,13 +113,13 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
             background: rewardCfg ? `${rewardCfg.color}18` : 'rgba(255,255,255,0.05)',
             border: `1px solid ${rewardCfg ? rewardCfg.color+'44' : 'var(--border)'}`,
             borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:28.8, boxShadow: rewardCfg && ok ? `0 0 16px ${rewardCfg.glow}44` : 'none',
+            fontSize:28, boxShadow: rewardCfg && ok ? `0 0 16px ${rewardCfg.glow}44` : 'none',
           }}>
             {recipe.icon}
           </div>
           <div style={{ flex:1 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-              <span style={{ fontFamily:'var(--f-title)', fontSize:17.5, color: ok ? 'var(--purple-glow)' : 'var(--text)', letterSpacing:1 }}>
+              <span style={{ fontFamily:'var(--f-title)', fontSize:18, color: ok ? 'var(--purple-glow)' : 'var(--text)', letterSpacing:1 }}>
                 {recipe.name}
               </span>
               {rewardTpl && rewardCfg && (
@@ -130,7 +130,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
             </div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', lineHeight:1.5 }}>{recipe.description}</div>
           </div>
-          <div style={{ fontSize:16.4, color:'var(--text-dim)', flexShrink:0, paddingTop:4 }}>{expanded ? '▲' : '▼'}</div>
+          <div style={{ fontSize:16, color:'var(--text-dim)', flexShrink:0, paddingTop:4 }}>{expanded ? '▲' : '▼'}</div>
         </div>
 
         {/* Statut rapide */}
@@ -149,7 +149,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
         <div style={{ padding:'0 18px 18px', borderTop:'1px solid var(--border)', paddingTop:14, display:'flex', flexDirection:'column', gap:12 }}>
           {/* Ingrédients */}
           <div>
-            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:1.5, marginBottom:8 }}>INGRÉDIENTS REQUIS</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:8 }}>INGRÉDIENTS REQUIS</div>
             <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {recipe.ingredients.map((ing, i) => (
                 <IngredientRow key={i} type={ing.type} id={ing.id} quantity={ing.quantity} label={ing.label} />
@@ -195,9 +195,9 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
               onClick={handleCraft}
               disabled={!ok}
               className={ok ? 'btn-primary' : 'btn-secondary'}
-              style={{ padding:'12px', fontSize:16.4, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
+              style={{ padding:'12px', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
               <span>⚗ FORGER</span>
-              <span style={{ fontFamily:'var(--f-ui)', fontSize:14.4, opacity:0.7 }}>{recipe.reward.icon} {recipe.reward.label}</span>
+              <span style={{ fontFamily:'var(--f-ui)', fontSize:14, opacity:0.7 }}>{recipe.reward.icon} {recipe.reward.label}</span>
             </button>
           )}
         </div>
@@ -247,7 +247,7 @@ function WeaponFusionCard({ rarity }: { rarity: Rarity }) {
           ⚔️
         </div>
         <div style={{ flex:1 }}>
-          <div style={{ fontFamily:'var(--f-title)', fontSize:16.4, color:cfg.color, letterSpacing:1 }}>Armes {cfg.label}</div>
+          <div style={{ fontFamily:'var(--f-title)', fontSize:16, color:cfg.color, letterSpacing:1 }}>Armes {cfg.label}</div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>
             {qty} arme{qty !== 1 ? 's' : ''} spéciale{qty !== 1 ? 's' : ''} en stock ({pool.length} arme{pool.length !== 1 ? 's' : ''} possible{pool.length !== 1 ? 's' : ''} en sortie)
           </div>
@@ -262,11 +262,11 @@ function WeaponFusionCard({ rarity }: { rarity: Rarity }) {
           onClick={() => doFuse(1)}
           disabled={maxFusions < 1}
           className={maxFusions >= 1 ? 'btn-primary' : 'btn-secondary'}
-          style={{ padding:'8px 14px', fontSize:14.4 }}>
+          style={{ padding:'8px 14px', fontSize:14 }}>
           Fusionner ×{SPECIAL_WEAPON_FUSION_COST} → 1
         </button>
         {maxFusions > 1 && (
-          <button onClick={() => doFuse(maxFusions)} className="btn-secondary" style={{ padding:'8px 14px', fontSize:14.4 }}>
+          <button onClick={() => doFuse(maxFusions)} className="btn-secondary" style={{ padding:'8px 14px', fontSize:14 }}>
             Fusionner ×{maxFusions} (max)
           </button>
         )}
@@ -295,9 +295,9 @@ export function ForgePage() {
         <div className="panel" style={{ padding:'18px 22px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5 }}>
             <div style={{ width:4, height:18, background:'linear-gradient(180deg,#e879f9,#c084fc)', borderRadius:2, boxShadow:'0 0 8px #e879f9' }} />
-            <span style={{ fontFamily:'var(--f-title)', fontSize:18.5, fontWeight:700, color:'#e879f9', letterSpacing:'2px' }}>FORGE ⚗</span>
+            <span className="page-title" style={{ color:'#e879f9' }}>FORGE ⚗</span>
           </div>
-          <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)' }}>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)' }}>
             Combine des drops rares récoltés en expédition pour forger des personnages uniques
           </div>
         </div>
@@ -310,7 +310,7 @@ export function ForgePage() {
             { k:'inventory' as const, label:`🎒 MES DROPS (${ownedDrops.length})` },
           ]).map(t => (
             <button key={t.k} onClick={() => setTab(t.k)}
-              style={{ padding:'8px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4,
+              style={{ padding:'8px 16px', borderRadius:8, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14,
                 background: tab===t.k ? 'rgba(232,121,249,0.15)' : 'var(--bg-card)',
                 border: `1px solid ${tab===t.k ? 'rgba(232,121,249,0.4)' : 'var(--border)'}`,
                 color: tab===t.k ? '#e879f9' : 'var(--text-dim)' }}>
@@ -326,7 +326,7 @@ export function ForgePage() {
         ) : tab === 'weapons' ? (
           /* ── Fusion d'armes spéciales ── */
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            <div className="panel" style={{ padding:'14px 16px', fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-dim)', lineHeight:1.6 }}>
+            <div className="panel" style={{ padding:'14px 16px', fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', lineHeight:1.6 }}>
               Fusionne {SPECIAL_WEAPON_FUSION_COST} armes spéciales (liées à un personnage) d&apos;une même rareté pour obtenir une arme spéciale <strong style={{ color:'var(--text)' }}>aléatoire de cette même rareté</strong> — pratique pour recycler les doublons d&apos;armes de persos déjà possédées. Contrairement à la fusion d&apos;équipement, la rareté ne change pas, d&apos;où un coût réduit.
             </div>
             {SPECIAL_WEAPON_FUSION_RARITIES.map(r => <WeaponFusionCard key={r} rarity={r} />)}
@@ -335,7 +335,7 @@ export function ForgePage() {
           /* ── Inventaire drops ── */
           <div>
             {ownedDrops.length === 0 ? (
-              <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:15.4 }}>
+              <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)', fontFamily:'var(--f-ui)', fontSize:16 }}>
                 Aucun drop pour l&apos;instant. Lance des expéditions pour récolter des objets rares !
               </div>
             ) : (
@@ -352,13 +352,13 @@ export function ForgePage() {
                       onMouseLeave={expDef ? e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; } : undefined}
                     >
                       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                        <span style={{ fontSize:30.8 }}>{drop.icon}</span>
+                        <span style={{ fontSize:32 }}>{drop.icon}</span>
                         <div>
-                          <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:26.7, color:'#c084fc', lineHeight:1 }}>{count}</div>
+                          <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:28, color:'#c084fc', lineHeight:1 }}>{count}</div>
                           <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', letterSpacing:1 }}>EN STOCK</div>
                         </div>
                       </div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:'var(--text)', marginBottom:3 }}>{drop.name}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text)', marginBottom:3 }}>{drop.name}</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', lineHeight:1.4 }}>{drop.description}</div>
                       <div style={{ marginTop:6, fontFamily:'var(--f-ui)', fontSize:14, color:'var(--purple-glow)', fontWeight:700 }}>
                         📍 {drop.universName} — Palier {drop.palier}

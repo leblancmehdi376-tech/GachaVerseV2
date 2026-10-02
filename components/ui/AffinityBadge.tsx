@@ -20,7 +20,7 @@ export function AffinityBadge({ affinity, size = 'md' }: { affinity: Affinity; s
         whiteSpace: 'nowrap',
       }}
     >
-      <span style={{ fontSize: sm ? 14 : 14.4, lineHeight: 1 }}>{c.icon}</span>
+      <span style={{ fontSize: 14, lineHeight: 1 }}>{c.icon}</span>
       {c.label.toUpperCase()}
     </span>
   );

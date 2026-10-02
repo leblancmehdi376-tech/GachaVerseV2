@@ -23,7 +23,7 @@ function Placeholder({ size, rarity, alt }: { size: number; rarity?: Rarity; alt
       alignItems: 'center', justifyContent: 'center', gap: '4px',
       boxShadow: `0 0 16px ${glow}33, inset 0 0 12px ${color}11`,
     }}>
-      <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:Math.max(14, size*0.28), color, lineHeight:1, opacity:0.9 }}>{label}</span>
+      <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:Math.max(14, size*0.28), color, lineHeight:1, opacity:0.9 }}>{label}</span>
       {size >= 56 && rarity && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:Math.max(14, size*0.14), color, opacity:0.6, letterSpacing:1 }}>{rarity}</span>}
     </div>
   );

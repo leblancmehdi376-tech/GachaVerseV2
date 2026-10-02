@@ -43,7 +43,7 @@ function EquippedBadge({ position }: { position: 'top-right' | 'bottom-left' }) 
   const posStyle = position === 'top-right' ? { top: 8, right: 8 } : { bottom: 8, left: 8 };
   return (
     <Tooltip content={<span style={{ fontWeight: 700 }}>Équipements équipés</span>}>
-      <div style={{ position: 'absolute', ...posStyle, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 14.4, zIndex: 30 }}>
+      <div style={{ position: 'absolute', ...posStyle, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 14, zIndex: 30 }}>
         ⚔️
       </div>
     </Tooltip>
@@ -76,7 +76,7 @@ function SynergiesPanel() {
       </div>
 
       {active.length === 0 ? (
-        <div style={{ fontFamily:'var(--f-ui)', fontSize:14.4, color:'var(--text-muted)', textAlign:'center', padding:'12px 0' }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)', textAlign:'center', padding:'12px 0' }}>
           Équipe des alliés du même univers pour activer des synergies !
         </div>
       ) : (
@@ -90,17 +90,17 @@ function SynergiesPanel() {
                   onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:20px">${syn.def.icon}</span>`; }} />
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14.4, color:syn.def.color }}>{syn.def.label}</div>
+                <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:syn.def.color }}>{syn.def.label}</div>
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginTop:1 }}>{syn.threshold.label}</div>
               </div>
               <div style={{ display:'flex', gap:4 }}>
                 {syn.members.map(id => (
                   <div key={id} style={{ width:24, height:24, borderRadius:5, overflow:'hidden', border:`1px solid ${syn.def.color}55`, background:`${syn.def.color}22`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <span style={{ fontSize:14.4 }}>{syn.def.icon}</span>
+                    <span style={{ fontSize:14 }}>{syn.def.icon}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16.4, color:syn.def.color, flexShrink:0 }}>
+              <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:16, color:syn.def.color, flexShrink:0 }}>
                 {syn.count} / {syn.threshold.count}
               </div>
             </div>
@@ -121,7 +121,7 @@ function SynergiesPanel() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={`/sprites/synergies/${syn.id}.webp`} alt={syn.label}
                       style={{ width:'100%', height:'100%', objectFit:'contain' }}
-                      onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:15px">${syn.icon}</span>`; }} />
+                      onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML=`<span style="font-size:16px">${syn.icon}</span>`; }} />
                   </div>
                   <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:syn.color }}>{syn.label}</span>
                 </div>
@@ -195,11 +195,11 @@ function TeamSlotCard({
           />
           {hasEquippedItems(owned) && <EquippedBadge position="top-right" />}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16.4, color: 'var(--text)' }}>{tpl.name}</div>
+            <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{tpl.name}</div>
             <div style={{ marginTop: 6 }}><RarityBadge rarity={tpl.rarity} /></div>
           </div>
           <EditionBadge edition={owned.edition} />
-          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 18.5, color: 'var(--green)' }}>{formatNumber(dps)}/s</div>
+          <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 18, color: 'var(--green)' }}>{formatNumber(dps)}/s</div>
           {ult && (
             <div style={{ textAlign: 'center', padding: '0 4px' }}>
               <UltimateBlurb ult={ult} />
@@ -214,10 +214,10 @@ function TeamSlotCard({
         </>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 52, height: 52, border: `2px dashed ${isSelected ? 'var(--purple-hi)' : 'rgba(255,255,255,0.16)'}`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28.8, color: isSelected ? 'var(--purple-glow)' : 'rgba(255,255,255,0.25)' }}>
+          <div style={{ width: 52, height: 52, border: `2px dashed ${isSelected ? 'var(--purple-hi)' : 'rgba(255,255,255,0.16)'}`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: isSelected ? 'var(--purple-glow)' : 'rgba(255,255,255,0.25)' }}>
             {isSelected ? '✓' : '+'}
           </div>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, fontWeight: 700, color: isSelected ? 'var(--purple-glow)' : 'var(--text-muted)' }}>Vide</span>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: isSelected ? 'var(--purple-glow)' : 'var(--text-muted)' }}>Vide</span>
         </div>
       )}
     </div>
@@ -252,7 +252,7 @@ function SelectedCharacterHero({
           frameOverlay
         />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 20.5, color: '#fff', lineHeight: 1.15, marginBottom: 8 }}>{getCharFormName(tpl, owned.currentForm)}</div>
+          <div style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 20, color: '#fff', lineHeight: 1.15, marginBottom: 8 }}>{getCharFormName(tpl, owned.currentForm)}</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <RarityBadge rarity={tpl.rarity} />
             <EditionBadge edition={owned.edition} />
@@ -268,18 +268,18 @@ function SelectedCharacterHero({
 
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ textAlign: 'center', padding: '12px 14px', borderRadius: 12, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.22)', boxShadow: '0 0 24px rgba(74,222,128,0.08) inset' }}>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 800, letterSpacing: 2, color: 'var(--text-dim)' }}>🔥 DPS TOTAL</div>
-          <div style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 30.8, color: 'var(--green)', lineHeight: 1.1, textShadow: '0 0 14px rgba(74,222,128,0.4)' }}>{formatNumber(dpsWithEquip)}<span style={{ fontSize: 15.4, color: 'var(--text-sub)' }}>/s</span></div>
+          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, letterSpacing: 2, color: 'var(--text-dim)' }}>🔥 DPS TOTAL</div>
+          <div style={{ fontFamily: 'var(--f-num)', fontWeight: 900, fontSize: 32, color: 'var(--green)', lineHeight: 1.1, textShadow: '0 0 14px rgba(74,222,128,0.4)' }}>{formatNumber(dpsWithEquip)}<span style={{ fontSize: 16, color: 'var(--text-sub)' }}>/s</span></div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div style={{ padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>DPS DE BASE</div>
-            <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 17.5, color: 'var(--text)', marginTop: 3 }}>{formatNumber(dps)}</div>
+            <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 18, color: 'var(--text)', marginTop: 3 }}>{formatNumber(dps)}</div>
           </div>
           <div style={{ padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, letterSpacing: 1, color: 'var(--text-dim)' }}>ÉQUIPEMENT</div>
-            <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 17.5, color: equipMult > 1 ? 'var(--green)' : 'var(--text-muted)', marginTop: 3 }}>×{equipMult.toFixed(2)}</div>
+            <div style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 18, color: equipMult > 1 ? 'var(--green)' : 'var(--text-muted)', marginTop: 3 }}>×{equipMult.toFixed(2)}</div>
           </div>
         </div>
 
@@ -288,8 +288,8 @@ function SelectedCharacterHero({
         {ult ? (
           <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(147,51,234,0.09)', border: '1px solid var(--border-glow)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
-              <span style={{ fontSize: 15.4 }}>⚡</span>
-              <span style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 15.4, letterSpacing: 1, color: 'var(--purple-glow)' }}>{ult.name}</span>
+              <span style={{ fontSize: 16 }}>⚡</span>
+              <span style={{ fontFamily: 'var(--f-title)', fontWeight: 700, fontSize: 16, letterSpacing: 1, color: 'var(--purple-glow)' }}>{ult.name}</span>
               <span style={{ marginLeft: 'auto', fontFamily: 'var(--f-num)', fontSize: 14, color: 'var(--text-dim)' }}>{ult.cooldown}s CD</span>
             </div>
             <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.4 }}>{ult.description}</div>
@@ -318,7 +318,7 @@ function EquipmentSlotsCard({
   return (
     <div className="companion-card-hero">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 15.4, fontWeight: 700, color: 'var(--text)' }}>Équipement</div>
+        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Équipement</div>
         <button className="companion-button companion-button--primary" onClick={onEquipBest}>
           Équiper le meilleur
         </button>
@@ -333,7 +333,7 @@ function EquipmentSlotsCard({
                 {equippedDef ? equippedDef.icon : '—'}
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.4, color: 'var(--text)' }}>{EQUIPMENT_SLOT_LABELS[slot]}</div>
+                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{EQUIPMENT_SLOT_LABELS[slot]}</div>
                 <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>{equippedDef ? equippedDef.name : 'Aucun équipement'}</div>
               </div>
             </div>
@@ -360,8 +360,8 @@ function EquipmentInventoryCard({
   return (
     <div className="companion-card-hero">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 15.4, fontWeight: 700, color: 'var(--text)' }}>Inventaire d’équipement</div>
-        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14.4, color: 'var(--text-muted)' }}>{totalCount} objets</div>
+        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Inventaire d’équipement</div>
+        <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>{totalCount} objets</div>
       </div>
       <div className="companion-item-grid">
         {ownedEquipment.map(([equipmentId, qty]) => {
@@ -371,13 +371,13 @@ function EquipmentInventoryCard({
             <div key={equipmentId} className="companion-item-card" style={{ borderColor: `${item.color}30`, background: `${item.color}12` }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ fontSize: 24.7 }}>{item.icon}</div>
+                  <div style={{ fontSize: 24 }}>{item.icon}</div>
                   <div>
-                    <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15.4, color: item.color }}>{item.name}</div>
+                    <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: item.color }}>{item.name}</div>
                     <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>{item.slot}</div>
                   </div>
                 </div>
-                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 900, fontSize: 16.4, color: 'var(--text)' }}>×{qty}</div>
+                <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>×{qty}</div>
               </div>
               <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)', minHeight: 32 }}>{item.description}</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -442,7 +442,7 @@ const CollectionCard = memo(function CollectionCard({
         {hasEquippedItems(owned) && <EquippedBadge position="bottom-left" />}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16.4, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tpl.name}</span>
+            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tpl.name}</span>
             {isEquipped && (
               <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: cfg.color, fontWeight: 700, background: `${cfg.color}15`, border: `1px solid ${cfg.color}44`, borderRadius: 9999, padding: '3px 8px' }}>
                 Équipé
@@ -460,7 +460,7 @@ const CollectionCard = memo(function CollectionCard({
             <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>{owned.copies} copies</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 17.5, color: 'var(--green)' }}>{formatNumber(dps)}/s</span>
+            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 18, color: 'var(--green)' }}>{formatNumber(dps)}/s</span>
           </div>
           <EditionGaugeMini owned={owned} style={{ marginTop: 6 }} />
           {ult && (
@@ -681,9 +681,9 @@ export function CompanionsPage() {
 
           {filteredCollection.length === 0 ? (
             <div className="companion-empty">
-              <div style={{ fontSize: 52.4, marginBottom: 12 }}>📭</div>
-              <div style={{ fontFamily: 'var(--f-title)', fontSize: 18.5, color: 'var(--text-dim)', marginBottom: 6 }}>Aucun allié invoqué</div>
-              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 15.4, color: 'var(--text-muted)' }}>Va dans l'onglet Gacha pour invoquer !</div>
+              <div style={{ fontSize: 56, marginBottom: 12 }}>📭</div>
+              <div style={{ fontFamily: 'var(--f-title)', fontSize: 18, color: 'var(--text-dim)', marginBottom: 6 }}>Aucun allié invoqué</div>
+              <div style={{ fontFamily: 'var(--f-ui)', fontSize: 16, color: 'var(--text-muted)' }}>Va dans l'onglet Gacha pour invoquer !</div>
             </div>
           ) : (
             <div className="upgrades-ally-grid">
