@@ -104,7 +104,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Les titres et grands chiffres grossissent aussi pour garder les proportions.",
           "Barres latérales un peu plus larges pour accueillir les textes plus grands.",
           "**Cartes de l'équipe en combat** épurées : seuls l'**ultime** et le **DPS** restent affichés.",
-          "Le bonus ou malus de **type** apparaît à côté du DPS seulement quand il s'applique ; le détail Base / Type s'affiche au survol du DPS.",
+          "Le bonus ou malus de **type** apparaît sous le DPS seulement quand il s'applique ; le détail Base / Type s'affiche au survol du DPS.",
           "Sur téléphone, les **compagnons** passent sur **deux lignes** (2 × 2), avec l'illustration à gauche et les infos à droite.",
           "Le bloc **Synergies** est désormais aligné à droite, comme le **Butin** et le **DPS**.",
           "Pastilles de notification, badges de rareté et onglets de **Succès** redimensionnés pour ne plus se chevaucher.",

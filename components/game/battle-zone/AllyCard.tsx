@@ -144,10 +144,18 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
             du libellé que lorsqu'il n'est pas neutre. */}
         <div className="ally-card-stat" title={`Base ${formatNumber(base)} · Type ${multTxt}`}>
           <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.5, flexShrink: 0, whiteSpace: 'nowrap' }}>
-            DPS{typeMult !== 1 && <span style={{ color: multCol, fontWeight: 800, marginLeft: 4 }}>{multTxt}</span>}
+            DPS
           </span>
           <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 900, color: finalCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(final)}</span>
         </div>
+        {/* Multiplicateur de type sur sa propre ligne : à côté du libellé, il
+            faisait déborder la ligne DPS hors de la carte. */}
+        {typeMult !== 1 && (
+          <div className="ally-card-stat" style={{ marginTop: -4 }}>
+            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.5 }}>Type</span>
+            <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: multCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{multTxt}</span>
+          </div>
+        )}
       </div>
     </div>
   );
