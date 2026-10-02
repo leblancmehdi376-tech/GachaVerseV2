@@ -216,14 +216,13 @@ export function mergeMonotonicState(
   const remotePrestige = Number(remote?.prestigeLevel) || 0;
   if (remoteMastery) for (const [id, r] of Object.entries(remoteMastery)) {
     if (!r || typeof r !== 'object') continue;
-    const l = charMastery[id] ?? { k: 0, w: 0, lv: 0, f: 0 };
+    const l = charMastery[id] ?? { k: 0, w: 0, lv: 0 };
     const rlv = Number(r.lv) || 0;
     const lb = Math.max(l.lb ?? 0, Number(r.lb) || 0);
     charMastery[id] = {
       k:  Math.max(l.k,  Number(r.k)  || 0),
       w:  Math.max(l.w,  Number(r.w)  || 0),
       lv: remotePrestige < localPrestige ? l.lv : remotePrestige > localPrestige ? rlv : Math.max(l.lv, rlv),
-      f:  Math.max(l.f,  Number(r.f)  || 0),
       ...(lb > 0 ? { lb } : {}),
     };
   }

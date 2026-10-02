@@ -81,11 +81,11 @@ describe('doPrestige — resets', () => {
 
   it('maîtrise : garde combats/boss, remet le niveau à 0 en banquant les paliers validés', async () => {
     setPrestigeableRunState();
-    useGameStore.setState({ charMastery: { jinwoo: { k: 1234, w: 7, lv: 1300, f: 2 } } });
+    useGameStore.setState({ charMastery: { jinwoo: { k: 1234, w: 7, lv: 1300 } } });
 
     await useGameStore.getState().doPrestige();
 
-    expect(useGameStore.getState().charMastery.jinwoo).toEqual({ k: 1234, w: 7, lv: 0, f: 2, lb: 1000 });
+    expect(useGameStore.getState().charMastery.jinwoo).toEqual({ k: 1234, w: 7, lv: 0, lb: 1000 });
   });
 
   it('réinitialise équipement, collection, héros et progression de la run', async () => {

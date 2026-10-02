@@ -56,7 +56,7 @@ describe('définitions des succès', () => {
 describe('killAchievementPatch', () => {
   it('compte un combat pour chaque personnage équipé, sans toucher aux stats hors boss', () => {
     const patch = killAchievementPatch({ ...bossState(), equippedTeam: [commons[0], commons[1], null, null] }, false);
-    expect(patch.charMastery[commons[0]]).toEqual({ k: 1, w: 0, lv: 0, f: 0 });
+    expect(patch.charMastery[commons[0]]).toEqual({ k: 1, w: 0, lv: 0 });
     expect(patch.charMastery[commons[1]].k).toBe(1);
     expect(patch.achievementStats).toBeUndefined();
   });
@@ -166,7 +166,7 @@ describe('statistiques dérivées et traqueurs', () => {
 
   it("trackMastery valide la maîtrise 100 % d'un personnage", () => {
     const tpl = getCharacterById(commons[0])!;
-    const maxed = { k: 5000, w: 10, lv: 3000, f: 0 };
+    const maxed = { k: 5000, w: 10, lv: 3000 };
     expect(getMasteryPct(getMasteryMilestones(maxed))).toBe(100);
     trackMastery({ [tpl.id]: maxed });
     const s = useGameStore.getState();
@@ -184,7 +184,7 @@ describe('bonus de DPS de maîtrise', () => {
     expect(getMasteryDpsBonus(99)).toBe(0.15);
     expect(getMasteryDpsBonus(100)).toBe(0.20);
     expect(getMasteryDpsMult(undefined)).toBe(1);
-    expect(getMasteryDpsMult({ k: 5000, w: 10, lv: 3000, f: 0 })).toBeCloseTo(1.2);
+    expect(getMasteryDpsMult({ k: 5000, w: 10, lv: 3000 })).toBeCloseTo(1.2);
   });
 
   it('rend la maîtrise plus dure pour les raretés élevées', () => {
@@ -197,7 +197,7 @@ describe('bonus de DPS de maîtrise', () => {
     expect(targets(getMasteryMilestones(undefined, 'P'))).toEqual([500, 1000, 1500, 2000, 2500, 3000, 1750, 7000, 17500, 11, 35]);
     expect(Object.values(MASTERY_RARITY_MULT)).toEqual([1, 1.1, 1.2, 1.4, 1.6, 1.9, 2.3, 2.8, 3.5, 4.5]);
     // Un Transcendant avec les stats d'un Commun maîtrisé n'est pas à 100 %.
-    const maxedCommon = { k: 5000, w: 10, lv: 3000, f: 0 };
+    const maxedCommon = { k: 5000, w: 10, lv: 3000 };
     expect(getMasteryPct(getMasteryMilestones(maxedCommon, 'C'))).toBe(100);
     expect(getMasteryPct(getMasteryMilestones(maxedCommon, 'T'))).toBeLessThan(100);
     expect(getMasteryDpsMult(maxedCommon, 'T')).toBeLessThan(1.2);
@@ -208,7 +208,7 @@ describe('bonus de DPS de maîtrise', () => {
     const owned = (id: string) => ({ templateId: id, rank: 1, copies: 1, level: 1, currentForm: 0, xp: 0 });
     useGameStore.setState({ collection: { [a]: owned(a), [b]: owned(b) }, equippedTeam: [a, null, null, null], charMastery: {} });
     const soloA = bnToNumber(useGameStore.getState().getTotalDps());
-    useGameStore.setState({ charMastery: { [a]: { k: 5000, w: 10, lv: 3000, f: 0 } } });
+    useGameStore.setState({ charMastery: { [a]: { k: 5000, w: 10, lv: 3000 } } });
     expect(bnToNumber(useGameStore.getState().getTotalDps()) / soloA).toBeCloseTo(1.2);
     useGameStore.setState({ equippedTeam: [b, null, null, null] });
     const soloB = bnToNumber(useGameStore.getState().getTotalDps());
@@ -221,35 +221,35 @@ describe('mergeMonotonicState — statistiques de succès', () => {
   beforeEach(() => { useGameStore.getState().resetGame(); });
 
   it('garde le max par clé et par champ de maîtrise', () => {
-    useGameStore.setState({ achievementStats: { a: 5, b: 1 }, charMastery: { x: { k: 10, w: 0, lv: 3, f: 0 } } });
+    useGameStore.setState({ achievementStats: { a: 5, b: 1 }, charMastery: { x: { k: 10, w: 0, lv: 3 } } });
     const merged = mergeMonotonicState({
       achievementStats: { a: 2, b: 4, c: 1 },
-      charMastery: { x: { k: 4, w: 2, lv: 9, f: 1 }, y: { k: 1, w: 0, lv: 1, f: 0 } },
+      charMastery: { x: { k: 4, w: 2, lv: 9 }, y: { k: 1, w: 0, lv: 1 } },
     }, null);
     expect(merged.achievementStats).toEqual({ a: 5, b: 4, c: 1 });
-    expect(merged.charMastery.x).toEqual({ k: 10, w: 2, lv: 9, f: 1 });
+    expect(merged.charMastery.x).toEqual({ k: 10, w: 2, lv: 9 });
     expect(merged.charMastery.y.k).toBe(1);
   });
 
   it("ne ressuscite pas le niveau d'avant un Prestige", () => {
-    useGameStore.setState({ prestigeLevel: 2, charMastery: { x: { k: 10, w: 1, lv: 50, f: 0, lb: 1000 } } });
-    const stale = mergeMonotonicState({ prestigeLevel: 1, charMastery: { x: { k: 8, w: 1, lv: 1300, f: 0 } } }, null);
-    expect(stale.charMastery.x).toEqual({ k: 10, w: 1, lv: 50, f: 0, lb: 1000 });
-    const newer = mergeMonotonicState({ prestigeLevel: 3, charMastery: { x: { k: 12, w: 1, lv: 20, f: 0, lb: 1500 } } }, null);
-    expect(newer.charMastery.x).toEqual({ k: 12, w: 1, lv: 20, f: 0, lb: 1500 });
+    useGameStore.setState({ prestigeLevel: 2, charMastery: { x: { k: 10, w: 1, lv: 50, lb: 1000 } } });
+    const stale = mergeMonotonicState({ prestigeLevel: 1, charMastery: { x: { k: 8, w: 1, lv: 1300 } } }, null);
+    expect(stale.charMastery.x).toEqual({ k: 10, w: 1, lv: 50, lb: 1000 });
+    const newer = mergeMonotonicState({ prestigeLevel: 3, charMastery: { x: { k: 12, w: 1, lv: 20, lb: 1500 } } }, null);
+    expect(newer.charMastery.x).toEqual({ k: 12, w: 1, lv: 20, lb: 1500 });
   });
 });
 
 describe('bankMasteryLevel', () => {
   it('garde les paliers de niveau validés mais pas l’avancement partiel', () => {
-    const banked = bankMasteryLevel({ k: 0, w: 0, lv: 1300, f: 0 });
-    expect(banked).toEqual({ k: 0, w: 0, lv: 0, f: 0, lb: 1000 });
+    const banked = bankMasteryLevel({ k: 0, w: 0, lv: 1300 });
+    expect(banked).toEqual({ k: 0, w: 0, lv: 0, lb: 1000 });
     const lv = getMasteryMilestones(banked).filter(m => m.id.startsWith('lv'));
     expect(lv.map(m => m.done)).toEqual([true, true, false, false, false, false]);
     expect(lv[2].value).toBe(0);
     // Un palier banqué n'est jamais perdu, même après un prestige à bas niveau.
     expect(bankMasteryLevel({ ...banked, lv: 200 }).lb).toBe(1000);
-    expect(bankMasteryLevel({ k: 0, w: 0, lv: 300, f: 0 })).toEqual({ k: 0, w: 0, lv: 0, f: 0 });
+    expect(bankMasteryLevel({ k: 0, w: 0, lv: 300 })).toEqual({ k: 0, w: 0, lv: 0 });
   });
 });
 
@@ -261,7 +261,7 @@ describe('getDpsBreakdown', () => {
     const owned = (id: string) => ({ templateId: id, rank: 1, copies: 1, level: 5, currentForm: 0, xp: 0 });
     useGameStore.setState({
       collection: { [a]: owned(a), [b]: owned(b) }, equippedTeam: [a, b, null, null],
-      charMastery: { [a]: { k: 5000, w: 10, lv: 3000, f: 0 } },
+      charMastery: { [a]: { k: 5000, w: 10, lv: 3000 } },
     });
     const bd = useGameStore.getState().getDpsBreakdown();
     const total = bnToNumber(useGameStore.getState().getTotalDps());

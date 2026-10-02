@@ -72,7 +72,7 @@ describe('compareCharacters', () => {
   });
 
   it("maîtrise : le plus maîtrisé d'abord, jamais joué = 0, inversion symétrique", () => {
-    const mastery = { [tplA.id]: { k: 1_000_000, w: 1_000_000, lv: 1_000, f: 1_000 } };
+    const mastery = { [tplA.id]: { k: 1_000_000, w: 1_000_000, lv: 1_000 } };
     const A = { tpl: tplA, owned: null };
     const B = { tpl: tplB, owned: null };
     expect(compareCharacters(A, B, 'mastery', false, mastery)).toBeLessThan(0);

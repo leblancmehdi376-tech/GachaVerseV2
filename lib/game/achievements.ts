@@ -1265,13 +1265,12 @@ export const TIER_META: Record<AchievTier, { label: string; color: string; glow:
 
 // ── Maîtrise par personnage ────────────────────────────────────────────────
 // k = combats livrés (ennemis vaincus avec le perso dans l'équipe), w =
-// victoires de boss de palier, lv = plus haut niveau jamais atteint, f = plus
-// haute forme (évolution) jamais atteinte. k, w et f sont "à vie", jamais
-// remis à zéro au Prestige. lv, lui, est le plus haut niveau de la RUN en
-// cours : le Prestige le remet à 0 après avoir banqué dans lb le plus haut
-// palier de niveau validé (voir bankMasteryLevel) — les paliers déjà validés
-// le restent, seul l'avancement vers le palier suivant repart de zéro.
-export interface CharMastery { k: number; w: number; lv: number; f: number; lb?: number }
+// victoires de boss de palier, lv = plus haut niveau atteint cette RUN.
+// k et w sont "à vie", jamais remis à zéro au Prestige. lv, lui, est remis à 0
+// par le Prestige après avoir banqué dans lb le plus haut palier de niveau
+// validé (voir bankMasteryLevel) — les paliers déjà validés le restent, seul
+// l'avancement vers le palier suivant repart de zéro.
+export interface CharMastery { k: number; w: number; lv: number; lb?: number }
 
 export interface MasteryMilestone {
   id:     string;
@@ -1314,7 +1313,6 @@ const STAT_LABEL: Record<keyof CharMastery, (n: string) => string> = {
   lv: n => `Niveau ${n}`,
   k:  n => `${n} combats`,
   w:  n => `${n} boss vaincus`,
-  f:  n => n,
   lb: n => `Niveau ${n}`,
 };
 
@@ -1323,7 +1321,7 @@ function fmtGoal(n: number): string {
 }
 
 export function getMasteryMilestones(m: CharMastery | undefined, rarity: Rarity = 'C'): MasteryMilestone[] {
-  const e = m ?? { k: 0, w: 0, lv: 0, f: 0 };
+  const e = m ?? { k: 0, w: 0, lv: 0 };
   const mult = MASTERY_RARITY_MULT[rarity] ?? 1;
   return MASTERY_GOALS.map(g => {
     const target = g.scaled ? Math.round(g.target * mult) : g.target;
@@ -1337,12 +1335,14 @@ export function getMasteryMilestones(m: CharMastery | undefined, rarity: Rarity 
 
 /**
  * Prestige : banque dans lb le plus haut palier de niveau validé, puis remet
- * le niveau de la run (lv) à 0. Combats, boss vaincus et forme sont conservés.
+ * le niveau de la run (lv) à 0. Combats et boss vaincus sont conservés.
+ * Objet reconstruit champ par champ : purge l'ancien champ `f` (forme max,
+ * retiré) des sauvegardes qui l'ont encore.
  */
 export function bankMasteryLevel(m: CharMastery): CharMastery {
   let lb = m.lb ?? 0;
   for (const g of MASTERY_GOALS) if (g.key === 'lv' && m.lv >= g.target) lb = Math.max(lb, g.target);
-  return { ...m, lv: 0, ...(lb > 0 ? { lb } : {}) };
+  return { k: m.k, w: m.w, lv: 0, ...(lb > 0 ? { lb } : {}) };
 }
 
 const MASTERY_GOAL_KEY = new Map(MASTERY_GOALS.map(g => [g.id, g.key]));

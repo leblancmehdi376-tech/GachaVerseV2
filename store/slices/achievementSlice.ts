@@ -145,18 +145,18 @@ export const createAchievementSlice: StateCreator<GameStore, [], [], Achievement
     set(s => ({ achievementStats: gachaStatsPatch(s.achievementStats, templateIds, runPeakPalierOf(s), isEventBanner) }));
   },
 
-  // Plus haut niveau / plus haute forme jamais atteints par personnage (toutes
-  // éditions confondues) — n'écrit que si quelque chose a réellement augmenté.
+  // Plus haut niveau atteint cette run par personnage (toutes éditions
+  // confondues) — n'écrit que si le niveau a réellement augmenté.
   recordMasteryLevels: () => {
     const s = get();
     let next: GameStore['charMastery'] | null = null;
     for (const [key, owned] of Object.entries(s.collection)) {
       const id = parseInstanceKey(key).templateId;
       if (!getCharacterById(id)) continue;
-      const cur = (next ?? s.charMastery)[id] ?? { k: 0, w: 0, lv: 0, f: 0 };
-      if (owned.level <= cur.lv && owned.currentForm <= cur.f) continue;
+      const cur = (next ?? s.charMastery)[id] ?? { k: 0, w: 0, lv: 0 };
+      if (owned.level <= cur.lv) continue;
       next ??= { ...s.charMastery };
-      next[id] = { ...cur, lv: Math.max(cur.lv, owned.level), f: Math.max(cur.f, owned.currentForm) };
+      next[id] = { ...cur, lv: owned.level };
     }
     if (next) set({ charMastery: next });
   },

@@ -60,7 +60,7 @@ export function killAchievementPatch(state: KillState, isBoss: boolean): { charM
   const ids = teamTemplateIds(state.equippedTeam);
   const charMastery = { ...(state.charMastery ?? {}) };
   for (const id of ids) {
-    const m = charMastery[id] ?? { k: 0, w: 0, lv: 0, f: 0 };
+    const m = charMastery[id] ?? { k: 0, w: 0, lv: 0 };
     charMastery[id] = { ...m, k: m.k + 1, w: m.w + (isBoss ? 1 : 0) };
   }
   if (!isBoss) return { charMastery };
