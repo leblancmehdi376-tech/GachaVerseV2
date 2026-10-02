@@ -23,7 +23,7 @@ export const PRESTIGE_BONUS_DEFS: Record<PrestigeBonusType, PrestigeBonusDef> = 
   // Normale (×2 au niveau max) — remplace Taux Shiny Or / Taux Shiny Diamant.
   editionRate:  { label: 'Taux d\'édition',               icon: '✨', perLevel: 0.025, maxLevel: 40 },
   equipDrop:    { label: 'Taux de drop d\'équipements',  icon: '🛡️', perLevel: 0.10 },
-  tokenGain:    { label: 'Jetons de Prestige supplémentaires gagnés',     icon: '🎫', perLevel: 1 },
+  tokenGain:    { label: 'Jetons bonus',  icon: '🎫', perLevel: 1 },
 };
 
 export const PRESTIGE_BONUS_TYPES = Object.keys(PRESTIGE_BONUS_DEFS) as PrestigeBonusType[];

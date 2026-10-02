@@ -78,6 +78,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Au Prestige, les **combats** et **boss vaincus** de chaque personnage sont conservés.",
           "Le **niveau** de maîtrise repart de zéro, mais les **paliers de niveau déjà validés restent acquis**.",
           "Seule la progression vers le **prochain palier de niveau** est remise à zéro.",
+          "Prestige : le bonus **Jetons de Prestige supplémentaires gagnés** s'appelle désormais **Jetons bonus**.",
         ],
       },
       {

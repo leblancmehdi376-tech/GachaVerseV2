@@ -294,7 +294,7 @@ export function PrestigePage() {
               {(() => {
                 const cap = stoneMemoryCapEdition(stoneMemoryLevel);
                 return cap
-                  ? <>Une carte déjà obtenue par le passé retrouve sa jauge d’édition d’alors, plafonnée à l’édition <strong style={{ color: EDITION_CONFIG[cap].color }}><EditionIcon edition={cap} size={14} /> {EDITION_CONFIG[cap].label}</strong>, au lieu de repartir de zéro.</>
+                  ? <>Une carte déjà obtenue dans une vie précédente retrouve la jauge d’édition qu’elle avait, plafonnée à l’édition <strong style={{ color: EDITION_CONFIG[cap].color }}><EditionIcon edition={cap} size={14} /> {EDITION_CONFIG[cap].label}</strong>, au lieu de repartir de zéro.</>
                   : <>Débloque la récupération de la jauge d’édition d’une carte déjà obtenue dans une vie précédente, au lieu de repartir de zéro. Chaque niveau relève le plafond d’une édition (niv. 7 : Prismatique).</>;
               })()}
             </div>
