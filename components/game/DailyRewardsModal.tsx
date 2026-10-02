@@ -1,9 +1,10 @@
 'use client';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { DAILY_REWARDS, DAILY_REWARD_CYCLE_LENGTH, formatDailyRewardLabel } from '@/lib/game/dailyRewards';
 
 export function DailyRewardsModal({ onClose }: { onClose: () => void }) {
-  const { dailyRewardCurrentDay, dailyRewardClaimedToday, dailyRewardClaimedDays, claimDailyReward } = useGameStore();
+  const { dailyRewardCurrentDay, dailyRewardClaimedToday, dailyRewardClaimedDays, claimDailyReward } = useGameStore(useShallow(s => ({ dailyRewardCurrentDay: s.dailyRewardCurrentDay, dailyRewardClaimedToday: s.dailyRewardClaimedToday, dailyRewardClaimedDays: s.dailyRewardClaimedDays, claimDailyReward: s.claimDailyReward })));
 
   const isClaimed = (day: number) =>
     dailyRewardClaimedDays.includes(day) || (day === dailyRewardCurrentDay && dailyRewardClaimedToday);

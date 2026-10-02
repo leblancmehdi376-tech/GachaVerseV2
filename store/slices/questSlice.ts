@@ -45,7 +45,10 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
   // change. Sous spam d'une action qui bump une quête à chaque clic (ex:
   // amélioration de perso), ça peut cascader jusqu'au "Maximum update depth
   // exceeded" de React.
-  bumpQuestProgress: (id, by = 1) => set(state => bumpQuestsIn(state, id, by)),
+  bumpQuestProgress: (id, by = 1) => set(state => {
+    const patch = bumpQuestsIn(state, id, by);
+    return 'quests' in patch ? patch : state; // rien n'a bougé : pas de notification
+  }),
   // Fixe directement la progression (pour les quêtes "atteindre X", pas "cumuler +1").
   setQuestProgress: (id, value) => set(state => {
     const setVal = (arr: typeof state.quests) => {
@@ -62,12 +65,12 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     const quests       = setVal(state.quests);
     const weeklyQuests = setVal(state.weeklyQuests ?? []);
     const raidQuests  = setVal(state.raidQuests ?? []);
-    if (quests === state.quests && weeklyQuests === (state.weeklyQuests ?? []) && raidQuests === (state.raidQuests ?? [])) return {};
+    if (quests === state.quests && weeklyQuests === (state.weeklyQuests ?? []) && raidQuests === (state.raidQuests ?? [])) return state;
     return { quests, weeklyQuests, raidQuests };
   }),
   claimQuest: (id) => set(s => {
     const q = s.quests.find(q => q.id === id);
-    if (!q || q.current < q.target || q.done) return {};
+    if (!q || q.current < q.target || q.done) return s;
     return {
       quests: s.quests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
       nekoGems:   q.rewardType==='gems'  ? s.nekoGems  + q.reward : s.nekoGems,
@@ -84,7 +87,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     const today = getTodayDayKey();
     set(state => {
       const dayChanged = state.questsDayKey !== today;
-      if (!dayChanged) return {};
+      if (!dayChanged) return state;
       const coinsPerHour = bnToNumber(get().getOfflineCoinsPerHour());
       const quests = [...rollQuestDefs(DAILY_QUEST_DEFS), rollCoinHoursQuest(coinsPerHour)]
         .map(def => ({ ...def, current: 0, done: false }));
@@ -96,7 +99,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
     const thisWeek = getThisWeekKey();
     set(state => {
       const weekChanged = state.weeklyQuestsDayKey !== thisWeek;
-      if (!weekChanged) return {};
+      if (!weekChanged) return state;
       const weeklyQuests = rollQuestDefs(WEEKLY_QUEST_DEFS).map(def => ({ ...def, current: 0, done: false }));
       return { weeklyQuestsDayKey: thisWeek, weeklyQuests };
     });
@@ -104,7 +107,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
 
   claimWeeklyQuest: (id) => set(s => {
     const q = s.weeklyQuests?.find(q => q.id === id);
-    if (!q || q.current < q.target || q.done) return {};
+    if (!q || q.current < q.target || q.done) return s;
     return {
       weeklyQuests: s.weeklyQuests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
       nekoGems:   q.rewardType==='gems'  ? s.nekoGems   + q.reward : s.nekoGems,
@@ -115,7 +118,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
 
   claimRaidQuest: (id) => set(s => {
     const q = s.raidQuests?.find(q => q.id === id);
-    if (!q || q.current < q.target || q.done) return {};
+    if (!q || q.current < q.target || q.done) return s;
     return {
       raidQuests: s.raidQuests.map(q2 => q2.id===id ? { ...q2, done:true } : q2),
       nekoGems:   q.rewardType==='gems'  ? s.nekoGems   + q.reward : s.nekoGems,
@@ -126,7 +129,7 @@ export const createQuestSlice: StateCreator<GameStore, [], [], QuestActions> = (
 
   bumpRaidQuest: (id, by = 1) => set(s => {
     const q = s.raidQuests?.find(q => q.id === id);
-    if (!q || q.done) return {};
+    if (!q || q.done) return s;
     return {
       raidQuests: s.raidQuests.map(q2 =>
         q2.id === id ? { ...q2, current: Math.min(q2.current + by, q2.target) } : q2

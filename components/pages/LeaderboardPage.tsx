@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import {
@@ -56,7 +57,7 @@ export function getDleRanking(
 
 export function LeaderboardPage() {
   const { user } = useAuth();
-  const { username, palier, maxPalierReached, wave, pixelCoins, setUsername, getTotalDps } = useGameStore();
+  const { username, palier, maxPalierReached, wave, pixelCoins, setUsername, getTotalDps } = useGameStore(useShallow(s => ({ username: s.username, palier: s.palier, maxPalierReached: s.maxPalierReached, wave: s.wave, pixelCoins: s.pixelCoins, setUsername: s.setUsername, getTotalDps: s.getTotalDps })));
 
   const [loading,   setLoading]   = useState(true);
   const [allEntries, setAllEntries] = useState<LeaderboardEntry[]>([]);

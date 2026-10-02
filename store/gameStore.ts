@@ -257,7 +257,7 @@ export const useGameStore = create<GameStore>()(
         // palier franchi juste après un point n'apparaîtrait jamais au graphe.
         const progressed = !last || last.palier !== state.palier
           || last.maxPalier !== state.maxPalierReached || last.prestige !== state.prestigeLevel;
-        if (last && !progressed && t - last.t < CURRENCY_SNAPSHOT_MIN_GAP_MS) return {};
+        if (last && !progressed && t - last.t < CURRENCY_SNAPSHOT_MIN_GAP_MS) return state;
         const next = [...history, {
           t, coins: state.pixelCoins, gems: state.nekoGems,
           palier: state.palier, maxPalier: state.maxPalierReached, prestige: state.prestigeLevel,
@@ -267,7 +267,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'nekoz-world-v8', // bump v2.5 : force un reset local pour tous les joueurs
-      // Écriture différée (≤ 1/s) au lieu d'un JSON.stringify synchrone à chaque set().
+      // Écriture différée (≤ 1 toutes les 3 s) au lieu d'un JSON.stringify synchrone à chaque set().
       storage: createThrottledStorage(),
       merge: (persisted, current) => {
         // Réhydratation tardive (voir waitForAllHydrated dans lib/firebase/cloudSaveSync.ts,

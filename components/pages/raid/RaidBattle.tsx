@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, bumpRaidBossQuests } from '@/store/gameStore';
 import { RAID_BOSSES, rollRaidDrop, getRaidBossMaxHp, getEffectiveDropTable, DropResult } from '@/lib/game/raidBoss';
 import { getItemDef } from '@/lib/game/items';
@@ -15,7 +16,7 @@ import { bnDivRatio, bnIsZero, bnMulScalar, bnSub, type BigNum } from '@/lib/gam
 import { STAT } from '@/lib/game/achievements';
 
 export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
-  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, charMastery, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setRaidBossFight } = useGameStore();
+  const { addItem, nekoGems, bossCrowns, collection, equippedTeam, charMastery, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setRaidBossFight } = useGameStore(useShallow(s => ({ addItem: s.addItem, nekoGems: s.nekoGems, bossCrowns: s.bossCrowns, collection: s.collection, equippedTeam: s.equippedTeam, charMastery: s.charMastery, getActiveEnemyDamageTakenMultiplier: s.getActiveEnemyDamageTakenMultiplier, unlockedTitles: s.unlockedTitles, setRaidBossFight: s.setRaidBossFight })));
 
   const boss = useMemo(() => RAID_BOSSES.find(b => b.id === bossId) ?? RAID_BOSSES[0], [bossId]);
   const totalEquippedDps = useMemo(() => calculateEquippedTeamDps(equippedTeam, collection, charMastery), [equippedTeam, collection, charMastery]);

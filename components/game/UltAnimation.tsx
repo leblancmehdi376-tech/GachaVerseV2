@@ -1,5 +1,5 @@
 'use client';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, type ActiveUlt } from '@/store/gameStore';
 import { useNow } from '@/hooks/useNow';
 import { getUltimateDef } from '@/lib/game/ultimates';
 import { parseInstanceKey } from '@/lib/game/editions';
@@ -13,10 +13,13 @@ export function UltAnimation() {
 // ── Barre effets actifs dans la zone de combat ────────────────────────────
 export function ActiveUltsBar() {
   const activeUlts = useGameStore(s => s.ultActiveUlts);
-  // Refresh chaque seconde pour le timer
-  const now = useNow();
-
   if (activeUlts.length === 0) return null;
+  return <ActiveUltsTimers activeUlts={activeUlts} />;
+}
+
+// Horloge (refresh chaque seconde pour le timer) montée seulement si un ulti est actif.
+function ActiveUltsTimers({ activeUlts }: { activeUlts: ActiveUlt[] }) {
+  const now = useNow();
 
   return (
     <div style={{
@@ -38,7 +41,7 @@ export function ActiveUltsBar() {
               ⚡ {adef.name}
             </div>
             <div style={{ height:3, background:'rgba(255,255,255,0.1)', borderRadius:2, overflow:'hidden' }}>
-              <div style={{ height:'100%', width:`${pct}%`, background:'linear-gradient(90deg,#7c3aed,#c084fc)', borderRadius:2, transition:'width 1s linear' }} />
+              <div style={{ height:'100%', width:'100%', transformOrigin:'left', transform:`scaleX(${pct / 100})`, background:'linear-gradient(90deg,#7c3aed,#c084fc)', borderRadius:2, transition:'transform 1s linear' }} />
             </div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)', marginTop:2, textAlign:'right' }}>{remaining}s</div>
           </div>

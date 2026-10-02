@@ -12,6 +12,13 @@ import {
 } from '../gameStoreHelpers';
 import type { GameStore, MineActions } from '../gameStore.types';
 
+// Une mine pleine ne fait plus avancer mineLastTickAt (voir tickMine) : quand
+// elle se remet à produire, le chrono doit repartir de maintenant, sinon tout
+// le temps passé pleine serait compté d'un coup.
+function restartIfFull(s: GameStore): Partial<GameStore> {
+  return s.mineGems >= s.getMineCap() ? { mineLastTickAt: correctedNow() } : {};
+}
+
 export const createMineSlice: StateCreator<GameStore, [], [], MineActions> = (set, get) => ({
   getMineCap: () => MINE_CAP_TIERS[Math.min(get().mineCapLevel ?? 0, MINE_CAP_TIERS.length - 1)],
   getMineRatePerHour: () => MINE_BASE_RATE_PER_HOUR * MINE_SPEED_MULT_TIERS[Math.min(get().mineSpeedLevel ?? 0, MINE_SPEED_MULT_TIERS.length - 1)],
@@ -40,7 +47,7 @@ export const createMineSlice: StateCreator<GameStore, [], [], MineActions> = (se
     if (!get().mineOwned) return;
     const cost = get().getMineCapUpgradeCost();
     if (cost === null || get().bossCrowns < cost) return;
-    set(state => ({ bossCrowns: state.bossCrowns - cost, mineCapLevel: (state.mineCapLevel ?? 0) + 1 }));
+    set(state => ({ ...restartIfFull(state), bossCrowns: state.bossCrowns - cost, mineCapLevel: (state.mineCapLevel ?? 0) + 1 }));
     broadcastLocalState();
   },
   upgradeMineSpeed: () => {
@@ -58,7 +65,9 @@ export const createMineSlice: StateCreator<GameStore, [], [], MineActions> = (se
     const elapsedHours = Math.max(0, (now - s.mineLastTickAt) / 3_600_000);
     if (elapsedHours <= 0) return;
     const cap = s.getMineCap();
-    if (s.mineGems >= cap) { set({ mineLastTickAt: now }); return; }
+    // Mine pleine : rien ne bouge, donc aucune mise à jour du store (le
+    // chrono repart à la collecte ou à l'agrandissement, voir restartIfFull).
+    if (s.mineGems >= cap) return;
     const produced = s.getMineRatePerHour() * elapsedHours;
     set({ mineGems: Math.min(s.mineGems + produced, cap), mineLastTickAt: now });
   },
@@ -82,7 +91,7 @@ export const createMineSlice: StateCreator<GameStore, [], [], MineActions> = (se
   collectMineGems: () => {
     const amount = Math.floor(get().mineGems);
     if (amount <= 0) return;
-    set(state => ({ nekoGems: state.nekoGems + amount, mineGems: state.mineGems - amount }));
+    set(state => ({ ...restartIfFull(state), nekoGems: state.nekoGems + amount, mineGems: state.mineGems - amount }));
     broadcastLocalState();
   },
 });

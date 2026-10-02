@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { CRAFT_RECIPES, PALIER_DROPS, CraftRecipe, EXPEDITION_DEFS } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
@@ -19,7 +20,7 @@ const dropRank = (dropId: string) => {
 const SORTED_DROPS = [...PALIER_DROPS].sort((a, b) => dropRank(a.id) - dropRank(b.id));
 
 function IngredientRow({ type, id, quantity, label }: { type: string; id: string; quantity: number; label: string }) {
-  const { expeditionDropInventory: dropInventory, collection, championInventory, focusExpedition } = useGameStore();
+  const { expeditionDropInventory: dropInventory, collection, championInventory, focusExpedition } = useGameStore(useShallow(s => ({ expeditionDropInventory: s.expeditionDropInventory, collection: s.collection, championInventory: s.championInventory, focusExpedition: s.focusExpedition })));
 
   let have = 0;
   let ok = false;
@@ -80,7 +81,9 @@ function IngredientRow({ type, id, quantity, label }: { type: string; id: string
 }
 
 function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
-  const { canCraft, craftRecipe, getRunPeakPalier, collection } = useGameStore();
+  // canCraft lit les inventaires : on s'y abonne pour se re-rendre quand ils changent.
+  const { canCraft, craftRecipe, collection } = useGameStore(useShallow(s => ({ canCraft: s.canCraft, craftRecipe: s.craftRecipe, collection: s.collection, expeditionDropInventory: s.expeditionDropInventory, championInventory: s.championInventory })));
+  const runPeakPalier = useGameStore(s => s.getRunPeakPalier());
   const [expanded, setExpanded] = useState(false);
   const [revealing, setRevealing] = useState(false);
 
@@ -88,7 +91,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
     if (craftRecipe(recipe.id) && recipe.reward.type === 'character') setRevealing(true);
   };
 
-  const locked = getRunPeakPalier() < recipe.palierRequired;
+  const locked = runPeakPalier < recipe.palierRequired;
   const { ok } = canCraft(recipe.id);
   const alreadyOwned = recipe.reward.type === 'character' && recipe.reward.characterId
     ? !!collection[recipe.reward.characterId] : false;
@@ -211,7 +214,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
 }
 
 function WeaponFusionCard({ rarity }: { rarity: Rarity }) {
-  const { equipmentInventory, fuseSpecialWeapons } = useGameStore();
+  const { equipmentInventory, fuseSpecialWeapons } = useGameStore(useShallow(s => ({ equipmentInventory: s.equipmentInventory, fuseSpecialWeapons: s.fuseSpecialWeapons })));
   const [lastResult, setLastResult] = useState<string | null>(null);
 
   const cfg = RARITY_CONFIG[rarity];
@@ -282,7 +285,7 @@ function WeaponFusionCard({ rarity }: { rarity: Rarity }) {
 }
 
 export function ForgePage() {
-  const { expeditionDropInventory: dropInventory } = useGameStore();
+  const { expeditionDropInventory: dropInventory } = useGameStore(useShallow(s => ({ expeditionDropInventory: s.expeditionDropInventory })));
   const [tab, setTab] = useState<'recipes' | 'inventory' | 'weapons'>('recipes');
 
   const ownedDrops = PALIER_DROPS.filter(d => (dropInventory[d.id] ?? 0) > 0);

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { PageScroll } from '@/components/ui/Page';
 import { RARITY_CONFIG, RARITY_ORDER_ASC } from '@/types/game';
@@ -116,7 +117,7 @@ export function AnomaliePage() {
   const {
     anomalyTokens, ownedAnomalies, anomalySlots, prestigeLevel, bossCrowns,
     getAnomalyRerollCost, rerollAnomalies, toggleAnomalyLock, getAnomalySlotCost, buyAnomalySlot,
-  } = useGameStore();
+  } = useGameStore(useShallow(s => ({ anomalyTokens: s.anomalyTokens, ownedAnomalies: s.ownedAnomalies, anomalySlots: s.anomalySlots, prestigeLevel: s.prestigeLevel, bossCrowns: s.bossCrowns, getAnomalyRerollCost: s.getAnomalyRerollCost, rerollAnomalies: s.rerollAnomalies, toggleAnomalyLock: s.toggleAnomalyLock, getAnomalySlotCost: s.getAnomalySlotCost, buyAnomalySlot: s.buyAnomalySlot })));
   const [showTable, setShowTable] = useState(false);
 
   const lockedCount = ownedAnomalies.filter(a => a.locked).length;

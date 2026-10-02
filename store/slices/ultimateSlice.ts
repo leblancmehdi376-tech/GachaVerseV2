@@ -62,8 +62,9 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
   tickUlt: () => {
     set(s => {
       // On ne renvoie de nouvelles références que si quelque chose change
-      // réellement : sinon chaque tick réveillerait tous les abonnés
-      // (barre des ultis, cartes alliées…) et réécrirait la sauvegarde locale.
+      // réellement, et l'état inchangé (pas un patch vide, que Zustand
+      // notifierait quand même) sinon : chaque tick réveillerait tous les
+      // abonnés (barre des ultis, cartes alliées…) et réécrirait la sauvegarde locale.
       const patch: Partial<Pick<GameStore, 'ultCooldowns' | 'ultActiveUlts'>> = {};
       if (Object.values(s.ultCooldowns).some(cd => cd > 0)) {
         const newCds: Record<string, number> = {};
@@ -72,7 +73,7 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
       }
       const now = Date.now();
       if (s.ultActiveUlts.some(a => a.endsAt <= now)) patch.ultActiveUlts = s.ultActiveUlts.filter(a => a.endsAt > now);
-      return patch;
+      return Object.keys(patch).length > 0 ? patch : s;
     });
     // Filet si le setTimeout de fin d'ulti a été retardé (onglet throttlé…).
     get().launchNextQueuedUlt();

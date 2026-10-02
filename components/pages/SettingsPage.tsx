@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { useAuth } from '@/hooks/useAuth';
 import { formatNumber } from '@/lib/game/format';
@@ -13,7 +14,7 @@ import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
-  const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore();
+  const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore(useShallow(s => ({ resetGame: s.resetGame, pixelCoins: s.pixelCoins, nekoGems: s.nekoGems, wave: s.wave, palier: s.palier, maxPalierReached: s.maxPalierReached, collection: s.collection, username: s.username, setUsername: s.setUsername, getTotalDps: s.getTotalDps })));
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
   const { numberNotation, setNotation } = useDisplaySettingsStore();

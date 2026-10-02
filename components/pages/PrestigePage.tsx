@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, formatBonusValue, STONE_MEMORY_MAX_LEVEL, getStoneMemoryCost, stoneMemoryCapEdition } from '@/lib/game/prestige';
 import { formatNumber } from '@/lib/game/format';
@@ -145,8 +146,8 @@ function PrestigeReelPopup({ results, onClose }: { results: PrestigeBonusType[];
 export function PrestigePage() {
   const {
     prestigeLevel: level, prestigeTokens: tokens, prestigeBonusLevels: bonusLevels, canPrestige, spendToken,
-    prestigeRankRecoveryLevel: stoneMemoryLevel, buyStoneMemory, getRunPeakPalier, doPrestige,
-  } = useGameStore();
+    prestigeRankRecoveryLevel: stoneMemoryLevel, buyStoneMemory, doPrestige,
+  } = useGameStore(useShallow(s => ({ prestigeLevel: s.prestigeLevel, prestigeTokens: s.prestigeTokens, prestigeBonusLevels: s.prestigeBonusLevels, canPrestige: s.canPrestige, spendToken: s.spendToken, prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel, buyStoneMemory: s.buyStoneMemory, doPrestige: s.doPrestige })));
   const [showConfirm, setShowConfirm] = useState(false);
   const [savingPrestige, setSavingPrestige] = useState(false);
   const [syncPending, setSyncPending] = useState(false);
@@ -155,7 +156,7 @@ export function PrestigePage() {
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (pas le lifetime) : c'est
   // ce qui gate l'éligibilité, pour éviter de pouvoir represtiger en boucle
   // dès le palier 1 après un premier prestige.
-  const runPeakPalier = getRunPeakPalier();
+  const runPeakPalier = useGameStore(s => s.getRunPeakPalier());
   const eligible = canPrestige(runPeakPalier);
   const tokensToGain = calcTokensAwarded(runPeakPalier, bonusLevels.tokenGain);
 

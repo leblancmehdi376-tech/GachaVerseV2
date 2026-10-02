@@ -23,7 +23,8 @@ export function EnemyHud({
       {/* Timer boss */}
       {bossActive && (
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, zIndex:5 }}>
-          <div style={{ height:'100%', width:`${(bossTimeLeft/cfg.bossTimerSeconds)*100}%`, background:bossWarn?'#ef4444':'#dc2626', transition:'width 1s linear', boxShadow:bossWarn?'0 0 10px #ef4444':undefined }} />
+{/* Remplissage en transform: scaleX (animé par le GPU) plutôt qu'en width : une transition de width relance style/layout/paint à chaque frame pendant toute sa durée. */}
+          <div style={{ height:'100%', width:'100%', transformOrigin:'left', transform:`scaleX(${bossTimeLeft/cfg.bossTimerSeconds})`, background:bossWarn?'#ef4444':'#dc2626', transition:'transform 1s linear', boxShadow:bossWarn?'0 0 10px #ef4444':undefined }} />
         </div>
       )}
 
@@ -126,7 +127,8 @@ export function EnemyHud({
           </div>
         </div>
         <div style={{ height:8, background:'rgba(0,0,0,0.5)', borderRadius:10, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)', marginBottom:6 }}>
-          <div style={{ height:'100%', width:`${hp}%`, transition:'width 0.15s ease', borderRadius:10,
+          {/* Remplissage en scaleX, voir la barre du boss ci-dessus. */}
+          <div style={{ height:'100%', width:'100%', transformOrigin:'left', transform:`scaleX(${hp / 100})`, transition:'transform 0.15s ease', borderRadius:10,
             background:hp>50?'linear-gradient(90deg,#166534,#4ade80)':hp>25?'linear-gradient(90deg,#78350f,#fbbf24)':'linear-gradient(90deg,#7f1d1d,#f87171)',
             boxShadow:`0 0 12px ${hp>50?'#4ade8077':hp>25?'#fbbf2477':'#f8717177'}` }} />
         </div>

@@ -14,7 +14,8 @@ export function ProgressCard({ palier, wave, progressPct, cfg }: { palier: numbe
         <div style={{ width:40, height:40, background:`${cfg.accentColor}18`, border:`1px solid ${cfg.accentColor}44`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}>📦</div>
       </div>
       <div className="prog-track" style={{ marginBottom:'6px' }}>
-        <div className="prog-fill" style={{ width:`${progressPct}%` }} />
+        {/* scaleX plutôt que width : animé par le GPU (voir la barre de vie dans EnemyHud). */}
+        <div className="prog-fill" style={{ width:'100%', transformOrigin:'left', transform:`scaleX(${progressPct / 100})`, transition:'transform 0.4s ease' }} />
       </div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px' }}>
         <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', fontWeight:600 }}>Vague {wave}/10</span>

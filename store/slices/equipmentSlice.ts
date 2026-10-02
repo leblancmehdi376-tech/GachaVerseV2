@@ -122,9 +122,9 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
     if (currentQty <= 0) return;
     set(state => {
       const existing = state.collection[templateId];
-      if (!existing) return {};
+      if (!existing) return state;
       const equipped = existing.equippedItems ?? defaultEquippedItems();
-      if (equipped[slot] === equipmentId) return {};
+      if (equipped[slot] === equipmentId) return state;
       const previousId = equipped[slot];
       const newInventory = {
         ...state.equipmentInventory,

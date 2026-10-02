@@ -149,7 +149,7 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
   },
 
   tickBossTimer: () => set(state => {
-    if (!state.bossActive || state.bossTimeLeft <= 0) return {};
+    if (!state.bossActive || state.bossTimeLeft <= 0) return state;
     const t = state.bossTimeLeft - 1;
     // Défaite (timer écoulé) : même état qu'une retraite volontaire —
     // bossAvoided:true permet de retenter le boss directement (bouton

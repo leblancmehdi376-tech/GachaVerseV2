@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { auth } from '@/lib/firebase/config';
 import { formatNumber } from '@/lib/game/format';
@@ -19,7 +20,7 @@ type StatusFilter = 'all' | MarketplaceListing['status'];
 type TypeFilter = 'all' | ListingType;
 
 export function MarketplaceTab() {
-  const store = useGameStore();
+  const store = useGameStore(useShallow(s => ({ addEquipment: s.addEquipment, addItem: s.addItem, addToCollection: s.addToCollection, username: s.username })));
   const user = auth?.currentUser;
 
   const [listings, setListings]   = useState<MarketplaceListing[]>([]);

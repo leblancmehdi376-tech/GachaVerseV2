@@ -1,5 +1,6 @@
 'use client';
 import { memo, useMemo, type CSSProperties } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, OFFLINE_MULT_TIERS, OFFLINE_CAP_TIERS_H } from '@/store/gameStore';
 import { CHARACTER_POOL, getCharacterById } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
@@ -130,20 +131,32 @@ const AvatarPicker = memo(function AvatarPicker({ username }: { username: string
 });
 
 export function ProfilePage() {
-  const store = useGameStore();
   const {
     username, pixelCoins, nekoGems, palier, maxPalierReached,
-    bossCrowns, voidOrbs, collection, equippedTeam, getTotalDps,
-    activeTitle, unlockedCount, unlockedTitles,
-    showcasedTrophies,
-  } = store;
+    bossCrowns, voidOrbs, collection, equippedTeam,
+    activeTitle, unlockedTitles, showcasedTrophies,
+    offlineMultLevel, offlineCapLevel, lastOfflineGain,
+    getOfflineMult, getOfflineCapHours, getOfflineMultCost, getOfflineCapCost,
+    upgradeOfflineMult, upgradeOfflineCap,
+  } = useGameStore(useShallow(s => ({
+    username: s.username, pixelCoins: s.pixelCoins, nekoGems: s.nekoGems, palier: s.palier, maxPalierReached: s.maxPalierReached,
+    bossCrowns: s.bossCrowns, voidOrbs: s.voidOrbs, collection: s.collection, equippedTeam: s.equippedTeam,
+    activeTitle: s.activeTitle, unlockedTitles: s.unlockedTitles, showcasedTrophies: s.showcasedTrophies,
+    offlineMultLevel: s.offlineMultLevel, offlineCapLevel: s.offlineCapLevel, lastOfflineGain: s.lastOfflineGain,
+    getOfflineMult: s.getOfflineMult, getOfflineCapHours: s.getOfflineCapHours, getOfflineMultCost: s.getOfflineMultCost, getOfflineCapCost: s.getOfflineCapCost,
+    upgradeOfflineMult: s.upgradeOfflineMult, upgradeOfflineCap: s.upgradeOfflineCap,
+  })));
+  const unlockedCount = useGameStore(s => s.unlockedCount());
+  // Valeurs dérivées : mises en cache (DPS) ou comparées champ à champ (BigNum),
+  // pour ne pas re-rendre la page à chaque tick de combat.
+  const totalDps = useGameStore(s => s.getTotalDps());
+  const offlinePerHour = useGameStore(useShallow(s => s.getOfflineCoinsPerHour()));
   const trophies = showcasedTrophies.map(id => ACHIEVEMENT_BY_ID.get(id)).filter(a => a !== undefined);
 
   const cfg = getPalierConfig(palier);
 
   const ownedChars = useMemo(() => getOwnedChars(collection), [collection]);
 
-  const totalDps = getTotalDps();
 
   const rarityBreakdown = useMemo(() => computeRarityBreakdown(ownedChars), [ownedChars]);
 
@@ -171,7 +184,7 @@ export function ProfilePage() {
     { label:'VOID ORBS',          val: String(voidOrbs),                color:'#a78bfa',            num:true  },
     { label:'PERSONNAGES',        val: `${ownedChars.length} / ${CHARACTER_POOL.length}`, color:'#60a5fa', num:true },
     { label:'ÉQUIPE ACTIVE',      val: `${equippedCount} / 4`,          color:'#34d399',            num:true  },
-    { label:'SUCCÈS',             val: `${unlockedCount()} / ${ACHIEVEMENTS.length}`,       color:'#fbbf24',            num:true  },
+    { label:'SUCCÈS',             val: `${unlockedCount} / ${ACHIEVEMENTS.length}`,       color:'#fbbf24',            num:true  },
   ];
 
   return (
@@ -202,7 +215,7 @@ export function ProfilePage() {
             <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
               {[
                 { icon:'🌍', label:`Palier ${palier}`, color:'var(--purple-glow)' },
-                { icon:'🏆', label:`${unlockedCount()} succès`, color:'#fbbf24' },
+                { icon:'🏆', label:`${unlockedCount} succès`, color:'#fbbf24' },
                 { icon:'👑', label:`${unlockedTitles.length} titre${unlockedTitles.length > 1 ? 's' : ''}`, color:'#c084fc' },
               ].map((b, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', gap:'5px', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', padding:'5px 12px' }}>
@@ -305,16 +318,16 @@ export function ProfilePage() {
 
         {/* ── Gains hors-ligne ─────────────────────────────────────────── */}
         {(() => {
-          const offMult   = store.getOfflineMult();
-          const offCapH   = store.getOfflineCapHours();
-          const perHour   = store.getOfflineCoinsPerHour();
-          const multCost  = store.getOfflineMultCost();
-          const capCost   = store.getOfflineCapCost();
-          const multLvl   = store.offlineMultLevel ?? 0;
-          const capLvl    = store.offlineCapLevel ?? 0;
+          const offMult   = getOfflineMult();
+          const offCapH   = getOfflineCapHours();
+          const perHour   = offlinePerHour;
+          const multCost  = getOfflineMultCost();
+          const capCost   = getOfflineCapCost();
+          const multLvl   = offlineMultLevel ?? 0;
+          const capLvl    = offlineCapLevel ?? 0;
           const nextMult  = OFFLINE_MULT_TIERS[multLvl + 1];
           const nextCapH  = OFFLINE_CAP_TIERS_H[capLvl + 1];
-          const last      = store.lastOfflineGain;
+          const last      = lastOfflineGain;
 
           return (
             <div className="panel panel--gold" style={{ padding:'18px 20px' }}>
@@ -343,8 +356,8 @@ export function ProfilePage() {
 
               {/* Améliorations */}
               <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
-                <UpgradeRow icon="📈" label="Multiplicateur hors-ligne" current={`×${offMult.toFixed(2)}`} next={nextMult ? `×${nextMult.toFixed(2)}` : null} cost={multCost} bossCrowns={bossCrowns} onBuy={store.upgradeOfflineMult} />
-                <UpgradeRow icon="⏳" label="Durée max hors-ligne"     current={`${offCapH}h`}          next={nextCapH ? `${nextCapH}h` : null}       cost={capCost}  bossCrowns={bossCrowns} onBuy={store.upgradeOfflineCap} />
+                <UpgradeRow icon="📈" label="Multiplicateur hors-ligne" current={`×${offMult.toFixed(2)}`} next={nextMult ? `×${nextMult.toFixed(2)}` : null} cost={multCost} bossCrowns={bossCrowns} onBuy={upgradeOfflineMult} />
+                <UpgradeRow icon="⏳" label="Durée max hors-ligne"     current={`${offCapH}h`}          next={nextCapH ? `${nextCapH}h` : null}       cost={capCost}  bossCrowns={bossCrowns} onBuy={upgradeOfflineCap} />
               </div>
             </div>
           );

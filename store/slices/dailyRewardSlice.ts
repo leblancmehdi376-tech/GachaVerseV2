@@ -17,7 +17,7 @@ export const createDailyRewardSlice: StateCreator<GameStore, [], [], DailyReward
   ensureDailyReward: () => {
     const today = getTodayDayKey();
     set(state => {
-      if (state.dailyRewardDayKey === today) return {};
+      if (state.dailyRewardDayKey === today) return state;
       const isFirstEver = !state.dailyRewardDayKey;
       let nextDay = state.dailyRewardCurrentDay || 1;
       let claimedDays = state.dailyRewardClaimedDays ?? [];

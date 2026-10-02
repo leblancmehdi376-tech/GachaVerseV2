@@ -1,4 +1,5 @@
 'use client';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, MINE_PURCHASE_COST_CROWNS, MINE_BASE_RATE_PER_HOUR, MINE_CAP_TIERS, MINE_SPEED_MULT_TIERS } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll } from '@/components/ui/Page';
@@ -30,7 +31,7 @@ export function MinePage() {
     prestigeLevel, bossCrowns, mineOwned, mineCapLevel, mineSpeedLevel, mineGems,
     getMineCap, getMineRatePerHour, getMineCapUpgradeCost, getMineSpeedUpgradeCost,
     buyMine, upgradeMineCap, upgradeMineSpeed, collectMineGems,
-  } = useGameStore();
+  } = useGameStore(useShallow(s => ({ prestigeLevel: s.prestigeLevel, bossCrowns: s.bossCrowns, mineOwned: s.mineOwned, mineCapLevel: s.mineCapLevel, mineSpeedLevel: s.mineSpeedLevel, mineGems: s.mineGems, getMineCap: s.getMineCap, getMineRatePerHour: s.getMineRatePerHour, getMineCapUpgradeCost: s.getMineCapUpgradeCost, getMineSpeedUpgradeCost: s.getMineSpeedUpgradeCost, buyMine: s.buyMine, upgradeMineCap: s.upgradeMineCap, upgradeMineSpeed: s.upgradeMineSpeed, collectMineGems: s.collectMineGems })));
 
   // ── Verrouillée avant le premier Prestige ──────────────────────────────
   if (prestigeLevel < 1) {

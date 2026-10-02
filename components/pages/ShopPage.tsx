@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, getGoldChestMultiplier } from '@/store/gameStore';
 import { PageScroll } from '@/components/ui/Page';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
@@ -181,8 +182,8 @@ export function ShopPage() {
     dailyShop, ensureDailyShop, buyShopCharacter, rerollDailyShop, buyGemsWithOrbs, buyEquipmentChest,
     starterPackClaimed, isStarterPackAvailable, claimStarterPack, buyRaidCharacter,
     raidCharacterPurchases,
-  } = useGameStore();
-  const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useGameStore();
+  } = useGameStore(useShallow(s => ({ nekoGems: s.nekoGems, bossCrowns: s.bossCrowns, voidOrbs: s.voidOrbs, palier: s.palier, inventory: s.inventory, goldUpgradeLevel: s.goldUpgradeLevel, collection: s.collection, dpsBoostEndsAt: s.dpsBoostEndsAt, goldBoostEndsAt: s.goldBoostEndsAt, isDpsBoostActive: s.isDpsBoostActive, isGoldBoostActive: s.isGoldBoostActive, buyDpsBoost: s.buyDpsBoost, buyGoldBoost: s.buyGoldBoost, buyGemsWithCrowns: s.buyGemsWithCrowns, buyGoldWithGems: s.buyGoldWithGems, dailyShop: s.dailyShop, ensureDailyShop: s.ensureDailyShop, buyShopCharacter: s.buyShopCharacter, rerollDailyShop: s.rerollDailyShop, buyGemsWithOrbs: s.buyGemsWithOrbs, buyEquipmentChest: s.buyEquipmentChest, starterPackClaimed: s.starterPackClaimed, isStarterPackAvailable: s.isStarterPackAvailable, claimStarterPack: s.claimStarterPack, buyRaidCharacter: s.buyRaidCharacter, raidCharacterPurchases: s.raidCharacterPurchases })));
+  const { getMaxActiveExpeditions, getExpeditionSlotCost, upgradeExpeditionSlot } = useGameStore(useShallow(s => ({ getMaxActiveExpeditions: s.getMaxActiveExpeditions, getExpeditionSlotCost: s.getExpeditionSlotCost, upgradeExpeditionSlot: s.upgradeExpeditionSlot, expeditionSlotLevel: s.expeditionSlotLevel })));
 
   const now = useNow();
   const [chestResult, setChestResult] = useState<{ itemId: string; tier: ChestTier } | null>(null);

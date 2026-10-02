@@ -12,7 +12,7 @@ import { AchievementUnlockBanner } from '@/components/game/AchievementUnlockBann
 import { SecretsLayer } from '@/components/game/SecretsLayer';
 import { EGG, pageStatKey } from '@/lib/game/achievements';
 import { useShallow } from 'zustand/react/shallow';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, type Quest } from '@/store/gameStore';
 import { useDisplaySettingsStore } from '@/store/displaySettingsStore';
 import { getCompadexProgress } from '@/lib/game/compadex';
 import { useAuth } from '@/hooks/useAuth';
@@ -216,13 +216,11 @@ export function GameLayout() {
     useGameStore.getState().discover(EGG.passage);
     setLogoFlash(now);
   };
-  const { pixelCoins, nekoGems, palier, wave, maxPalierReached, quests, username, focusedExpeditionId, dailyRewardClaimedToday, compadexCharactersSeen, compadexEquipmentSeen } = useGameStore(useShallow(s => ({
-    pixelCoins: s.pixelCoins,
-    nekoGems: s.nekoGems,
-    palier: s.palier,
-    wave: s.wave,
-    maxPalierReached: s.maxPalierReached,
-    quests: s.quests,
+  // Le layout englobe toute l'appli (et la page ouverte) : il ne s'abonne
+  // qu'à des valeurs qui changent rarement. Ce qui bouge à chaque kill
+  // (pièces, vague, quêtes, succès) vit dans de petits composants dédiés
+  // (CurrencyPills, PalierWaveLabel, CombatSidebar, GameWatchers).
+  const { username, focusedExpeditionId, dailyRewardClaimedToday, compadexCharactersSeen, compadexEquipmentSeen } = useGameStore(useShallow(s => ({
     username: s.username,
     focusedExpeditionId: s.focusedExpeditionId,
     dailyRewardClaimedToday: s.dailyRewardClaimedToday,
@@ -249,9 +247,7 @@ export function GameLayout() {
   const hasHydrated = useGameHydration(cloudLoaded);
   const { offlineGain, claimOfflineGain } = useOfflineGainCheck(hasHydrated, cloudLoaded);
   const { victory, dismissVictory } = useBossVictoryWatcher();
-  const claimable = useGameToasts();
-  useAchievementTrackers();
-  useCompadexTracker();
+  const claimable = useGameStore(s => countClaimableQuests(s.quests) + countClaimableQuests(s.weeklyQuests) + countClaimableQuests(s.raidQuests));
 
   // Navigation Forge → Expéditions : dès qu'un ingrédient à récolter est
   // "focusé", on bascule automatiquement sur la page Expéditions (qui se
@@ -260,9 +256,7 @@ export function GameLayout() {
     if (focusedExpeditionId) goToPage('expeditions');
   }, [focusedExpeditionId]);
 
-  const cfg = getPalierConfig(palier);
   const isCombat = COMBAT_PAGES.includes(contentPage);
-  const progressPct = Math.round((wave / 10) * 100);
   const currentNav = NAV.find(n => n.id === page)!;
   const contentNav = NAV.find(n => n.id === contentPage)!;
 
@@ -305,7 +299,7 @@ export function GameLayout() {
     // Le fond du palier et le sprite de l'ennemi sont les plus gros éléments
     // affichés à la sortie du splash : on les télécharge pendant l'animation
     // plutôt qu'après.
-    preload(getPalierBgCandidates(palier)[0], { as: 'image', fetchPriority: 'high' });
+    preload(getPalierBgCandidates(useGameStore.getState().palier)[0], { as: 'image', fetchPriority: 'high' });
     const enemySprite = useGameStore.getState().currentEnemy?.spritePath;
     if (enemySprite) preload(getSpriteCandidates(enemySprite, ENEMY_SPRITES_ASSET_VERSION)[0], { as: 'image', fetchPriority: 'high' });
     return <SplashScreen onComplete={() => setSplashDone(true)} />;
@@ -382,7 +376,7 @@ export function GameLayout() {
           {!isMobile && <div style={{ textAlign:'left' }}>
             {user ? (<>
               <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'var(--text)', lineHeight:1.2 }}>{username || user.email?.split('@')[0]}</div>
-              <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>
+              <PalierWaveLabel />
             </>) : (<>
               <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:'#e9d5ff', lineHeight:1.2, letterSpacing:'0.5px' }}>SE CONNECTER</div>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'rgba(233,213,255,0.6)', lineHeight:1 }}>ou créer un compte</div>
@@ -397,18 +391,7 @@ export function GameLayout() {
             sur petit écran). flexShrink:0 force le layout à respecter sa vraie
             largeur — au pire ça déborde à droite du header, jamais de superposition. */}
         <div style={{ display:'flex', gap:isMobile?'4px':'8px', marginLeft:isMobile?'auto':undefined, flexShrink:0 }}>
-          {[
-            { icon:'🪙', val:formatNumber(pixelCoins), color:'var(--gold)',  bg:'rgba(120,53,15,0.22)',  border:'rgba(245,158,11,0.35)'  },
-            { icon:'💎', val:formatNumber(nekoGems),   color:'var(--cyan-hi)',  bg:'rgba(6,182,212,0.15)',    border:'rgba(34,211,238,0.35)' },
-          ].map((r,i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:isMobile?'4px':'7px', background:r.bg, border:`1px solid ${r.border}`, borderRadius:'20px', padding:isMobile?'4px 7px':'5px 16px', cursor:'pointer', transition:'all 0.15s', boxShadow:`inset 0 1px 0 rgba(255,255,255,0.06)` }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.2)'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
-              <span style={{ fontSize:isMobile?'14px':'16px' }}>{r.icon}</span>
-              <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14px', color:r.color }}>{r.val}</span>
-              {!isMobile && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:r.color, opacity:0.45 }}>+</span>}
-            </div>
-          ))}
+          <CurrencyPills isMobile={isMobile} />
         </div>
 
         {/* Calendrier (mobile) — icône seule, la barre d'icônes complète est desktop-only */}
@@ -555,9 +538,7 @@ export function GameLayout() {
               </div>
               {/* Sidebar droite de combat (passe en dessous sur mobile) */}
               <aside style={{ width:isMobile?'100%':'244px', flexShrink:0, display:'flex', flexDirection:'column', gap:'10px', overflowY:isMobile?'visible':'auto' }}>
-                <ProgressCard palier={palier} wave={wave} progressPct={progressPct} cfg={cfg} />
-                <QuestsCard quests={quests} claimQuest={useGameStore.getState().claimQuest} />
-                <StatsCard maxPalierReached={maxPalierReached} />
+                <CombatSidebar />
               </aside>
             </div>
           ) : (
@@ -607,6 +588,55 @@ export function GameLayout() {
       {showPatchNotes && <PatchNotesModal onClose={() => setShowPatchNotes(false)} />}
       {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={claimOfflineGain} />}
       <UltAnimation />
+      <GameWatchers />
     </div>
+  );
+}
+
+const countClaimableQuests = (list: Quest[] | undefined) => (list ?? []).filter(q => q.current >= q.target && !q.done).length;
+
+// Suivi des succès, du Compadex et toasts de quêtes/butin : ces hooks
+// s'abonnent à des champs qui changent à chaque kill. Ils vivent dans ce
+// composant sans rendu pour ne pas re-rendre tout le layout avec eux.
+function GameWatchers() {
+  useGameToasts();
+  useAchievementTrackers();
+  useCompadexTracker();
+  return null;
+}
+
+function CurrencyPills({ isMobile }: { isMobile: boolean }) {
+  const pixelCoins = useGameStore(s => s.pixelCoins);
+  const nekoGems = useGameStore(s => s.nekoGems);
+  return [
+    { icon:'🪙', val:formatNumber(pixelCoins), color:'var(--gold)',  bg:'rgba(120,53,15,0.22)',  border:'rgba(245,158,11,0.35)'  },
+    { icon:'💎', val:formatNumber(nekoGems),   color:'var(--cyan-hi)',  bg:'rgba(6,182,212,0.15)',    border:'rgba(34,211,238,0.35)' },
+  ].map((r,i) => (
+    <div key={i} style={{ display:'flex', alignItems:'center', gap:isMobile?'4px':'7px', background:r.bg, border:`1px solid ${r.border}`, borderRadius:'20px', padding:isMobile?'4px 7px':'5px 16px', cursor:'pointer', transition:'all 0.15s', boxShadow:`inset 0 1px 0 rgba(255,255,255,0.06)` }}
+      onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(1.2)'}
+      onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = 'none'}>
+      <span style={{ fontSize:isMobile?'14px':'16px' }}>{r.icon}</span>
+      <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:'14px', color:r.color }}>{r.val}</span>
+      {!isMobile && <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color:r.color, opacity:0.45 }}>+</span>}
+    </div>
+  ));
+}
+
+function PalierWaveLabel() {
+  const palier = useGameStore(s => s.palier);
+  const wave = useGameStore(s => s.wave);
+  return <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1 }}>Palier {palier} — Vague {wave}/10</div>;
+}
+
+function CombatSidebar() {
+  const { palier, wave, maxPalierReached, quests } = useGameStore(useShallow(s => ({
+    palier: s.palier, wave: s.wave, maxPalierReached: s.maxPalierReached, quests: s.quests,
+  })));
+  return (
+    <>
+      <ProgressCard palier={palier} wave={wave} progressPct={Math.round((wave / 10) * 100)} cfg={getPalierConfig(palier)} />
+      <QuestsCard quests={quests} claimQuest={useGameStore.getState().claimQuest} />
+      <StatsCard maxPalierReached={maxPalierReached} />
+    </>
   );
 }

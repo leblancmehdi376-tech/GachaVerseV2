@@ -58,7 +58,7 @@ export function QuestsCard({ quests, claimQuest }: { quests: Quest[]; claimQuest
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
           <div style={{ flex:1, height:'5px', background:'rgba(255,255,255,0.05)', borderRadius:'3px', overflow:'hidden' }}>
-            <div style={{ height:'100%', width:`${pct}%`, background:q.done?'linear-gradient(90deg,#166534,#4ade80)':'linear-gradient(90deg,#4c1d95,#a855f7)', borderRadius:'3px', transition:'width 0.3s', boxShadow:canClaim?'0 0 6px #a855f766':undefined }} />
+            <div style={{ height:'100%', width:'100%', transformOrigin:'left', transform:`scaleX(${pct / 100})`, background:q.done?'linear-gradient(90deg,#166534,#4ade80)':'linear-gradient(90deg,#4c1d95,#a855f7)', borderRadius:'3px', transition:'transform 0.3s', boxShadow:canClaim?'0 0 6px #a855f766':undefined }} />
           </div>
           <span style={{ fontFamily:'var(--f-num)', fontSize:'14px', color:'var(--text-muted)', flexShrink:0 }}>{formatNumber(q.current)}/{formatNumber(q.target)}</span>
         </div>

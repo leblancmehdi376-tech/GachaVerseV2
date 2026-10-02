@@ -3,13 +3,19 @@ import { useGameStore } from '@/store/gameStore';
 import { useNow } from '@/hooks/useNow';
 
 // ── Barre des boosts BossCrown actifs (+20% DPS / +20% Or) ───────────────
+// Sans boost actif, rien n'est rendu et aucune horloge ne tourne : le compte
+// à rebours (useNow) vit dans BoostTimers, monté seulement s'il y a un boost.
 export function ActiveBoostsBar() {
-  const { dpsBoostEndsAt, goldBoostEndsAt, isDpsBoostActive, isGoldBoostActive } = useGameStore();
-  const now = useNow();
-
-  const dpsActive  = isDpsBoostActive();
-  const goldActive = isGoldBoostActive();
+  const dpsActive  = useGameStore(s => s.isDpsBoostActive());
+  const goldActive = useGameStore(s => s.isGoldBoostActive());
   if (!dpsActive && !goldActive) return null;
+  return <BoostTimers dpsActive={dpsActive} goldActive={goldActive} />;
+}
+
+function BoostTimers({ dpsActive, goldActive }: { dpsActive: boolean; goldActive: boolean }) {
+  const dpsBoostEndsAt  = useGameStore(s => s.dpsBoostEndsAt);
+  const goldBoostEndsAt = useGameStore(s => s.goldBoostEndsAt);
+  const now = useNow();
 
   const fmt = (endsAt: number) => {
     const s = Math.max(0, Math.ceil((endsAt - now) / 1000));

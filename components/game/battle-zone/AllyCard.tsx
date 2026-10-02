@@ -10,11 +10,17 @@ import { SkillTooltip } from '@/components/ui/SkillTooltip';
 
 // ── Carte alliée style gacha ──────────────────────────────────────────────
 export function AllyCard({ templateId, onManage }: { templateId: string; onManage: () => void }) {
-  const { collection, activateCharacterUltimate, getCharDpsBreakdown } = useGameStore();
-  const { ultCooldowns: cooldowns, ultActiveUlts: activeUlts, ultQueue } = useGameStore();
+  // Abonnements limités à CE perso : la carte ne se re-rend que quand son
+  // propre état change (niveau, cooldown, file, DPS), pas à chaque tick.
+  const owned    = useGameStore(s => s.collection[templateId]);
+  const cd       = useGameStore(s => s.ultCooldowns[templateId] ?? 0);
+  const isActive = useGameStore(s => s.ultActiveUlts.some(a => a.templateId === templateId));
+  // Position dans la file des ultis stackés (1 = le prochain), 0 = pas en file.
+  const queuePos = useGameStore(s => s.ultQueue.findIndex(q => q.templateId === templateId) + 1);
+  const breakdown = useGameStore(s => s.getCharDpsBreakdown(templateId)); // mis en cache dans le store
+  const activateCharacterUltimate = useGameStore(s => s.activateCharacterUltimate);
   const pureId = parseInstanceKey(templateId).templateId; // clé composite -> id pur (art/nom/ulti partagés entre éditions)
   const tpl   = getCharacterById(pureId);
-  const owned = collection[templateId];
 
   // Slot vide — largeur alignée sur .ally-card-illu pour garder la même
   // hauteur que les cartes occupées (sinon le placeholder s'étirait sur
@@ -34,11 +40,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
     </div>
   );
 
-  const cd       = cooldowns[templateId] ?? 0;
   const ready    = cd === 0;
-  const isActive = activeUlts.some(a => a.templateId === templateId);
-  // Position dans la file des ultis stackés (1 = le prochain), 0 = pas en file.
-  const queuePos = ultQueue.findIndex(q => q.templateId === templateId) + 1;
   const queued   = queuePos > 0;
   const clickable = ready || queued; // re-cliquer un ulti en file l'annule
   const mins     = Math.floor(cd / 60);
@@ -49,7 +51,7 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
 
   const rc  = RARITY_CONFIG[tpl.rarity];
   const ult = getUltimateDef(pureId);
-  const { base, typeMult, final } = getCharDpsBreakdown(templateId);
+  const { base, typeMult, final } = breakdown;
   const strong = typeMult > 1, weak = typeMult < 1;
   const multCol = strong ? '#4ade80' : weak ? '#f87171' : 'rgba(255,255,255,0.5)';
   const multTxt = typeMult === 1 ? 'OK' : `×${typeMult.toFixed(2)}`;

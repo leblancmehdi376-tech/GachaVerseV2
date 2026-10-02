@@ -1,4 +1,5 @@
 'use client';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { RAID_BOSSES, RaidBossDef, DropEntry } from '@/lib/game/raidBoss';
 import { getItemDef } from '@/lib/game/items';
@@ -70,7 +71,7 @@ function pickRareDrops(dropTable: DropEntry[]): DropEntry[] {
 }
 
 export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
-  const { bossCrowns, nekoGems } = useGameStore();
+  const { bossCrowns, nekoGems } = useGameStore(useShallow(s => ({ bossCrowns: s.bossCrowns, nekoGems: s.nekoGems })));
   return (
     <div style={{ height:'100%', overflowY:'auto', position:'relative' }}>
       <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 50% 20%,rgba(147,51,234,0.08),transparent 60%)', pointerEvents:'none' }} />

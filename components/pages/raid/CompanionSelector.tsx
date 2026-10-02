@@ -1,4 +1,5 @@
 'use client';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
@@ -11,7 +12,7 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
   onToggle: (id: string) => void;
   onClose: () => void;
 }) {
-  const { collection, equippedTeam, isCharOnExpedition } = useGameStore();
+  const { collection, equippedTeam, isCharOnExpedition } = useGameStore(useShallow(s => ({ collection: s.collection, equippedTeam: s.equippedTeam, isCharOnExpedition: s.isCharOnExpedition, expeditionActive: s.expeditionActive })));
 
   const equippedPure = equippedTeam.filter((t): t is string => !!t).map(t => parseInstanceKey(t).templateId);
   const owned = CHARACTER_POOL.filter(c => !c.isHero && !!collection[c.id]);

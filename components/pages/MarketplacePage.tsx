@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { auth } from '@/lib/firebase/config';
 import { formatNumber } from '@/lib/game/format';
@@ -54,7 +55,7 @@ export function getListingIcon(l: MarketplaceListing): string {
 }
 
 export function MarketplacePage() {
-  const store = useGameStore();
+  const store = useGameStore(useShallow(s => ({ nekoGems: s.nekoGems, bossCrowns: s.bossCrowns, pixelCoins: s.pixelCoins, addEquipment: s.addEquipment, addItem: s.addItem, addStat: s.addStat, addToCollection: s.addToCollection, collection: s.collection, equipmentInventory: s.equipmentInventory, inventory: s.inventory, spendPixelCoins: s.spendPixelCoins, username: s.username })));
   const user  = auth?.currentUser;
 
   const [tab,        setTab]        = useState<'market' | 'mine'>('market');

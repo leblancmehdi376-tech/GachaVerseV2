@@ -46,9 +46,6 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Seuls les doublons tirés une fois la carte **Prismatique** vont dans l'Inventaire des Champions.",
           "**Effets des éditions allégés** : moins de lag et de charge sur la carte graphique, surtout dans les grandes grilles de cartes.",
           "Les cartes **hors de l'écran** ne sont plus animées, et la bordure **Prismatique** est désormais un arc-en-ciel fixe.",
-          "Pages **Compagnons**, **Maîtrise** et **Améliorations** beaucoup plus réactives : elles ne ralentissent plus pendant les combats.",
-          "**Clics plus rapides partout** : la sauvegarde locale ne bloque plus le jeu à chaque action.",
-          "**Fusion d'équipement** : « Fusionner ×max » est instantané, même avec des milliers d'objets.",
         ],
       },
       {
@@ -81,6 +78,21 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Au Prestige, les **combats** et **boss vaincus** de chaque personnage sont conservés.",
           "Le **niveau** de maîtrise repart de zéro, mais les **paliers de niveau déjà validés restent acquis**.",
           "Seule la progression vers le **prochain palier de niveau** est remise à zéro.",
+        ],
+      },
+      {
+        icon: '⚡',
+        title: 'Fluidité',
+        changes: [
+          "**Combat bien plus fluide** : l'écran d'accueil demande **2 fois moins de travail** au navigateur, surtout sensible sur téléphone et sur les écrans 120/144 Hz.",
+          "Le jeu ne redessine plus toute l'interface à chaque monstre vaincu : seuls les éléments qui changent (pièces, vague, quêtes) sont mis à jour.",
+          "Barres de vie, de progression, de quêtes et d'ultime animées plus légèrement.",
+          "**Particules du combat** allégées, et en pause quand la zone de combat n'est pas visible.",
+          "Toutes les pages (Profil, Boutique, Gacha, Expéditions, Forge, Mine, Prestige, Hôtel de ville…) restent réactives pendant que le combat tourne.",
+          "**Boss** : la pulsation rouge est désormais un halo lumineux, bien plus léger pour la carte graphique.",
+          "Pages **Compagnons**, **Maîtrise** et **Améliorations** beaucoup plus réactives : elles ne ralentissent plus pendant les combats.",
+          "**Clics plus rapides partout** : la sauvegarde locale ne bloque plus le jeu à chaque action.",
+          "**Fusion d'équipement** : « Fusionner ×max » est instantané, même avec des milliers d'objets.",
         ],
       },
       {

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { EditionBadge } from '@/components/ui/EditionBadge';
@@ -67,7 +68,7 @@ function PullButton({ theme, count, cost, enabled, pulling, onClick, onInsuffici
 }
 
 export function GachaPage() {
-  const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, getRunPeakPalier, getGachaCosts, totalGachaPulls, anomalyTokens } = useGameStore();
+  const { nekoGems, pullSingle, pullMulti, pullMulti100, collection, totalGachaPulls, anomalyTokens } = useGameStore(useShallow(s => ({ nekoGems: s.nekoGems, pullSingle: s.pullSingle, pullMulti: s.pullMulti, pullMulti100: s.pullMulti100, collection: s.collection, totalGachaPulls: s.totalGachaPulls, anomalyTokens: s.anomalyTokens })));
   const [results,     setResults]     = useState<Res[]>([]);
   const [pulling,     setPulling]     = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -86,10 +87,10 @@ export function GachaPage() {
   const theme  = banner.theme;
   // Taux dynamiques calculés pour le palier max atteint DEPUIS LE DERNIER
   // PRESTIGE (pas le lifetime maxPalierReached, qui ne redescend jamais).
-  const maxPalierReached = getRunPeakPalier();
+  const maxPalierReached = useGameStore(s => s.getRunPeakPalier());
   const currentRates = getDynamicRates(maxPalierReached);
   // Coûts après réduction éventuelle des anomalies "Réduc. Coût Gacha".
-  const costs = getGachaCosts();
+  const costs = useGameStore(useShallow(s => s.getGachaCosts()));
   // Progression vers le prochain Jeton d'Anomalie (1 tous les 100 tirages cumulés).
   const { pullsInCycle, pullsToNextToken } = getPullsToNextToken(totalGachaPulls ?? 0);
 

@@ -2,7 +2,6 @@
 import { formatNumber } from '@/lib/game/format';
 import { computeActiveSynergies, computeSynergyProgress } from '@/lib/game/synergies';
 import { bnFromNumber, bnGt, bnMul, type BigNum } from '@/lib/game/bignum';
-import type { Enemy } from '@/types/game';
 import { AllyCard } from './AllyCard';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
 import { DpsBreakdownTooltip } from './DpsBreakdownTooltip';
@@ -10,13 +9,14 @@ import { GoldBreakdownTooltip } from './GoldBreakdownTooltip';
 import { SynergyBreakdownTooltip } from './SynergyBreakdownTooltip';
 
 const ONE = bnFromNumber(1);
+const noop = () => {};
 
 // ── Barre basse : compagnons, synergies, butin, DPS d'équipe et actions boss ──
 export function TeamBar({
-  equippedTeam, currentEnemy, goldMult, dps, dpsUltMult,
+  equippedTeam, pixelCoinsReward, gemsReward, goldMult, dps, dpsUltMult,
   bossActive, bossAvoided, wave, retreatFromBoss, challengeBoss,
 }: {
-  equippedTeam: (string | null)[]; currentEnemy: Enemy; goldMult: BigNum;
+  equippedTeam: (string | null)[]; pixelCoinsReward: BigNum; gemsReward: number; goldMult: BigNum;
   dps: BigNum; dpsUltMult: number;
   bossActive: boolean; bossAvoided: boolean; wave: number;
   retreatFromBoss: () => void; challengeBoss: () => void;
@@ -30,7 +30,7 @@ export function TeamBar({
   // "vrai" montant entre parenthèses corresponde à ce qui sera réellement
   // crédité au kill (voir resolveEnemyDeath), pas seulement le bonus du coffre.
   const hasGoldBonus = bnGt(goldMult, ONE);
-  const realGold = hasGoldBonus ? bnMul(currentEnemy.pixelCoinsReward, goldMult) : null;
+  const realGold = hasGoldBonus ? bnMul(pixelCoinsReward, goldMult) : null;
 
   return (
     <div style={{ position:'relative', zIndex:3, background:'linear-gradient(0deg,rgba(165, 165, 165, 0),rgba(5,4,15,0.3))', borderTop:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
@@ -91,7 +91,7 @@ export function TeamBar({
           }}>
             {equippedTeam.map((tid, i) => (
               <div key={i} className="team-companion-slot" style={{ position:'relative', width:88, flexShrink:0 }}>
-                <AllyCard templateId={tid ?? ''} onManage={() => {}} />
+                <AllyCard templateId={tid ?? ''} onManage={noop} />
               </div>
             ))}
           </div>
@@ -139,11 +139,11 @@ export function TeamBar({
             <GoldBreakdownTooltip>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
               <div style={{ fontFamily:'var(--f-num)', fontSize:16, fontWeight:700, color:'var(--gold)' }}>
-                +{formatNumber(currentEnemy.pixelCoinsReward)} 🪙
+                +{formatNumber(pixelCoinsReward)} 🪙
                 {realGold && <span style={{ fontSize:14, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
               </div>
             </GoldBreakdownTooltip>
-            {currentEnemy.gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, color:'var(--cyan-hi)' }}>+{currentEnemy.gemsReward} 💎</div>}
+            {gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, color:'var(--cyan-hi)' }}>+{gemsReward} 💎</div>}
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(34,211,238,0.45)', marginTop:2 }}>✦ 0.5% 💎 par ennemi</div>
           </div>
 

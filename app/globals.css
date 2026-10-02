@@ -454,9 +454,12 @@ html, body {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-10px); }
 }
+/* Pulsation du boss : on anime l'opacité/échelle d'un halo posé derrière le
+   sprite (composité par le GPU) plutôt qu'un filter: drop-shadow sur le
+   sprite lui-même, qui forçait un repaint de l'image à chaque frame. */
 @keyframes bossPulse {
-  0%, 100% { filter: drop-shadow(0 0 14px rgba(239,68,68,0.7)); }
-  50%       { filter: drop-shadow(0 0 32px #ef4444) brightness(1.1); }
+  0%, 100% { opacity: 0.45; transform: translate(-50%,-50%) scale(0.92); }
+  50%       { opacity: 1;    transform: translate(-50%,-50%) scale(1.08); }
 }
 @keyframes shakeHit {
   0%,100% { transform: translateX(0); }
@@ -529,7 +532,7 @@ html, body {
 }
 
 .anim-idle    { animation: idleFloat 3.5s ease-in-out infinite; }
-.anim-boss    { animation: bossPulse 1.5s ease-in-out infinite; }
+.anim-boss    { animation: bossPulse 1.5s ease-in-out infinite; will-change: opacity, transform; }
 .anim-shake   { animation: shakeHit 0.25s ease-out; }
 .anim-warn    { animation: warnFlash 0.5s infinite; }
 .anim-reveal  { animation: gachaReveal 0.5s cubic-bezier(.175,.885,.32,1.275) both; }
@@ -1432,7 +1435,10 @@ html, body {
   animation-delay: calc(var(--i, 0) * 180ms);
   pointer-events: none;
 }
-@keyframes achCardSweep { 0%, 70% { left: -60%; } 100% { left: 130%; } }
+/* Reflet du toast de succès : déplacé en transform (composité) plutôt qu'en
+   left, qui relançait la mise en page à chaque frame. 475 % de sa largeur
+   (40 %) = de -60 % à 130 % du toast. */
+@keyframes achCardSweep { 0%, 70% { transform: translateX(0); } 100% { transform: translateX(475%); } }
 /* Variante composité des cartes (en boucle) : ~422 % de sa largeur (45 %) =
    de -60 % à 130 % de la carte, sans mise en page à chaque frame. */
 @keyframes achCardSweepX { 0%, 70% { transform: translateX(0); } 100% { transform: translateX(422%); } }
@@ -1651,7 +1657,7 @@ html, body {
   animation: achToastIn 0.6s cubic-bezier(.2,1.2,.3,1) both, achToastOut 0.45s ease-in forwards 3.6s;
 }
 .ach-toast::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -50%;
+  content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
   background: linear-gradient(100deg, transparent, rgba(255,255,255,0.22), transparent);
   animation: achCardSweep 1.6s ease-out 0.3s both;
   pointer-events: none;

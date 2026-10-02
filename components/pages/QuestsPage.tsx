@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll, SectionHeader } from '@/components/ui/Page';
@@ -106,7 +107,7 @@ export function QuestsPage() {
     quests, claimQuest,
     weeklyQuests, claimWeeklyQuest,
     raidQuests, claimRaidQuest,
-  } = useGameStore();
+  } = useGameStore(useShallow(s => ({ quests: s.quests, claimQuest: s.claimQuest, weeklyQuests: s.weeklyQuests, claimWeeklyQuest: s.claimWeeklyQuest, raidQuests: s.raidQuests, claimRaidQuest: s.claimRaidQuest })));
 
   // Le reset quotidien/hebdomadaire (ensureDailyQuests/ensureWeeklyQuests) est géré une
   // seule fois par GameLayout, une fois la réhydratation locale ET le chargement cloud

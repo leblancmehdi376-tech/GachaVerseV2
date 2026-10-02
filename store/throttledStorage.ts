@@ -11,7 +11,7 @@
 // ou fermé, pour ne rien perdre.
 import type { PersistStorage, StorageValue } from 'zustand/middleware';
 
-const WRITE_DELAY_MS = 1000;
+const WRITE_DELAY_MS = 3000;
 
 export function createThrottledStorage<S>(): PersistStorage<S> | undefined {
   if (typeof window === 'undefined') return undefined;

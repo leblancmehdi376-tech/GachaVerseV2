@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { getCharacterById } from '@/lib/game/characters';
 import { auth } from '@/lib/firebase/config';
@@ -25,7 +26,7 @@ export function groupChampionsByRarity(
 }
 
 export function ChampionInventoryPage() {
-  const store = useGameStore();
+  const store = useGameStore(useShallow(s => ({ addToCollection: s.addToCollection, championInventory: s.championInventory, recycleChampion: s.recycleChampion, recycleChampionsByRarity: s.recycleChampionsByRarity, removeChampion: s.removeChampion, username: s.username })));
   const user  = auth?.currentUser;
 
   const [feedback,   setFeedback]   = useState<{ ok:boolean; msg:string } | null>(null);

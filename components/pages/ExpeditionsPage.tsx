@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, ActiveExpedition } from '@/store/gameStore';
 import { EXPEDITION_DEFS, ExpeditionDef, getCharacterExpeditionDps, getExpeditionTeamDps, getPalierDrop, hasCharacterWhitelist, hasRealUniverse, getDropTiers, computeDropAttempts, dpsForDropQty, getExpeditionRarity } from '@/lib/game/expeditions';
 import { CHARACTER_POOL } from '@/lib/game/characters';
@@ -45,8 +46,10 @@ function CharSelector({ def, onConfirm, onClose }: {
   onConfirm: (ids: string[]) => void;
   onClose: () => void;
 }) {
-  const { collection, equippedTeam } = useGameStore();
-  const { isCharOnExpedition, getExpeditionAffinity } = useGameStore();
+  const { collection, equippedTeam } = useGameStore(useShallow(s => ({ collection: s.collection, equippedTeam: s.equippedTeam })));
+  // expeditionActive / expeditionDefAffinities : lus par ces deux getters, on
+  // s'y abonne pour se re-rendre quand ils changent.
+  const { isCharOnExpedition, getExpeditionAffinity } = useGameStore(useShallow(s => ({ isCharOnExpedition: s.isCharOnExpedition, getExpeditionAffinity: s.getExpeditionAffinity, expeditionActive: s.expeditionActive, expeditionDefAffinities: s.expeditionDefAffinities })));
   const [selected, setSelected] = useState<string[]>([]);
 
   // Trié par DPS décroissant (meilleur d'abord).
@@ -216,7 +219,7 @@ function CharSelector({ def, onConfirm, onClose }: {
 
 /* ── Carte expédition active ────────────────────────────────────────────── */
 function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
-  const { claimExpedition, cancelExpedition, debugFinishExpedition } = useGameStore();
+  const { claimExpedition, cancelExpedition, debugFinishExpedition } = useGameStore(useShallow(s => ({ claimExpedition: s.claimExpedition, cancelExpedition: s.cancelExpedition, debugFinishExpedition: s.debugFinishExpedition })));
   const [, tick] = useState(0);
   // [DEV] Bouton "finir l'expédition" affiché uniquement en local, jamais en prod.
   const isLocalDev = typeof window !== 'undefined' && (
@@ -307,9 +310,11 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
 
 /* ── Carte expédition disponible ────────────────────────────────────────── */
 function ExpeditionCard({ def, onSelect, busy, highlighted }: { def: ExpeditionDef; onSelect: () => void; busy: boolean; highlighted?: boolean }) {
-  const { getRunPeakPalier, unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore();
-  const { getExpeditionAffinity } = useGameStore();
-  const palierLocked = getRunPeakPalier() < def.palierRequired;
+  const { unlockedEquipRarities, unlockedEquipDropRarities } = useGameStore(useShallow(s => ({ unlockedEquipRarities: s.unlockedEquipRarities, unlockedEquipDropRarities: s.unlockedEquipDropRarities })));
+  const runPeakPalier = useGameStore(s => s.getRunPeakPalier());
+  const getExpeditionAffinity = useGameStore(s => s.getExpeditionAffinity);
+  useGameStore(s => s.expeditionDefAffinities[def.id]); // abonnement : re-rendre si le type tiré change
+  const palierLocked = runPeakPalier < def.palierRequired;
   const whitelist = hasCharacterWhitelist(def) ? def.allowedCharacters! : null;
   const requiresRealUniverse = hasRealUniverse(def);
   const requiredAffinity = whitelist || requiresRealUniverse ? null : getExpeditionAffinity(def.id);
@@ -443,15 +448,17 @@ export function tabOf(d: ExpeditionDef): ExpTab {
 }
 
 export function ExpeditionsPage() {
-  const { expeditionActive: active, getFinished, getMaxActiveExpeditions } = useGameStore();
-  const { focusedExpeditionId, focusExpedition } = useGameStore();
+  const active = useGameStore(s => s.expeditionActive);
+  const maxActive = useGameStore(s => s.getMaxActiveExpeditions());
+  // Dépend de l'heure : réévalué à chaque mise à jour du store (tick de
+  // combat chaque seconde), ne re-rend la page que si le nombre change.
+  const finishedCount = useGameStore(s => s.getFinished().length);
+  const { focusedExpeditionId, focusExpedition } = useGameStore(useShallow(s => ({ focusedExpeditionId: s.focusedExpeditionId, focusExpedition: s.focusExpedition })));
   const [selectedDef, setSelectedDef] = useState<ExpeditionDef | null>(null);
   const [filter, setFilter] = useState<ExpTab>('forge');
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const runningExp = active.filter(e => !e.claimed);
-  const finished   = getFinished();
-  const maxActive  = getMaxActiveExpeditions();
 
   const filtered = EXPEDITION_DEFS
     .filter(d => tabOf(d) === filter)
@@ -502,9 +509,9 @@ export function ExpeditionsPage() {
             </div>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            {finished.length > 0 && (
+            {finishedCount > 0 && (
               <div className="anim-ultra" style={{ background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:8, padding:'6px 14px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#4ade80' }}>
-                ✅ {finished.length} terminée{finished.length > 1 ? 's' : ''}
+                ✅ {finishedCount} terminée{finishedCount > 1 ? 's' : ''}
               </div>
             )}
             <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 14px', fontFamily:'var(--f-num)', fontWeight:700, fontSize:14, color:'var(--purple-glow)' }}>
