@@ -32,6 +32,9 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
         @media (min-width: 1800px) {
           .ally-card-empty-illu { width: 84px !important; }
         }
+        @media (max-width: 820px) {
+          .ally-card-empty-illu { width: 72px !important; }
+        }
       `}</style>
       <div className="ally-card-empty-illu" style={{ width:'100%', aspectRatio:'287 / 458', border:'2px dashed rgba(255,255,255,0.12)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.02)', flexDirection:'column', gap:6 }}>
         <span style={{ fontSize:24, color:'rgba(255,255,255,0.2)' }}>+</span>
@@ -66,19 +69,31 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
       transition: 'box-shadow 0.2s, border-color 0.2s',
       paddingTop: 8,
     }}>
-      {/* À partir de 1800px, les infos (+ le badge LV/rang) passent à droite
-          de l'illustration (meilleure lisibilité) ; en dessous, on garde
-          l'empilement vertical d'origine. */}
+      {/* À partir de 1800px, et sur téléphone (≤820px, où les compagnons
+          passent en grille 2×2 — voir TeamBar), les infos (+ le badge LV)
+          passent à droite de l'illustration ; entre les deux, on garde
+          l'empilement vertical d'origine. Sur téléphone la colonne d'infos
+          est étroite : libellé du DPS au-dessus de sa valeur, et « ULTI PRÊT »
+          peut passer sur deux lignes. */}
       <style>{`
         .ally-card-badge-inline { display: none; }
         .ally-card-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1.1; }
-        @media (min-width: 1800px) {
-          .ally-card-stat { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 4px; }
+        @media (min-width: 1800px), (max-width: 820px) {
           .ally-card-root { flex-direction: row !important; }
           .ally-card-illu { width: 84px !important; flex-shrink: 0; }
-          .ally-card-info { flex: 1; border-top: none !important; border-left: 1px solid rgba(255,255,255,0.08); justify-content: center !important; }
+          .ally-card-info { flex: 1; min-width: 0; border-top: none !important; justify-content: center !important; padding: 6px 10px !important; }
           .ally-card-badge-float { display: none !important; }
           .ally-card-badge-inline { display: inline-flex !important; }
+        }
+        @media (min-width: 1800px) {
+          .ally-card-stat { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 4px; }
+        }
+        @media (max-width: 820px) {
+          .ally-card-root { padding-top: 0 !important; }
+          .ally-card-illu { width: 72px !important; }
+          .ally-card-info { padding: 6px !important; align-items: stretch; }
+          .ally-card-badge-inline { justify-content: center; }
+          .ally-card-ult-label { white-space: normal !important; text-align: center; line-height: 1.1; }
         }
       `}</style>
 
@@ -100,39 +115,37 @@ export function AllyCard({ templateId, onManage }: { templateId: string; onManag
         </div>
       </SkillTooltip>
 
-      {/* Pied : ULTI / BASE / TYPE / DPS — empilés en lignes pleine largeur
+      {/* Pied : ULTI / DPS — empilés en lignes pleine largeur
           (au lieu d'un badge en overlay sur l'illustration, qui se lisait mal
           une fois superposé à l'art). La carte ne fait que ~88px de large :
           chaque stat met son libellé AU-DESSUS de sa valeur (.ally-card-stat)
           pour que les deux tiennent en 14px ; libellé et valeur repassent
           côte à côte au-delà de 1800px, où les infos passent à droite de
           l'illustration via .ally-card-info. */}
-      <div className="ally-card-info" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '5px 4px', background: 'rgba(0,0,0,0.32)', borderTop: `1px solid ${rc.color}22` }}>
+      <div className="ally-card-info" style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 6px', borderTop: `1px solid ${rc.color}22` }}>
         {/* Niveau — repris ici pour l'affichage large (voir
             .ally-card-badge-float, masqué au-delà de 1800px). */}
-        <div className="ally-card-badge-inline" style={{ alignItems: 'center', gap: 5, marginBottom: 2 }}>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.5 }}>LV{owned.level}</span>
+        <div className="ally-card-badge-inline" style={{ alignItems: 'baseline', gap: 3 }}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.45)' }}>Lv</span>
+          <span style={{ fontFamily: 'var(--f-num)', fontSize: 16, fontWeight: 800, color: 'rgba(255,255,255,0.92)' }}>{owned.level}</span>
         </div>
         <div onClick={() => clickable && activateCharacterUltimate(templateId, formIdx)}
           title={queued ? "En file d'attente — cliquer pour annuler" : undefined}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 4px', marginBottom: 2, borderRadius: 4, cursor: clickable ? 'pointer' : 'default',
-            background: queued ? 'rgba(59,130,246,0.35)' : ready ? 'rgba(88,28,135,0.55)' : 'rgba(255,255,255,0.04)',
-            border: queued ? '1px solid #60a5fa' : ready ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)' }}>
-          {!ready && !queued && <span style={{ fontSize: 14 }}>⏳</span>}
-          <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: queued ? '#bfdbfe' : ready ? '#fde68a' : 'rgba(255,255,255,0.55)', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '3px 4px', borderRadius: 6, cursor: clickable ? 'pointer' : 'default',
+            background: queued ? 'rgba(59,130,246,0.18)' : ready ? 'rgba(251,191,36,0.12)' : 'transparent',
+            border: queued ? '1px solid rgba(96,165,250,0.5)' : ready ? '1px solid rgba(251,191,36,0.45)' : '1px solid rgba(255,255,255,0.08)' }}>
+          {!ready && !queued && <span style={{ fontSize: 14, opacity: 0.6 }}>⏳</span>}
+          <span className="ally-card-ult-label" style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: queued ? '#bfdbfe' : ready ? '#fde68a' : 'rgba(255,255,255,0.5)', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
             {queued ? `EN FILE #${queuePos}` : ready ? 'ULTI PRÊT' : ultLabel}
           </span>
         </div>
-        <div className="ally-card-stat">
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.5, flexShrink: 0 }}>BASE</span>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.8)', lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(base)}</span>
-        </div>
-        <div className="ally-card-stat">
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.5, flexShrink: 0 }}>TYPE</span>
-          <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 900, color: multCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{multTxt}</span>
-        </div>
-        <div className="ally-card-stat" style={{ marginTop: 2, paddingTop: 3, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.5, flexShrink: 0 }}>DPS</span>
+        {/* DPS final seul : BASE et TYPE (DPS = base × type) sont regroupés
+            dans l'infobulle, et le multiplicateur de type n'apparaît à côté
+            du libellé que lorsqu'il n'est pas neutre. */}
+        <div className="ally-card-stat" title={`Base ${formatNumber(base)} · Type ${multTxt}`}>
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.5, flexShrink: 0, whiteSpace: 'nowrap' }}>
+            DPS{typeMult !== 1 && <span style={{ color: multCol, fontWeight: 800, marginLeft: 4 }}>{multTxt}</span>}
+          </span>
           <span style={{ fontFamily: 'var(--f-num)', fontSize: 14, fontWeight: 900, color: finalCol, lineHeight: 1, whiteSpace: 'nowrap' }}>{formatNumber(final)}</span>
         </div>
       </div>

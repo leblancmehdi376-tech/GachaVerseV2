@@ -75,12 +75,13 @@ export function TeamBar({
             @media (min-width: 1800px) {
               .team-companion-slot { width: 200px !important; }
             }
-            /* Téléphone : 4 slots de 88px ne tiennent pas (le 4e était coupé
-               dans le scroll) — le panneau prend toute la largeur et les
-               slots se partagent l'espace (88px max chacun). */
+            /* Téléphone : le panneau prend toute la largeur et les compagnons
+               passent en grille 2×2 de cartes horizontales (art à gauche,
+               infos à droite — voir AllyCard), plus lisible que 4 colonnes
+               étroites. */
             @media (max-width: 820px) {
               .team-companion-panel { flex: 1 1 100%; min-width: 0; }
-              .team-companion-row { display: grid !important; grid-template-columns: repeat(4, minmax(0, 88px)); justify-content: center; width: 100%; }
+              .team-companion-row { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important; width: 100%; }
               .team-companion-slot { width: auto !important; }
             }
           `}</style>
@@ -108,10 +109,10 @@ export function TeamBar({
         <div className="combat-info">
           {/* Synergies — détail des paliers (actifs / atteignables) au survol (voir SynergyBreakdownTooltip) */}
           {hasSynergyProgress && (
-            <div className="combat-info__cell" style={{ padding:'7px 12px' }}>
+            <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
             <SynergyBreakdownTooltip>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>SYNERGIES <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', minHeight:16 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', justifyContent:'flex-end', minHeight:16 }}>
               {syns.length === 0 && (
                 <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:14, color:'rgba(255,255,255,0.55)', whiteSpace:'nowrap' }}>Aucune active</span>
               )}
