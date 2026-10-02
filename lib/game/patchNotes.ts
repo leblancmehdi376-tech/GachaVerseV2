@@ -4,6 +4,8 @@
 // IMPORTANT : à chaque changement notable apporté au jeu, ajouter une entrée
 // ici (voir AGENTS.md, section "Patch notes").
 // Dans les textes, **mot** s'affiche en gras.
+import { GAME_VERSION } from './version';
+
 export interface PatchNoteSection {
   icon: string;
   title: string;
@@ -18,6 +20,15 @@ export interface PatchNoteEntry {
 }
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
+  {
+    date: '02/10/2026',
+    title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Le numéro de version affiché sur l'**écran de chargement** et dans les **Options** correspond maintenant à la **dernière mise à jour** (au lieu de **1.0**).",
+      "Options : la ligne technique **« Clé »** est remplacée par les **crédits** du jeu (**NekoZ** & **Kiloudu14**).",
+      "Toucher les crédits ouvre une **popup** présentant les rôles de chacun.",
+    ],
+  },
   {
     date: '02/10/2026',
     title: 'Maj v2.8.1.1',

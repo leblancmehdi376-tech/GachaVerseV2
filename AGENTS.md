@@ -40,6 +40,8 @@ Each entry looks like:
 
 **Versioning**: entries are grouped under a version number in the `title` (e.g. `'Maj v2.6.1'`). When updating the patch notes, bump the **last** number of the most recent version by 1 (e.g. `2.6.9` → `2.6.10`) and create a new entry with that version as title. Only change another digit when the user explicitly asks for it.
 
+The current version lives in `GAME_VERSION` (`lib/game/version.ts`), shown on the loading screen and in the Options tab. The most recent entry's title is `` `Maj v${GAME_VERSION}` ``. When creating a new version: replace the previous entry's title with its literal string (e.g. `'Maj v2.8.1.2'`), bump `GAME_VERSION`, and give the new entry the `` `Maj v${GAME_VERSION}` `` title.
+
 **Before adding an entry, check whether the previous one is already on `main`**:
 1. Read the most recent entry (or entries) at the top of `PATCH_NOTES`.
 2. Compare with `main`: `git fetch origin main` then `git show origin/main:lib/game/patchNotes.ts` (or `git diff origin/main -- lib/game/patchNotes.ts`).

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
+import { GAME_VERSION } from '@/lib/game/version';
 
 interface Props {
   onComplete: () => void;
@@ -191,7 +192,7 @@ export function SplashScreen({ onComplete }: Props) {
         color: 'rgba(255,255,255,0.55)',
         letterSpacing: 2,
       }}>
-        v1.0.0 · GACHAVERSE
+        v{GAME_VERSION} · GACHAVERSE
       </div>
 
     </div>

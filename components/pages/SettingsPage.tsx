@@ -12,6 +12,8 @@ import { formatSyncStatus, type CloudSyncStatus } from '@/lib/firebase/cloudSave
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
+import { GAME_VERSION } from '@/lib/game/version';
+import { CreditsModal } from '@/components/pages/CreditsModal';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
   const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore(useShallow(s => ({ resetGame: s.resetGame, pixelCoins: s.pixelCoins, nekoGems: s.nekoGems, wave: s.wave, palier: s.palier, maxPalierReached: s.maxPalierReached, collection: s.collection, username: s.username, setUsername: s.setUsername, getTotalDps: s.getTotalDps })));
@@ -21,6 +23,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const [spoilerSearch, setSpoilerSearch] = useState('');
   const ALL_UNIVERSES = getSpoilerUniverses();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showCredits, setShowCredits]   = useState(false);
   const [resetDone, setResetDone]       = useState(false);
   const [saving,    setSaving]          = useState(false);
   const [saveOk,    setSaveOk]          = useState(false);
@@ -409,9 +412,13 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
         </div>
 
         <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', lineHeight:1.8 }}>
-          <div>GACHA VERSE — Version 1.0</div>
-          <div style={{ marginTop:'4px', color:'var(--text-dim)' }}>Clé : <code style={{ background:'rgba(255,255,255,0.05)', padding:'1px 6px', borderRadius:'3px' }}>nekoz-world-v6</code></div>
+          <div>GACHA VERSE — Version {GAME_VERSION}</div>
+          <button onClick={() => setShowCredits(true)}
+            style={{ marginTop:'4px', minHeight:'44px', padding:'0 14px', background:'none', border:'none', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', cursor:'pointer', textDecoration:'underline', textUnderlineOffset:'3px' }}>
+            Crédits : <strong style={{ color:'var(--text)' }}>NekoZ</strong> &amp; <strong style={{ color:'var(--text)' }}>Kiloudu14</strong>
+          </button>
         </div>
+        {showCredits && <CreditsModal onClose={() => setShowCredits(false)} />}
 
       </div>
     </div>
