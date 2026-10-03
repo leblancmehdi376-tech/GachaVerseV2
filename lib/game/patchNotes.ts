@@ -24,6 +24,14 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '03/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "Nouvelle **icône GachaVerse** dans l'onglet du navigateur (à la place du logo Vercel).",
+      "Une icône dédiée apparaît aussi quand on ajoute le jeu à l'**écran d'accueil** d'un téléphone.",
+    ],
+  },
+  {
+    date: '03/10/2026',
+    title: 'Maj v2.8.1.4',
+    changes: [
       "Les **fonds des paliers** ne sont plus pixelisés : l'image est désormais lissée quand elle est agrandie.",
       "Fonds **plus nets** pour les paliers **11, 12, 13, 16, 20, 22, 25, 27, 29, 32, 35, 41, 43, 44, 50, 53, 57, 58 et 61**.",
       "Les fonds des paliers **20, 33, 40, 45, 46 et 62** sont plus légers et se chargent plus vite.",
