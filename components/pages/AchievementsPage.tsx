@@ -205,7 +205,7 @@ export const AchievementsPage = memo(function AchievementsPage() {
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, margin:'0 auto' }}>
             <Ring pct={pct} />
             {claimableCount > 0 ? (
-              <button className="ach-claim-all" onClick={() => claimAllAchievements()}>🎁 TOUT RÉCUPÉRER ({claimableCount})</button>
+              <button className="ach-claim-all" onClick={() => claimAllAchievements()}><span className="ach-claim-all__shine" aria-hidden />🎁 TOUT RÉCUPÉRER ({claimableCount})</button>
             ) : (
               <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'var(--text-dim)' }}>Aucune récompense en attente</div>
             )}

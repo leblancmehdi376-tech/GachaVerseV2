@@ -106,14 +106,17 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         <div style={{
           height: '100%',
           background: style.bar,
+          // scaleX (composité) plutôt que width : le dégradé se contracte avec
+          // la barre, rendu identique sans mise en page à chaque frame.
+          transformOrigin: 'left',
           animation: `toastProgress ${dur}ms linear forwards`,
         }} />
       </div>
 
       <style>{`
         @keyframes toastProgress {
-          from { width: 100%; }
-          to   { width: 0%; }
+          from { transform: scaleX(1); }
+          to   { transform: scaleX(0); }
         }
       `}</style>
     </div>

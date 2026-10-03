@@ -17,10 +17,6 @@ interface AvatarVisualProps {
   /** Lettre affichée quand aucun champion n'est sélectionné/possédé. */
   fallbackLetter: string;
   maxPalierReached: number;
-  /** Pulsation "joueur accompli" — nécessite le nombre de succès débloqués,
-      indisponible pour les AUTRES joueurs (jamais synchronisé sur Firestore,
-      voir INTENTIONALLY_TRANSIENT_FIELDS), donc false par défaut. */
-  pulse?: boolean;
   tooltip?: string;
   /** Overlay positionné en absolute par-dessus l'avatar (ex: badge de synchro). */
   children?: ReactNode;
@@ -31,7 +27,7 @@ interface AvatarVisualProps {
 // (voir PlayerAvatar, qui lit gameStore et délègue ici) que les AUTRES
 // joueurs du classement (LeaderboardPage, à partir des données Firestore
 // déjà synchronisées).
-export function AvatarVisual({ size = 36, champion, fallbackLetter, maxPalierReached, pulse = false, tooltip, children }: AvatarVisualProps) {
+export function AvatarVisual({ size = 36, champion, fallbackLetter, maxPalierReached, tooltip, children }: AvatarVisualProps) {
   const aura = getPalierAuraTier(maxPalierReached);
   const glowPx = getAvatarGlowPx(aura, size);
   const radius = size >= 60 ? 16 : 8;
@@ -46,7 +42,6 @@ export function AvatarVisual({ size = 36, champion, fallbackLetter, maxPalierRea
           background: champion ? undefined : 'linear-gradient(135deg,#3b0764,#6d28d9)',
           border: `2px solid ${aura.borderColor}`,
           boxShadow: `0 0 ${glowPx}px ${aura.glowColor}`,
-          animation: pulse ? 'rarityPulse 2.4s ease-in-out infinite' : undefined,
         }}
       >
         {champion ? (

@@ -5,6 +5,7 @@ import { getCharacterById } from '@/lib/game/characters';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { CardBackImg } from './CardBackImg';
 import { RarityBurst } from './RarityBurst';
+import { UltraGlow } from './UltraGlow';
 import { HIGH_RARITY, ULTRA_RARITY, type Res } from './gachaTypes';
 
 // Single flip card
@@ -126,12 +127,14 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
           backfaceVisibility:'hidden',
           transform:'rotateY(180deg)',
           borderRadius:12, overflow:'hidden',
+          // Ultra révélée : le halo pulsé est porté par <UltraGlow> (après la face).
           boxShadow: isUltra
-            ? `0 0 0 2px ${cfg.color}, 0 0 50px ${cfg.glow}, 0 0 100px ${cfg.glow}44, 0 10px 40px rgba(0,0,0,0.8)`
+            ? revealed
+              ? '0 10px 40px rgba(0,0,0,0.8)'
+              : `0 0 0 2px ${cfg.color}, 0 0 50px ${cfg.glow}, 0 0 100px ${cfg.glow}44, 0 10px 40px rgba(0,0,0,0.8)`
             : isHigh
               ? `0 0 0 2px ${cfg.color}, 0 0 30px ${cfg.glow}88, 0 10px 30px rgba(0,0,0,0.7)`
               : `0 0 0 1px ${cfg.color}44, 0 8px 24px rgba(0,0,0,0.7)`,
-          animation: isUltra && revealed ? 'gvUltraPulse 2s ease-in-out infinite' : undefined,
         }}>
           {tpl && (
             <>
@@ -174,6 +177,7 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
             </>
           )}
         </div>
+        {isUltra && revealed && <UltraGlow color={cfg.color} glow={cfg.glow} radius={12} />}
       </div>
     </div>
   );

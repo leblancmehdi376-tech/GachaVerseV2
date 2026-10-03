@@ -129,7 +129,7 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
                   <div style={{ position:'relative', padding:'clamp(16px, 4vw, 22px) clamp(14px, 4vw, 20px) clamp(14px, 4vw, 20px)', display:'flex', flexDirection:'column', gap:11, minHeight:280 }}>
                     <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'space-between', alignItems:'flex-start', gap:6 }}>
                       <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:6, padding:'3px 10px' }}>
-                        <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', animation:'pulse 2s infinite' }} />
+                        <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', animation:'raidLobbyPulse 2s infinite' }} />
                         <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#4ade80', letterSpacing:1 }}>ACTIF</span>
                       </div>
                       <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)', fontWeight:600 }}>⏰ Permanent</span>
@@ -201,7 +201,7 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
         </div>
       </div>
       <style>{`
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes raidLobbyPulse{0%,100%{opacity:1}50%{opacity:0.4}}
         @keyframes topGlow{0%,100%{opacity:0.6}50%{opacity:1}}
         @keyframes rareGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
       `}</style>

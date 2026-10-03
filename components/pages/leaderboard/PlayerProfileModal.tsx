@@ -6,7 +6,6 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { getCharacterById, CHARACTER_POOL } from '@/lib/game/characters';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
-import { hasAvatarPulse } from '@/lib/game/avatarAura';
 import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, MAX_SHOWCASED_TROPHIES, TIER_META, getAchievementTier } from '@/lib/game/achievements';
 import { tierVars } from '@/components/pages/achievements/achievementUi';
 import { RARITY_CONFIG } from '@/types/game';
@@ -68,7 +67,6 @@ export function PlayerProfileModal({ entry, rank, rankColor, isMe, onClose }: Pr
             champion={avatarTpl ? { templateId: avatarTpl.id, formIndex: entry.avatarFormIndex, name: avatarTpl.name, rarity: avatarTpl.rarity } : null}
             fallbackLetter={entry.username.charAt(0).toUpperCase()}
             maxPalierReached={entry.maxPalierReached}
-            pulse={hasAvatarPulse(profile.achievementsCount)}
             tooltip={avatarTpl?.name ?? entry.username}
           />
           <div style={{ flex:1, minWidth:0 }}>

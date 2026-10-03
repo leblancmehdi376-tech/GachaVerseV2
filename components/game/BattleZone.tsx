@@ -129,12 +129,6 @@ export function BattleZone() {
         retreatFromBoss={retreatFromBoss}
         challengeBoss={challengeBoss}
       />
-
-      <style>{`
-        @keyframes rainbowShift { 0%{background-position:0% center} 100%{background-position:200% center} }
-        @keyframes floatDmg { 0%{opacity:1;transform:translate(-50%,-50%) translateY(0) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) translateY(-64px) scale(0.75)} }
-        @keyframes shimmerSlide { 0%{left:-60%} 100%{left:110%} }
-      `}</style>
     </div>
   );
 }

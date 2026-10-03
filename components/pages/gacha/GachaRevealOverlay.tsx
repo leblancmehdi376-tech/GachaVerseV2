@@ -195,10 +195,6 @@ export function GachaRevealOverlay({ results, onClose }: { results: Res[]; onClo
           0%,100% { opacity:0.6; }
           50%     { opacity:1; }
         }
-        @keyframes gvUltraPulse {
-          0%,100% { box-shadow: 0 0 0 2px var(--c), 0 0 50px var(--g), 0 0 100px var(--g44); }
-          50%     { box-shadow: 0 0 0 3px var(--c), 0 0 80px var(--g), 0 0 160px var(--g44); }
-        }
       `}</style>
     </div>
   );

@@ -27,6 +27,10 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
       "**Chargement plus rapide** : les images des ennemis les plus lourdes ont été allégées, sans perte visible.",
       "Les illustrations d'ennemis réduites à l'écran sont maintenant **lissées** au lieu d'apparaître crénelées.",
       "Les **Patch Notes** sont chargées à part, ce qui allège le démarrage du jeu.",
+      "**Animations plus fluides** : plusieurs halos, reflets et pulsations sont maintenant gérés par la carte graphique (succès, Forge, Expéditions, cohésion, notifications).",
+      "**Tirages** : le halo pulsé des cartes **Stellaires, Cosmiques, Primordiales et Transcendantes** s'affiche de nouveau une fois la carte révélée.",
+      "**Raids** : le pop-up de récompenses ne modifie plus l'apparition des panneaux sur d'autres pages.",
+      "**Avatar** : il ne pulse plus une fois un grand nombre de succès débloqués ; la bordure et la lueur de palier restent.",
     ],
   },
   {

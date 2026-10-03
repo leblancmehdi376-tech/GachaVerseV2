@@ -257,9 +257,12 @@ html, body {
 .btn-primary:hover::after {
   animation: btnSheen 0.75s ease;
 }
+/* En transform (composité) et non en left, qui relançait la mise en page à
+   chaque frame. 422 % de sa largeur (45 %) = de -60 % à 130 % du bouton ;
+   la translation précède le skew, comme le déplacement de left. */
 @keyframes btnSheen {
-  from { left: -60%; }
-  to   { left: 130%; }
+  from { transform: translateX(0) skewX(-18deg); }
+  to   { transform: translateX(422.22%) skewX(-18deg); }
 }
 .btn-primary:hover {
   background: linear-gradient(135deg, #4c1aaa 0%, #6d28d9 40%, #8b5cf6 100%);
@@ -376,30 +379,6 @@ html, body {
   60%,100% { transform: translateX(100%); }
 }
 
-/* ── Badge rareté (10 raretés canoniques) ───────────────────────── */
-.rarity-C  { color:#9ca3af; border-color:rgba(156,163,175,0.30); background:rgba(156,163,175,0.07); }
-.rarity-U  { color:#86efac; border-color:rgba(134,239,172,0.35); background:rgba(34,197,94,0.07); }
-.rarity-R  { color:#60a5fa; border-color:rgba(96,165,250,0.40); background:rgba(59,130,246,0.08);
-             box-shadow:0 0 8px rgba(59,130,246,0.18); }
-.rarity-E  { color:#c084fc; border-color:rgba(192,132,252,0.42); background:rgba(168,85,247,0.09);
-             box-shadow:0 0 10px rgba(168,85,247,0.22); }
-.rarity-L  { color:#fbbf24; border-color:rgba(251,191,36,0.50); background:rgba(245,158,11,0.10);
-             box-shadow:0 0 12px rgba(245,158,11,0.28); }
-.rarity-M  { color:#f87171; border-color:rgba(248,113,113,0.52); background:rgba(239,68,68,0.10);
-             box-shadow:0 0 14px rgba(239,68,68,0.30); }
-.rarity-S  { color:#fff; border-color:rgba(251,191,36,0.6); background:rgba(255,255,255,0.06);
-             box-shadow:0 0 16px rgba(251,191,36,0.4); animation:rarityPulse 2.2s ease-in-out infinite; }
-.rarity-CO { color:#34d399; border-color:rgba(52,211,153,0.6); background:rgba(16,185,129,0.10);
-             box-shadow:0 0 16px rgba(16,185,129,0.4); animation:rarityPulse 2.2s ease-in-out infinite; }
-.rarity-P  { color:#ff8c5a; border-color:rgba(255,107,53,0.6); background:rgba(255,69,0,0.12);
-             box-shadow:0 0 18px rgba(255,69,0,0.45); animation:rarityPulse 2s ease-in-out infinite; }
-.rarity-T  { color:#e879f9; border-color:rgba(232,121,249,0.65); background:rgba(217,70,239,0.12);
-             box-shadow:0 0 20px rgba(217,70,239,0.5); animation:rarityPulse 1.8s ease-in-out infinite; }
-@keyframes rarityPulse {
-  0%,100% { filter:brightness(1);    }
-  50%     { filter:brightness(1.25); }
-}
-
 /* ── Chip / badge ───────────────────────────────────────────────── */
 .chip {
   display: inline-flex;
@@ -440,7 +419,7 @@ html, body {
 
 @keyframes floatDmg {
   0%   { opacity: 1; transform: translate(-50%,-50%) translateY(0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%,-50%) translateY(-72px) scale(0.7); }
+  100% { opacity: 0; transform: translate(-50%,-50%) translateY(-64px) scale(0.75); }
 }
 @keyframes splashLetterIn {
   from { opacity: 0; transform: translateY(18px) scale(0.85); }
@@ -472,41 +451,33 @@ html, body {
   0%,100% { opacity: 1; }
   50%     { opacity: 0.2; }
 }
-@keyframes gachaReveal {
-  0%   { opacity: 0; transform: scale(0.2) rotate(-25deg); }
-  65%  { transform: scale(1.1) rotate(3deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0); }
-}
-@keyframes shimmerSlide {
-  0%   { left: -60%; }
-  100% { left: 120%; }
-}
 @keyframes editionPulse {
   0%, 100% { opacity: 0.55; }
   50%       { opacity: 1; }
 }
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 8px rgba(147,51,234,0.4); }
-  50%       { box-shadow: 0 0 20px rgba(147,51,234,0.8); }
+/* Halos pulsés : fondu croisé de deux ombres fixes (min / max) portées par
+   ::before / ::after. Seule l'opacité est animée (par le compositeur), au lieu
+   d'interpoler un box-shadow ou un text-shadow repeint à chaque frame. */
+@keyframes glowFadeOut {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
 }
+@keyframes glowFadeIn {
+  0%, 100% { opacity: 0; }
+  50%       { opacity: 1; }
+}
+/* Halo des cartes ultra révélées (components/pages/gacha/UltraGlow.tsx) :
+   même rotation et même face cachée que la face de la carte. */
+.gv-ultra-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  backface-visibility: hidden; transform: rotateY(180deg);
+  animation: glowFadeOut 2s ease-in-out infinite;
+}
+.gv-ultra-glow--max { opacity: 0; animation-name: glowFadeIn; }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-12px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes ultraPulse {
-  0%,100% { opacity: 1; box-shadow: 0 0 10px rgba(251,191,36,0.4); }
-  50%     { opacity: 0.6; box-shadow: 0 0 24px rgba(251,191,36,0.8); }
-}
-
-@keyframes forgeReadyGlow {
-  0%,100% { text-shadow: 0 0 4px rgba(192,132,252,0.35); border-color: rgba(192,132,252,0.3); }
-  50%     { text-shadow: 0 0 8px rgba(192,132,252,0.7);  border-color: rgba(192,132,252,0.6); }
-}
-
 /* Animation de forge (ForgeRevealOverlay) */
 @keyframes forgeFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes forgeSpin   { to { transform: rotate(360deg); } }
@@ -533,12 +504,32 @@ html, body {
 
 .anim-idle    { animation: idleFloat 3.5s ease-in-out infinite; }
 .anim-boss    { animation: bossPulse 1.5s ease-in-out infinite; will-change: opacity, transform; }
-.anim-shake   { animation: shakeHit 0.25s ease-out; }
-.anim-warn    { animation: warnFlash 0.5s infinite; }
-.anim-reveal  { animation: gachaReveal 0.5s cubic-bezier(.175,.885,.32,1.275) both; }
-.anim-fadeIn  { animation: fadeIn 0.3s ease both; }
-.anim-slideIn { animation: slideInLeft 0.25s ease both; }
-.anim-ultra   { animation: ultraPulse 1.2s ease-in-out infinite; }
+/* Pastille pulsée (opacité 1 ↔ 0.6, halo doré 10px ↔ 24px). Le halo suppose
+   une bordure de 1px (inset: -1px = boîte de bordure). */
+.anim-ultra { position: relative; animation: ultraFade 1.2s ease-in-out infinite; }
+.anim-ultra::before, .anim-ultra::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+}
+.anim-ultra::before { box-shadow: 0 0 10px rgba(251,191,36,0.4); animation: glowFadeOut 1.2s ease-in-out infinite; }
+.anim-ultra::after  { box-shadow: 0 0 24px rgba(251,191,36,0.8); opacity: 0; animation: glowFadeIn 1.2s ease-in-out infinite; }
+@keyframes ultraFade {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* Pastille « Prêt à forger » (ForgePage) : lueur du texte 4px ↔ 8px et bordure
+   0.3 ↔ 0.6. Les pseudo-éléments recopient le libellé (data-text) en texte
+   transparent pour n'en garder que l'ombre ; la bordure 0.4286 posée sur la
+   bordure 0.3 donne exactement 0.6 à opacité 1, et une interpolation linéaire
+   entre les deux. */
+.forge-ready { position: relative; isolation: isolate; border: 1px solid rgba(192,132,252,0.3); }
+.forge-ready::before, .forge-ready::after {
+  content: attr(data-text); position: absolute; inset: -1px; z-index: -1;
+  padding: inherit; border: 1px solid transparent; border-radius: inherit;
+  color: transparent; pointer-events: none;
+}
+.forge-ready::before { text-shadow: 0 0 4px rgba(192,132,252,0.35); animation: glowFadeOut 2s ease-in-out infinite; }
+.forge-ready::after  { text-shadow: 0 0 8px rgba(192,132,252,0.7); border-color: rgba(192,132,252,0.4286); opacity: 0; animation: glowFadeIn 2s ease-in-out infinite; }
 
 /* ════════════════════════════════════════════════════════════════
    PAGES — Companions
@@ -1204,15 +1195,28 @@ html, body {
 }
 
 /* ── Badge de cohésion d'équipe (components/ui/CohesionBadge.tsx) ── */
+/* L'emoji ne s'anime qu'en transform ; sa lueur (3px ↔ 7px) vient de deux
+   copies (data-emoji) placées dessous, à drop-shadow fixe, en fondu d'opacité :
+   un drop-shadow animé repeignait l'emoji à chaque frame. */
 @keyframes cohesionAngry {
-  0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 3px rgba(239,68,68,0.7)); }
-  25%      { transform: scale(1.12) rotate(-8deg); filter: drop-shadow(0 0 7px rgba(239,68,68,1)); }
-  75%      { transform: scale(1.12) rotate(8deg); filter: drop-shadow(0 0 7px rgba(239,68,68,1)); }
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25%      { transform: scale(1.12) rotate(-8deg); }
+  75%      { transform: scale(1.12) rotate(8deg); }
 }
+@keyframes cohesionGlowMin { 0%, 100% { opacity: 1; } 25%, 75% { opacity: 0; } }
+@keyframes cohesionGlowMax { 0%, 100% { opacity: 0; } 25%, 75% { opacity: 1; } }
 .cohesion-badge__emoji { display: inline-block; }
-.cohesion-badge--bad .cohesion-badge__emoji { animation: cohesionAngry 1.6s ease-in-out infinite; }
+.cohesion-badge--bad .cohesion-badge__emoji { position: relative; isolation: isolate; animation: cohesionAngry 1.6s ease-in-out infinite; }
+.cohesion-badge--bad .cohesion-badge__emoji::before,
+.cohesion-badge--bad .cohesion-badge__emoji::after {
+  content: attr(data-emoji); position: absolute; inset: 0; z-index: -1; pointer-events: none;
+}
+.cohesion-badge--bad .cohesion-badge__emoji::before { filter: drop-shadow(0 0 3px rgba(239,68,68,0.7)); animation: cohesionGlowMin 1.6s ease-in-out infinite; }
+.cohesion-badge--bad .cohesion-badge__emoji::after  { filter: drop-shadow(0 0 7px rgba(239,68,68,1)); opacity: 0; animation: cohesionGlowMax 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .cohesion-badge--bad .cohesion-badge__emoji { animation: none; filter: drop-shadow(0 0 5px rgba(239,68,68,0.9)); }
+  .cohesion-badge--bad .cohesion-badge__emoji::before,
+  .cohesion-badge--bad .cohesion-badge__emoji::after { display: none; }
 }
 
 /* ── Page Gacha ─────────────────────────────────────────────────────────── */
@@ -1360,9 +1364,31 @@ html, body {
   font-family: var(--f-ui); font-weight: 700; font-size: 16px; letter-spacing: 1px;
   background: linear-gradient(135deg, #f59e0b, #fde68a 50%, #f59e0b);
   background-size: 200% 100%;
-  animation: achClaimShine 2.4s linear infinite, pulseGlow 1.8s ease-in-out infinite;
+  position: relative; isolation: isolate;
 }
-@keyframes achClaimShine { to { background-position: -200% 0; } }
+/* Reflet défilant : le même dégradé (tuile de 2 largeurs) sur un calque de
+   3 largeurs, déplacé d'une tuile en transform au lieu d'animer
+   background-position (repeint à chaque frame). Calque à part car le bouton
+   ne peut pas être en overflow: hidden (son halo déborde). */
+.ach-claim-all__shine {
+  position: absolute; inset: 0; z-index: -1; overflow: hidden;
+  border-radius: inherit; pointer-events: none;
+}
+.ach-claim-all__shine::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -200%; width: 300%;
+  background: linear-gradient(135deg, #f59e0b, #fde68a 50%, #f59e0b);
+  background-size: 66.6667% 100%;
+  animation: achClaimShine 2.4s linear infinite;
+}
+@keyframes achClaimShine { to { transform: translateX(66.6667%); } }
+/* Halo violet 8px ↔ 20px, en fondu croisé (voir glowFadeIn). */
+.ach-claim-all::before, .ach-claim-all::after,
+.ach-tab__dot::before, .ach-tab__dot::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+}
+.ach-claim-all::before, .ach-claim-all::after { inset: -1px; }
+.ach-claim-all::before { box-shadow: 0 0 8px rgba(147,51,234,0.4); animation: glowFadeOut 1.8s ease-in-out infinite; }
+.ach-claim-all::after  { box-shadow: 0 0 20px rgba(147,51,234,0.8); opacity: 0; animation: glowFadeIn 1.8s ease-in-out infinite; }
 
 /* ── Vues (Succès / Trophées / Titres) ─────────────────────────────── */
 .ach-views { display: flex; gap: 6px; padding: 4px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); width: fit-content; max-width: 100%; overflow-x: auto; }
@@ -1410,9 +1436,10 @@ html, body {
   /* En bas à droite (ligne du compteur) : en haut, il recouvrait les libellés longs. */
   position: absolute; bottom: 9px; right: 8px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
   background: #fbbf24; color: #1a1305; font-family: var(--f-num); font-size: 14px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(251,191,36,0.7);
-  animation: pulseGlow 1.6s ease-in-out infinite;
+  display: flex; align-items: center; justify-content: center;
 }
+.ach-tab__dot::before { box-shadow: 0 0 8px rgba(147,51,234,0.4); animation: glowFadeOut 1.6s ease-in-out infinite; }
+.ach-tab__dot::after  { box-shadow: 0 0 20px rgba(147,51,234,0.8); opacity: 0; animation: glowFadeIn 1.6s ease-in-out infinite; }
 
 /* ── Barre d'outils ────────────────────────────────────────────────── */
 .ach-chips { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1783,6 +1810,8 @@ html, body {
   .ach-card, .ach-card.is-done::after, .ach-hero::after, .ach-bar__fill::after, .ach-prog__fill::after,
   .ach-card.is-hidden .ach-card__name, .trophy-slot, .trophy-slot__icon, .mastery-row, .ach-toast__rays,
   .ach-medal__icon, .ach-claim-all, .ach-card.is-claimable { animation: none !important; }
+  .ach-claim-all__shine::before { animation: none !important; }
+  .ach-claim-all::before, .ach-claim-all::after { display: none; }
   .ach-toast { animation: achToastOut 0.3s ease-in forwards 3.6s; }
 }
 

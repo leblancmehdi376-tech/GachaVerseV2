@@ -42,12 +42,3 @@ const GLOW_REFERENCE_SIZE = 44;
 export function getAvatarGlowPx(tier: AvatarAuraTier, avatarSize: number): number {
   return Math.max(4, Math.round(tier.glowSize * (avatarSize / GLOW_REFERENCE_SIZE)));
 }
-
-// Au-delà de ce nombre de succès débloqués, l'aura pulse doucement (clin
-// d'œil "joueur accompli") — réutilise l'animation rarityPulse déjà définie
-// dans globals.css (pulse générique de luminosité, sans couleur à dupliquer).
-export const AVATAR_PULSE_ACHIEVEMENT_THRESHOLD = 40;
-
-export function hasAvatarPulse(unlockedAchievementCount: number): boolean {
-  return unlockedAchievementCount >= AVATAR_PULSE_ACHIEVEMENT_THRESHOLD;
-}

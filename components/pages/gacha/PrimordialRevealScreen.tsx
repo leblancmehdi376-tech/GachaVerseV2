@@ -5,6 +5,7 @@ import { getCharacterById } from '@/lib/game/characters';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { REVEAL_TEASER_MS, FLIP_DELAY_MS, getCharacterQuote, getCharacterSoundPath } from '@/lib/game/gachaReveal';
 import { CardBackImg } from './CardBackImg';
+import { UltraGlow } from './UltraGlow';
 import type { Res } from './gachaTypes';
 
 // Écran de brouillard — teaser affiché juste avant qu'une carte
@@ -103,8 +104,10 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
             <div style={{
               position:'absolute', inset:0, backfaceVisibility:'hidden',
               transform:'rotateY(180deg)', borderRadius:14, overflow:'hidden',
-              boxShadow:`0 0 0 2px ${cfg.color}, 0 0 50px ${cfg.glow}, 0 0 100px ${cfg.glow}44, 0 10px 40px rgba(0,0,0,0.8)`,
-              animation: revealed ? 'gvUltraPulse 2s ease-in-out infinite' : undefined,
+              // Une fois révélée, le halo pulsé est porté par <UltraGlow>.
+              boxShadow: revealed
+                ? '0 10px 40px rgba(0,0,0,0.8)'
+                : `0 0 0 2px ${cfg.color}, 0 0 50px ${cfg.glow}, 0 0 100px ${cfg.glow}44, 0 10px 40px rgba(0,0,0,0.8)`,
             }}>
               {tpl && (
                 <>
@@ -134,6 +137,7 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
                 </>
               )}
             </div>
+            {revealed && <UltraGlow color={cfg.color} glow={cfg.glow} radius={14} />}
           </div>
         </div>
 

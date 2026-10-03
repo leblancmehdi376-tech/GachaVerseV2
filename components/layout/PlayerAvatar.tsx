@@ -4,7 +4,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { parseInstanceKey } from '@/lib/game/editions';
-import { hasAvatarPulse } from '@/lib/game/avatarAura';
 import { AvatarVisual } from '@/components/layout/AvatarVisual';
 
 interface PlayerAvatarProps {
@@ -20,12 +19,11 @@ interface PlayerAvatarProps {
 // AvatarVisual (composant pur, réutilisé aussi par LeaderboardPage pour les
 // AUTRES joueurs à partir des données Firestore).
 export function PlayerAvatar({ size = 36, children, tooltip }: PlayerAvatarProps) {
-  const { username, selectedAvatarChampionId, collection, maxPalierReached, unlockedCount } = useGameStore(useShallow(s => ({
+  const { username, selectedAvatarChampionId, collection, maxPalierReached } = useGameStore(useShallow(s => ({
     username: s.username,
     selectedAvatarChampionId: s.selectedAvatarChampionId,
     collection: s.collection,
     maxPalierReached: s.maxPalierReached,
-    unlockedCount: s.unlockedCount,
   })));
 
   const champion = useMemo(() => {
@@ -43,7 +41,6 @@ export function PlayerAvatar({ size = 36, children, tooltip }: PlayerAvatarProps
       champion={champion}
       fallbackLetter={username.charAt(0).toUpperCase()}
       maxPalierReached={maxPalierReached}
-      pulse={hasAvatarPulse(unlockedCount())}
       tooltip={tooltip ?? champion?.name ?? username}
     >
       {children}

@@ -141,7 +141,7 @@ function RecipeCard({ recipe }: { recipe: CraftRecipe }) {
           {locked
             ? <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)', fontWeight:700 }}>🔒 Palier {recipe.palierRequired} requis</div>
             : ok
-              ? <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--purple-glow)', fontWeight:700, padding:'3px 10px', borderRadius:999, background:'rgba(147,51,234,0.14)', border:'1px solid rgba(192,132,252,0.35)', animation:'forgeReadyGlow 2s ease-in-out infinite' }}>✦ PRÊT À FORGER{alreadyOwned ? ' (doublon)' : ''}</div>
+              ? <div className="forge-ready" data-text={`✦ PRÊT À FORGER${alreadyOwned ? ' (doublon)' : ''}`} style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--purple-glow)', fontWeight:700, padding:'3px 10px', borderRadius:999, background:'rgba(147,51,234,0.14)' }}>✦ PRÊT À FORGER{alreadyOwned ? ' (doublon)' : ''}</div>
               : <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', fontWeight:700 }}>⚗ {recipe.ingredients.length} ingrédients requis{alreadyOwned ? ' (doublon)' : ''}</div>
           }
         </div>

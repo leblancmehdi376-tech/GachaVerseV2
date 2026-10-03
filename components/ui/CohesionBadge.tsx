@@ -132,7 +132,7 @@ export function CohesionBadge({ size = 'sm' }: { size?: 'sm' | 'md' }) {
         textShadow: bad ? `0 0 8px ${BAD}aa` : 'none',
       }}
     >
-      <span className="cohesion-badge__emoji" style={{ fontSize: fs + 2, lineHeight: 1 }}>{emoji}</span>
+      <span className="cohesion-badge__emoji" data-emoji={emoji} style={{ fontSize: fs + 2, lineHeight: 1 }}>{emoji}</span>
       Cohésion {pct >= 0 ? '+' : ''}{pct.toFixed(1)}%
       {visible && createPortal(tooltip, document.body)}
     </span>

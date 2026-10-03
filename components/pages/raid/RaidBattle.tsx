@@ -251,7 +251,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 minWidth:6,
                 borderRadius:'50%',
                 background:'#4ade80',
-                animation:'pulse 2s infinite'
+                animation:'raidBattlePulse 2s infinite'
               }}
             />
 
@@ -526,7 +526,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 textShadow:d.crit
                   ? '0 0 10px #fbbf24'
                   : '0 0 6px #c084fc',
-                animation:'floatUp 0.8s ease forwards',
+                animation:'raidFloatUp 0.8s ease forwards',
                 whiteSpace:'nowrap',
                 zIndex:10
               }}
@@ -571,7 +571,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
               fontWeight:700,
               fontSize:16,
               color:'rgba(255,255,255,0.5)',
-              animation:'pulse 1s infinite'
+              animation:'raidBattlePulse 1s infinite'
             }}
           >
             Calcul des récompenses...
@@ -719,7 +719,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
 
       {/* ================= RESPONSIVE ================= */}
       <style>{`
-        @keyframes floatUp {
+        @keyframes raidFloatUp {
           0% {
             opacity:1;
             transform:translateY(0) scale(1)
@@ -730,7 +730,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
         }
 
-        @keyframes pulse {
+        @keyframes raidBattlePulse {
           0%,100% {
             opacity:1
           }
