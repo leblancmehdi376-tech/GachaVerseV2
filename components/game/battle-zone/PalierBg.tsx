@@ -5,9 +5,13 @@ import { PALIERS } from '@/lib/game/paliers';
 // Les visuels de fond n'existent que pour les paliers définis dans PALIERS — au-delà, on
 // réutilise le visuel du palier cyclé (même thème/mobs que getPalierConfig).
 // Exporté pour le préchargement pendant le splash (GameLayout).
+// Les .webp sont mis en cache 30 jours (next.config.ts) : incrémenter
+// BG_VERSION après un remplacement de fonds pour que les joueurs les
+// retéléchargent au lieu de garder l'ancienne version.
+const BG_VERSION = 2;
 export function getPalierBgCandidates(palier: number): string[] {
   const cycledPalier = ((palier - 1) % PALIERS.length) + 1;
-  return buildImageCandidates(`/backgrounds/bg_palier_${cycledPalier}`);
+  return buildImageCandidates(`/backgrounds/bg_palier_${cycledPalier}`).map(src => `${src}?v=${BG_VERSION}`);
 }
 
 export function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {
@@ -17,7 +21,7 @@ export function PalierBg({ palier, gradient }: { palier: number; gradient: strin
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="" fetchPriority="high"
         onError={onError}
-        style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', imageRendering:'pixelated' }} />
+        style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
       <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(0,0,0,0.28) 0%,transparent 30%,transparent 55%,rgba(0,0,0,0.6) 100%)' }} />
     </>
   );

@@ -24,6 +24,15 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '03/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "Les **fonds des paliers** ne sont plus pixelisés : l'image est désormais lissée quand elle est agrandie.",
+      "Fonds **plus nets** pour les paliers **11, 12, 13, 16, 20, 22, 25, 27, 29, 32, 35, 41, 43, 44, 50, 53, 57, 58 et 61**.",
+      "Les fonds des paliers **20, 33, 40, 45, 46 et 62** sont plus légers et se chargent plus vite.",
+    ],
+  },
+  {
+    date: '03/10/2026',
+    title: 'Maj v2.8.1.3',
+    changes: [
       "Prestige : nouveau bouton **« Tout utiliser »** pour dépenser tous ses jetons d'un coup.",
       "Il se débloque après avoir tiré **250 jetons** au total (les jetons déjà utilisés comptent).",
       "Un compteur **🎫 x / 250** sous les boutons de tirage suit la progression.",
