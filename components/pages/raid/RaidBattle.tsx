@@ -184,8 +184,10 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           background:'rgba(0,0,0,0.45)',
           flexShrink:0,
           display:'flex',
+          flexWrap:'wrap',
           alignItems:'center',
-          gap:14
+          gap:14,
+          rowGap:8
         }}
       >
         <button
@@ -224,8 +226,13 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
         <div
           className="boss-title-area"
           style={{
-            flex:1,
-            minWidth:0
+            // Base = largeur du contenu : tout tient sur une ligne en grand écran ;
+            // sinon compagnons et stats passent en dessous plutôt que de tronquer
+            // le titre (max-width : le titre reste à côté du bouton retour).
+            flex:'1 1 auto',
+            maxWidth:'calc(100% - 140px)',
+            minWidth:0,
+            overflow:'hidden'
           }}
         >
           <div
@@ -259,9 +266,9 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
                 whiteSpace:'nowrap',
                 overflow:'hidden',
                 textOverflow:'ellipsis',
-                // Le nom garde sa largeur : c'est le sous-titre qui se tronque en premier
-                flexShrink:0,
-                maxWidth:'100%'
+                // Se tronque aussi si besoin, mais après le sous-titre (flexShrink énorme)
+                flex:'0 1 auto',
+                minWidth:0
               }}
             >
               {boss.name.toUpperCase()}
@@ -270,7 +277,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
             <span
               className="boss-subtitle"
               style={{
-                flex:'0 1 auto',
+                flex:'0 1000 auto',
                 minWidth:0,
                 fontFamily:'var(--f-ui)',
                 fontSize:14,
@@ -349,7 +356,8 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           style={{
             display:'flex',
             gap:16,
-            flexShrink:0
+            flexShrink:0,
+            marginLeft:'auto'
           }}
         >
           {[
@@ -762,14 +770,16 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-back {
-            padding:6px 9px !important;
+            padding:6px 12px !important;
             font-size:14px !important;
+            min-height:44px;
           }
 
           /* Ligne 1 : retour + boss */
           .boss-title-area {
             order:1;
             flex:1 1 calc(100% - 110px) !important;
+            max-width:none !important;
             min-width:0 !important;
           }
 
@@ -802,6 +812,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
 
             /* Nouvelle ligne complète */
             width:100% !important;
+            min-height:44px;
             justify-content:center !important;
             box-sizing:border-box !important;
           }
@@ -811,6 +822,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
             order:3;
             width:100%;
             justify-content:space-around;
+            margin-left:0 !important;
             padding-top:4px;
             border-top:1px solid rgba(255,255,255,0.05);
           }

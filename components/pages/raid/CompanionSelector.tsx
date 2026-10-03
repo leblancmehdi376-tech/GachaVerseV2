@@ -18,21 +18,21 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
   const owned = CHARACTER_POOL.filter(c => !c.isHero && !!collection[c.id]);
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
+    <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', padding:'clamp(10px, 4vw, 24px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="panel" style={{ width:'100%', maxWidth:640, maxHeight:'80vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
-        <div style={{ padding:'18px 22px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div>
+      <div className="panel" style={{ width:'100%', maxWidth:640, maxHeight:'min(80vh, 90dvh)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div style={{ padding:'clamp(12px, 3vw, 18px) clamp(12px, 4vw, 22px)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:8 }}>
+          <div style={{ minWidth:0 }}>
             <div style={{ fontFamily:'var(--f-title)', fontSize:18, color:'var(--purple-glow)', letterSpacing:2 }}>🤝 Compagnons ({selected.length}/{MAX_RAID_COMPANIONS})</div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginTop:2, display:'flex', alignItems:'center', gap:6 }}>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', marginTop:2, display:'flex', flexWrap:'wrap', alignItems:'center', columnGap:6 }}>
               Boss : <span style={{ color:AFFINITY_CONFIG[bossAffinity].color, fontWeight:700 }}>{AFFINITY_CONFIG[bossAffinity].icon} {AFFINITY_CONFIG[bossAffinity].label}</span>
               — un type fort réduit le combat de 10%, un type faible l&apos;allonge de 10%
             </div>
           </div>
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:22 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-dim)', fontSize:22, width:44, height:44, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
         </div>
 
-        <div style={{ flex:1, overflowY:'auto', padding:'12px 16px', display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:8 }}>
+        <div style={{ flex:1, overflowY:'auto', padding:'12px clamp(10px, 3vw, 16px)', display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(min(130px, 100%),1fr))', gap:8 }}>
           {owned.map(tpl => {
             const onExpedition = isCharOnExpedition(tpl.id);
             const inTeam = equippedPure.includes(tpl.id);
@@ -67,7 +67,7 @@ export function CompanionSelector({ bossAffinity, selected, onToggle, onClose }:
           )}
         </div>
 
-        <div style={{ padding:'14px 22px', borderTop:'1px solid var(--border)', display:'flex', justifyContent:'flex-end' }}>
+        <div style={{ padding:'12px clamp(12px, 4vw, 22px)', borderTop:'1px solid var(--border)', display:'flex', justifyContent:'flex-end' }}>
           <button onClick={onClose} className="btn-primary" style={{ padding:'10px 24px', fontSize:16 }}>VALIDER</button>
         </div>
       </div>

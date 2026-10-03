@@ -75,7 +75,7 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
   return (
     <div style={{ height:'100%', overflowY:'auto', position:'relative' }}>
       <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 50% 20%,rgba(147,51,234,0.08),transparent 60%)', pointerEvents:'none' }} />
-      <div style={{ position:'relative', maxWidth:1000, margin:'0 auto', padding:'28px 24px', display:'flex', flexDirection:'column', gap:28 }}>
+      <div style={{ position:'relative', maxWidth:1000, margin:'0 auto', padding:'clamp(16px, 4vw, 28px) clamp(12px, 4vw, 24px)', display:'flex', flexDirection:'column', gap:'clamp(18px, 4vw, 28px)' }}>
 
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
@@ -87,12 +87,12 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
           </div>
         </div>
 
-        <div style={{ display:'flex', gap:10 }}>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
           {[
             { icon:'👑', val:bossCrowns, label:'Boss Crowns', color:'#fbbf24' },
             { icon:'💎', val:formatNumber(nekoGems), label:'Neko-Gemmes', color:'var(--cyan-hi)' },
           ].map((s,i) => (
-            <div key={i} className="panel" style={{ padding:'10px 18px', display:'flex', alignItems:'center', gap:10 }}>
+            <div key={i} className="panel" style={{ padding:'10px clamp(12px, 3vw, 18px)', flex:'1 1 150px', maxWidth:260, display:'flex', alignItems:'center', gap:10 }}>
               <span style={{ fontSize:24 }}>{s.icon}</span>
               <div>
                 <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:20, color:s.color }}>{s.val}</div>
@@ -126,8 +126,8 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
                   <div style={{ position:'absolute', top:0, left:0, right:0, height:3,
                     background:`linear-gradient(90deg,transparent,${raid.accentColor},transparent)`,
                     animation: 'topGlow 2.4s ease-in-out infinite' }} />
-                  <div style={{ position:'relative', padding:'22px 20px 20px', display:'flex', flexDirection:'column', gap:11, minHeight:280 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                  <div style={{ position:'relative', padding:'clamp(16px, 4vw, 22px) clamp(14px, 4vw, 20px) clamp(14px, 4vw, 20px)', display:'flex', flexDirection:'column', gap:11, minHeight:280 }}>
+                    <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'space-between', alignItems:'flex-start', gap:6 }}>
                       <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:6, padding:'3px 10px' }}>
                         <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', animation:'pulse 2s infinite' }} />
                         <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:'#4ade80', letterSpacing:1 }}>ACTIF</span>
@@ -141,7 +141,7 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
                     </div>
 
                     {charTpl && charRare && (
-                      <div style={{ display:'inline-flex', alignItems:'center', gap:8, alignSelf:'flex-start',
+                      <div style={{ display:'inline-flex', flexWrap:'wrap', alignItems:'center', gap:8, alignSelf:'flex-start', maxWidth:'100%',
                         background:`linear-gradient(90deg, ${charRare.color}22, transparent)`, border:`1px solid ${charRare.color}88`,
                         borderRadius:8, padding:'5px 10px', boxShadow:`0 0 14px ${charRare.glow}33` }}>
                         <span style={{ fontSize:16 }}>🎁</span>

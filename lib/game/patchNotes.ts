@@ -24,6 +24,15 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '03/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Raids** : quand la place manque, le bouton **Compagnons** et les stats passent sous le nom du boss au lieu de le couper.",
+      "**Raids** : le badge de type du boss ne passe plus sous le bouton **Compagnons**, et les boutons sont plus faciles à toucher sur téléphone.",
+      "**Raids** : la fenêtre des compagnons, le pop-up de récompenses et la liste des raids s'adaptent mieux aux téléphones.",
+    ],
+  },
+  {
+    date: '03/10/2026',
+    title: 'Maj v2.8.1.5',
+    changes: [
       "Nouvelle **icône GachaVerse** dans l'onglet du navigateur (à la place du logo Vercel).",
       "Une icône dédiée apparaît aussi quand on ajoute le jeu à l'**écran d'accueil** d'un téléphone.",
     ],

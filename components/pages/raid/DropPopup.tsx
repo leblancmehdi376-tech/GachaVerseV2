@@ -8,8 +8,8 @@ export function DropPopup({ drops, onClose }: { drops: DropResult[]; onClose: ()
   const rewards = drops.map(describeDrop);
   const mainColor = rewards[0]?.color ?? '#c084fc';
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.85)', animation:'fadeIn 0.3s ease' }} onClick={onClose}>
-      <div style={{ background:`linear-gradient(135deg,#0d0720,${mainColor}22)`, border:`2px solid ${mainColor}`, borderRadius:16, padding:'32px 40px', textAlign:'center', boxShadow:`0 0 50px ${mainColor}66`, animation:'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1)', display:'flex', flexDirection:'column', gap:18 }}>
+    <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.85)', padding:16, animation:'fadeIn 0.3s ease' }} onClick={onClose}>
+      <div style={{ background:`linear-gradient(135deg,#0d0720,${mainColor}22)`, border:`2px solid ${mainColor}`, borderRadius:16, padding:'clamp(20px, 5vw, 32px) clamp(18px, 6vw, 40px)', width:'100%', maxWidth:440, maxHeight:'90dvh', overflowY:'auto', boxSizing:'border-box', textAlign:'center', boxShadow:`0 0 50px ${mainColor}66`, animation:'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1)', display:'flex', flexDirection:'column', gap:18 }}>
         {rewards.map((r, i) => (
           <div key={i}>
             <div style={{ fontSize:i===0?56:40, marginBottom:8 }}>{r.icon}</div>
