@@ -9,6 +9,7 @@ import {
   PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES,
   getStoneMemoryCost,
 } from '@/lib/game/prestige';
+import type { PrestigeBonusType } from '@/lib/game/prestige';
 import type { GameStore, PrestigeActions } from '../gameStore.types';
 
 export const createPrestigeSlice: StateCreator<GameStore, [], [], PrestigeActions> = (set, get) => ({
@@ -28,6 +29,27 @@ export const createPrestigeSlice: StateCreator<GameStore, [], [], PrestigeAction
       prestigeBonusLevels: { ...s.prestigeBonusLevels, [picked]: s.prestigeBonusLevels[picked] + 1 },
     }));
     return picked;
+  },
+
+  // "Tout utiliser" : même tirage que spendToken, répété sur tous les jetons
+  // mais appliqué en un seul set() (pas de N mises à jour du store).
+  spendAllTokens: () => {
+    const levels = { ...get().prestigeBonusLevels };
+    let tokens = get().prestigeTokens;
+    const gained: Partial<Record<PrestigeBonusType, number>> = {};
+    while (tokens > 0) {
+      const pool = PRESTIGE_BONUS_TYPES.filter(t => {
+        const maxLevel = PRESTIGE_BONUS_DEFS[t].maxLevel;
+        return !maxLevel || levels[t] < maxLevel;
+      });
+      if (pool.length === 0) break;
+      const picked = pool[Math.floor(Math.random() * pool.length)];
+      levels[picked] += 1;
+      gained[picked] = (gained[picked] ?? 0) + 1;
+      tokens -= 1;
+    }
+    if (tokens !== get().prestigeTokens) set({ prestigeTokens: tokens, prestigeBonusLevels: levels });
+    return gained;
   },
 
   // Achat direct (pas de tirage) du niveau suivant de "Mémoire des Pierres".

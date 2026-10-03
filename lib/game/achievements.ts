@@ -99,6 +99,7 @@ export const STAT = {
   gachaSsrMax:     'gachaSsrMax',
   gachaMiracle:    'gachaMiracle',
   pullsVol2:       'pullsVol2',
+  prestigeQuint:   'prestigeQuint',   // 1 = tirage x5 de jetons de Prestige tombé 5 fois sur le même bonus
   eventsSeen:      'eventsSeen',
   eventsJoined:    'eventsJoined',
   interactions:    'interactions',
@@ -348,6 +349,13 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Miraculé', name:'Exploit Miraculeux',
     description:'Obtiens 2 personnages à moins de 1 % de chance dans un même tirage multiple.', target:1, stat:STAT.gachaMiracle,
     reward:{ type:'gems', value:600 },
+    tier:'platinum',
+  },
+  {
+    id:'gacha_prestige_quint', category:'gacha', icon:'🎲',
+    title:'Maître du Destin', name:'Quinte du Destin',
+    description:'Obtiens 5 fois le même bonus en utilisant 5 jetons de Prestige d\'un coup.', target:1, stat:STAT.prestigeQuint,
+    reward:{ type:'gems', value:500 },
     tier:'platinum',
   },
 

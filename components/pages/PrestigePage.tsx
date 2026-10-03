@@ -6,6 +6,7 @@ import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcToken
 import { formatNumber } from '@/lib/game/format';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { EditionIcon } from '@/components/ui/EditionLogo';
+import { STAT } from '@/lib/game/achievements';
 import { LootReelPopup, LootReelItem, buildReel } from '@/components/ui/LootReelPopup';
 
 const PRESTIGE_PALIER_REQUIRED = 41;
@@ -143,15 +144,94 @@ function PrestigeReelPopup({ results, onClose }: { results: PrestigeBonusType[];
   );
 }
 
+// Explosion de "Tout utiliser" : flash, onde de choc et jetons projetés,
+// puis le récap qui "pop" avec ses lignes en cascade.
+const BURST_CSS = `
+  @keyframes pbFlash   { 0% { opacity:0 } 12% { opacity:1 } 100% { opacity:0 } }
+  @keyframes pbRing    { 0% { transform:translate(-50%,-50%) scale(0); opacity:1 } 100% { transform:translate(-50%,-50%) scale(1); opacity:0 } }
+  @keyframes pbShard   { 0% { transform:translate(-50%,-50%) translate(0,0) rotate(0) scale(0.4); opacity:1 }
+                         80% { opacity:1 }
+                         100% { transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(1); opacity:0 } }
+  @keyframes pbPop     { 0% { transform:scale(0.3); opacity:0 } 60% { transform:scale(1.08); opacity:1 } 100% { transform:scale(1) } }
+  @keyframes pbRow     { 0% { transform:translateY(12px); opacity:0 } 100% { transform:none; opacity:1 } }
+  @keyframes pbShake   { 0%,100% { transform:none } 20% { transform:translate(-6px,3px) } 40% { transform:translate(5px,-4px) } 60% { transform:translate(-4px,-2px) } 80% { transform:translate(3px,4px) } }
+  .pb-overlay { animation: pbShake 0.4s ease-out; }
+  .pb-flash   { position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at center, rgba(255,236,170,0.95), rgba(251,191,36,0.45) 35%, transparent 70%); animation:pbFlash 0.7s ease-out forwards; }
+  .pb-ring    { position:absolute; left:50%; top:50%; width:min(140vw,1100px); aspect-ratio:1; border-radius:50%; pointer-events:none; border:6px solid #fbbf24; box-shadow:0 0 40px #fbbf24, inset 0 0 40px #fbbf24; animation:pbRing 0.8s cubic-bezier(0.2,0.7,0.3,1) forwards; }
+  .pb-ring.pb-ring2 { border-color:#c084fc; box-shadow:0 0 40px #c084fc, inset 0 0 40px #c084fc; animation-delay:0.12s; transform:translate(-50%,-50%) scale(0); }
+  .pb-shard   { position:absolute; left:50%; top:50%; pointer-events:none; line-height:1; animation:pbShard 1s cubic-bezier(0.15,0.8,0.3,1) forwards; }
+  .pb-panel   { animation:pbPop 0.5s cubic-bezier(0.2,0.9,0.3,1.2) 0.25s both; }
+  .pb-row     { animation:pbRow 0.35s ease-out both; }
+  @media (prefers-reduced-motion: reduce) {
+    .pb-overlay, .pb-panel, .pb-row { animation:none; }
+    .pb-flash, .pb-ring, .pb-shard { display:none; }
+  }
+`;
+
+const BURST_SHARDS = ['🎫', '🎫', '🎫', '✨', '⭐', '💥'];
+
+// "Tout utiliser" : pas de roue, juste le récap regroupé des bonus obtenus.
+function PrestigeBulkSummaryPopup({ gained, onClose }: { gained: Partial<Record<PrestigeBonusType, number>>; onClose: () => void }) {
+  const total = Object.values(gained).reduce((a, n) => a + (n ?? 0), 0);
+  const [shards] = useState(() => Array.from({ length: 22 }, (_, i) => {
+    const angle = (i / 22) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+    const dist = 160 + Math.random() * 260;
+    return {
+      icon: BURST_SHARDS[i % BURST_SHARDS.length],
+      dx: Math.cos(angle) * dist, dy: Math.sin(angle) * dist,
+      rot: (Math.random() - 0.5) * 720,
+      size: 20 + Math.random() * 18,
+      delay: Math.random() * 0.12,
+    };
+  }));
+  return (
+    <div className="pb-overlay" style={{ position:'fixed', inset:0, zIndex:9995, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.82)', padding:16, overflow:'hidden' }}>
+      <style>{BURST_CSS}</style>
+      <div className="pb-flash" />
+      <div className="pb-ring" />
+      <div className="pb-ring pb-ring2" />
+      {shards.map((s, i) => (
+        <span key={i} className="pb-shard" style={{
+          fontSize:s.size, animationDelay:`${s.delay}s`,
+          ['--dx' as string]:`${s.dx}px`, ['--dy' as string]:`${s.dy}px`, ['--rot' as string]:`${s.rot}deg`,
+        } as React.CSSProperties}>{s.icon}</span>
+      ))}
+      <div className="panel panel--glow pb-panel" style={{ position:'relative', width:'100%', maxWidth:420, maxHeight:'calc(100vh - 32px)', overflowY:'auto', padding:'26px 20px', display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
+        <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', letterSpacing:2 }}>
+          {total} JETON{total > 1 ? 'S' : ''} UTILISÉ{total > 1 ? 'S' : ''}
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:8, width:'100%' }}>
+          {PRESTIGE_BONUS_TYPES.filter(t => gained[t]).map((type, i) => {
+            const def = PRESTIGE_BONUS_DEFS[type];
+            return (
+              <div key={type} className="pb-row" style={{ animationDelay:`${0.55 + i * 0.12}s`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding:'10px 14px', borderRadius:10, border:`1px solid ${BONUS_COLORS[type]}55`, background:`linear-gradient(90deg, ${BONUS_COLORS[type]}22, transparent)` }}>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:16, color:'var(--text)', display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+                  <span style={{ fontSize:20 }}>{def.icon}</span>{def.label}
+                </span>
+                <span style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:18, color:BONUS_COLORS[type], whiteSpace:'nowrap' }}>+{gained[type]}</span>
+              </div>
+            );
+          })}
+        </div>
+        <button onClick={onClose} className="btn-primary" style={{ padding:'10px 30px', fontSize:16, marginTop:4 }}>FERMER</button>
+      </div>
+    </div>
+  );
+}
+
+// Nombre de jetons à avoir tirés (toutes vies confondues) pour débloquer "Tout utiliser".
+const SPEND_ALL_UNLOCK = 250;
+
 export function PrestigePage() {
   const {
-    prestigeLevel: level, prestigeTokens: tokens, prestigeBonusLevels: bonusLevels, canPrestige, spendToken,
+    prestigeLevel: level, prestigeTokens: tokens, prestigeBonusLevels: bonusLevels, canPrestige, spendToken, spendAllTokens,
     prestigeRankRecoveryLevel: stoneMemoryLevel, buyStoneMemory, doPrestige,
-  } = useGameStore(useShallow(s => ({ prestigeLevel: s.prestigeLevel, prestigeTokens: s.prestigeTokens, prestigeBonusLevels: s.prestigeBonusLevels, canPrestige: s.canPrestige, spendToken: s.spendToken, prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel, buyStoneMemory: s.buyStoneMemory, doPrestige: s.doPrestige })));
+  } = useGameStore(useShallow(s => ({ prestigeLevel: s.prestigeLevel, prestigeTokens: s.prestigeTokens, prestigeBonusLevels: s.prestigeBonusLevels, canPrestige: s.canPrestige, spendToken: s.spendToken, spendAllTokens: s.spendAllTokens,prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel, buyStoneMemory: s.buyStoneMemory, doPrestige: s.doPrestige })));
   const [showConfirm, setShowConfirm] = useState(false);
   const [savingPrestige, setSavingPrestige] = useState(false);
   const [syncPending, setSyncPending] = useState(false);
   const [rollResults, setRollResults] = useState<PrestigeBonusType[] | null>(null);
+  const [bulkResults, setBulkResults] = useState<Partial<Record<PrestigeBonusType, number>> | null>(null);
 
   // Palier max atteint DEPUIS LE DERNIER PRESTIGE (pas le lifetime) : c'est
   // ce qui gate l'éligibilité, pour éviter de pouvoir represtiger en boucle
@@ -187,6 +267,20 @@ export function PrestigePage() {
       results.push(result);
     }
     if (results.length > 0) setRollResults(results);
+    // Succès "Quinte du Destin" : tirage x5 tombé 5 fois sur le même bonus.
+    if (count === MULTI_SPIN_COUNT && results.length === MULTI_SPIN_COUNT && results.every(r => r === results[0])) {
+      useGameStore.getState().discover(STAT.prestigeQuint);
+    }
+  };
+
+  // Chaque jeton tiré donne exactement +1 niveau de bonus : la somme des
+  // niveaux est donc le nombre de jetons tirés depuis toujours (rétroactif).
+  const tokensRolled = PRESTIGE_BONUS_TYPES.reduce((a, t) => a + bonusLevels[t], 0);
+  const spendAllUnlocked = tokensRolled >= SPEND_ALL_UNLOCK;
+
+  const handleSpendAll = () => {
+    const gained = spendAllTokens();
+    if (Object.keys(gained).length > 0) setBulkResults(gained);
   };
 
   return (
@@ -215,6 +309,7 @@ export function PrestigePage() {
         />
       )}
       {rollResults && <PrestigeReelPopup results={rollResults} onClose={() => setRollResults(null)} />}
+      {bulkResults && <PrestigeBulkSummaryPopup gained={bulkResults} onClose={() => setBulkResults(null)} />}
 
       <div style={{ maxWidth:900, margin:'0 auto', display:'flex', flexDirection:'column', gap:22 }}>
 
@@ -268,17 +363,46 @@ export function PrestigePage() {
           <div>
             <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:4 }}>JETONS DE PRESTIGE</div>
             <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize:28, color:'#fbbf24' }}>🎫 {tokens}</div>
-          </div>
-          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-            {[1, MULTI_SPIN_COUNT].map(count => {
-              const can = tokens >= count && rollResults === null;
+            {spendAllUnlocked && (() => {
+              const can = tokens > 0 && rollResults === null && bulkResults === null;
               return (
-                <button key={count} onClick={() => handleSpendTokens(count)} disabled={!can} className={can ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding:'12px 24px', fontSize:16, cursor: can ? 'pointer' : 'not-allowed', opacity: can ? 1 : 0.4 }}>
-                  {count === 1 ? '🎲 Utiliser un jeton — bonus aléatoire' : `🎲 Utiliser ${count} jetons`}
+                <button onClick={handleSpendAll} disabled={!can}
+                  style={{
+                    marginTop:8, minHeight:44, padding:'8px 18px', fontSize:16, fontFamily:'var(--f-ui)', fontWeight:700, letterSpacing:1,
+                    color: can ? '#1a1205' : 'var(--text-dim)', borderRadius:8,
+                    border:`1px solid ${can ? '#fde68a' : 'var(--border)'}`,
+                    background: can ? 'linear-gradient(135deg,#fde68a,#fbbf24 45%,#f59e0b)' : 'rgba(255,255,255,0.04)',
+                    boxShadow: can ? '0 0 14px rgba(251,191,36,0.45)' : 'none',
+                    cursor: can ? 'pointer' : 'not-allowed', opacity: can ? 1 : 0.5,
+                  }}>
+                  ⚡ Tout utiliser
                 </button>
               );
-            })}
+            })()}
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:8, minWidth:0 }}>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+              {[1, MULTI_SPIN_COUNT].map(count => {
+                const can = tokens >= count && rollResults === null;
+                return (
+                  <button key={count} onClick={() => handleSpendTokens(count)} disabled={!can} className={can ? 'btn-primary' : 'btn-secondary'}
+                    style={{ padding:'12px 24px', fontSize:16, cursor: can ? 'pointer' : 'not-allowed', opacity: can ? 1 : 0.4 }}>
+                    {count === 1 ? '🎲 Utiliser un jeton — bonus aléatoire' : `🎲 Utiliser ${count} jetons`}
+                  </button>
+                );
+              })}
+            </div>
+            {!spendAllUnlocked && (
+              <div title="Débloque le bouton « Tout utiliser »">
+                <div style={{ display:'flex', justifyContent:'space-between', gap:8, fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', flexWrap:'wrap' }}>
+                  <span>🔒 « Tout utiliser » : jetons tirés</span>
+                  <span style={{ fontFamily:'var(--f-num)', fontWeight:700, color:'#fbbf24' }}>🎫 {tokensRolled} / {SPEND_ALL_UNLOCK}</span>
+                </div>
+                <div className="prog-track" style={{ marginTop:6, height:4 }}>
+                  <div className="prog-fill" style={{ width:`${Math.min(100, (tokensRolled / SPEND_ALL_UNLOCK) * 100)}%` }} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

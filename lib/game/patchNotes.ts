@@ -21,8 +21,19 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '02/10/2026',
+    date: '03/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Prestige : nouveau bouton **« Tout utiliser »** pour dépenser tous ses jetons d'un coup.",
+      "Il se débloque après avoir tiré **250 jetons** au total (les jetons déjà utilisés comptent).",
+      "Un compteur **🎫 x / 250** sous les boutons de tirage suit la progression.",
+      "« Tout utiliser » saute la roue de tirage : les jetons **explosent** 💥 et le **récap** des bonus obtenus s'affiche directement.",
+      "Nouveau succès **Quinte du Destin** (Gacha) : obtenir **5 fois le même bonus** sur un tirage de **5 jetons** de Prestige (**+500 💎**).",
+    ],
+  },
+  {
+    date: '02/10/2026',
+    title: 'Maj v2.8.1.2',
     changes: [
       "Le numéro de version affiché sur l'**écran de chargement** et dans les **Options** correspond maintenant à la **dernière mise à jour** (au lieu de **1.0**).",
       "Options : la ligne technique **« Clé »** est remplacée par les **crédits** du jeu (**NekoZ** & **Kiloudu14**).",

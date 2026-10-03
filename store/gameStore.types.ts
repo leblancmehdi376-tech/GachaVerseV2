@@ -373,6 +373,7 @@ export interface PrestigeState {
 export interface PrestigeActions {
   canPrestige: (maxPalierReached: number) => boolean;
   spendToken: () => PrestigeBonusType | null;
+  spendAllTokens: () => Partial<Record<PrestigeBonusType, number>>;
   buyStoneMemory: () => boolean;
 }
 export type PrestigeSlice = PrestigeState & PrestigeActions;
