@@ -5,7 +5,7 @@ import { getAffinityForId } from './affinities';
 import { compareGuess, getDailyTarget, getDleDateKey, suggestCharacters, DLE_POOL } from './gachadle';
 
 const mk = (id: string, name: string, rarity: CharacterTemplate['rarity'], universe: string): CharacterTemplate =>
-  ({ id, name, rarity, universe, baseDps: 1, spritePath: '', description: name });
+  ({ id, name, rarity, universe, baseDps: 1, description: name });
 
 describe('compareGuess', () => {
   const target = mk('t', 'Cible', 'L', 'One Piece');
@@ -22,7 +22,7 @@ describe('compareGuess', () => {
   it('compare le nombre de formes (1 sans évolution)', () => {
     const withForms = (n: number): CharacterTemplate => ({
       ...mk('f', 'F', 'L', 'One Piece'),
-      forms: Array.from({ length: n }, (_, i) => ({ formId: `f${i}`, name: 'F', spritePath: '', description: '', dpsFormMult: i + 1 })),
+      forms: Array.from({ length: n }, (_, i) => ({ formId: `f${i}`, name: 'F', description: '', dpsFormMult: i + 1 })),
     });
     expect(compareGuess(withForms(3), target).forms).toBe('lower');
     expect(compareGuess(target, withForms(3)).forms).toBe('higher');

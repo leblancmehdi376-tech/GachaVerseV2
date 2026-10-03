@@ -11,7 +11,7 @@ const n = bnToNumber;
 function makeTemplate(overrides: Partial<CharacterTemplate> = {}): CharacterTemplate {
   return {
     id: 'test_char', name: 'Test', rarity: 'C', baseDps: 10,
-    spritePath: '/x.png', description: 'x',
+    description: 'x',
     ...overrides,
   };
 }
@@ -111,8 +111,8 @@ describe('evoStoneCost', () => {
 
 describe('canEvolve', () => {
   const forms: EvoForm[] = [
-    { formId: 'f0', name: 'Base',  spritePath: '/a.png', dpsFormMult: 1, description: '' },
-    { formId: 'f1', name: 'Evo 1', spritePath: '/b.png', dpsFormMult: 2, description: '' },
+    { formId: 'f0', name: 'Base',  dpsFormMult: 1, description: '' },
+    { formId: 'f1', name: 'Evo 1', dpsFormMult: 2, description: '' },
   ];
 
   it('refuse si le personnage n\'a pas de formes', () => {
@@ -161,8 +161,8 @@ describe('canEvolveHero', () => {
 
   it('autorise si la forme actuelle n\'est pas la dernière', () => {
     const forms: EvoForm[] = [
-      { formId: 'f0', name: 'Base',  spritePath: '/a.png', dpsFormMult: 1, description: '' },
-      { formId: 'f1', name: 'Evo 1', spritePath: '/b.png', dpsFormMult: 2, description: '' },
+      { formId: 'f0', name: 'Base',  dpsFormMult: 1, description: '' },
+      { formId: 'f1', name: 'Evo 1', dpsFormMult: 2, description: '' },
     ];
     const hero: HeroState = { level: 1, currentForm: 0, xp: 0 };
     expect(canEvolveHero(forms, hero)).toBe(true);

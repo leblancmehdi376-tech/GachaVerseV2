@@ -110,7 +110,6 @@ export function getEquipmentUpgradeCost(r: Rarity): number {
 export interface EvoForm {
   formId:      string;
   name:        string;
-  spritePath:  string;
   dpsFormMult: number; // toujours = position de la forme (1, 2, 3...), fixé par ce() — jamais un réglage par personnage
   description: string;
   // Objets d'évolution requis (consommés, 1 exemplaire chacun) pour débloquer
@@ -126,7 +125,6 @@ export interface CharacterTemplate {
   name:        string;
   rarity:      Rarity;
   baseDps:     number;
-  spritePath:  string;
   description: string;
   universe?:   string;
   forms?:      EvoForm[];

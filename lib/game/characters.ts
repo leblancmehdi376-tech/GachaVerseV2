@@ -3,16 +3,15 @@ import { CharacterTemplate, EvoForm } from '@/types/game';
 // ── Stub héros (conservé pour compatibilité gameStore — Kael supprimé) ────
 export const HERO_TEMPLATE: CharacterTemplate = {
   id: 'hero_main', name: 'Héros', rarity: 'L', baseDps: 1,
-  spritePath: '/sprites/heroes/hero_main.png',
   description: 'Héros principal.', isHero: true, universe: 'Gacha Verse',
   forms: [
-    { formId:'hero_base', name:'Héros', spritePath:'/sprites/heroes/hero_main.png', dpsFormMult:1, description:'Forme de base.' },
+    { formId:'hero_base', name:'Héros', dpsFormMult:1, description:'Forme de base.' },
   ] as EvoForm[],
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function c(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDps: number, universe: string): CharacterTemplate {
-  return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png` };
+  return { id, name, rarity, baseDps, universe, description: name };
 }
 // Le multiplicateur de forme (dpsFormMult) ne dépend jamais du personnage :
 // c'est toujours sa position (forme 1 = ×1, forme 2 = ×2, ...) — voir
@@ -21,12 +20,10 @@ function c(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDp
 type FormInput = Omit<EvoForm, 'dpsFormMult'>;
 function ce(id: string, name: string, rarity: CharacterTemplate['rarity'], baseDps: number, universe: string, forms: FormInput[], noEvoStones?: boolean): CharacterTemplate {
   const numberedForms = forms.map((form, i) => ({ ...form, dpsFormMult: i + 1 }));
-  return { id, name, rarity, baseDps, universe, description: name, spritePath: `/sprites/allies/${id}.png`, forms: numberedForms, noEvoStones };
+  return { id, name, rarity, baseDps, universe, description: name, forms: numberedForms, noEvoStones };
 }
-function f(formId: string, name: string, id: string, requiredItemIds?: string[]): FormInput {
-  const tag = formId.replace(`${id}_`, '');
-  const sprite = tag === 'base' ? `/sprites/allies/${id}.png` : `/sprites/allies/${id}_${tag}.png`;
-  return { formId, name, spritePath: sprite, description: name, requiredItemIds };
+function f(formId: string, name: string, _id: string, requiredItemIds?: string[]): FormInput {
+  return { formId, name, description: name, requiredItemIds };
 }
 
 // Perso de boss de raid : la forme N requiert les N premiers objets
