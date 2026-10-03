@@ -78,10 +78,6 @@ export function CharacterCardThumb({
 
   // Convention "NomDuPerso_Synergie_EvoN".
   const cardBaseName = tpl ? getCardBaseName(tpl, safeFormIndex) : null;
-  const legacyBase =
-    safeFormIndex > 0
-      ? `${templateId}_evo${safeFormIndex}`
-      : templateId;
 
   const candidates = [
     ...(cardBaseName
@@ -89,10 +85,6 @@ export function CharacterCardThumb({
           `/sprites/new_cards_processed/${cardBaseName}`
         ).map(c => `${c}?v=${NEW_CARDS_ASSET_VERSION}`)
       : []),
-    ...(cardBaseName
-      ? buildImageCandidates(`/sprites/cards/${cardBaseName}`)
-      : []),
-    ...buildImageCandidates(`/sprites/cards/${legacyBase}`),
     // Visuel d'évolution pas encore dessiné : on retombe sur l'art de base (Evo0).
     ...(tpl && safeFormIndex > 0
       ? buildImageCandidates(
