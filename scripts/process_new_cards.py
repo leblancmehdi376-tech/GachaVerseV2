@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Traite les nouveaux artworks de public/sprites/new_cards_raw/ (déjà nommés
+Traite les nouveaux artworks de assets-src/new_cards_raw/ (déjà nommés
 "Nom_Univers_EvoN.ext" par convention, voir lib/game/cardAssets.ts) :
   1. conversion en WebP
   2. recadrage centré au ratio des cartes déjà traitées (300x480, soit 0.625)
@@ -8,6 +8,10 @@ Traite les nouveaux artworks de public/sprites/new_cards_raw/ (déjà nommés
      ci-dessous) pour ne garder que la portion visible une fois le cadre de
      rareté posé dessus
   4. écriture dans public/sprites/new_cards_processed/
+
+Les sources brutes sont hors de public/ : elles pèsent plus de 150 Mo
+et le jeu n'affiche que les versions traitées, il n'y a donc aucune
+raison de les déployer ni de les rendre téléchargeables.
 
 Les fichiers ne suivant pas la convention de nommage sont ignorés (pool de
 sources brutes non triées, encore en attente de traitement manuel).
@@ -25,7 +29,7 @@ from pathlib import Path
 
 from PIL import Image, ImageFilter
 
-RAW_DIR = Path('public/sprites/new_cards_raw')
+RAW_DIR = Path('assets-src/new_cards_raw')
 OUT_DIR = Path('public/sprites/new_cards_processed')
 TARGET_W, TARGET_H = 300, 480
 TARGET_RATIO = TARGET_W / TARGET_H

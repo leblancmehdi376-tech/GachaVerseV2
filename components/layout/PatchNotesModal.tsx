@@ -1,6 +1,11 @@
 'use client';
 import { PATCH_NOTES } from '@/lib/game/patchNotes';
 
+// Ré-exporté pour que GameLayout lise la dernière entrée via CE module
+// (chargé à part) : un import séparé de lib/game/patchNotes dupliquerait les
+// données dans un second chunk.
+export { PATCH_NOTES };
+
 // Rend **mot** en gras.
 function RichText({ text }: { text: string }) {
   return (

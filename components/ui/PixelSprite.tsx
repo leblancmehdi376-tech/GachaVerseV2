@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { Rarity, RARITY_CONFIG } from '@/types/game';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
 
@@ -43,6 +44,10 @@ export function PixelSprite({ src, alt, size = 64, rarity, className = '', style
   const isGif = src.toLowerCase().endsWith('.gif');
   const candidates = getSpriteCandidates(src, assetVersion);
   const { src: resolvedSrc, failed, onError } = useFallbackImage(candidates);
+  // 'pixelated' garde le pixel-art net quand il est AGRANDI, mais crénèle une
+  // illustration HD affichée plus petite que sa taille réelle : dans ce cas,
+  // lissage normal.
+  const [downscaled, setDownscaled] = useState(false);
 
   if (failed || !resolvedSrc) return <Placeholder size={size} rarity={rarity} alt={alt} />;
 
@@ -56,7 +61,7 @@ export function PixelSprite({ src, alt, size = 64, rarity, className = '', style
       draggable={false}
       className={className}
       style={{
-        imageRendering: isGif ? 'auto' : 'pixelated',
+        imageRendering: isGif || downscaled ? 'auto' : 'pixelated',
         objectFit: 'contain',
         display: 'block',
         userSelect: 'none',
@@ -64,6 +69,10 @@ export function PixelSprite({ src, alt, size = 64, rarity, className = '', style
         ...style,
       }}
       onError={onError}
+      onLoad={e => {
+        const img = e.currentTarget;
+        setDownscaled(img.naturalWidth > img.clientWidth * (window.devicePixelRatio || 1));
+      }}
     />
   );
 }

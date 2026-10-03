@@ -24,6 +24,15 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '03/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Chargement plus rapide** : les images des ennemis les plus lourdes ont été allégées, sans perte visible.",
+      "Les illustrations d'ennemis réduites à l'écran sont maintenant **lissées** au lieu d'apparaître crénelées.",
+      "Les **Patch Notes** sont chargées à part, ce qui allège le démarrage du jeu.",
+    ],
+  },
+  {
+    date: '03/10/2026',
+    title: 'Maj v2.8.1.6',
+    changes: [
       "**Raids** : quand la place manque, le bouton **Compagnons** et les stats passent sous le nom du boss au lieu de le couper.",
       "**Raids** : le badge de type du boss ne passe plus sous le bouton **Compagnons**, et les boutons sont plus faciles à toucher sur téléphone.",
       "**Raids** : la fenêtre des compagnons, le pop-up de récompenses et la liste des raids s'adaptent mieux aux téléphones.",

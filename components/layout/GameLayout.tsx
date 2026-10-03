@@ -30,8 +30,7 @@ import { getPalierConfig } from '@/lib/game/paliers';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { WelcomeBackModal } from '@/components/game/WelcomeBackModal';
 import { DailyRewardsModal } from '@/components/game/DailyRewardsModal';
-import { PatchNotesModal } from '@/components/layout/PatchNotesModal';
-import { PATCH_NOTES } from '@/lib/game/patchNotes';
+import { GAME_VERSION } from '@/lib/game/version';
 
 import { NAV_ICONS } from '@/components/ui/NavIcons';
 import { getSpriteCandidates } from '@/components/ui/PixelSprite';
@@ -91,6 +90,11 @@ const MinePage = lazy(PAGE_LOADERS.MinePage);
 const AnomaliePage = lazy(PAGE_LOADERS.AnomaliePage);
 const MasteryPage = lazy(PAGE_LOADERS.MasteryPage);
 const GachaDlePage = lazy(PAGE_LOADERS.GachaDlePage);
+// Les patch notes (tout l'historique, plusieurs dizaines de Ko de texte) ne
+// sont utiles qu'à l'ouverture de la popup : chargées à part, hors du bundle
+// initial.
+const loadPatchNotes = () => import('@/components/layout/PatchNotesModal');
+const PatchNotesModal = lazy(() => loadPatchNotes().then(m => ({ default: m.PatchNotesModal })));
 
 type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'equipment' | 'mine' | 'anomalie' | 'mastery' | 'gachadle';
 
@@ -156,7 +160,17 @@ export function GameLayout() {
   const [showAuth,      setShowAuth]      = useState(false);
   const [showDailyRewards, setShowDailyRewards] = useState(false);
   const [showPatchNotes, setShowPatchNotes] = useState(false);
-  const latestPatchNote = PATCH_NOTES[0];
+  // Titre connu d'emblée (la dernière entrée porte toujours la version
+  // courante, voir AGENTS.md) ; la date arrive avec le chunk des patch notes,
+  // chargé juste après le premier rendu pour que la popup s'ouvre sans délai.
+  const [latestPatchNote, setLatestPatchNote] = useState<{ title: string; date: string }>({ title: `Maj v${GAME_VERSION}`, date: '' });
+  useEffect(() => {
+    let cancelled = false;
+    loadPatchNotes().then(({ PATCH_NOTES }) => {
+      if (!cancelled) setLatestPatchNote({ title: PATCH_NOTES[0].title, date: PATCH_NOTES[0].date });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   const [splashDone,    setSplashDone]    = useState(false);
   const isMobile = useIsMobile();
   // Palier intermédiaire (desktop resserré) : la barre du haut (logo + avatar
@@ -500,7 +514,7 @@ export function GameLayout() {
             <div style={{ fontFamily:'var(--f-title)', fontSize:'14px', color:'var(--text)', fontWeight:700, letterSpacing:'1px', marginBottom:'6px', lineHeight:1.3 }}>{latestPatchNote.title}</div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', lineHeight:1.5 }}>Découvre les dernières nouveautés du jeu</div>
             <div style={{ marginTop:'8px', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', display:'flex', alignItems:'center', gap:'5px' }}>
-              <span>🕒</span><span>{latestPatchNote.date}</span>
+              <span>🕒</span><span>{latestPatchNote.date || ' '}</span>
             </div>
           </div>
         </aside>
@@ -563,7 +577,7 @@ export function GameLayout() {
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showDailyRewards && <DailyRewardsModal onClose={() => setShowDailyRewards(false)} />}
-      {showPatchNotes && <PatchNotesModal onClose={() => setShowPatchNotes(false)} />}
+      {showPatchNotes && <Suspense fallback={null}><PatchNotesModal onClose={() => setShowPatchNotes(false)} /></Suspense>}
       {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={claimOfflineGain} />}
       <UltAnimation />
       <GameWatchers />
