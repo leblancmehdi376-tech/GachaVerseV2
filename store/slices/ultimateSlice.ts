@@ -6,6 +6,22 @@ import { parseInstanceKey } from '@/lib/game/editions';
 import type { GameStore, UltimateActions } from '../gameStore.types';
 import { BN_ZERO, bnAdd, bnMulScalar } from '@/lib/game/bignum';
 
+// Seconde écoulée pour les ultis (cooldowns, fin des effets). Renvoie null
+// si rien ne change : l'appelant garde alors l'état inchangé (pas un patch
+// vide, que Zustand notifierait quand même) — sinon chaque tick réveillerait
+// tous les abonnés (barre des ultis, cartes alliées…).
+export function ultTickPatch(s: GameStore): Partial<GameStore> | null {
+  const patch: Partial<Pick<GameStore, 'ultCooldowns' | 'ultActiveUlts'>> = {};
+  if (Object.values(s.ultCooldowns).some(cd => cd > 0)) {
+    const newCds: Record<string, number> = {};
+    for (const [id, cd] of Object.entries(s.ultCooldowns)) newCds[id] = Math.max(0, cd - 1);
+    patch.ultCooldowns = newCds;
+  }
+  const now = Date.now();
+  if (s.ultActiveUlts.some(a => a.endsAt <= now)) patch.ultActiveUlts = s.ultActiveUlts.filter(a => a.endsAt > now);
+  return Object.keys(patch).length > 0 ? patch : null;
+}
+
 export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateActions> = (set, get) => ({
   startCooldown: (id, dur) =>
     set(s => ({ ultCooldowns: { ...s.ultCooldowns, [id]: dur } })),
@@ -60,21 +76,7 @@ export const createUltimateSlice: StateCreator<GameStore, [], [], UltimateAction
   },
 
   tickUlt: () => {
-    set(s => {
-      // On ne renvoie de nouvelles références que si quelque chose change
-      // réellement, et l'état inchangé (pas un patch vide, que Zustand
-      // notifierait quand même) sinon : chaque tick réveillerait tous les
-      // abonnés (barre des ultis, cartes alliées…) et réécrirait la sauvegarde locale.
-      const patch: Partial<Pick<GameStore, 'ultCooldowns' | 'ultActiveUlts'>> = {};
-      if (Object.values(s.ultCooldowns).some(cd => cd > 0)) {
-        const newCds: Record<string, number> = {};
-        for (const [id, cd] of Object.entries(s.ultCooldowns)) newCds[id] = Math.max(0, cd - 1);
-        patch.ultCooldowns = newCds;
-      }
-      const now = Date.now();
-      if (s.ultActiveUlts.some(a => a.endsAt <= now)) patch.ultActiveUlts = s.ultActiveUlts.filter(a => a.endsAt > now);
-      return Object.keys(patch).length > 0 ? patch : s;
-    });
+    set(s => ultTickPatch(s) ?? s);
     // Filet si le setTimeout de fin d'ulti a été retardé (onglet throttlé…).
     get().launchNextQueuedUlt();
   },

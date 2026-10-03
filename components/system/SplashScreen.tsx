@@ -8,36 +8,44 @@ interface Props {
 
 const LOGO_CHARS = 'GACHAVERSE'.split('');
 const DURATION_MS = 2800;
+const LOADING_STEPS = [
+  { label: 'Initialisation des univers',       threshold: 20 },
+  { label: 'Chargement des champions',          threshold: 45 },
+  { label: 'Synchronisation du multivers',      threshold: 70 },
+  { label: 'Connexion aux serveurs',            threshold: 88 },
+  { label: 'Prêt',                              threshold: 100 },
+];
 
 export function SplashScreen({ onComplete }: Props) {
-  const [progress, setProgress]       = useState(0);
+  const [step, setStep]               = useState(0);
   const [phase, setPhase]             = useState<'loading' | 'done'>('loading');
   const [fadeOut, setFadeOut]         = useState(false);
-  const startRef = useRef<number | null>(null);
-  const rafRef   = useRef<number>(0);
+  const pctRef = useRef<HTMLSpanElement>(null);
 
   // Apparition des lettres du logo et du sous-titre : animations CSS
   // (splashLetterIn / splashSubIn dans globals.css) plutôt que des setTimeout,
   // pour qu'elles démarrent dès le premier affichage du HTML pré-rendu au lieu
   // d'attendre le chargement et l'hydratation du JS.
 
-  // Progress bar
+  // Progression : la barre est une animation CSS (splashBar, composée par le
+  // GPU) ; le pourcentage est écrit directement dans le DOM 10 fois par
+  // seconde, et l'état React ne change qu'au passage d'une étape — au lieu
+  // d'un re-rendu à chaque frame pendant le chargement et l'hydratation.
   useEffect(() => {
-    const animate = (ts: number) => {
-      if (!startRef.current) startRef.current = ts;
-      const elapsed = ts - startRef.current;
-      const pct = Math.min(elapsed / DURATION_MS, 1);
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - pct, 3);
-      setProgress(Math.round(eased * 100));
-      if (pct < 1) {
-        rafRef.current = requestAnimationFrame(animate);
-      } else {
-        setPhase('done');
-      }
-    };
-    rafRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafRef.current);
+    const start = performance.now();
+    const iv = setInterval(() => {
+      const pct = Math.min((performance.now() - start) / DURATION_MS, 1);
+      const eased = Math.round((1 - Math.pow(1 - pct, 3)) * 100);
+      if (pctRef.current) pctRef.current.textContent = `${eased}%`;
+      setStep(LOADING_STEPS.filter(s => eased >= s.threshold).length);
+    }, 100);
+    const done = setTimeout(() => {
+      clearInterval(iv);
+      if (pctRef.current) pctRef.current.textContent = '100%';
+      setStep(LOADING_STEPS.length);
+      setPhase('done');
+    }, DURATION_MS);
+    return () => { clearInterval(iv); clearTimeout(done); };
   }, []);
 
   // Fade out then call onComplete
@@ -48,14 +56,7 @@ export function SplashScreen({ onComplete }: Props) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [phase, onComplete]);
 
-  const LOADING_STEPS = [
-    { label: 'Initialisation des univers',       threshold: 20 },
-    { label: 'Chargement des champions',          threshold: 45 },
-    { label: 'Synchronisation du multivers',      threshold: 70 },
-    { label: 'Connexion aux serveurs',            threshold: 88 },
-    { label: 'Prêt',                              threshold: 100 },
-  ];
-  const currentStep = LOADING_STEPS.slice().reverse().find(s => progress >= s.threshold)?.label ?? LOADING_STEPS[0].label;
+  const currentStep = LOADING_STEPS[Math.max(0, step - 1)].label;
 
   return (
     <div style={{
@@ -152,11 +153,12 @@ export function SplashScreen({ onComplete }: Props) {
         }}>
           <div style={{
             height: '100%',
-            width: `${progress}%`,
+            width: '100%',
+            transformOrigin: 'left',
             background: 'linear-gradient(90deg, #5b21b6, #9333ea, #c084fc)',
             boxShadow: '0 0 12px rgba(147,51,234,0.8)',
             borderRadius: 4,
-            transition: 'width 0.08s linear',
+            animation: `splashBar ${DURATION_MS}ms cubic-bezier(0.33, 1, 0.68, 1) both`,
           }} />
         </div>
 
@@ -171,13 +173,13 @@ export function SplashScreen({ onComplete }: Props) {
           }}>
             {currentStep}
           </span>
-          <span style={{
+          <span ref={pctRef} style={{
             fontFamily: 'var(--f-num)',
             fontSize: 14,
             fontWeight: 700,
             color: 'rgba(192,132,252,0.6)',
           }}>
-            {progress}%
+            0%
           </span>
         </div>
       </div>

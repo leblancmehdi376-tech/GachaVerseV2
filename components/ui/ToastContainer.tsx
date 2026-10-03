@@ -38,7 +38,6 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         padding: '12px 14px 14px',
         cursor: 'pointer',
         boxShadow: `0 4px 28px rgba(0,0,0,0.5), 0 0 16px ${style.glow}`,
-        backdropFilter: 'blur(8px)',
         // Slide in from right, exit to right
         transform: visible && !leaving ? 'translateX(0) scale(1)' : 'translateX(110%) scale(0.96)',
         opacity: visible && !leaving ? 1 : 0,

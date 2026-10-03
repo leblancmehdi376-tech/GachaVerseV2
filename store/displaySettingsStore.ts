@@ -9,6 +9,16 @@ import { setNumberNotation, type NumberNotation } from '@/lib/game/bignum';
 interface DisplaySettingsState {
   numberNotation: NumberNotation;
   setNotation: (n: NumberNotation) => void;
+  // Mode économie : coupe les animations en boucle (CSS via [data-lowfx] sur
+  // <html>, voir globals.css) et les particules canvas (voir useLowFx).
+  ecoMode: boolean;
+  setEcoMode: (on: boolean) => void;
+}
+
+function applyEcoAttr(on: boolean) {
+  if (typeof document === 'undefined') return;
+  if (on) document.documentElement.setAttribute('data-lowfx', '');
+  else document.documentElement.removeAttribute('data-lowfx');
 }
 
 export const useDisplaySettingsStore = create<DisplaySettingsState>()(
@@ -19,11 +29,18 @@ export const useDisplaySettingsStore = create<DisplaySettingsState>()(
         setNumberNotation(n);
         set({ numberNotation: n });
       },
+      ecoMode: false,
+      setEcoMode: (on) => {
+        applyEcoAttr(on);
+        set({ ecoMode: on });
+      },
     }),
     {
       name: 'gachaverse-display-settings',
       onRehydrateStorage: () => (state) => {
-        if (state) setNumberNotation(state.numberNotation);
+        if (!state) return;
+        setNumberNotation(state.numberNotation);
+        applyEcoAttr(!!state.ecoMode);
       },
     }
   )

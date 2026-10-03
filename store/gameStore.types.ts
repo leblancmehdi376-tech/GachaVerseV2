@@ -71,6 +71,7 @@ export interface CombatActions {
   travelToPalier: (palier: number) => void;
   tickDps: () => void;
   tickBossTimer: () => void;
+  tick: () => void; // tickDps + tickBossTimer + tickUlt + tickMine en un seul set()
   /** Lance l'ulti — ou le met en file d'attente si un ulti est déjà actif
    *  (re-cliquer un ulti en file le retire de la file). */
   activateCharacterUltimate: (templateId: string, formIndex: number) => void;

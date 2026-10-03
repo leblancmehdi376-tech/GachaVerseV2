@@ -19,7 +19,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore(useShallow(s => ({ resetGame: s.resetGame, pixelCoins: s.pixelCoins, nekoGems: s.nekoGems, wave: s.wave, palier: s.palier, maxPalierReached: s.maxPalierReached, collection: s.collection, username: s.username, setUsername: s.setUsername, getTotalDps: s.getTotalDps })));
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
-  const { numberNotation, setNotation } = useDisplaySettingsStore();
+  const { numberNotation, setNotation, ecoMode, setEcoMode } = useDisplaySettingsStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
   const ALL_UNIVERSES = getSpoilerUniverses();
   const [confirmReset, setConfirmReset] = useState(false);
@@ -312,6 +312,24 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
               );
             })}
           </div>
+        </div>
+
+        {/* ── MODE ÉCONOMIE ── */}
+        <div className="panel" style={{ padding:'20px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px' }}>
+            <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#34d399,#047857)', borderRadius:'2px', boxShadow:'0 0 8px #34d399' }} />
+            <span className="section-title" style={{ color:'#34d399' }}>🔋 MODE ÉCONOMIE</span>
+          </div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', marginBottom:'14px', lineHeight:1.5 }}>
+            Coupe les animations en boucle (étoiles, particules, reflets, halos pulsés) pour soulager la carte graphique, le processeur et la batterie. Réglage propre à cet appareil.
+          </div>
+          <button onClick={() => setEcoMode(!ecoMode)} aria-pressed={ecoMode}
+            style={{ width:'100%', minHeight:'44px', padding:'10px 14px', borderRadius:'8px', cursor:'pointer', textAlign:'left',
+              background: ecoMode ? 'rgba(52,211,153,0.12)' : 'var(--bg-card)',
+              border:`1px solid ${ecoMode ? 'rgba(52,211,153,0.5)' : 'var(--border)'}`,
+              fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color: ecoMode ? '#34d399' : 'var(--text-sub)' }}>
+            {ecoMode ? '● Activé' : '○ Désactivé'}
+          </button>
         </div>
 
         {/* ── ANTI-SPOIL ── */}

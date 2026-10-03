@@ -16,6 +16,7 @@ import { ActiveBoostsBar } from '@/components/game/battle-zone/ActiveBoostsBar';
 import { PalierTravelModal } from '@/components/game/battle-zone/PalierTravelModal';
 import { EnemyHud } from '@/components/game/battle-zone/EnemyHud';
 import { TeamBar } from '@/components/game/battle-zone/TeamBar';
+import { useLowFx } from '@/hooks/useLowFx';
 
 interface Dmg { id: number; x: number; y: number; val: BigNum; }
 
@@ -63,6 +64,7 @@ export function BattleZone() {
   // prestige peut instantanément revoyager vers son ancien palier.
   const runPeakPalier = runPeakPalierRaw ?? maxPalierReached;
   const [showTravel, setShowTravel] = useState(false);
+  const lowFx = useLowFx();
   const ultActiveUlts = useGameStore(s => s.ultActiveUlts);
   const dpsUltMult  = ultActiveUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
   const enemyAffinity = getAffinityForId(currentEnemy.name);
@@ -74,7 +76,7 @@ export function BattleZone() {
   return (
     <div style={{ position:'relative', width:'100%', height:'100%', borderRadius:12, overflow:'hidden', border:'1px solid var(--border)', display:'flex', flexDirection:'column' }}>
       <MemoPalierBg palier={palier} gradient={cfg.bgGradient} />
-      <MemoBattleParticles accentColor={cfg.accentColor} isBoss={currentEnemy?.isBoss} />
+      <MemoBattleParticles accentColor={cfg.accentColor} isBoss={currentEnemy?.isBoss} still={lowFx} />
 
       {/* Événements aléatoires (mobs normaux uniquement) */}
       <MemoRandomEventOverlay />
@@ -148,15 +150,20 @@ const EnemySprite = memo(function EnemySprite({ spritePath, name, isBoss, accent
         <div className="anim-boss" style={{ position:'absolute', left:'50%', top:'50%', transform:'translate(-50%,-50%)', width:'90%', height:'90%', borderRadius:'50%',
           background:'radial-gradient(circle, rgba(239,68,68,0.45) 0%, rgba(239,68,68,0.15) 45%, transparent 70%)', pointerEvents:'none', zIndex:0 }} />
       )}
-      <div className={isBoss?undefined:'anim-idle'}
-        style={{ position:'relative', zIndex:1, transform:'scaleX(-1)', pointerEvents:'none',
-          filter:isBoss?'drop-shadow(0 0 28px rgba(239,68,68,0.85)) drop-shadow(0 0 60px rgba(239,68,68,0.3)) drop-shadow(0 12px 24px rgba(0,0,0,0.95))':`drop-shadow(0 0 16px ${accentColor}77) drop-shadow(0 10px 20px rgba(0,0,0,0.9))` }}>
-        <PixelSprite src={spritePath} alt={name} assetVersion={ENEMY_SPRITES_ASSET_VERSION} priority
-          size={isBoss?294:231} rarity={isBoss?'L':'C'}
-          style={ isBoss
-            ? { height:'clamp(189px, 42vh, 315px)', width:'auto', maxWidth:'min(89.25vw, 378px)', maxHeight:'clamp(189px, 42vh, 315px)' }
-            : { height:'clamp(158px, 33.6vh, 252px)', width:'auto', maxWidth:'min(81.9vw, 315px)', maxHeight:'clamp(158px, 33.6vh, 252px)' }
-          } />
+      {/* Flottement (anim-idle) sur le conteneur, ombres portées sur un enfant
+          immobile : le flou est rastérisé une fois dans le calque animé au
+          lieu d'être recalculé par le GPU à chaque frame de l'animation.
+          L'animation remplaçait le scaleX(-1) : seul le boss est retourné. */}
+      <div className={isBoss?undefined:'anim-idle'} style={{ position:'relative', zIndex:1, pointerEvents:'none' }}>
+        <div style={{ transform: isBoss?'scaleX(-1)':undefined,
+            filter:isBoss?'drop-shadow(0 0 28px rgba(239,68,68,0.85)) drop-shadow(0 0 60px rgba(239,68,68,0.3)) drop-shadow(0 12px 24px rgba(0,0,0,0.95))':`drop-shadow(0 0 16px ${accentColor}77) drop-shadow(0 10px 20px rgba(0,0,0,0.9))` }}>
+          <PixelSprite src={spritePath} alt={name} assetVersion={ENEMY_SPRITES_ASSET_VERSION} priority
+            size={isBoss?294:231} rarity={isBoss?'L':'C'}
+            style={ isBoss
+              ? { height:'clamp(189px, 42vh, 315px)', width:'auto', maxWidth:'min(89.25vw, 378px)', maxHeight:'clamp(189px, 42vh, 315px)' }
+              : { height:'clamp(158px, 33.6vh, 252px)', width:'auto', maxWidth:'min(81.9vw, 315px)', maxHeight:'clamp(158px, 33.6vh, 252px)' }
+            } />
+        </div>
       </div>
     </div>
   );

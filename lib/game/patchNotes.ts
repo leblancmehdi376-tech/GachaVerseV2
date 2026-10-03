@@ -23,14 +23,41 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '03/10/2026',
     title: `Maj v${GAME_VERSION}`,
-    changes: [
-      "**Chargement plus rapide** : les images des ennemis les plus lourdes ont été allégées, sans perte visible.",
-      "Les illustrations d'ennemis réduites à l'écran sont maintenant **lissées** au lieu d'apparaître crénelées.",
-      "Les **Patch Notes** sont chargées à part, ce qui allège le démarrage du jeu.",
-      "**Animations plus fluides** : plusieurs halos, reflets et pulsations sont maintenant gérés par la carte graphique (succès, Forge, Expéditions, cohésion, notifications).",
-      "**Tirages** : le halo pulsé des cartes **Stellaires, Cosmiques, Primordiales et Transcendantes** s'affiche de nouveau une fois la carte révélée.",
-      "**Raids** : le pop-up de récompenses ne modifie plus l'apparition des panneaux sur d'autres pages.",
-      "**Avatar** : il ne pulse plus une fois un grand nombre de succès débloqués ; la bordure et la lueur de palier restent.",
+    sections: [
+      {
+        icon: '🔋',
+        title: 'Mode économie',
+        changes: [
+          "Nouveau **Mode économie** dans les **Options** : il coupe les animations en boucle (étoiles, particules, reflets, halos pulsés).",
+          "Il soulage la **carte graphique**, le **processeur** et la **batterie**, surtout quand le jeu reste ouvert longtemps.",
+          "Si ton appareil demande de **réduire les animations**, les particules et l'effet d'invocation le respectent aussi désormais.",
+        ],
+      },
+      {
+        icon: '⚡',
+        title: 'Performances',
+        changes: [
+          "**Écran de combat** nettement plus léger pour la carte graphique, même sans le mode économie.",
+          "**Animation d'invocation** et éclats des cartes rares plus légers, et à la bonne vitesse sur les écrans **120/144 Hz**.",
+          "**Écran de chargement** plus léger, pour un démarrage plus fluide.",
+          "**Chargement plus rapide** : les images des ennemis les plus lourdes ont été allégées, sans perte visible.",
+          "Les **Patch Notes** sont chargées à part, ce qui allège le démarrage du jeu.",
+          "**Animations plus fluides** : plusieurs halos, reflets et pulsations sont maintenant gérés par la carte graphique (succès, Forge, Expéditions, cohésion, Raids, Jackpot).",
+        ],
+      },
+      {
+        icon: '🎨',
+        title: 'Visuels',
+        changes: [
+          "Le **fond étoilé** défile deux fois plus lentement.",
+          "Les **notifications** et la fenêtre de **voyage entre paliers** n'ont plus de flou d'arrière-plan.",
+          "**Succès à récupérer** : le halo doré pulse maintenant à l'intérieur de la carte.",
+          "Les illustrations d'ennemis réduites à l'écran sont maintenant **lissées** au lieu d'apparaître crénelées.",
+          "**Tirages** : le halo pulsé des cartes **Stellaires, Cosmiques, Primordiales et Transcendantes** s'affiche de nouveau une fois la carte révélée.",
+          "**Raids** : le pop-up de récompenses ne modifie plus l'apparition des panneaux sur d'autres pages.",
+          "**Avatar** : il ne pulse plus une fois un grand nombre de succès débloqués ; la bordure et la lueur de palier restent.",
+        ],
+      },
     ],
   },
   {

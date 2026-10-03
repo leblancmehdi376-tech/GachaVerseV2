@@ -103,6 +103,7 @@ export const AchievementCard = memo(function AchievementCard({ entry, progress, 
 
   return (
     <div className={cls} style={{ ...tierVars(cur), ['--i' as string]: index } as CSSProperties}>
+      {st.claimable.length > 0 && <span className="ach-card__pulse" aria-hidden="true" />}
       {revealing && <><div className="ach-reveal-flash" /><div className="ach-reveal-tag">SECRET DÉCOUVERT</div></>}
       {bursting && (
         <>

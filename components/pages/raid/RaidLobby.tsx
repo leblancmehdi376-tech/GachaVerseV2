@@ -162,12 +162,14 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
                           const color = isTitle ? '#fbbf24' : (item?.color ?? 'rgba(255,255,255,0.7)');
                           const isRarest = i === 0;
                           return (
-                            <div key={i} style={{ display:'flex', alignItems:'center', gap:5,
+                            <div key={i} style={{ position:'relative', display:'flex', alignItems:'center', gap:5,
                               background: isRarest ? `linear-gradient(90deg, ${color}33, ${color}11)` : 'rgba(255,255,255,0.08)',
                               border:`1px solid ${color}${isRarest?'aa':'44'}`, borderRadius:6,
                               padding: isRarest ? '5px 10px' : '3px 8px',
-                              boxShadow: isRarest ? `0 0 12px ${color}55` : 'none',
-                              animation: isRarest ? 'rareGlow 1.8s ease-in-out infinite' : 'none' }}>
+                              boxShadow: isRarest ? `0 0 12px ${color}55` : 'none' }}>
+                              {/* Éclat pulsé du drop le plus rare : voile en fondu d'opacité plutôt qu'un filter: brightness repeint à chaque frame. */}
+                              {isRarest && <span aria-hidden="true" style={{ position:'absolute', inset:0, borderRadius:'inherit', pointerEvents:'none',
+                                background:'rgba(255,255,255,0.16)', opacity:0, animation:'glowFadeIn 1.8s ease-in-out infinite' }} />}
                               <span style={{ fontSize: isRarest ? 16 : 14 }}>{icon}</span>
                               <span style={{ fontFamily:'var(--f-ui)', fontSize: isRarest ? 16 : 14, fontWeight:700, color }}>{label}</span>
                             </div>
@@ -203,7 +205,6 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
       <style>{`
         @keyframes raidLobbyPulse{0%,100%{opacity:1}50%{opacity:0.4}}
         @keyframes topGlow{0%,100%{opacity:0.6}50%{opacity:1}}
-        @keyframes rareGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
       `}</style>
     </div>
   );

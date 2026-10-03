@@ -155,7 +155,7 @@ html, body {
     radial-gradient(1px 1px at 10% 65%, rgba(200,200,255,0.22), transparent);
   background-repeat: repeat;
   background-size: 400px 400px, 600px 600px, 400px 400px, 600px 600px, 400px 400px, 300px 300px;
-  animation: starDrift 250s linear infinite;
+  animation: starDrift 500s linear infinite;
   will-change: transform;
 }
 @keyframes starDrift {
@@ -424,6 +424,12 @@ html, body {
 @keyframes splashLetterIn {
   from { opacity: 0; transform: translateY(18px) scale(0.85); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Barre de chargement du splash : ease-out cubique, comme la progression
+   calculée en JS (SplashScreen.tsx) qui n'affiche plus que le pourcentage. */
+@keyframes splashBar {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 @keyframes splashSubIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -770,6 +776,27 @@ html, body {
     transition-duration: 0.001ms !important;
   }
   .cosmic-bg::before { animation: none; }
+}
+
+/* Mode économie (Options → [data-lowfx] sur <html>, voir
+   store/displaySettingsStore.ts) : coupe les animations EN BOUCLE, qui font
+   recomposer l'écran à sa fréquence max (60–144 i/s) en permanence. Les
+   animations ponctuelles (révélations, toasts, popups) restent. Chaque
+   élément retombe sur son style au repos (halo min, reflet hors champ). */
+[data-lowfx] .starfield::before,
+[data-lowfx] .anim-idle, [data-lowfx] .anim-boss,
+[data-lowfx] .anim-ultra, [data-lowfx] .anim-ultra::before, [data-lowfx] .anim-ultra::after,
+[data-lowfx] .prog-fill::after, [data-lowfx] .gv-ultra-glow,
+[data-lowfx] .forge-ready::before, [data-lowfx] .forge-ready::after,
+[data-lowfx] .cohesion-badge__emoji, [data-lowfx] .cohesion-badge__emoji::before, [data-lowfx] .cohesion-badge__emoji::after,
+[data-lowfx] .gacha-fan-card > img, [data-lowfx] .gacha-new-ribbon::after,
+[data-lowfx] .ach-hero::after, [data-lowfx] .ach-bar__fill::after, [data-lowfx] .ach-prog__fill::after,
+[data-lowfx] .ach-claim-all__shine::before, [data-lowfx] .ach-claim-all::before, [data-lowfx] .ach-claim-all::after,
+[data-lowfx] .ach-tab__dot::before, [data-lowfx] .ach-tab__dot::after,
+[data-lowfx] .ach-card.is-done::after, [data-lowfx] .ach-card__pulse, [data-lowfx] .ach-card.is-hidden .ach-card__name,
+[data-lowfx] .ach-medal__icon, [data-lowfx] .trophy-slot__icon,
+[data-lowfx] .ed-fx {
+  animation: none !important;
 }
 
 /* ── Cohérence des pages : conteneur + en-têtes standardisés ──────── */
@@ -1540,13 +1567,19 @@ html, body {
 @keyframes achCardSweepX { 0%, 70% { transform: translateX(0); } 100% { transform: translateX(422%); } }
 .ach-card.is-todo .ach-medal__icon { filter: grayscale(0.85) brightness(0.75); }
 .ach-card.is-todo .ach-card__name { color: var(--text-sub); }
+/* Halo "à récupérer" : ombre extérieure fixe + lueur intérieure (span
+   .ach-card__pulse) dont seule l'opacité pulse, au lieu d'interpoler le
+   box-shadow de la carte (repeint à chaque frame). ::before/::after de la
+   carte sont déjà pris par l'état is-done. */
 .ach-card.is-claimable {
   border-color: #fbbf24;
-  animation: achFadeUp 0.42s backwards, achClaimPulse 1.8s ease-in-out infinite 0.5s;
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.45), 0 0 24px rgba(251,191,36,0.3);
+  animation: achFadeUp 0.42s backwards;
 }
-@keyframes achClaimPulse {
-  0%,100% { box-shadow: 0 0 0 1px rgba(251,191,36,0.35), 0 0 18px rgba(251,191,36,0.2); }
-  50%     { box-shadow: 0 0 0 1px rgba(251,191,36,0.6), 0 0 32px rgba(251,191,36,0.45); }
+.ach-card__pulse {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 0 22px rgba(251,191,36,0.4);
+  opacity: 0; animation: glowFadeIn 1.8s ease-in-out 0.5s infinite;
 }
 
 .ach-card.is-hidden {
@@ -1809,7 +1842,7 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .ach-card, .ach-card.is-done::after, .ach-hero::after, .ach-bar__fill::after, .ach-prog__fill::after,
   .ach-card.is-hidden .ach-card__name, .trophy-slot, .trophy-slot__icon, .mastery-row, .ach-toast__rays,
-  .ach-medal__icon, .ach-claim-all, .ach-card.is-claimable { animation: none !important; }
+  .ach-medal__icon, .ach-claim-all, .ach-card.is-claimable, .ach-card__pulse { animation: none !important; }
   .ach-claim-all__shine::before { animation: none !important; }
   .ach-claim-all::before, .ach-claim-all::after { display: none; }
   .ach-toast { animation: achToastOut 0.3s ease-in forwards 3.6s; }

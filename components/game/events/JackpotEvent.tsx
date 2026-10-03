@@ -155,14 +155,17 @@ export function JackpotEvent() {
     return (
       <div style={{ position:'absolute', inset:0, zIndex:20, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(3,2,10,0.35)' }}>
         <button onClick={() => setPhase('slots')}
-          style={{ padding:'18px 30px', borderRadius:14, cursor:'pointer', border:'2px solid #fbbf24',
+          style={{ position:'relative', padding:'18px 30px', borderRadius:14, cursor:'pointer', border:'2px solid #fbbf24',
             background:'linear-gradient(135deg,#b45309,#f59e0b)', color:'#fff',
             fontFamily:'var(--f-title)', fontWeight:900, fontSize:22, letterSpacing:2,
-            boxShadow:'0 0 40px rgba(245,158,11,0.7)', animation:'jackpotBlink 0.6s infinite' }}>
+            boxShadow:'0 0 40px rgba(245,158,11,0.7)' }}>
+          {/* Clignotement : voile blanc en fondu d'opacité (composité), au lieu
+              d'un filter: brightness qui repeignait le bouton à chaque frame. */}
+          <span aria-hidden="true" style={{ position:'absolute', inset:0, borderRadius:'inherit', pointerEvents:'none',
+            background:'rgba(255,255,255,0.3)', opacity:0, animation:'glowFadeIn 0.6s infinite' }} />
           🎰 GAIN MULTIPLIÉ !
           <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, opacity:0.85, marginTop:4 }}>{(timeLeft/1000).toFixed(0)}s pour tenter</div>
         </button>
-        <style>{`@keyframes jackpotBlink { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.5)} }`}</style>
       </div>
     );
   }

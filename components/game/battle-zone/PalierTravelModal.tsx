@@ -23,7 +23,7 @@ export function PalierTravelModal({
   return (
     <div
       onClick={onClose}
-      style={{ position:'absolute', inset:0, zIndex:40, background:'rgba(3,2,8,0.82)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+      style={{ position:'absolute', inset:0, zIndex:40, background:'rgba(3,2,8,0.9)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
     >
       <div
         onClick={e => e.stopPropagation()}

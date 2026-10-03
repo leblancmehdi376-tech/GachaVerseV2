@@ -1,13 +1,20 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { useLowFx } from '@/hooks/useLowFx';
+import { BASE_FRAME_MS, drawGlow, makeGlowSprite } from './glowSprite';
+
+const DOT_R = 6; // rayon max des particules (taille 2 à 6, réduite avec la vie)
 
 // Particules — spawned on high-rarity flip
 export function RarityBurst({ color, active }: { color: string; active: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
+  // Effets réduits (mode économie / mouvement réduit) : pas de gerbe.
+  const lowFx = useLowFx();
+  const show = active && !lowFx;
 
   useEffect(() => {
-    if (!active) return;
+    if (!show) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -29,31 +36,31 @@ export function RarityBurst({ color, active }: { color: string; active: boolean 
       };
     });
 
-    const draw = () => {
+    // Halo pré-rendu (voir glowSprite) au lieu d'un shadowBlur par particule
+    // et par frame ; pas proportionnel au temps écoulé (même vitesse à 144 Hz).
+    const dot = makeGlowSprite(color, color, DOT_R, 8);
+    let last = 0;
+    const draw = (now: number) => {
+      const step = last ? Math.min((now - last) / BASE_FRAME_MS, 4) : 1;
+      last = now;
       ctx.clearRect(0, 0, W, H);
       let alive = false;
       for (const p of pts) {
-        p.life -= p.decay;
+        p.life -= p.decay * step;
         if (p.life <= 0) continue;
         alive = true;
-        p.x += p.vx; p.y += p.vy; p.vy += 0.12;
+        p.x += p.vx * step; p.y += p.vy * step; p.vy += 0.12 * step;
         ctx.globalAlpha = p.life;
-        ctx.fillStyle = color;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-        ctx.fill();
+        drawGlow(ctx, dot, p.x, p.y, p.size * p.life);
       }
       ctx.globalAlpha = 1;
-      ctx.shadowBlur  = 0;
       if (alive) rafRef.current = requestAnimationFrame(draw);
     };
-    draw();
+    rafRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [active, color]);
+  }, [show, color]);
 
-  if (!active) return null;
+  if (!show) return null;
   return (
     <canvas ref={canvasRef}
       style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', zIndex:10 }} />

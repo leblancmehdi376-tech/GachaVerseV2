@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo } from 'react';
 interface Props {
   accentColor: string; // hex or css color from palier config
   isBoss?: boolean;
+  still?: boolean; // effets réduits (mode économie) : une seule image figée, aucune boucle
 }
 
 interface Particle {
@@ -103,7 +104,7 @@ function spawnParticle(w: number, h: number, rgb: [number, number, number], boss
   };
 }
 
-export function BattleParticles({ accentColor, isBoss = false }: Props) {
+export function BattleParticles({ accentColor, isBoss = false, still = false }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const rafRef = useRef<number>(0);
@@ -117,13 +118,8 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
 
     const COUNT = isBoss ? 55 : 35;
 
-    const resize = () => {
-      canvas.width  = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
 
     // Seed initial particles at random y positions
     for (let i = 0; i < COUNT; i++) {
@@ -140,7 +136,7 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
     };
     const draw = (t: number) => {
       rafRef.current = 0;
-      schedule();
+      if (!still) schedule();
       // Pas de simulation proportionnel au temps écoulé (exprimé en frames à
       // 60 i/s), pour garder la même vitesse qu'avant malgré la cadence réduite.
       const step = last ? Math.min((t - last) / BASE_FRAME_MS, 4) : 1;
@@ -186,6 +182,13 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
       cancelAnimationFrame(rafRef.current); rafRef.current = 0;
       if (timer) { clearTimeout(timer); timer = null; }
     };
+    // Redimensionner vide le canvas : en mode figé, on redessine l'image.
+    const ro = new ResizeObserver(() => {
+      canvas.width  = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      if (still) start();
+    });
+    ro.observe(canvas);
     const io = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
     io.observe(canvas);
     start();
@@ -195,7 +198,7 @@ export function BattleParticles({ accentColor, isBoss = false }: Props) {
       ro.disconnect();
       particlesRef.current = [];
     };
-  }, [rgb, isBoss]);
+  }, [rgb, isBoss, still]);
 
   return (
     <>

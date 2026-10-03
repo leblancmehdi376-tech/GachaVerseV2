@@ -19,6 +19,20 @@ function restartIfFull(s: GameStore): Partial<GameStore> {
   return s.mineGems >= s.getMineCap() ? { mineLastTickAt: correctedNow() } : {};
 }
 
+// Production de la mine depuis le dernier tick (null si rien ne bouge).
+export function mineTickPatch(s: GameStore): Partial<GameStore> | null {
+  if (!s.mineOwned) return null;
+  const now = correctedNow();
+  const elapsedHours = Math.max(0, (now - s.mineLastTickAt) / 3_600_000);
+  if (elapsedHours <= 0) return null;
+  const cap = s.getMineCap();
+  // Mine pleine : rien ne bouge, donc aucune mise à jour du store (le
+  // chrono repart à la collecte ou à l'agrandissement, voir restartIfFull).
+  if (s.mineGems >= cap) return null;
+  const produced = s.getMineRatePerHour() * elapsedHours;
+  return { mineGems: Math.min(s.mineGems + produced, cap), mineLastTickAt: now };
+}
+
 export const createMineSlice: StateCreator<GameStore, [], [], MineActions> = (set, get) => ({
   getMineCap: () => MINE_CAP_TIERS[Math.min(get().mineCapLevel ?? 0, MINE_CAP_TIERS.length - 1)],
   getMineRatePerHour: () => MINE_BASE_RATE_PER_HOUR * MINE_SPEED_MULT_TIERS[Math.min(get().mineSpeedLevel ?? 0, MINE_SPEED_MULT_TIERS.length - 1)],
@@ -59,17 +73,8 @@ export const createMineSlice: StateCreator<GameStore, [], [], MineActions> = (se
   },
 
   tickMine: () => {
-    const s = get();
-    if (!s.mineOwned) return;
-    const now = correctedNow();
-    const elapsedHours = Math.max(0, (now - s.mineLastTickAt) / 3_600_000);
-    if (elapsedHours <= 0) return;
-    const cap = s.getMineCap();
-    // Mine pleine : rien ne bouge, donc aucune mise à jour du store (le
-    // chrono repart à la collecte ou à l'agrandissement, voir restartIfFull).
-    if (s.mineGems >= cap) return;
-    const produced = s.getMineRatePerHour() * elapsedHours;
-    set({ mineGems: Math.min(s.mineGems + produced, cap), mineLastTickAt: now });
+    const patch = mineTickPatch(get());
+    if (patch) set(patch);
   },
 
   // Rattrapage hors-ligne : même logique que checkOfflineGain (durée

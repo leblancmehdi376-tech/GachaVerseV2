@@ -11,12 +11,55 @@ import { resolveEnemyDeath, runPeakPalierOf } from '../gameStoreHelpers';
 import { addStats, bossFailPatch } from '@/lib/game/achievementStats';
 import { STAT } from '@/lib/game/achievements';
 import type { GameStore, CombatActions } from '../gameStore.types';
+import { ultTickPatch } from './ultimateSlice';
+import { mineTickPatch } from './mineSlice';
 import { BN_ZERO, bnAdd, bnFromNumber, bnGte, bnIsZero, bnMax, bnMulScalar, bnSub, bnToNumber } from '@/lib/game/bignum';
 
 // Idle : plancher de DPS pour qu'un joueur SANS compagnon progresse quand même
 // (lentement) en début de partie. Exprimé en fraction des PV de l'ennemi courant
 // → temps de kill ~constant, mais trop faible pour battre un boss dans les temps.
 const BASE_IDLE_DPS_HP_FRACTION = 0.006; // ~167 s pour tuer un mob sans aucun compagnon
+
+// Dégâts d'une seconde sur l'ennemi courant (et sa mort éventuelle). Les
+// getters (getTotalDps…) lisent l'état du store : à appeler en premier dans
+// un tick, avant que d'autres patchs ne modifient le brouillon.
+function dpsTickPatch(s: GameStore): Partial<GameStore> | null {
+  const baseTeamDps   = s.getTotalDps(); // inclut déjà dpsMultiplier/selfDpsMultiplier par perso
+  const bonusFlat      = s.getActiveBonusDpsFlat(baseTeamDps);
+  const enemyMult       = s.getActiveEnemyDamageTakenMultiplier();
+  const damageToCoinPct  = s.getActiveDamageToCoinPct();
+
+  // Filet de sécurité "sans aucun compagnon" : uniquement si l'équipe
+  // est VRAIMENT vide (0 perso équipé). Avant ce correctif, ce filet
+  // s'ajoutait TOUJOURS en plus du DPS réel, calculé comme un
+  // pourcentage des PV de l'ennemi — donc à PV d'ennemi très élevés
+  // (fin de partie), il dépassait largement le DPS réel de l'équipe et
+  // rendait toute la puissance du joueur insignifiante : n'importe
+  // quel ennemi mourait en ~167s peu importe l'équipe (voire sans
+  // équipe du tout), ce qui cassait complètement la difficulté.
+  const hasNoTeam = s.equippedTeam.every(id => !id);
+  const idleFloor = hasNoTeam ? bnMax(bnFromNumber(1), bnMulScalar(s.currentEnemy.maxHp, BASE_IDLE_DPS_HP_FRACTION)) : BN_ZERO;
+
+  const finalDps = bnAdd(bnMulScalar(bnAdd(baseTeamDps, bonusFlat), enemyMult * s.getEventDpsMult()), idleFloor);
+  if (bnIsZero(finalDps)) return null;
+
+  const bonusCoins = bnMulScalar(finalDps, damageToCoinPct / 100);
+  const newHp = bnSub(s.currentEnemy.currentHp, finalDps);
+  const withCoins = !bnIsZero(bonusCoins) ? { pixelCoins: bnAdd(s.pixelCoins, bonusCoins) } : {};
+  if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...s, weeklyQuests: s.weeklyQuests ?? [], raidQuests: s.raidQuests ?? [], currentEnemy:{ ...s.currentEnemy, currentHp:newHp }, ...withCoins }) };
+  return { ...withCoins, currentEnemy: { ...s.currentEnemy, currentHp: newHp } };
+}
+
+// Seconde écoulée sur le chrono du boss (null hors combat de boss).
+function bossTimerPatch(state: GameStore): Partial<GameStore> | null {
+  if (!state.bossActive || state.bossTimeLeft <= 0) return null;
+  const t = state.bossTimeLeft - 1;
+  // Défaite (timer écoulé) : même état qu'une retraite volontaire —
+  // bossAvoided:true permet de retenter le boss directement (bouton
+  // "⚡ BOSS") au lieu de forcer un reclear complet des vagues 1-9.
+  if (t <= 0) return { ...bossFailPatch(state), bossActive:false, bossTimeLeft:0, bossAvoided:true, wave:1, currentEnemy: generateEnemy(1, state.palier, runPeakPalierOf(state)) };
+  return { bossTimeLeft: t };
+}
 
 type CombatSet = Parameters<StateCreator<GameStore, [], [], CombatActions>>[0];
 
@@ -119,44 +162,27 @@ export const createCombatSlice: StateCreator<GameStore, [], [], CombatActions> =
   },
 
   tickDps: () => {
-    const baseTeamDps   = get().getTotalDps(); // inclut déjà dpsMultiplier/selfDpsMultiplier par perso
-    const bonusFlat      = get().getActiveBonusDpsFlat(baseTeamDps);
-    const enemyMult       = get().getActiveEnemyDamageTakenMultiplier();
-    const damageToCoinPct  = get().getActiveDamageToCoinPct();
-
-    // Filet de sécurité "sans aucun compagnon" : uniquement si l'équipe
-    // est VRAIMENT vide (0 perso équipé). Avant ce correctif, ce filet
-    // s'ajoutait TOUJOURS en plus du DPS réel, calculé comme un
-    // pourcentage des PV de l'ennemi — donc à PV d'ennemi très élevés
-    // (fin de partie), il dépassait largement le DPS réel de l'équipe et
-    // rendait toute la puissance du joueur insignifiante : n'importe
-    // quel ennemi mourait en ~167s peu importe l'équipe (voire sans
-    // équipe du tout), ce qui cassait complètement la difficulté.
-    const hasNoTeam = get().equippedTeam.every(id => !id);
-    const idleFloor = hasNoTeam ? bnMax(bnFromNumber(1), bnMulScalar(get().currentEnemy.maxHp, BASE_IDLE_DPS_HP_FRACTION)) : BN_ZERO;
-
-    const finalDps = bnAdd(bnMulScalar(bnAdd(baseTeamDps, bonusFlat), enemyMult * get().getEventDpsMult()), idleFloor);
-    if (bnIsZero(finalDps)) return;
-
-    const bonusCoins = bnMulScalar(finalDps, damageToCoinPct / 100);
-
-    set(state => {
-      const newHp = bnSub(state.currentEnemy.currentHp, finalDps);
-      const withCoins = !bnIsZero(bonusCoins) ? { pixelCoins: bnAdd(state.pixelCoins, bonusCoins) } : {};
-      if (bnIsZero(newHp)) return { ...withCoins, ...resolveEnemyDeath({ ...state, weeklyQuests: state.weeklyQuests ?? [], raidQuests: state.raidQuests ?? [], currentEnemy:{ ...state.currentEnemy, currentHp:newHp }, ...withCoins }) };
-      return { ...withCoins, currentEnemy: { ...state.currentEnemy, currentHp: newHp } };
-    });
+    const patch = dpsTickPatch(get());
+    if (patch) set(patch);
   },
 
-  tickBossTimer: () => set(state => {
-    if (!state.bossActive || state.bossTimeLeft <= 0) return state;
-    const t = state.bossTimeLeft - 1;
-    // Défaite (timer écoulé) : même état qu'une retraite volontaire —
-    // bossAvoided:true permet de retenter le boss directement (bouton
-    // "⚡ BOSS") au lieu de forcer un reclear complet des vagues 1-9.
-    if (t <= 0) return { ...bossFailPatch(state), bossActive:false, bossTimeLeft:0, bossAvoided:true, wave:1, currentEnemy: generateEnemy(1, state.palier, runPeakPalierOf(state)) };
-    return { bossTimeLeft: t };
-  }),
+  tickBossTimer: () => set(state => bossTimerPatch(state) ?? state),
+
+  // Tick d'une seconde complet (useDpsTick) : dégâts, chrono du boss, ultis et
+  // mine enchaînés sur un brouillon puis appliqués en UN seul set(). Quatre
+  // set() séparés réveillaient quatre fois tous les abonnés du store (et le
+  // middleware de sauvegarde) à chaque seconde.
+  tick: () => {
+    let draft = get();
+    let patch: Partial<GameStore> = {};
+    for (const step of [dpsTickPatch, bossTimerPatch, ultTickPatch, mineTickPatch]) {
+      const p = step(draft);
+      if (p) { patch = { ...patch, ...p }; draft = { ...draft, ...p }; }
+    }
+    if (Object.keys(patch).length > 0) set(patch);
+    // Filet si le setTimeout de fin d'ulti a été retardé (onglet throttlé…).
+    get().launchNextQueuedUlt();
+  },
 
   activateCharacterUltimate: (templateId, formIndex) => {
     if (!getUltimateDef(parseInstanceKey(templateId).templateId)) return;

@@ -1,11 +1,20 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { useLowFx } from '@/hooks/useLowFx';
+import { BASE_FRAME_MS, drawGlow, makeGlowSprite } from './glowSprite';
+
+// Cadence plafonnée : sans plafond, un écran 144 Hz dessinait 2,4× plus de
+// frames (et faisait tourner l'orbe 2,4× plus vite, l'animation avançant
+// d'un pas fixe par frame).
+const FRAME_MS = 1000 / 60;
+const DOT_R = 4; // rayon max des particules orbitales (taille 1.5 à 4)
 
 // Invocation portal — animation d'appel avant les cartes
 export function InvocationPortal({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<'build' | 'burst' | 'fade'>('build');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
+  const lowFx     = useLowFx();
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('burst'), 800);
@@ -32,10 +41,11 @@ export function InvocationPortal({ onDone }: { onDone: () => void }) {
       size: 1.5 + Math.random() * 2.5,
       alpha: 0.4 + Math.random() * 0.6,
     }));
+    const dot = makeGlowSprite('#c084fc', '#9333ea', DOT_R, 8);
 
-    const draw = () => {
+    const render = (step: number) => {
       ctx.clearRect(0, 0, W, H);
-      t += 0.03;
+      t += 0.03 * step;
       const scale = phase === 'burst' ? 1 + (t * 0.8) : 1;
 
       // Glow central
@@ -48,42 +58,50 @@ export function InvocationPortal({ onDone }: { onDone: () => void }) {
       ctx.arc(cx, cy, 150 * scale, 0, Math.PI * 2);
       ctx.fill();
 
-      // Particules orbitales
+      // Particules orbitales (halo pré-rendu, voir glowSprite)
+      const fade = phase === 'burst' ? Math.max(0, 1 - t * 0.5) : 0.85;
       for (const p of pts) {
-        p.angle += p.speed;
+        p.angle += p.speed * step;
         const x = cx + Math.cos(p.angle) * p.r * scale;
         const y = cy + Math.sin(p.angle) * p.r * scale * 0.55;
-        ctx.globalAlpha = p.alpha * (phase === 'burst' ? Math.max(0, 1 - t * 0.5) : 0.85);
-        ctx.fillStyle = '#c084fc';
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#9333ea';
-        ctx.beginPath();
-        ctx.arc(x, y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalAlpha = p.alpha * fade;
+        drawGlow(ctx, dot, x, y, p.size);
       }
 
-      // Rayons
+      // Rayons : un seul tracé pour les 12, en deux passes (halo large et
+      // translucide, puis trait fin) au lieu de 12 traits avec shadowBlur.
       ctx.globalAlpha = phase === 'burst' ? Math.max(0, 0.35 - t * 0.15) : 0.15;
+      ctx.beginPath();
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2 + t * 0.5;
         const len = (80 + Math.sin(t * 3 + i) * 30) * scale;
-        ctx.strokeStyle = '#a855f7';
-        ctx.lineWidth = 1;
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = '#a855f7';
-        ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len * 0.55);
-        ctx.stroke();
       }
+      ctx.strokeStyle = 'rgba(168,85,247,0.35)';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
       ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
-      rafRef.current = requestAnimationFrame(draw);
     };
-    draw();
+
+    // Effets réduits : une image fixe, pas de boucle.
+    if (lowFx) { render(1); return; }
+
+    let last = 0;
+    const draw = (now: number) => {
+      rafRef.current = requestAnimationFrame(draw);
+      if (last && now - last < FRAME_MS - 1) return;
+      const step = last ? Math.min((now - last) / BASE_FRAME_MS, 4) : 1;
+      last = now;
+      render(step);
+    };
+    rafRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [phase]);
+  }, [phase, lowFx]);
 
   return (
     <div style={{
