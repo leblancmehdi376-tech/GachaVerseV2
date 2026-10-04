@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateDailyShopCharacters } from './shop';
+import { generateDailyShopCharacters, getVoidOrbsForCharacter, liquidateChampionInventory } from './shop';
 import { getCharacterById } from './characters';
 
 describe('generateDailyShopCharacters', () => {
@@ -25,5 +25,24 @@ describe('generateDailyShopCharacters', () => {
       }
     }
     expect(sawNonCommon).toBe(false);
+  });
+});
+
+describe('liquidateChampionInventory', () => {
+  it("convertit les doublons restants en Orbes du Néant et vide l'inventaire", () => {
+    const data: Record<string, unknown> = { voidOrbs: 10, totalVoidOrbsEarned: 50, championInventory: { minato: 2, jinwoo: 0 } };
+    const orbs = liquidateChampionInventory(data);
+    expect(orbs).toBe(2 * getVoidOrbsForCharacter('minato'));
+    expect(data.voidOrbs).toBe(10 + orbs);
+    expect(data.totalVoidOrbsEarned).toBe(50 + orbs);
+    expect(data.championInventory).toEqual({});
+    expect(liquidateChampionInventory(data)).toBe(0);
+    expect(data.voidOrbs).toBe(10 + orbs);
+  });
+
+  it('ne touche pas à une save partielle sans voidOrbs', () => {
+    const data: Record<string, unknown> = { championInventory: { minato: 1 } };
+    expect(liquidateChampionInventory(data)).toBe(0);
+    expect(data.championInventory).toEqual({ minato: 1 });
   });
 });

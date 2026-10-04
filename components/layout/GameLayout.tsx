@@ -61,7 +61,6 @@ const PAGE_LOADERS = {
   SettingsPage: () => import('@/components/pages/SettingsPage').then(m => ({ default: m.SettingsPage })),
   LeaderboardPage: () => import('@/components/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })),
   MarketplacePage: () => import('@/components/pages/MarketplacePage').then(m => ({ default: m.MarketplacePage })),
-  ChampionInventoryPage: () => import('@/components/pages/ChampionInventoryPage').then(m => ({ default: m.ChampionInventoryPage })),
   AchievementsPage: () => import('@/components/pages/AchievementsPage').then(m => ({ default: m.AchievementsPage })),
   ProfilePage: () => import('@/components/pages/ProfilePage').then(m => ({ default: m.ProfilePage })),
   ExpeditionsPage: () => import('@/components/pages/ExpeditionsPage').then(m => ({ default: m.ExpeditionsPage })),
@@ -88,7 +87,6 @@ const RaidPage = lazy(PAGE_LOADERS.RaidPage);
 const SettingsPage = lazy(PAGE_LOADERS.SettingsPage);
 const LeaderboardPage = lazy(PAGE_LOADERS.LeaderboardPage);
 const MarketplacePage = lazy(PAGE_LOADERS.MarketplacePage);
-const ChampionInventoryPage = lazy(PAGE_LOADERS.ChampionInventoryPage);
 const AchievementsPage = lazy(PAGE_LOADERS.AchievementsPage);
 const ProfilePage = lazy(PAGE_LOADERS.ProfilePage);
 const ExpeditionsPage = lazy(PAGE_LOADERS.ExpeditionsPage);
@@ -104,7 +102,7 @@ const GachaDlePage = lazy(PAGE_LOADERS.GachaDlePage);
 const loadPatchNotes = () => import('@/components/layout/PatchNotesModal');
 const PatchNotesModal = lazy(() => loadPatchNotes().then(m => ({ default: m.PatchNotesModal })));
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'champions' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'mine' | 'anomalie' | 'mastery' | 'gachadle';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'mine' | 'anomalie' | 'mastery' | 'gachadle';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -117,7 +115,6 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   ]},
   { title:'ÉQUIPE', items: [
     { id:'companions',   label:'COMPAGNONS',      accent:'var(--purple-hi)'     },
-    { id:'champions',    label:'INV. CHAMPIONS',  accent:'#fbbf24'            },
     { id:'mastery',    label:'MAÎTRISE',        accent:'#f472b6'            },
     { id:'forge',        label:'FORGE',           accent:'#e879f9'            },
   ]},
@@ -574,7 +571,6 @@ export function GameLayout() {
                   {contentPage === 'settings'     && <SettingsPage onForceSave={forceSave} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} />}
                   {contentPage === 'leaderboard'  && <LeaderboardPage />}
                   {contentPage === 'marketplace'  && <MarketplacePage />}
-                  {contentPage === 'champions'    && <ChampionInventoryPage />}
                   {contentPage === 'achievements' && <AchievementsPage />}
                   {contentPage === 'expeditions' && <ExpeditionsPage />}
                   {contentPage === 'forge'       && <ForgePage />}

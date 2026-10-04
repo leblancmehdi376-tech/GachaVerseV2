@@ -6,7 +6,7 @@ import { getCharacterById, BANNER_POOL } from '@/lib/game/characters';
 import { rollEquipmentChest } from '@/lib/game/items';
 import {
   CROWN_GEM_PACKS, ORB_GEM_PACKS, GEM_GOLD_PACKS, getGoldPackCoins, BOOST_COST_CROWNS, BOOST_DURATION_MS,
-  getVoidOrbsForRarity, SHOP_CHAR_PRICE_ORBS, getTodayDayKey, generateDailyShopCharacters, getRerollShopCost,
+  SHOP_CHAR_PRICE_ORBS, getTodayDayKey, generateDailyShopCharacters, getRerollShopCost,
   LAUNCH_TIMESTAMP, STARTER_PACK_WINDOW_MS, STARTER_PACK_REWARDS, EQUIPMENT_CHESTS,
 } from '@/lib/game/shop';
 import { bumpCoinQuests, getGoldChestMultiplier, requestUrgentSave, resolveEnemyDeath, runPeakPalierOf } from '../gameStoreHelpers';
@@ -131,38 +131,6 @@ export const createShopSlice: StateCreator<GameStore, [], [], ShopActions> = (se
     get().addStat(STAT.shopPurchases);
     requestUrgentSave('shop');
     return itemId;
-  },
-
-  recycleChampion: (templateId) => {
-    const qty = get().championInventory[templateId] ?? 0;
-    if (qty <= 0) return;
-    const tpl  = getCharacterById(templateId);
-    const orbs = tpl ? getVoidOrbsForRarity(tpl.rarity) : 1;
-    set(state => {
-      const inv = { ...state.championInventory };
-      if (inv[templateId] <= 1) delete inv[templateId];
-      else inv[templateId] -= 1;
-      return { championInventory: inv, voidOrbs: state.voidOrbs + orbs, totalVoidOrbsEarned: (state.totalVoidOrbsEarned ?? 0) + orbs };
-    });
-  },
-
-  recycleChampionsByRarity: (rarity) => {
-    const inv = get().championInventory;
-    const orbsPerUnit = getVoidOrbsForRarity(rarity);
-    let count = 0;
-    let orbs = 0;
-    const nextInv = { ...inv };
-    for (const [templateId, qty] of Object.entries(inv)) {
-      if ((qty ?? 0) <= 0) continue;
-      if (getCharacterById(templateId)?.rarity !== rarity) continue;
-      count += qty;
-      orbs += qty * orbsPerUnit;
-      delete nextInv[templateId];
-    }
-    if (count > 0) {
-      set(state => ({ championInventory: nextInv, voidOrbs: state.voidOrbs + orbs, totalVoidOrbsEarned: (state.totalVoidOrbsEarned ?? 0) + orbs }));
-    }
-    return { count, orbs };
   },
 
   removeChampion: (templateId) => {

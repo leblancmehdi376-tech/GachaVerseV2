@@ -334,7 +334,7 @@ export function MarketplacePage() {
             <div style={{ background:'rgba(249,115,22,0.05)', border:'1px solid rgba(249,115,22,0.2)', borderRadius:'12px', padding:'18px', display:'flex', flexDirection:'column', gap:'12px' }}>
               <span style={{ fontFamily:'var(--f-title)', fontSize:'16px', color:'#f97316', letterSpacing:'2px' }}>NOUVELLE ANNONCE</span>
 
-              {/* Type — personnages exclus (via Inventaire des Champions uniquement) */}
+              {/* Type — personnages exclus (les doublons Prismatiques sont recyclés en Orbes) */}
               <div style={{ display:'flex', gap:'8px' }}>
                 {(['item','equipment'] as const).map(t => (
                   <button key={t} onClick={() => { setFormType(t); setFormItemId(''); }} style={{

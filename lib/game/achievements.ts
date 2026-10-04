@@ -144,7 +144,7 @@ export const EV_PERFECT = {
 
 // Pages visitables (voir GameLayout) — "Explorer toutes les sections".
 export const EXPLORABLE_PAGES = [
-  'home', 'companions', 'champions', 'collection', 'upgrades', 'prestige', 'anomalie',
+  'home', 'companions', 'collection', 'upgrades', 'prestige', 'anomalie',
   'mine', 'mastery', 'achievements', 'raids', 'expeditions', 'gacha', 'shop', 'marketplace', 'forge', 'profile',
   'quests', 'leaderboard', 'settings',
 ] as const;

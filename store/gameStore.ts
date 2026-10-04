@@ -16,6 +16,7 @@ import { getTodayDayKey, getThisWeekKey } from '@/lib/game/shop';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { initialBonusLevels, coerceBonusLevels } from '@/lib/game/prestige';
 import { migrateEditionFields } from '@/lib/game/editions';
+import { liquidateChampionInventory } from '@/lib/game/shop';
 import type { GameStore, CurrencySnapshot, DleWin } from './gameStore.types';
 import { BN_ZERO, coerceBigNum } from '@/lib/game/bignum';
 import { DAILY_QUEST_DEFS, WEEKLY_QUEST_DEFS, RAID_QUESTS, rollQuestDefs, rollCoinHoursQuest, migrateLegacyRaidQuestIds } from './gameStoreHelpers';
@@ -313,6 +314,8 @@ export const useGameStore = create<GameStore>()(
         // entrées par édition + jauge), et Taux Shiny Or/Diamant → Taux
         // d'édition. Idempotent, tourne à chaque réhydratation.
         migrateEditionFields(raw);
+        // Inventaire des Champions retiré : doublons restants → Orbes du Néant.
+        liquidateChampionInventory(raw);
         raw.prestigeBonusLevels = coerceBonusLevels(raw.prestigeBonusLevels);
         const merged = raw as unknown as GameStore;
         // Backfill des types d'expédition manquants (voir backfillDefAffinities) :

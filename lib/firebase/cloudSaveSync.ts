@@ -8,6 +8,7 @@ import { migrateAnomalies, type Anomaly } from '@/lib/game/anomalies';
 import { migrateLegacyRaidQuestIds } from '@/store/gameStoreHelpers';
 import { migrateLegacyDrops } from '@/lib/game/expeditions';
 import { migrateEditionFields } from '@/lib/game/editions';
+import { liquidateChampionInventory } from '@/lib/game/shop';
 import { coerceBonusLevels } from '@/lib/game/prestige';
 import type { Quest } from '@/store/gameStore.types';
 import { ACHIEVEMENT_BY_ID, type CharMastery } from '@/lib/game/achievements';
@@ -348,6 +349,8 @@ function applyRemoteState(rawData: Record<string, unknown>) {
 
   // Même rework des éditions que côté local (voir gameStore.ts::merge).
   migrateEditionFields(data);
+  // Même conversion de l'ex-Inventaire des Champions que côté local.
+  liquidateChampionInventory(data);
   if ('prestigeBonusLevels' in data) data.prestigeBonusLevels = coerceBonusLevels(data.prestigeBonusLevels);
 
   useGameStore.setState(data as unknown as Parameters<typeof useGameStore.setState>[0]);

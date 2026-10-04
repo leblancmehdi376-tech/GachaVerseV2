@@ -221,8 +221,6 @@ export interface ShopActions {
   rerollDailyShop: () => void;
   buyGemsWithOrbs: (packId: string) => void;
   buyEquipmentChest: (tier: 'common' | 'rare' | 'epic') => string | null;
-  recycleChampion:   (templateId: string) => void;
-  recycleChampionsByRarity: (rarity: Rarity) => { count: number; orbs: number };
   removeChampion:    (templateId: string) => void; // pour HdV
   isStarterPackAvailable: () => boolean;
   claimStarterPack: () => { templateId: string; edition: CardEdition } | null;

@@ -503,9 +503,9 @@ export async function addPlayerItem(uid: string, itemId: string, qty: number): P
 // adminCancelListing dans marketplace.ts) : l'item n'a jamais quitté la base
 // (il a juste été soustrait de l'inventaire du vendeur à la mise en vente),
 // donc il faut le lui recréditer directement sur sa save cloud, comme s'il
-// avait annulé l'annonce lui-même. Un personnage en vente vient toujours de
-// l'Inventaire des Champions (cf. ChampionInventoryPage.handleSell) : il y
-// est simplement remis, sans toucher à la carte possédée.
+// avait annulé l'annonce lui-même. Un personnage en vente venait de l'ancien
+// Inventaire des Champions : il y est remis, puis converti en Orbes du Néant
+// au prochain chargement de la save (voir liquidateChampionInventory).
 export async function restoreListingItemToSeller(listing: {
   sellerId: string; type: 'item' | 'equipment' | 'character'; itemId: string; quantity: number;
 }): Promise<boolean> {

@@ -62,6 +62,16 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
         title: 'Menu',
         changes: [
           "Nouvelle catégorie **Complétion** dans le menu : elle réunit le **Compadex** et les **Succès**.",
+          "L'**Inventaire des Champions** disparaît du menu.",
+        ],
+      },
+      {
+        icon: '🔮',
+        title: 'Doublons Prismatiques',
+        changes: [
+          "Un doublon d'un personnage déjà **Prismatique** est désormais recyclé **instantanément** en **Orbes du Néant**.",
+          "Les doublons qui restaient dans ton Inventaire des Champions ont été **automatiquement recyclés** en Orbes du Néant.",
+          "Le succès **Explorer toutes les sections** compte une section de moins.",
         ],
       },
       {

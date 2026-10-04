@@ -4,6 +4,7 @@ import type { StateCreator } from 'zustand';
 import { defaultEquippedItems } from '@/types/game';
 import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, DEFAULT_BANNER_ID } from '@/lib/game/gacha';
 import { getCharacterById } from '@/lib/game/characters';
+import { getVoidOrbsForCharacter } from '@/lib/game/shop';
 import {
   rollCardEdition, parseInstanceKey, getEditionPoints, editionFromPoints,
   EDITION_CONFIG, EDITION_MAX_POINTS,
@@ -102,13 +103,9 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
 
     const ex = get().collection[templateId];
     if (ex && getEditionPoints(ex) >= EDITION_MAX_POINTS) {
-      // Déjà Prismatique (jauge pleine) → va dans l'Inventaire des Champions
-      set(state => ({
-        championInventory: {
-          ...state.championInventory,
-          [templateId]: (state.championInventory[templateId] ?? 0) + 1,
-        },
-      }));
+      // Déjà Prismatique (jauge pleine) → recyclé directement en Orbes du Néant
+      const orbs = getVoidOrbsForCharacter(templateId);
+      set(state => ({ voidOrbs: state.voidOrbs + orbs, totalVoidOrbsEarned: (state.totalVoidOrbsEarned ?? 0) + orbs }));
       return edition;
     }
     set(state => {

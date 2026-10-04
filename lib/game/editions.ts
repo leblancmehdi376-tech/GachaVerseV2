@@ -45,8 +45,8 @@ export const EDITION_CONFIG: Record<CardEdition, EditionInfo> = {
   prismatic: { label: 'Prismatique', icon: '🌈', color: '#f0abfc', glow: '#e879f9', border: '#f87171', points: 128, statMult: 8,   powBonus: POW_BONUS_PER_TIER * 7, dropChancePct: 0.005 },
 };
 
-// Jauge pleine : au-delà, les doublons partent dans
-// l'Inventaire des Champions (voir addToCollection).
+// Jauge pleine : au-delà, les doublons sont recyclés en
+// Orbes du Néant (voir addToCollection).
 export const EDITION_MAX_POINTS = EDITION_CONFIG.prismatic.points;
 
 /**

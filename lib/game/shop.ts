@@ -1,5 +1,6 @@
 import { Rarity, RARITY_CONFIG, RARITY_ORDER_ASC } from '@/types/game';
 import { rollCharacter } from './gacha';
+import { getCharacterById } from './characters';
 import { COIN_BASE, COIN_GROWTH } from './enemies';
 import { ChestTier, CHEST_RARITY_RATES } from './items';
 import { type BigNum, bnFromNumber, bnMul, bnMulScalar, bnPow } from './bignum';
@@ -64,6 +65,31 @@ export function getVoidOrbsForRarity(rarity: Rarity): number {
   if (rarity === 'CO') return 50;
   if (rarity === 'P') return 100;
   return 500; // T
+}
+
+export function getVoidOrbsForCharacter(templateId: string): number {
+  const tpl = getCharacterById(templateId);
+  return tpl ? getVoidOrbsForRarity(tpl.rarity) : 1;
+}
+
+// L'Inventaire des Champions a été retiré : les doublons d'un perso déjà
+// Prismatique sont recyclés directement en Orbes du Néant. Une sauvegarde
+// antérieure qui en contient encore est convertie ici (mutation en place),
+// côté local (gameStore.ts::merge) comme cloud (applyRemoteState).
+// Idempotent : l'inventaire est vidé après conversion.
+export function liquidateChampionInventory(data: Record<string, unknown>): number {
+  const inv = data.championInventory as Record<string, number> | undefined;
+  if (!inv || typeof inv !== 'object' || !('voidOrbs' in data)) return 0;
+  let orbs = 0;
+  for (const [templateId, qty] of Object.entries(inv)) {
+    if ((qty ?? 0) > 0) orbs += qty * getVoidOrbsForCharacter(templateId);
+  }
+  data.championInventory = {};
+  if (orbs > 0) {
+    data.voidOrbs = (Number(data.voidOrbs) || 0) + orbs;
+    data.totalVoidOrbsEarned = (Number(data.totalVoidOrbsEarned) || 0) + orbs;
+  }
+  return orbs;
 }
 
 // ── Personnages boutique (3 par jour, payés en Orbes du Néant) ───────────

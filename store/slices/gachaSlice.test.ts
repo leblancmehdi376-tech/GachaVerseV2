@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useGameStore } from '@/store/gameStore';
 import { GACHA_COSTS } from '@/lib/game/gacha';
+import { getVoidOrbsForCharacter } from '@/lib/game/shop';
 import type { Anomaly } from '@/lib/game/anomalies';
 
 function anomaly(overrides: Partial<Anomaly>): Anomaly {
@@ -123,13 +124,14 @@ describe('gachaSlice — addToCollection (une carte par perso, jauge d\'édition
     expect(s.championInventory.minato ?? 0).toBe(0);
   });
 
-  it("déjà Prismatique : le doublon part dans l'Inventaire des Champions", () => {
+  it("déjà Prismatique : le doublon est recyclé directement en Orbes du Néant", () => {
     rollNormal();
-    useGameStore.setState({ collection: { minato: { templateId: 'minato', copies: 200, level: 1, currentForm: 0, xp: 0, editionPoints: 128, edition: 'prismatic' } } });
+    useGameStore.setState({ voidOrbs: 0, collection: { minato: { templateId: 'minato', copies: 200, level: 1, currentForm: 0, xp: 0, editionPoints: 128, edition: 'prismatic' } } });
     useGameStore.getState().addToCollection('minato');
     const s = useGameStore.getState();
     expect(s.collection.minato.editionPoints).toBe(128);
-    expect(s.championInventory.minato).toBe(1);
+    expect(s.championInventory.minato ?? 0).toBe(0);
+    expect(s.voidOrbs).toBe(getVoidOrbsForCharacter('minato'));
   });
 
   it('Mémoire des Pierres : la première obtention rend la jauge passée, plafonnée par le niveau', () => {
