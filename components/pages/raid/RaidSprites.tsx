@@ -28,14 +28,14 @@ function bossInitials(name: string): string {
 export function BossSprite({ boss, deadStyle }: { boss: RaidBossDef; deadStyle: boolean }) {
   const { src, failed, onError } = useFallbackImage(raidImageCandidates(stripKnownExtension(boss.spritePath)));
   if (failed || !src) return (
-    <div style={{ width:336, height:448, background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:120, color:boss.accentColor, filter:`drop-shadow(0 0 20px ${boss.accentColor})` }}>{bossInitials(boss.name)}</span>
+    <div style={{ width:'100%', height:'100%', background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:'clamp(40px, 12vh, 120px)', color:boss.accentColor, filter:`drop-shadow(0 0 20px ${boss.accentColor})` }}>{bossInitials(boss.name)}</span>
     </div>
   );
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={boss.name}
-      style={{ width:336, height:448, objectFit:'contain', imageRendering:'pixelated', filter: deadStyle ? 'grayscale(1) brightness(0.3)' : undefined }}
+      style={{ width:'100%', height:'100%', display:'block', objectFit:'contain', imageRendering:'pixelated', filter: deadStyle ? 'grayscale(1) brightness(0.3)' : undefined }}
       onError={onError} />
   );
 }

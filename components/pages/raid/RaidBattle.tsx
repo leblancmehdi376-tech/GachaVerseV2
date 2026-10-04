@@ -409,7 +409,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           display:'flex',
           flexDirection:'column',
           alignItems:'center',
-          justifyContent:'center',
+          justifyContent:'safe center',
           padding:'0 24px',
           gap:24,
           overflow:'hidden'
@@ -420,7 +420,10 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           className="boss-hp"
           style={{
             width:'100%',
-            maxWidth:600
+            maxWidth:600,
+            // La barre de vie ne rétrécit jamais : c'est le sprite qui cède
+            // la place quand l'écran est peu haut.
+            flexShrink:0
           }}
         >
           <div
@@ -505,8 +508,12 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
               ? 'grayscale(1) brightness(0.3)'
               : 'none',
             transition:'filter 0.1s',
-            maxWidth:'80vw',
-            maxHeight:'55vh'
+            // Taille max 336×448, mais le sprite rétrécit pour laisser la
+            // barre de vie et l'indication visibles sur les écrans peu hauts.
+            flex:'0 1 448px',
+            minHeight:0,
+            width:'100%',
+            maxWidth:'min(336px, 80vw)'
           }}
         >
           <BossSprite boss={boss} deadStyle={dead} />
@@ -516,8 +523,10 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
               key={d.id}
               style={{
                 position:'absolute',
-                left:d.x,
-                top:d.y,
+                // Positions exprimées sur la taille max du sprite (336×448),
+                // converties en % pour suivre son redimensionnement.
+                left:`${(d.x / 336) * 100}%`,
+                top:`${(d.y / 448) * 100}%`,
                 pointerEvents:'none',
                 fontFamily:'var(--f-ui)',
                 fontWeight:700,
@@ -834,7 +843,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           .boss-main {
             padding:8px 10px !important;
             gap:10px !important;
-            justify-content:center !important;
+            justify-content:safe center !important;
           }
 
           .boss-hp {
@@ -842,8 +851,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-sprite {
-            max-width:85vw !important;
-            max-height:45vh !important;
+            max-width:min(336px, 85vw) !important;
           }
 
           .attack-hint {
@@ -868,6 +876,34 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
 
           .desktop-only {
             display:none !important;
+          }
+        }
+
+        /* ÉCRAN PEU HAUT (petit téléphone, paysage) */
+        @media (max-height: 700px) {
+          .boss-main {
+            gap:8px !important;
+            padding-top:6px !important;
+            padding-bottom:6px !important;
+          }
+        }
+
+        @media (max-height: 560px) {
+          .boss-header {
+            padding:5px 8px !important;
+            row-gap:4px !important;
+          }
+
+          .boss-stats {
+            padding-top:2px !important;
+          }
+
+          .stat-label {
+            display:none !important;
+          }
+
+          .boss-rewards {
+            padding:5px 8px 6px !important;
           }
         }
 
@@ -905,8 +941,7 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           }
 
           .boss-sprite {
-            max-width:90vw !important;
-            max-height:40vh !important;
+            max-width:min(336px, 90vw) !important;
           }
 
           .boss-rewards {
