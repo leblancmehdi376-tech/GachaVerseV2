@@ -23,6 +23,41 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    sections: [
+      {
+        icon: '⚗️',
+        title: 'Forge et Équipement réunis',
+        changes: [
+          "La page **Équipement** rejoint la **Forge**, désormais rangée dans la catégorie **Équipe** du menu.",
+          "La Forge s'organise en 3 onglets : **Équipement**, **Armes spéciales** et **Recettes**, chacun avec un compteur de ce qui est prêt.",
+        ],
+      },
+      {
+        icon: '🛡️',
+        title: "Établi d'équipement",
+        changes: [
+          "Un onglet par emplacement (Casque, Plastron…) avec le nombre de fusions possibles.",
+          "Toutes les raretés s'affichent en échelle, avec une **barre de progression** jusqu'à la prochaine fusion et les boutons **×1** / **Max** sur chaque ligne.",
+          "Nouveau : la **fusion en cascade** fusionne tout un emplacement d'un coup, jusqu'à la rareté de ton choix.",
+          "Nouvelle option **Ne jamais fusionner les objets spéciaux** (activée par défaut) : les objets liés à un personnage ne sont plus consommés.",
+          "Un raccourci mène à l'expédition qui débloque la rareté suivante quand elle est verrouillée.",
+          "Un panneau récapitule ton **meilleur objet en stock** pour chaque emplacement.",
+        ],
+      },
+      {
+        icon: '📜',
+        title: 'Recettes',
+        changes: [
+          "Les ingrédients de chaque recette s'affichent directement avec une **barre de progression**, sans déplier la carte.",
+          "Filtres **Prêtes**, **En cours** et **Verrouillées**.",
+          "L'ancien onglet « Mes drops » devient une colonne **Mes ingrédients** à côté des recettes.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.1.11',
     changes: [
       "Le nouvel artwork de **Rokoul & Ayro** s'affiche enfin partout : l'ancienne image restait parfois en cache sur la carte et sur le **boss de raid**.",
       "Nouvelles évolutions : **Katsuki Bakugo** (Élève de Yuei, Dynamight) et **Gabimaru** (Ninja d'Iwagakure, Le Creux).",

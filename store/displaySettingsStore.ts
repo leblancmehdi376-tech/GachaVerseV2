@@ -18,6 +18,10 @@ interface DisplaySettingsState {
   // (veille douce seulement, au bout de 5 min).
   sleepDelay: SleepDelay;
   setSleepDelay: (d: SleepDelay) => void;
+  // Forge : la fusion d'équipement ne consomme jamais les objets liés à un
+  // personnage (bonusFor).
+  protectSpecialEquipment: boolean;
+  setProtectSpecialEquipment: (on: boolean) => void;
 }
 
 export type SleepDelay = 'instant' | '30s' | '2m' | '5m' | 'never';
@@ -51,6 +55,8 @@ export const useDisplaySettingsStore = create<DisplaySettingsState>()(
       },
       sleepDelay: '5m',
       setSleepDelay: (d) => set({ sleepDelay: d }),
+      protectSpecialEquipment: true,
+      setProtectSpecialEquipment: (on) => set({ protectSpecialEquipment: on }),
     }),
     {
       name: 'gachaverse-display-settings',

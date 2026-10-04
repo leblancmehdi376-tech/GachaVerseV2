@@ -1021,6 +1021,9 @@ html, body {
 }
 
 .page-pad { padding: 24px 28px; }
+/* Forge : ingrédients cliquables (vers l'expédition qui les drop). */
+.forge-ingredient { transition: background 0.15s, border-color 0.15s; }
+.forge-ingredient:hover:not(:disabled) { border-color: var(--purple-glow) !important; background: rgba(192,132,252,0.06) !important; }
 @media (max-width: 900px) { .page-pad { padding: 14px 12px 32px; } }
 
 /* Calendrier des récompenses journalières : 7 jours par ligne sur desktop,

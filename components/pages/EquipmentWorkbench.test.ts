@@ -12,7 +12,7 @@ vi.mock('@/lib/game/items', async (importOriginal) => {
 });
 
 import { getEquipmentGroup } from '@/lib/game/items';
-import { representativeItem } from './EquipmentUpgradePage';
+import { representativeItem } from './EquipmentWorkbench';
 
 const slot: EquipmentSlot = 'helmet';
 const rarity: Rarity = 'C';

@@ -266,7 +266,6 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   mastery:      IconMastery,
   expeditions:  IconFoldedMap,
   forge:        IconForge,
-  equipment:    IconShield,
   prestige:     IconPrestige,
   mine:         IconMine,
   anomalie:     IconAnomaly,

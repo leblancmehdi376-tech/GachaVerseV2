@@ -1,7 +1,7 @@
 // Équipement : inventaire d'objets, équipement de personnages, fusion d'objets.
 // Extrait de gameStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
-import { defaultEquippedItems, getNextRarity, getEquipmentUpgradeCost, EquippedItems } from '@/types/game';
+import { defaultEquippedItems, getNextRarity, getEquipmentUpgradeCost, RARITY_ORDER_ASC, EquippedItems, type Rarity } from '@/types/game';
 import {
   ITEM_DEFS, getEquipmentDef, getEquipmentGroup, pickEquipmentUpgradeOutput,
   getSpecialWeaponGroup, pickRandomSpecialWeapon, isSpecialWeaponFusionRarity, SPECIAL_WEAPON_FUSION_COST,
@@ -36,7 +36,7 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
   unlockEquipDropRarity: (rarity) => set(s =>
     s.unlockedEquipDropRarities.includes(rarity) ? {} : { unlockedEquipDropRarities: [...s.unlockedEquipDropRarities, rarity] }
   ),
-  upgradeEquipment: (slot, rarity, times = 1) => {
+  upgradeEquipment: (slot, rarity, times = 1, protectSpecials = false) => {
     const nextRarity = getNextRarity(rarity);
     if (!nextRarity) return { ok: false, reason: 'Rareté maximale atteinte' };
     if (!get().unlockedEquipRarities.includes(nextRarity)) {
@@ -44,7 +44,7 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
     }
 
     const cost = getEquipmentUpgradeCost(rarity);
-    const fodderGroup = getEquipmentGroup(slot, rarity);
+    const fodderGroup = getEquipmentGroup(slot, rarity).filter(item => !protectSpecials || !item.bonusFor);
     const inv = get().equipmentInventory;
     const totalOwned = fodderGroup.reduce((sum, item) => sum + (inv[item.id] ?? 0), 0);
     if (totalOwned < cost) return { ok: false, reason: `Pas assez d’objets (${cost} requis)` };
@@ -80,6 +80,18 @@ export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActi
     });
 
     return { ok: true, resultId: outputs[outputs.length - 1], count: outputs.length };
+  },
+  cascadeEquipment: (slot, upTo, protectSpecials = false) => {
+    // Chaque étape fusionne tout le stock de sa rareté, y compris les objets
+    // que l'étape précédente vient de créer.
+    const steps: { from: Rarity; to: Rarity; count: number }[] = [];
+    const target = RARITY_ORDER_ASC.indexOf(upTo);
+    for (let i = 0; i < target; i++) {
+      const from = RARITY_ORDER_ASC[i];
+      const res = get().upgradeEquipment(slot, from, Infinity, protectSpecials);
+      if (res.ok && res.count) steps.push({ from, to: RARITY_ORDER_ASC[i + 1], count: res.count });
+    }
+    return steps;
   },
   fuseSpecialWeapons: (rarity) => {
     if (!isSpecialWeaponFusionRarity(rarity)) {
