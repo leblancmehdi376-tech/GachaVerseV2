@@ -24,6 +24,14 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "Le **résumé d'invocation** met aussi en avant les cartes d'édition **Émeraude ou mieux**, quelle que soit leur rareté.",
+      "L'**édition** de ces cartes est indiquée à côté de leur rareté (ex : Peu commun **Émeraude**).",
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.1.12',
+    changes: [
       "**Les deux Isis** ont enfin leur visuel de carte.",
       "Au **palier 30**, l'ennemi **Les Deux Isis** affiche maintenant sa carte au lieu d'un simple pictogramme.",
     ],

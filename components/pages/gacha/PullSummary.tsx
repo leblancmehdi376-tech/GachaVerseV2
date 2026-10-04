@@ -2,23 +2,27 @@
 import { RARITY_CONFIG } from '@/types/game';
 import { getCharacterById } from '@/lib/game/characters';
 import { RarityBadge } from '@/components/ui/RarityBadge';
-import { HIGH_RARITY, type Res } from './gachaTypes';
+import { EditionBadge } from '@/components/ui/EditionBadge';
+import { isEditionAtLeast } from '@/lib/game/editions';
+import { HIGH_RARITY, HIGH_EDITION, type Res } from './gachaTypes';
 
 // Résumé — affiché après que toutes les cartes sont révélées
 export function PullSummary({ results, onClose }: { results: Res[]; onClose: () => void }) {
   const newChars = results.filter(r => r.isNew);
+  // Mis en avant : rareté Légendaire+ OU édition Émeraude+ (quelle que soit la rareté).
   const highChars = results.filter(r => {
     const tpl = getCharacterById(r.templateId);
-    return tpl && HIGH_RARITY.includes(tpl.rarity);
+    return tpl && (HIGH_RARITY.includes(tpl.rarity) || isEditionAtLeast(r.edition, HIGH_EDITION));
   });
 
   return (
     <div style={{
       display:'flex', flexDirection:'column', alignItems:'center', gap:20,
       animation:'gvFadeUp 0.4s ease',
+      width:'100%', maxWidth:1100, padding:'0 16px', maxHeight:'90vh', overflowY:'auto',
     }}>
       {/* Stats rapides */}
-      <div style={{ display:'flex', gap:12 }}>
+      <div style={{ display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }}>
         {[
           { label:'TIRAGE', val:`×${results.length}`,         color:'var(--purple-glow)' },
           { label:'NOUVEAUX', val:String(newChars.length),    color:'#4ade80'            },
@@ -38,7 +42,7 @@ export function PullSummary({ results, onClose }: { results: Res[]; onClose: () 
       {highChars.length > 0 && (
         <div style={{ textAlign:'center' }}>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:10, fontWeight:700 }}>
-            ✦ RARETÉS ÉLEVÉES
+            ✦ MEILLEURS TIRAGES
           </div>
           <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
             {highChars.map((r, i) => {
@@ -56,7 +60,10 @@ export function PullSummary({ results, onClose }: { results: Res[]; onClose: () 
                   <span style={{ fontSize:18 }}>{cfg.color ? '✦' : '★'}</span>
                   <div>
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:cfg.color }}>{tpl.name}</div>
-                    <RarityBadge rarity={tpl.rarity} size="xs" />
+                    <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+                      <RarityBadge rarity={tpl.rarity} size="xs" />
+                      {isEditionAtLeast(r.edition, HIGH_EDITION) && <EditionBadge edition={r.edition} style={{ fontSize:12, padding:'1px 6px' }} />}
+                    </div>
                   </div>
                   {r.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#4ade80', fontWeight:700 }}>NEW</span>}
                 </div>
