@@ -24,7 +24,7 @@ interface EnemyDef {
 // Même mécanisme que NEW_CARDS_ASSET_VERSION (lib/game/cardAssets.ts) : les
 // sprites sont mis en cache 30 jours sous une URL fixe, incrémenter cette
 // version force le retéléchargement après un remplacement de fichiers.
-export const ENEMY_SPRITES_ASSET_VERSION = 3;
+export const ENEMY_SPRITES_ASSET_VERSION = 4;
 
 function sp(palier: number, id: string): string {
   return `sprites/enemies/palier${palier}/${id}.png`;
@@ -420,11 +420,10 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
     { name:'Crocodile',          sprite: sp(29,'crocodile'),     isBoss:true, hpMult:10 },
   ],
   // ── PALIER 30 : Nos Animaux — Le Royaume des Animaux ─────────────────────
-  // ⚠️ Sprites partiellement manquants : igloo/twix/maurice/horus/brume ont
-  // été dupliqués depuis leurs cartes compagnon (Nos Animaux, Evo0). Osiris,
-  // Isis, Gardien Ancestral, Ombre Sacrée et Capuchon n'ont pas de compagnon
-  // correspondant — ils affichent un placeholder tant qu'aucune image dédiée
-  // n'a été ajoutée.
+  // ⚠️ Sprites partiellement manquants : igloo/twix/maurice/horus/brume/isis
+  // ont été dupliqués depuis leurs cartes compagnon (Nos Animaux, Evo0).
+  // Osiris, Gardien Ancestral, Ombre Sacrée et Capuchon affichent un
+  // placeholder tant qu'aucune image dédiée n'a été ajoutée.
   30: [
     { name:'Igloo',              sprite: sp(30,'igloo')                               },
     { name:'Twix',               sprite: sp(30,'twix'),          hpMult:1.15           },
