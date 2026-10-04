@@ -23,6 +23,10 @@ export const LOCAL_INTERVAL_MS    =  30_000; // rafraîchissement de savedAt tou
 // Exportée uniquement pour le test d'exhaustivité (useCloudSave.test.ts)
 // qui vérifie qu'aucun champ persistant de gameStore n'est oublié ici — voir
 // ce fichier de test pour le contexte (bugs historiques de champs oubliés).
+function isTabHidden(): boolean {
+  return typeof document !== 'undefined' && document.visibilityState === 'hidden';
+}
+
 export function getSerializableState() {
   const s  = useGameStore.getState();
   return {
@@ -142,7 +146,12 @@ export function getSerializableState() {
     // appelé juste avant dans saveToFirebase : ce champ ne fait donc que
     // grossir un payload déjà écrit, sans lecture/écriture Firestore en plus.
     currencyHistory:    s.currencyHistory ?? [],
-    savedAt:            correctedNow(),
+    // Onglet masqué (ex: sauvegarde Firebase périodique pendant que le joueur
+    // est ailleurs) : on garde le dernier instant ACTIF au lieu de "maintenant",
+    // sinon cette sauvegarde avalerait le temps AFK à rattraper au retour
+    // (voir useOfflineGainCheck) — y compris celui d'une popup pas encore
+    // récupérée.
+    savedAt:            isTabHidden() && s.savedAt ? s.savedAt : correctedNow(),
   };
 }
 

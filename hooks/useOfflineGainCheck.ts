@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import type { OfflineGain } from '@/store/gameStore';
+import { bnAdd } from '@/lib/game/bignum';
 
 // Gains hors-ligne : calcul unique une fois l'hydratation + le chargement
 // cloud terminés. Extrait de GameLayout.tsx.
@@ -39,8 +40,9 @@ export function useOfflineGainCheck(hasHydrated: boolean, cloudLoaded: boolean) 
     if (!hasHydrated || !cloudLoaded) return;
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return;
+      const anchor = useGameStore.getState().savedAt;
       const g = useGameStore.getState().checkOfflineGain();
-      if (g) setOfflineGain(g);
+      if (g) setOfflineGain(prev => mergePendingGain(prev, g, anchor));
       useGameStore.getState().applyMineOfflineProduction();
     };
     document.addEventListener('visibilitychange', onVisible);
@@ -53,4 +55,24 @@ export function useOfflineGainCheck(hasHydrated: boolean, cloudLoaded: boolean) 
   };
 
   return { offlineGain, claimOfflineGain };
+}
+
+// Popup encore ouverte (gain pas récupéré) quand un nouveau calcul tombe :
+// ne JAMAIS la remplacer par un gain plus petit (le joueur perdrait l'ancien).
+// - `anchor` (savedAt du nouveau calcul) antérieur au calcul précédent :
+//   savedAt n'a pas bougé depuis (onglet resté masqué), le nouveau gain
+//   couvre donc la même absence prolongée → il remplace l'ancien.
+// - sinon les deux périodes sont disjointes (le joueur est revenu entre-temps
+//   sans récupérer) → on additionne.
+export function mergePendingGain(prev: OfflineGain | null, next: OfflineGain, anchor: number): OfflineGain {
+  if (!prev || anchor < prev.at) return next;
+  return {
+    coins: bnAdd(prev.coins, next.coins),
+    gems: prev.gems + next.gems,
+    kills: prev.kills + next.kills,
+    seconds: prev.seconds + next.seconds,
+    rawSeconds: prev.rawSeconds + next.rawSeconds,
+    capped: prev.capped || next.capped,
+    at: next.at,
+  };
 }

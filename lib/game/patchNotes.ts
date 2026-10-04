@@ -21,8 +21,16 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '03/10/2026',
+    date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Le pop-up de **récompenses de raid** est maintenant centré sur la zone de combat, et plus sur toute la fenêtre.",
+      "Correction : les **récompenses AFK** non récupérées ne sont plus perdues si le jeu reste ouvert dans un onglet en arrière-plan : au retour, le temps d'absence est cumulé.",
+    ],
+  },
+  {
+    date: '03/10/2026',
+    title: 'Maj v2.8.1.7',
     sections: [
       {
         icon: '🔋',

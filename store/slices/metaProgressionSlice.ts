@@ -118,7 +118,9 @@ export const createMetaProgressionSlice: StateCreator<GameStore, [], [], MetaPro
       return {
         pixelCoins: bnAdd(state.pixelCoins, gain.coins),
         nekoGems:   state.nekoGems + gain.gems,
-        savedAt: gain.at,
+        // max : ne jamais faire reculer `savedAt` si le joueur a joué (onglet
+        // visible, savedAt rafraîchi) entre le calcul et le clic.
+        savedAt: Math.max(state.savedAt, gain.at),
         lastOfflineGain: gain,
         quests: bumpCoinQuests(bumpKills(state.quests), bnToNumber(gain.coins)),
         weeklyQuests: bumpKills(state.weeklyQuests ?? []),

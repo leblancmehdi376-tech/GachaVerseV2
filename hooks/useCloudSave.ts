@@ -159,15 +159,16 @@ export function useCloudSave(userId: string | null) {
     return () => clearInterval(id);
   }, [userId]);
 
-  // Save à la fermeture / mise en arrière-plan — NE rafraîchit PAS `savedAt`
-  // (contrairement à avant) : le timestamp doit rester figé au dernier
-  // instant actif pour que le temps passé onglet masqué soit rattrapable via
-  // checkOfflineGain au retour (voir useOfflineGainCheck), exactement comme
-  // une vraie fermeture de l'app.
+  // Save à la fermeture / mise en arrière-plan. `savedAt` est figé à CET
+  // instant (le dernier où le joueur était actif) puis plus rafraîchi tant
+  // que l'onglet reste masqué (voir getSerializableState) : le temps passé
+  // onglet masqué est ainsi rattrapable via checkOfflineGain au retour (voir
+  // useOfflineGainCheck), exactement comme une vraie fermeture de l'app.
   useEffect(() => {
     if (!userId) return;
     const onHide = () => {
       if (document.visibilityState === 'hidden' && loadedRef.current) {
+        refreshLocalSavedAt();
         saveToFirebase(userId, 'visibility'); // tentative Firebase (peut échouer si quota)
       }
     };
