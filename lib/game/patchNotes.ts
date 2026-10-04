@@ -64,6 +64,15 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Nouvelle catégorie **Complétion** dans le menu : elle réunit le **Compadex** et les **Succès**.",
         ],
       },
+      {
+        icon: '✨',
+        title: "Résumé d'invocation",
+        changes: [
+          "Le **résumé d'invocation** met aussi en avant les cartes d'édition **Émeraude ou mieux**, quelle que soit leur rareté.",
+          "L'**édition** de ces cartes est indiquée à côté de leur rareté (ex : Peu commun **Émeraude**).",
+          "Les cartes mises en avant sont **triées par rareté**, puis **par édition** au sein d'une même rareté.",
+        ],
+      },
     ],
   },
   {

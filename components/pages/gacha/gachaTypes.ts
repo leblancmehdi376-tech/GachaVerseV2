@@ -4,6 +4,7 @@ import { Rarity, CardEdition } from '@/types/game';
 
 export const HIGH_RARITY: Rarity[] = ['L','M','S','CO','P','T'];
 export const ULTRA_RARITY: Rarity[] = ['S','CO','P','T'];
+export const HIGH_EDITION: CardEdition = 'emerald'; // édition minimale mise en avant dans le résumé
 export const TEASED_RARITY: Rarity[] = ['P','T']; // déclenchent l'écran de brouillard avant le flip
 
 export type Res = { templateId: string; isNew: boolean; edition: CardEdition };
