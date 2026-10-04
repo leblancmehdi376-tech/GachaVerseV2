@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "perf": "node scripts/perf-monitor/server.mjs",
+    "dev:perf": "node scripts/perf-monitor/server.mjs --with-dev",
+    "start:perf": "node scripts/perf-monitor/server.mjs --with-prod",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

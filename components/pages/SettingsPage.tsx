@@ -19,7 +19,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
   const { resetGame, pixelCoins, nekoGems, wave, palier, maxPalierReached, collection, username, setUsername, getTotalDps } = useGameStore(useShallow(s => ({ resetGame: s.resetGame, pixelCoins: s.pixelCoins, nekoGems: s.nekoGems, wave: s.wave, palier: s.palier, maxPalierReached: s.maxPalierReached, collection: s.collection, username: s.username, setUsername: s.setUsername, getTotalDps: s.getTotalDps })));
   const { user, logout } = useAuth();
   const { protectedUniverses, toggleUniverse } = useSpoilerStore();
-  const { numberNotation, setNotation, ecoMode, setEcoMode } = useDisplaySettingsStore();
+  const { numberNotation, setNotation, ecoMode, setEcoMode, sleepDelay, setSleepDelay } = useDisplaySettingsStore();
   const [spoilerSearch, setSpoilerSearch] = useState('');
   const ALL_UNIVERSES = getSpoilerUniverses();
   const [confirmReset, setConfirmReset] = useState(false);
@@ -330,6 +330,38 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
               fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color: ecoMode ? '#34d399' : 'var(--text-sub)' }}>
             {ecoMode ? '● Activé' : '○ Désactivé'}
           </button>
+        </div>
+
+        {/* ── VEILLE AUTOMATIQUE ── */}
+        <div className="panel" style={{ padding:'20px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px' }}>
+            <div style={{ width:'4px', height:'18px', background:'linear-gradient(180deg,#a78bfa,#6d28d9)', borderRadius:'2px', boxShadow:'0 0 8px #a78bfa' }} />
+            <span className="section-title" style={{ color:'#a78bfa' }}>💤 VEILLE AUTOMATIQUE</span>
+          </div>
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', marginBottom:'14px', lineHeight:1.5 }}>
+            Quand tu joues à autre chose (jeu ouvert sur un deuxième écran, autre fenêtre au premier plan), le jeu arrête de se dessiner pour libérer ta carte graphique.
+            Le combat, les gains, les expéditions et le raid en cours continuent normalement. Clique sur le jeu pour le réveiller. Réglage propre à cet appareil.
+          </div>
+          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+            {([
+              { k:'instant' as const, label:'Immédiat',   hint:'Dès que tu quittes la fenêtre' },
+              { k:'30s'     as const, label:'30 s',       hint:'Après 30 s ailleurs' },
+              { k:'2m'      as const, label:'2 min',      hint:'Après 2 min ailleurs' },
+              { k:'5m'      as const, label:'5 min',      hint:'Après 5 min ailleurs' },
+              { k:'never'   as const, label:'Jamais',     hint:'Effets réduits après 5 min' },
+            ]).map(o => {
+              const active = sleepDelay === o.k;
+              return (
+                <button key={o.k} onClick={() => setSleepDelay(o.k)} aria-pressed={active}
+                  style={{ flex:'1 1 130px', minHeight:'44px', padding:'10px 14px', borderRadius:'8px', cursor:'pointer', textAlign:'left',
+                    background: active ? 'rgba(167,139,250,0.12)' : 'var(--bg-card)',
+                    border:`1px solid ${active ? 'rgba(167,139,250,0.5)' : 'var(--border)'}` }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color: active ? '#a78bfa' : 'var(--text-sub)' }}>{active ? '● ' : '○ '}{o.label}</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', marginTop:'3px' }}>{o.hint}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ── ANTI-SPOIL ── */}

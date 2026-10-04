@@ -13,12 +13,27 @@ interface DisplaySettingsState {
   // <html>, voir globals.css) et les particules canvas (voir useLowFx).
   ecoMode: boolean;
   setEcoMode: (on: boolean) => void;
+  // Veille automatique quand la fenêtre n'a plus le focus (voir
+  // hooks/useAutoSleep.ts) : délai avant la veille complète, ou 'never'
+  // (veille douce seulement, au bout de 5 min).
+  sleepDelay: SleepDelay;
+  setSleepDelay: (d: SleepDelay) => void;
 }
+
+export type SleepDelay = 'instant' | '30s' | '2m' | '5m' | 'never';
+
+// La veille douce force les effets réduits sans toucher au réglage du joueur.
+let sleepLowFx = false;
 
 function applyEcoAttr(on: boolean) {
   if (typeof document === 'undefined') return;
-  if (on) document.documentElement.setAttribute('data-lowfx', '');
+  if (on || sleepLowFx) document.documentElement.setAttribute('data-lowfx', '');
   else document.documentElement.removeAttribute('data-lowfx');
+}
+
+export function setSleepLowFx(on: boolean) {
+  sleepLowFx = on;
+  applyEcoAttr(useDisplaySettingsStore.getState().ecoMode);
 }
 
 export const useDisplaySettingsStore = create<DisplaySettingsState>()(
@@ -34,6 +49,8 @@ export const useDisplaySettingsStore = create<DisplaySettingsState>()(
         applyEcoAttr(on);
         set({ ecoMode: on });
       },
+      sleepDelay: '5m',
+      setSleepDelay: (d) => set({ sleepDelay: d }),
     }),
     {
       name: 'gachaverse-display-settings',

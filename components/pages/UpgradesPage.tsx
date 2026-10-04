@@ -16,6 +16,7 @@ import { CollectionFilters } from '@/components/ui/CollectionFilters';
 import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
 import { bnGte } from '@/lib/game/bignum';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
+import { VirtualGrid } from '@/components/ui/VirtualGrid';
 
 const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
@@ -400,9 +401,7 @@ export function UpgradesPage() {
           <div>
             <SectionHead color="var(--cyan)">ALLIÉS ({ownedIds.length})</SectionHead>
             <CollectionFilters universes={universeOptions} />
-            <div className="upgrades-ally-grid">
-              {filteredIds.map(id => <CharCard key={id} templateId={id} />)}
-            </div>
+            <VirtualGrid className="upgrades-ally-grid" items={filteredIds} getKey={id => id} renderItem={id => <CharCard templateId={id} />} />
           </div>
         )}
 

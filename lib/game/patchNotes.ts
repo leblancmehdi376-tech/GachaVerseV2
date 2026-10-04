@@ -23,6 +23,33 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    sections: [
+      {
+        icon: '💤',
+        title: 'Veille automatique',
+        changes: [
+          "Nouvelle **Veille automatique** dans les **Options** : quand tu joues à autre chose (jeu sur un **deuxième écran**, autre fenêtre au premier plan), le jeu arrête de se dessiner pour libérer ta **carte graphique**.",
+          "Le **combat**, les **gains**, les **expéditions** et le **raid** en cours continuent normalement pendant la veille.",
+          "L'écran de veille affiche ta progression, dont les **PV du boss de raid** et les boss vaincus pendant la veille.",
+          "Délai au choix : **Immédiat**, **30 s**, **2 min**, **5 min** (par défaut) ou **Jamais**.",
+          "Avec **Jamais**, le jeu reste affiché mais réduit ses effets au bout de **5 min** sans y toucher.",
+          "Clique sur le jeu pour le réveiller : un simple passage de la souris ne le réveille pas.",
+        ],
+      },
+      {
+        icon: '⚡',
+        title: 'Performances',
+        changes: [
+          "Ouverture bien plus fluide des pages **Améliorations**, **Compagnons** et **Compadex** : le jeu ne se fige plus quand la collection est grande.",
+          "Les cartes de personnages s'affichent au fil du défilement : jusqu'à **50 fois moins** d'éléments chargés à la fois, ce qui soulage surtout les **téléphones**.",
+          "Page **Succès** allégée : les reflets et les médailles flottantes des cartes s'animent maintenant **au survol**, au lieu de tourner en permanence sur toutes les cartes.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.1.8',
     changes: [
       "Le pop-up de **récompenses de raid** est maintenant centré sur la zone de combat, et plus sur toute la fenêtre.",
       "Correction : les **récompenses AFK** non récupérées ne sont plus perdues si le jeu reste ouvert dans un onglet en arrière-plan : au retour, le temps d'absence est cumulé.",

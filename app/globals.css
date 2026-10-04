@@ -799,6 +799,53 @@ html, body {
   animation: none !important;
 }
 
+/* Veille complète (voir hooks/useAutoSleep.ts) : le jeu n'est plus dessiné
+   du tout (React continue de tenir le DOM à jour), et ses animations sont
+   figées. Un écran fixe (.sleep-overlay) le remplace. La veille douce
+   ([data-sleep="soft"]) passe seulement par [data-lowfx] ci-dessus. */
+[data-sleep="full"] .game-root { content-visibility: hidden; }
+[data-sleep="full"] .game-root *, [data-sleep="full"] .game-root *::before, [data-sleep="full"] .game-root *::after {
+  animation-play-state: paused !important;
+}
+.sleep-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; overflow-y: auto;
+  background: #05030c;
+}
+.sleep-overlay__card {
+  width: 100%; max-width: 440px; max-height: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+  padding: 28px 22px; border-radius: 16px;
+  background: #0d0a1c; border: 1px solid rgba(167,139,250,0.3);
+}
+.sleep-overlay__stats {
+  width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+}
+.sleep-overlay__stats > div {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+}
+.sleep-overlay__stats span { font-family: var(--f-ui); font-size: 14px; color: var(--text-dim); }
+.sleep-overlay__stats b { font-family: var(--f-num); font-size: 16px; color: var(--text); overflow-wrap: anywhere; }
+.sleep-overlay__raid {
+  width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left;
+  padding: 12px; border-radius: 10px;
+  background: color-mix(in srgb, var(--acc) 8%, transparent); border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent);
+}
+.sleep-overlay__raid-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; }
+.sleep-overlay__raid-head span { font-family: var(--f-ui); font-size: 14px; color: var(--text-dim); }
+.sleep-overlay__raid-head b { font-family: var(--f-ui); font-size: 16px; color: var(--acc); }
+.sleep-overlay__raid-track { height: 10px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.06); }
+.sleep-overlay__raid-fill { height: 100%; background: var(--acc); }
+.sleep-overlay__raid-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-family: var(--f-ui); font-size: 14px; color: var(--text-sub); }
+.sleep-overlay__resume {
+  min-height: 44px; padding: 10px 28px; border-radius: 10px; cursor: pointer;
+  font-family: var(--f-ui); font-weight: 700; font-size: 16px; color: #0a0818;
+  background: #c4b5fd; border: none;
+}
+@media (max-width: 400px) { .sleep-overlay__stats { grid-template-columns: 1fr; } }
+
 /* ── Cohérence des pages : conteneur + en-têtes standardisés ──────── */
 .page-scroll {
   height: 100%;
@@ -1554,17 +1601,18 @@ html, body {
 .ach-card.is-done::after {
   content: ''; position: absolute; top: 0; bottom: 0; width: 45%; left: -60%;
   background: linear-gradient(100deg, transparent, rgba(255,255,255,0.08), transparent);
-  animation: achCardSweepX 5.5s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * 180ms);
   pointer-events: none;
 }
+/* Reflet joué une fois au survol, plus en boucle sur chaque carte terminée :
+   des dizaines de cartes à l'écran = autant d'animations permanentes. */
+.ach-card.is-done:hover::after { animation: achCardSweepHover 0.9s ease-out; }
+/* ~422 % de sa largeur (45 %) = de -60 % à 130 % de la carte, en transform
+   (composité, sans mise en page à chaque frame). */
+@keyframes achCardSweepHover { from { transform: translateX(0); } to { transform: translateX(422%); } }
 /* Reflet du toast de succès : déplacé en transform (composité) plutôt qu'en
    left, qui relançait la mise en page à chaque frame. 475 % de sa largeur
    (40 %) = de -60 % à 130 % du toast. */
 @keyframes achCardSweep { 0%, 70% { transform: translateX(0); } 100% { transform: translateX(475%); } }
-/* Variante composité des cartes (en boucle) : ~422 % de sa largeur (45 %) =
-   de -60 % à 130 % de la carte, sans mise en page à chaque frame. */
-@keyframes achCardSweepX { 0%, 70% { transform: translateX(0); } 100% { transform: translateX(422%); } }
 .ach-card.is-todo .ach-medal__icon { filter: grayscale(0.85) brightness(0.75); }
 .ach-card.is-todo .ach-card__name { color: var(--text-sub); }
 /* Halo "à récupérer" : ombre extérieure fixe + lueur intérieure (span
@@ -1630,7 +1678,7 @@ html, body {
 }
 .ach-card.is-todo .ach-medal { background: linear-gradient(160deg, #2a2346, #0c0a1a); }
 .ach-medal__icon { position: relative; font-size: 24px; line-height: 1; filter: drop-shadow(0 0 8px var(--glow)); }
-.ach-card.is-done .ach-medal__icon { animation: achIconFloat 3.4s ease-in-out infinite; }
+.ach-card.is-done:hover .ach-medal__icon { animation: achIconFloat 3.4s ease-in-out infinite; }
 @keyframes achIconFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 .ach-medal-wrap { position: relative; flex-shrink: 0; }
 
@@ -1664,7 +1712,12 @@ html, body {
   box-shadow: 0 0 8px var(--glow);
   transition: width 0.9s cubic-bezier(.2,.8,.2,1);
 }
-.ach-prog__fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: translateX(-100%); animation: progSheen 2.8s ease-in-out infinite; }
+.ach-prog__fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: translateX(-100%); }
+/* Reflet en boucle réservé aux barres uniques (bandeau de catégorie, détail
+   de maîtrise ouvert) ; sur les cartes, seulement au survol (les cartes à
+   récupérer ont déjà leur halo pulsé). */
+.ach-catbar .ach-prog__fill::after, .mastery-detail .ach-prog__fill::after,
+.ach-card:hover .ach-prog__fill::after { animation: progSheen 2.8s ease-in-out infinite; }
 .ach-prog__fill.is-empty::after { display: none; }
 .ach-card.is-done .ach-prog__fill { background: linear-gradient(90deg, #15803d, #4ade80); box-shadow: 0 0 8px rgba(74,222,128,0.5); }
 .ach-prog__num { font-family: var(--f-num); font-size: 14px; font-weight: 700; color: var(--text-sub); white-space: nowrap; }

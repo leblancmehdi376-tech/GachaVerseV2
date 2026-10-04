@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GachaVerse — Perf live</title>
+<style>
+  :root {
+    --bg: #0b0b12; --panel: #14141f; --line: #26263a; --text: #e8e8f0; --dim: #9a9ab0;
+    --good: #34d399; --warn: #fbbf24; --bad: #f87171; --accent: #a78bfa; --blue: #60a5fa; --pink: #f472b6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5; }
+  h1 { font-size: 18px; margin: 0; letter-spacing: .5px; }
+  .status { display: flex; align-items: center; gap: 8px; color: var(--dim); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bad); }
+  .dot.live { background: var(--good); box-shadow: 0 0 8px var(--good); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  select, button { font: inherit; font-size: 14px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 40px; cursor: pointer; }
+  button:hover, select:hover { border-color: var(--accent); }
+  button.on { background: var(--accent); color: #111; border-color: var(--accent); }
+  main { padding: 16px; display: grid; gap: 16px; max-width: 1600px; margin: 0 auto; }
+  .meta { color: var(--dim); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .meta b { color: var(--text); font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+  .kpi .label { color: var(--dim); font-size: 14px; }
+  .kpi .value { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .kpi .sub { color: var(--dim); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; min-width: 0; }
+  .card h2 { font-size: 15px; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-weight: 400; color: var(--dim); font-size: 14px; }
+  .legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+  canvas { width: 100%; height: 180px; display: block; }
+  .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 16px; }
+  .scroll { overflow: auto; max-height: 360px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 500; position: sticky; top: 0; background: var(--panel); }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .src { color: var(--dim); word-break: break-all; }
+  .empty { color: var(--dim); padding: 24px; text-align: center; }
+  .tip { position: fixed; pointer-events: none; background: #000d; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; z-index: 10; display: none; white-space: nowrap; }
+  .help { color: var(--dim); }
+  .help code { background: var(--panel); padding: 1px 6px; border-radius: 4px; }
+  @media (max-width: 600px) {
+    .controls { margin-left: 0; width: 100%; }
+    .controls > * { flex: 1 1 auto; }
+    .kpi .value { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ Perf live</h1>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">Connexion…</span></div>
+  <div class="controls">
+    <select id="session" title="Onglet du jeu"></select>
+    <select id="range" title="Fenêtre affichée">
+      <option value="60">1 min</option>
+      <option value="120" selected>2 min</option>
+      <option value="300">5 min</option>
+      <option value="600">10 min</option>
+    </select>
+    <button id="pause">⏸ Pause</button>
+    <button id="reset">Réinitialiser</button>
+    <button id="export">Exporter JSON</button>
+  </div>
+</header>
+
+<main>
+  <div class="meta" id="meta"></div>
+  <div id="waiting" class="empty help">
+    En attente de données… Lancez le jeu en dev (<code>npm run dev</code>) et ouvrez
+    <code>http://localhost:3000</code> dans Chrome. Le capteur envoie un échantillon par seconde.
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="charts">
+    <div class="card"><h2>FPS <span class="legend"><span><i style="background:var(--good)"></i>fps</span><span>repères 60 / 30</span></span></h2><canvas id="c-fps"></canvas></div>
+    <div class="card"><h2>Temps de frame (ms) <span class="legend"><span><i style="background:var(--blue)"></i>moyen</span><span><i style="background:var(--warn)"></i>p95</span><span><i style="background:var(--bad)"></i>max</span></span></h2><canvas id="c-frame"></canvas></div>
+    <div class="card"><h2>Thread principal bloqué (ms / s) <span class="legend"><span><i style="background:var(--pink)"></i>long tasks</span><span><i style="background:var(--accent)"></i>frames &gt; 50 ms</span></span></h2><canvas id="c-long"></canvas></div>
+    <div class="card"><h2>Mémoire JS (Mo) <span class="legend"><span><i style="background:var(--accent)"></i>heap utilisé</span><span><i style="background:var(--dim)"></i>heap alloué</span></span></h2><canvas id="c-heap"></canvas></div>
+    <div class="card"><h2>DOM &amp; animations <span class="legend"><span><i style="background:var(--blue)"></i>nœuds DOM</span><span><i style="background:var(--warn)"></i>animations actives (échelle droite)</span></span></h2><canvas id="c-dom"></canvas></div>
+  </section>
+
+  <section class="tables">
+    <div class="card">
+      <h2>Moyennes par page</h2>
+      <div class="scroll"><table id="t-pages"></table></div>
+    </div>
+    <div class="card">
+      <h2>Frames longues récentes (scripts responsables)</h2>
+      <div class="scroll"><table id="t-loaf"></table></div>
+    </div>
+  </section>
+</main>
+<div class="tip" id="tip"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C = { good: css('--good'), warn: css('--warn'), bad: css('--bad'), accent: css('--accent'), blue: css('--blue'), pink: css('--pink'), dim: css('--dim'), line: css('--line'), text: css('--text') };
+
+/** sessionId → { samples: [], lastT } */
+const sessions = new Map();
+let current = null;
+let paused = false;
+let hoverT = null;
+const loafLog = [];
+
+// ── Seuils (vert / orange / rouge) ──────────────────────────────────────
+const grade = {
+  fps: v => v >= 55 ? 'good' : v >= 30 ? 'warn' : 'bad',
+  frame: v => v <= 20 ? 'good' : v <= 40 ? 'warn' : 'bad',
+  long: v => v <= 50 ? 'good' : v <= 200 ? 'warn' : 'bad',
+  inp: v => v <= 200 ? 'good' : v <= 500 ? 'warn' : 'bad',
+  cls: v => v <= 0.1 ? 'good' : v <= 0.25 ? 'warn' : 'bad',
+  jank: v => v === 0 ? 'good' : v <= 2 ? 'warn' : 'bad',
+};
+const fmt = (v, d = 0) => v == null || Number.isNaN(v) ? '—' : v.toFixed(d);
+
+// ── Réception ───────────────────────────────────────────────────────────
+function connect() {
+  const es = new EventSource('/events');
+  es.onopen = () => { $('dot').classList.add('live'); $('statusText').textContent = 'Connecté au moniteur'; };
+  es.onerror = () => { $('dot').classList.remove('live'); $('statusText').textContent = 'Moniteur injoignable, nouvel essai…'; };
+  es.onmessage = ev => ingest(JSON.parse(ev.data));
+}
+
+function ingest(s) {
+  let sess = sessions.get(s.sessionId);
+  if (!sess) { sess = { samples: [], first: s.t }; sessions.set(s.sessionId, sess); }
+  sess.samples.push(s);
+  if (sess.samples.length > 600) sess.samples.shift();
+  sess.lastT = s.t;
+  for (const l of s.loafs || []) loafLog.unshift({ ...l, page: s.page, sessionId: s.sessionId });
+  if (loafLog.length > 200) loafLog.length = 200;
+  // Bascule automatiquement sur l'onglet le plus récemment actif
+  if (!current || (sessions.get(current).lastT < Date.now() - 5000 && s.sessionId !== current)) current = s.sessionId;
+  scheduleRender();
+}
+
+let renderQueued = false;
+function scheduleRender() {
+  if (paused || renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => { renderQueued = false; render(); });
+}
+
+// ── Rendu ───────────────────────────────────────────────────────────────
+function render() {
+  renderSessions();
+  const sess = sessions.get(current);
+  $('waiting').style.display = sess ? 'none' : '';
+  if (!sess) return;
+  const range = Number($('range').value) * 1000;
+  const end = sess.lastT;
+  const data = sess.samples.filter(s => s.t >= end - range);
+  const last = sess.samples[sess.samples.length - 1];
+  renderMeta(last);
+  renderKpis(last, data);
+  const x0 = end - range;
+  drawChart('c-fps', data, x0, end, [{ key: 'fps', color: C.good, fill: true }], { min: 0, max: v => Math.max(65, v), refs: [60, 30], markers: true });
+  drawChart('c-frame', data, x0, end, [
+    { key: 'frameAvg', color: C.blue }, { key: 'frameP95', color: C.warn }, { key: 'frameMax', color: C.bad },
+  ], { min: 0, max: v => Math.max(40, Math.min(v, 500)), refs: [16.7, 33.3], unit: 'ms' });
+  drawChart('c-long', data, x0, end, [
+    { key: 'longTaskMs', color: C.pink, fill: true, bars: true }, { key: 'jank', color: C.accent, scale: 50 },
+  ], { min: 0, max: v => Math.max(100, v), refs: [50], unit: 'ms' });
+  drawChart('c-heap', data, x0, end, [
+    { key: 'heapTotalMB', color: C.dim }, { key: 'heapMB', color: C.accent, fill: true },
+  ], { min: 0, max: v => v * 1.15 || 10, unit: 'Mo', note: last.heapMB == null ? 'Mémoire indisponible (Chrome uniquement)' : null });
+  drawChart('c-dom', data, x0, end, [
+    { key: 'domNodes', color: C.blue, fill: true }, { key: 'animations', color: C.warn, axis: 'right' },
+  ], { min: 0, max: v => v * 1.15 || 100 });
+  renderPages(sess.samples);
+  renderLoafs();
+}
+
+function renderSessions() {
+  const sel = $('session');
+  const ids = [...sessions.keys()];
+  const now = Date.now();
+  const html = ids.map((id, i) => {
+    const s = sessions.get(id);
+    const live = now - s.lastT < 4000;
+    return `<option value="${id}" ${id === current ? 'selected' : ''}>${live ? '🟢' : '⚪'} Onglet ${i + 1} — ${s.samples.at(-1).page}</option>`;
+  }).join('');
+  if (sel.innerHTML !== html) sel.innerHTML = html;
+}
+
+function renderMeta(s) {
+  const live = Date.now() - s.t < 4000;
+  $('meta').innerHTML = `
+    <span>Page : <b>${s.page}</b></span>
+    <span>Viewport : <b>${s.viewport}</b></span>
+    <span>Mode économie : <b>${s.ecoMode ? 'activé' : 'désactivé'}</b></span>
+    <span>Veille : <b>${({ soft: 'douce', full: 'complète' })[s.sleep] ?? 'éveillé'}</b></span>
+    <span>Onglet : <b>${s.hidden ? 'en arrière-plan (rAF suspendu)' : live ? 'visible' : 'plus de données'}</b></span>`;
+}
+
+function avg(arr, k) { const v = arr.map(s => s[k]).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }
+
+function renderKpis(s, data) {
+  const vis = data.filter(d => !d.hidden);
+  const fpsAvg = avg(vis, 'fps');
+  const tiles = [
+    ['FPS', fmt(s.fps), grade.fps(s.fps), `moy. ${fmt(fpsAvg)} · min ${vis.length ? fmt(Math.min(...vis.map(d => d.fps))) : '—'}`],
+    ['Frame p95', `${fmt(s.frameP95, 1)} ms`, grade.frame(s.frameP95), `max ${fmt(s.frameMax, 0)} ms`],
+    ['Frames saccadées', fmt(s.jank), grade.jank(s.jank), `${fmt(s.dropped)} frames perdues /s`],
+    ['Long tasks', `${fmt(s.longTaskMs)} ms`, grade.long(s.longTaskMs), `${s.longTasks} tâche(s) cette seconde`],
+    ['Interaction (INP)', s.inp ? `${s.inp} ms` : '—', s.inp ? grade.inp(s.inp) : '', 'pire clic/touche /s'],
+    ['Layout shift (CLS)', fmt(s.cls, 3), grade.cls(s.cls), 'cumulé depuis le chargement'],
+    ['Heap JS', s.heapMB == null ? '—' : `${fmt(s.heapMB, 1)} Mo`, '', s.heapTotalMB == null ? 'Chrome uniquement' : `alloué ${fmt(s.heapTotalMB, 0)} Mo`],
+    ['Nœuds DOM', fmt(s.domNodes), s.domNodes > 3000 ? 'warn' : '', s.domNodes > 3000 ? 'élevé (> 3000)' : 'éléments dans la page'],
+    ['Animations actives', fmt(s.animations), s.animations > 50 ? 'warn' : '', 'CSS + Web Animations'],
+  ];
+  $('kpis').innerHTML = tiles.map(([l, v, g, sub]) =>
+    `<div class="kpi"><div class="label">${l}</div><div class="value ${g}">${v}</div><div class="sub">${sub}</div></div>`).join('');
+}
+
+function renderPages(samples) {
+  const by = new Map();
+  for (const s of samples) {
+    if (s.hidden) continue;
+    if (!by.has(s.page)) by.set(s.page, []);
+    by.get(s.page).push(s);
+  }
+  if (!by.size) { $('t-pages').innerHTML = '<tr><td class="empty">Aucune donnée</td></tr>'; return; }
+  const rows = [...by.entries()].map(([page, arr]) => {
+    const fps = avg(arr, 'fps'), p95 = avg(arr, 'frameP95'), lt = avg(arr, 'longTaskMs'), dom = avg(arr, 'domNodes'), anim = avg(arr, 'animations');
+    return { page, n: arr.length, fps, p95, lt, dom, anim };
+  }).sort((a, b) => a.fps - b.fps);
+  $('t-pages').innerHTML = `<tr><th>Page</th><th class="num">FPS moy.</th><th class="num">Frame p95</th><th class="num">Long tasks</th><th class="num">DOM</th><th class="num">Anim.</th><th class="num">Durée</th></tr>` +
+    rows.map(r => `<tr><td>${r.page}</td><td class="num ${grade.fps(r.fps)}">${fmt(r.fps)}</td><td class="num ${grade.frame(r.p95)}">${fmt(r.p95, 1)} ms</td><td class="num ${grade.long(r.lt)}">${fmt(r.lt)} ms/s</td><td class="num">${fmt(r.dom)}</td><td class="num">${fmt(r.anim)}</td><td class="num">${r.n} s</td></tr>`).join('');
+}
+
+function renderLoafs() {
+  const list = loafLog.filter(l => l.sessionId === current).slice(0, 60);
+  if (!list.length) { $('t-loaf').innerHTML = '<tr><td class="empty">Aucune frame &gt; 50 ms (ou navigateur sans Long Animation Frames API)</td></tr>'; return; }
+  $('t-loaf').innerHTML = `<tr><th>Heure</th><th>Page</th><th class="num">Durée</th><th class="num">Bloquant</th><th>Scripts principaux</th></tr>` +
+    list.map(l => `<tr><td>${new Date(l.ts).toLocaleTimeString()}</td><td>${l.page}</td><td class="num ${grade.frame(l.duration)}">${l.duration} ms</td><td class="num">${l.blocking} ms</td><td class="src">${
+      l.scripts.length ? l.scripts.map(s => `${s.duration} ms · ${escapeHtml(s.source)}${s.invoker ? ` <em>(${escapeHtml(s.invoker)})</em>` : ''}`).join('<br>') : 'rendu / style / layout (pas de script)'
+    }</td></tr>`).join('');
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
+
+// ── Graphiques canvas ───────────────────────────────────────────────────
+function drawChart(id, data, x0, x1, series, opt) {
+  const cv = $(id);
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== W * dpr || cv.height !== H * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const hasRight = series.some(s => s.axis === 'right');
+  const pad = { l: 44, r: hasRight ? 36 : 10, t: 10, b: 20 };
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+
+  const val = (d, s) => d[s.key] == null ? null : d[s.key] * (s.scale || 1);
+  const leftMax = Math.max(0, ...data.flatMap(d => series.filter(s => s.axis !== 'right').map(s => val(d, s) ?? 0)));
+  const yMax = opt.max(leftMax);
+  const rightMax = Math.max(5, ...data.map(d => series.filter(s => s.axis === 'right').map(s => val(d, s) ?? 0)).flat()) * 1.15;
+  const X = t => pad.l + ((t - x0) / (x1 - x0)) * pw;
+  const Y = (v, right) => pad.t + ph - (Math.min(v, right ? rightMax : yMax) / (right ? rightMax : yMax)) * ph;
+
+  // Grille + axes
+  ctx.font = '14px system-ui, sans-serif';
+  ctx.fillStyle = C.dim; ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) {
+    const v = (yMax / 4) * i, y = Y(v);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillText(v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(v < 10 && v > 0 ? 1 : 0), pad.l - 6, y);
+  }
+  if (hasRight) {
+    ctx.textAlign = 'left';
+    for (let i = 0; i <= 4; i += 2) ctx.fillText(((rightMax / 4) * i).toFixed(0), W - pad.r + 6, Y((rightMax / 4) * i, true));
+  }
+  // Repères (60 fps, 16,7 ms…)
+  ctx.setLineDash([4, 4]);
+  for (const r of opt.refs || []) {
+    if (r > yMax) continue;
+    ctx.strokeStyle = C.dim; ctx.globalAlpha = .6;
+    ctx.beginPath(); ctx.moveTo(pad.l, Y(r)); ctx.lineTo(W - pad.r, Y(r)); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  // Changements de page
+  if (opt.markers) {
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    for (let i = 1; i < data.length; i++) {
+      if (data[i].page === data[i - 1].page) continue;
+      const x = X(data[i].t);
+      ctx.strokeStyle = C.accent; ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+      ctx.fillStyle = C.accent; ctx.fillText(data[i].page, x + 4, pad.t);
+    }
+  }
+  ctx.setLineDash([]);
+  // Périodes en arrière-plan grisées
+  ctx.fillStyle = '#ffffff10';
+  for (const d of data) if (d.hidden) ctx.fillRect(X(d.t - 1000), pad.t, Math.max(1, X(d.t) - X(d.t - 1000)), ph);
+
+  // Séries
+  for (const s of series) {
+    const pts = data.filter(d => val(d, s) != null && !d.hidden);
+    if (!pts.length) continue;
+    const right = s.axis === 'right';
+    if (s.bars) {
+      ctx.fillStyle = s.color + '99';
+      const bw = Math.max(1, pw / ((x1 - x0) / 1000) - 1);
+      for (const d of pts) { const y = Y(val(d, s), right); ctx.fillRect(X(d.t) - bw, y, bw, pad.t + ph - y); }
+      continue;
+    }
+    ctx.beginPath();
+    let prevT = null;
+    for (const d of pts) {
+      const x = X(d.t), y = Y(val(d, s), right);
+      if (prevT == null || d.t - prevT > 3000) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      prevT = d.t;
+    }
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.stroke();
+    if (s.fill) {
+      ctx.lineTo(X(pts.at(-1).t), pad.t + ph); ctx.lineTo(X(pts[0].t), pad.t + ph); ctx.closePath();
+      ctx.fillStyle = s.color + '22'; ctx.fill();
+    }
+  }
+  if (opt.note) { ctx.fillStyle = C.dim; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(opt.note, pad.l + pw / 2, pad.t + ph / 2); }
+
+  // Curseur de survol partagé entre graphiques
+  if (hoverT != null && hoverT >= x0 && hoverT <= x1) {
+    ctx.strokeStyle = C.text; ctx.globalAlpha = .4;
+    ctx.beginPath(); ctx.moveTo(X(hoverT), pad.t); ctx.lineTo(X(hoverT), pad.t + ph); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  cv._map = { x0, x1, pad, pw };
+}
+
+// Survol : affiche les valeurs de l'échantillon le plus proche
+function onHover(ev) {
+  const cv = ev.currentTarget, m = cv._map;
+  const sess = sessions.get(current);
+  if (!m || !sess) return;
+  const rect = cv.getBoundingClientRect();
+  const t = m.x0 + ((ev.clientX - rect.left - m.pad.l) / m.pw) * (m.x1 - m.x0);
+  let best = null;
+  for (const s of sess.samples) if (!best || Math.abs(s.t - t) < Math.abs(best.t - t)) best = s;
+  if (!best) return;
+  hoverT = best.t;
+  const tip = $('tip');
+  tip.style.display = 'block';
+  tip.innerHTML = `<b>${new Date(best.t).toLocaleTimeString()}</b> · ${best.page}<br>
+    FPS ${fmt(best.fps)} · frame p95 ${fmt(best.frameP95, 1)} ms · max ${fmt(best.frameMax)} ms<br>
+    Long tasks ${best.longTaskMs} ms · saccades ${best.jank}<br>
+    Heap ${best.heapMB == null ? '—' : fmt(best.heapMB, 1) + ' Mo'} · DOM ${best.domNodes} · anim. ${fmt(best.animations)}`;
+  const x = Math.min(ev.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
+  tip.style.left = `${Math.max(8, x)}px`;
+  tip.style.top = `${ev.clientY + 14}px`;
+  render();
+}
+function onLeave() { hoverT = null; $('tip').style.display = 'none'; render(); }
+document.querySelectorAll('canvas').forEach(cv => {
+  cv.addEventListener('pointermove', onHover);
+  cv.addEventListener('pointerleave', onLeave);
+});
+
+// ── Contrôles ───────────────────────────────────────────────────────────
+$('session').onchange = e => { current = e.target.value; render(); };
+$('range').onchange = render;
+$('pause').onclick = e => {
+  paused = !paused;
+  e.target.textContent = paused ? '▶ Reprendre' : '⏸ Pause';
+  e.target.classList.toggle('on', paused);
+  if (!paused) render();
+};
+$('reset').onclick = async () => {
+  await fetch('/reset', { method: 'POST' });
+  sessions.clear(); loafLog.length = 0; current = null; render();
+};
+$('export').onclick = () => { location.href = '/export'; };
+window.addEventListener('resize', () => render());
+setInterval(() => { if (!paused) renderSessions(); }, 2000);
+
+connect();
+render();
+</script>
+</body>
+</html>

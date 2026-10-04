@@ -1,7 +1,7 @@
 'use client';
 import { memo, useMemo, useState, type CSSProperties } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useProgressiveCount } from '@/hooks/useProgressiveCount';
+import { VirtualGrid } from '@/components/ui/VirtualGrid';
 import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL, getCharFormName } from '@/lib/game/characters';
 import { getUltimateDef } from '@/lib/game/ultimates';
@@ -231,9 +231,6 @@ export function CollectionPage() {
     [...filtered].sort((a, b) => compareCompadexEntries(a, b, collectionFilters, charMastery)),
   [filtered, collectionFilters, charMastery]);
 
-  // Rendu progressif des ~500 cartes (voir useProgressiveCount).
-  const cardLimit = useProgressiveCount(sorted.length);
-
   // ── Groupage par rareté (uniquement en mode rarity) ─────────────────────
   const grouped = useMemo(() => {
     if (collectionFilters.sortKey !== 'rarity') return null;
@@ -299,11 +296,13 @@ export function CollectionPage() {
 
             {grouped ? (
               // Vue groupée par rareté (plus rares d'abord, sauf tri inversé)
-              (() => { let budget = cardLimit; return (collectionFilters.sortReversed ? RARITY_ORDER : RARITY_ORDER.slice().reverse()).map(r => {
+              // ~500 cartes : grilles virtualisées (voir VirtualGrid), seul le
+              // premier groupe affiché se monte d'emblée.
+              (() => { let first = true; return (collectionFilters.sortReversed ? RARITY_ORDER : RARITY_ORDER.slice().reverse()).map(r => {
                 const list = grouped.get(r) ?? [];
-                if (list.length === 0 || budget <= 0) return null;
-                const shown = list.slice(0, budget);
-                budget -= shown.length;
+                if (list.length === 0) return null;
+                const eager = first;
+                first = false;
                 const cfg2 = RARITY_CONFIG[r];
                 const uniqueOwned = new Set(list.filter(e => e.seen).map(e => e.tpl.id)).size;
                 const uniqueTotal = new Set(list.map(e => e.tpl.id)).size;
@@ -313,17 +312,13 @@ export function CollectionPage() {
                       <span>{cfg2.label.toUpperCase()}</span>
                       <span style={{ color:'var(--text-dim)', fontFamily:'var(--f-num)' }}>({uniqueOwned}/{uniqueTotal})</span>
                     </div>
-                    <div className="collection-grid">
-                      {shown.map(entry => <CharCard key={entry.key} entry={entry} onSelect={setDetailKey} />)}
-                    </div>
+                    <VirtualGrid className="collection-grid" items={list} eager={eager} getKey={entry => entry.key} renderItem={entry => <CharCard entry={entry} onSelect={setDetailKey} />} />
                   </div>
                 );
               }); })()
             ) : (
               // Vue plate (tri DPS ou nom)
-              <div className="collection-grid">
-                {sorted.slice(0, cardLimit).map(entry => <CharCard key={entry.key} entry={entry} onSelect={setDetailKey} />)}
-              </div>
+              <VirtualGrid className="collection-grid" items={sorted} getKey={entry => entry.key} renderItem={entry => <CharCard entry={entry} onSelect={setDetailKey} />} />
             )}
           </>
         ) : (

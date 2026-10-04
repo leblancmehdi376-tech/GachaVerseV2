@@ -23,6 +23,7 @@ import { CollectionFilters } from '@/components/ui/CollectionFilters';
 import { EquipmentIcon } from '@/components/ui/EquipmentIcon';
 import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
 import { RARITY_GATES } from '@/lib/game/gacha';
+import { VirtualGrid } from '@/components/ui/VirtualGrid';
 
 export const RARITY_PRIORITY: Record<string, number> = {
   T: 0, P: 1, CO: 2, S: 3, M: 4, L: 5, E: 6, R: 7, U: 8, C: 9,
@@ -687,14 +688,16 @@ export function CompanionsPage() {
               <div style={{ fontFamily: 'var(--f-ui)', fontSize: 16, color: 'var(--text-muted)' }}>Va dans l'onglet Gacha pour invoquer !</div>
             </div>
           ) : (
-            <div className="upgrades-ally-grid">
-              {filteredCollection.map(([instanceKey, ownedChar]) => {
+            <VirtualGrid
+              className="upgrades-ally-grid"
+              items={filteredCollection}
+              getKey={([instanceKey]) => instanceKey}
+              renderItem={([instanceKey, ownedChar]) => {
                 const tpl = getCharacterById(ownedChar.templateId);
                 if (!tpl) return null;
                 const isLocked = runPeakPalier < RARITY_GATES[tpl.rarity].unlockPalier;
                 return (
                   <CollectionCard
-                    key={instanceKey}
                     instanceKey={instanceKey}
                     tpl={tpl}
                     owned={ownedChar}
@@ -704,8 +707,8 @@ export function CompanionsPage() {
                     onClick={handleCollectionCardClick}
                   />
                 );
-              })}
-            </div>
+              }}
+            />
           )}
         </section>
       </div>

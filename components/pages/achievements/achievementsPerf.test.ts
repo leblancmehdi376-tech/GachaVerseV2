@@ -82,10 +82,20 @@ describe('CSS de la page Succès', () => {
   const css = readFileSync(path.resolve(__dirname, '../../../app/globals.css'), 'utf8');
   const keyframes = (name: string) => css.match(new RegExp(`@keyframes ${name} \\{[^\\n]*`))?.[0] ?? '';
 
-  it('les balayages en boucle animent transform, pas left (mise en page à chaque frame)', () => {
-    for (const name of ['achHeroSweep', 'achCardSweepX']) {
+  it('les balayages animent transform, pas left (mise en page à chaque frame)', () => {
+    for (const name of ['achHeroSweep', 'achCardSweepHover']) {
       expect(keyframes(name)).toContain('transform');
       expect(keyframes(name)).not.toMatch(/\bleft\b/);
+    }
+  });
+
+  it("pas d'animation en boucle permanente sur chaque carte (seulement au survol)", () => {
+    // Des dizaines de cartes à l'écran : une boucle par carte = des centaines
+    // d'animations actives (mesuré : ~170 à l'ouverture de la page).
+    for (const sel of ['.ach-card.is-done::after', '.ach-card.is-done .ach-medal__icon', '.ach-prog__fill::after']) {
+      const start = css.indexOf(`\n${sel} {`);
+      const rule = start === -1 ? '' : css.slice(start, css.indexOf('}', start) + 1);
+      expect(rule).not.toMatch(/infinite/);
     }
   });
 

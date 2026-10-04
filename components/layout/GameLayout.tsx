@@ -19,6 +19,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCloudSave } from '@/hooks/useCloudSave';
 import { formatSyncStatus } from '@/lib/firebase/cloudSaveSync';
 import { useDpsTick } from '@/hooks/useDpsTick';
+import { useAutoSleep } from '@/hooks/useAutoSleep';
+import { useSleepStore } from '@/store/sleepStore';
+import { SleepOverlay } from '@/components/system/SleepOverlay';
 import { useGameHydration } from '@/hooks/useGameHydration';
 import { useOfflineGainCheck } from '@/hooks/useOfflineGainCheck';
 import { useBossVictoryWatcher } from '@/hooks/useBossVictoryWatcher';
@@ -69,6 +72,12 @@ const PAGE_LOADERS = {
   MasteryPage: () => import('@/components/pages/MasteryPage').then(m => ({ default: m.MasteryPage })),
   GachaDlePage: () => import('@/components/pages/GachaDlePage').then(m => ({ default: m.GachaDlePage })),
 };
+// Capteur du moniteur de performances local (npm run perf) : dev uniquement,
+// ou build de prod avec NEXT_PUBLIC_PERF_MONITOR=1. Hors de ces cas, la
+// condition est constante au build et le module sort du bundle.
+const PerfReporter = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_PERF_MONITOR === '1'
+  ? lazy(() => import('@/components/system/PerfReporter'))
+  : null;
 const UpgradesPage = lazy(PAGE_LOADERS.UpgradesPage);
 const CompanionsPage = lazy(PAGE_LOADERS.CompanionsPage);
 const GachaPage = lazy(PAGE_LOADERS.GachaPage);
@@ -152,6 +161,9 @@ const COMBAT_PAGES: Page[] = ['home'];
 
 export function GameLayout() {
   useDpsTick();
+  // Veille automatique quand la fenêtre perd le focus (2e écran, autre jeu).
+  useAutoSleep();
+  const sleepFull = useSleepStore(s => s.mode === 'full');
   // Abonnement à la notation des nombres (Paramètres) : re-rend l'interface
   // dès qu'elle change, formatNumber lisant la valeur directement.
   useDisplaySettingsStore(s => s.numberNotation);
@@ -299,7 +311,12 @@ export function GameLayout() {
   }
 
   return (
-    <div className="cosmic-bg" style={{ width:'100vw', height:'100dvh', display:'flex', flexDirection:'column', overflow:'hidden', position:'relative' }}>
+    <>
+    {/* Hors de .game-root, que la veille complète cesse de dessiner. */}
+    {sleepFull && <SleepOverlay raidActive={contentPage === 'raids'} />}
+    <div className="cosmic-bg game-root" style={{ width:'100vw', height:'100dvh', display:'flex', flexDirection:'column', overflow:'hidden', position:'relative' }}>
+
+      {PerfReporter && <Suspense fallback={null}><PerfReporter page={page} /></Suspense>}
 
       {/* Champ d'étoiles ambiant (derrière tout le contenu) */}
       <div className="starfield" style={{ position:'absolute', inset:0, zIndex:0, pointerEvents:'none' }} />
@@ -582,6 +599,7 @@ export function GameLayout() {
       <UltAnimation />
       <GameWatchers />
     </div>
+    </>
   );
 }
 
