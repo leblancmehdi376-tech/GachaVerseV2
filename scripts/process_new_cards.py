@@ -100,6 +100,8 @@ X_CENTER_OVERRIDES = {
     'Capuchon_NosAnimaux_Evo0': 0.58,
     # Bulle de texte japonais sur le bord droit.
     'DioBrando_JoJosBizarreAdventure_Evo1': 0.44,
+    # Deux chats côte à côte : décalé à gauche pour ne pas couper le calico.
+    'LesdeuxIsis_NosAnimaux_Evo0': 0.41,
 }
 
 # Zoom par perso (>1 = fenêtre de recadrage plus petite que la plus grande
@@ -118,6 +120,8 @@ ZOOM_OVERRIDES = {
     # Dézoom : le bas de la fenêtre (flouté) reste caché sous le bandeau.
     'Maliketh_EldenRing_Evo1': 0.8,
     'Makima_ChainsawMan_Evo1': 0.85,
+    # Moins de plafond au-dessus des deux chats.
+    'LesdeuxIsis_NosAnimaux_Evo0': 1.1,
 }
 
 # Quand il faut rogner en hauteur (image plus étroite que la cible), on
@@ -144,6 +148,7 @@ VERTICAL_BIAS_OVERRIDES = {
     'Hades_ValkyrieApocalypse_Evo0': 0.7,
     # Chignon coupé avec le biais par défaut.
     'Gyokuyo_LesCarnetsdelApothicaire_Evo1': 0.05,
+    'LesdeuxIsis_NosAnimaux_Evo0': 1.0,
 }
 
 

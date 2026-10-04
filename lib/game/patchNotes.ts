@@ -24,6 +24,14 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Les deux Isis** ont enfin leur visuel de carte.",
+      "Au **palier 30**, l'ennemi **Les Deux Isis** affiche maintenant sa carte au lieu d'un simple pictogramme.",
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.1.11',
+    changes: [
       "Le nouvel artwork de **Rokoul & Ayro** s'affiche enfin partout : l'ancienne image restait parfois en cache sur la carte et sur le **boss de raid**.",
       "Nouvelles évolutions : **Katsuki Bakugo** (Élève de Yuei, Dynamight) et **Gabimaru** (Ninja d'Iwagakure, Le Creux).",
       "Nouvelles évolutions : **Yuta Okkotsu** (Rika), **Dio Brando** (The World), **Ahri** (Renarde à Neuf Queues) et **Gyokuyô** (Impératrice).",
