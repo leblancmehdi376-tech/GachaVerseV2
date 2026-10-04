@@ -1,9 +1,14 @@
 'use client';
-import { RaidBossDef } from '@/lib/game/raidBoss';
+import { RaidBossDef, RAID_SPRITES_ASSET_VERSION } from '@/lib/game/raidBoss';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
 
+// Candidats (webp/png/jpg...) d'un visuel de raid, avec le paramètre de version.
+export function raidImageCandidates(basePathNoExt: string): string[] {
+  return buildImageCandidates(basePathNoExt).map(c => `${c}?v=${RAID_SPRITES_ASSET_VERSION}`);
+}
+
 export function RaidBg({ boss }: { boss: RaidBossDef }) {
-  const { src, failed, onError } = useFallbackImage(buildImageCandidates(boss.bgImagePath));
+  const { src, failed, onError } = useFallbackImage(raidImageCandidates(boss.bgImagePath));
   if (failed || !src) return <div style={{ position:'absolute', inset:0, background: boss.bgGradient }} />;
   return (
     <>
@@ -21,7 +26,7 @@ function bossInitials(name: string): string {
 }
 
 export function BossSprite({ boss, deadStyle }: { boss: RaidBossDef; deadStyle: boolean }) {
-  const { src, failed, onError } = useFallbackImage(buildImageCandidates(stripKnownExtension(boss.spritePath)));
+  const { src, failed, onError } = useFallbackImage(raidImageCandidates(stripKnownExtension(boss.spritePath)));
   if (failed || !src) return (
     <div style={{ width:336, height:448, background:'radial-gradient(circle,#3b0764,#0d0520)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}>
       <span style={{ fontFamily:'var(--f-ui)', fontWeight:900, fontSize:120, color:boss.accentColor, filter:`drop-shadow(0 0 20px ${boss.accentColor})` }}>{bossInitials(boss.name)}</span>

@@ -220,8 +220,15 @@ export const BANNER_VOL2_CHARACTERS: CharacterTemplate[] = [
   c('alpha_eis',                 'Alpha',                           'M',   61, 'The Eminence in Shadow'),
 
   // ── STELLAIRES ────────────────────────────────────────────────────────────
-  c('katsuki_bakugo',            'Katsuki Bakugo',                  'S',   69, 'My Hero Academia'),
-  c('yuta_okkotsu',              'Yuta Okkotsu',                    'S',   67, 'Jujutsu Kaisen'),
+  ce('katsuki_bakugo', 'Katsuki Bakugo', 'S', 69, 'My Hero Academia', [
+    f('katsuki_bakugo_base', 'Katsuki Bakugo', 'katsuki_bakugo'),
+    f('katsuki_bakugo_evo1', 'Katsuki Bakugo — Élève de Yuei', 'katsuki_bakugo'),
+    f('katsuki_bakugo_evo2', 'Katsuki Bakugo — Dynamight', 'katsuki_bakugo'),
+  ]),
+  ce('yuta_okkotsu', 'Yuta Okkotsu', 'S', 67, 'Jujutsu Kaisen', [
+    f('yuta_okkotsu_base', 'Yuta Okkotsu', 'yuta_okkotsu'),
+    f('yuta_okkotsu_evo1', 'Yuta Okkotsu — Rika', 'yuta_okkotsu'),
+  ]),
   ce('maelle', 'Maelle', 'S', 71, 'Clair Obscur', [
     f('maelle_base', 'Maelle', 'maelle'),
     f('maelle_evo1', 'Maelle — Position Virtuose', 'maelle'),
@@ -240,12 +247,19 @@ export const BANNER_VOL2_CHARACTERS: CharacterTemplate[] = [
     f('suwa_yorishige_base', 'Suwa Yorishige', 'suwa_yorishige'),
     f('suwa_yorishige_evo1', 'Suwa Yorishige — Divin', 'suwa_yorishige'),
   ]),
-  c('gabimaru',                  'Gabimaru',                        'S',   69, "Hell's Paradise"),
+  ce('gabimaru', 'Gabimaru', 'S', 69, "Hell's Paradise", [
+    f('gabimaru_base', 'Gabimaru', 'gabimaru'),
+    f('gabimaru_evo1', "Gabimaru — Ninja d'Iwagakure", 'gabimaru'),
+    f('gabimaru_evo2', 'Gabimaru — Le Creux', 'gabimaru'),
+  ]),
   ce('queen_tbhx', 'Queen', 'S', 70, 'To Be Hero X', [
     f('queen_tbhx_base', 'Queen', 'queen_tbhx'),
     f('queen_tbhx_evo1', 'Queen — Souveraine Absolue', 'queen_tbhx'),
   ]),
-  c('dio_brando',                'Dio Brando',                      'S',   67, "JoJo's Bizarre Adventure"),
+  ce('dio_brando', 'Dio Brando', 'S', 67, "JoJo's Bizarre Adventure", [
+    f('dio_brando_base', 'Dio Brando', 'dio_brando'),
+    f('dio_brando_evo1', 'Dio Brando — The World', 'dio_brando'),
+  ]),
   ce('gohan', 'Gohan', 'S', 72, 'Dragon Ball Z', [
     f('gohan_base', 'Gohan', 'gohan'),
     f('gohan_evo1', 'Gohan — Super Saiyen 2', 'gohan'),
@@ -274,7 +288,10 @@ export const BANNER_VOL2_CHARACTERS: CharacterTemplate[] = [
     f('bastion_base', 'Bastion', 'bastion'),
     f('bastion_evo1', 'Bastion — Mode Tourelle', 'bastion'),
   ]),
-  c('ahri',                      'Ahri',                            'S',   69, 'League of Legends'),
+  ce('ahri', 'Ahri', 'S', 69, 'League of Legends', [
+    f('ahri_base', 'Ahri', 'ahri'),
+    f('ahri_evo1', 'Ahri — Renarde à Neuf Queues', 'ahri'),
+  ]),
 
   // ── COSMIQUES ─────────────────────────────────────────────────────────────
   ce('roi_sans_nom', 'Le Roi sans Nom', 'CO', 83, 'Dark Souls 3', [
@@ -355,7 +372,10 @@ export const BANNER_VOL2_CHARACTERS: CharacterTemplate[] = [
     f('mori_ogai_base', 'Mori Ogai', 'mori_ogai'),
     f('mori_ogai_evo1', 'Mori Ogai — Stratège', 'mori_ogai'),
   ]),
-  c('gyokuyo',                   'Gyokuyô',                         'CO',  78, "Les Carnets de l'Apothicaire"),
+  ce('gyokuyo', 'Gyokuyô', 'CO', 78, "Les Carnets de l'Apothicaire", [
+    f('gyokuyo_base', 'Gyokuyô', 'gyokuyo'),
+    f('gyokuyo_evo1', 'Gyokuyô — Impératrice', 'gyokuyo'),
+  ]),
   ce('reze', 'Reze', 'CO', 82, 'Chainsaw Man', [
     f('reze_base', 'Reze', 'reze'),
     f('reze_evo1', 'Reze — Démon Bombe', 'reze'),

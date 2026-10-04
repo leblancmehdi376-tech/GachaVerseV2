@@ -98,6 +98,8 @@ X_CENTER_OVERRIDES = {
     'Hades_ValkyrieApocalypse_Evo0': 0.55,
     'Maliketh_EldenRing_Evo1': 0.68,
     'Capuchon_NosAnimaux_Evo0': 0.58,
+    # Bulle de texte japonais sur le bord droit.
+    'DioBrando_JoJosBizarreAdventure_Evo1': 0.44,
 }
 
 # Zoom par perso (>1 = fenêtre de recadrage plus petite que la plus grande
@@ -140,6 +142,8 @@ VERTICAL_BIAS_OVERRIDES = {
     'Ryuk_DeathNote_Evo0': 1.0,
     'SoulEvans_SoulEater_Evo0': 0.30,
     'Hades_ValkyrieApocalypse_Evo0': 0.7,
+    # Chignon coupé avec le biais par défaut.
+    'Gyokuyo_LesCarnetsdelApothicaire_Evo1': 0.05,
 }
 
 

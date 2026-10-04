@@ -24,6 +24,15 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "Le nouvel artwork de **Rokoul & Ayro** s'affiche enfin partout : l'ancienne image restait parfois en cache sur la carte et sur le **boss de raid**.",
+      "Nouvelles évolutions : **Katsuki Bakugo** (Élève de Yuei, Dynamight) et **Gabimaru** (Ninja d'Iwagakure, Le Creux).",
+      "Nouvelles évolutions : **Yuta Okkotsu** (Rika), **Dio Brando** (The World), **Ahri** (Renarde à Neuf Queues) et **Gyokuyô** (Impératrice).",
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.1.10',
+    changes: [
       "Les noms des **équipements** sont désormais tous **en français**.",
       "**Toy Knife** → **Couteau Jouet**, **Draconic Sword** → **Épée Draconique**, **Spirit Excalibur** → **Excalibur Spirituelle**.",
       "**Ice Ballon** → **Ballon de Glace**, **Blood Chain** → **Chaîne de Sang**, **Umbreaker** → **Parapluie Briseur**.",

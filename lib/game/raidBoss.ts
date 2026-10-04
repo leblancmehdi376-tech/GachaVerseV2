@@ -2,6 +2,11 @@
 import { RAID_TITLES } from './titles';
 import { bnMax, bnFromNumber, bnMulScalar, type BigNum } from './bignum';
 
+// Même mécanisme que NEW_CARDS_ASSET_VERSION (lib/game/cardAssets.ts) : les
+// sprites de raid sont mis en cache 30 jours sous une URL fixe, incrémenter
+// cette version force le retéléchargement après un remplacement de fichiers.
+export const RAID_SPRITES_ASSET_VERSION = 1;
+
 export interface RaidBossDef {
   id: string;
   name: string;

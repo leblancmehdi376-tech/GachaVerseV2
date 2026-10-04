@@ -2,11 +2,12 @@
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { RAID_BOSSES, RaidBossDef, DropEntry } from '@/lib/game/raidBoss';
+import { raidImageCandidates } from './RaidSprites';
 import { getItemDef } from '@/lib/game/items';
 import { getCharacterById } from '@/lib/game/characters';
 import { RARITY_CONFIG } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
-import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
+import { useFallbackImage, stripKnownExtension } from '@/lib/image-fallback';
 
 const COMING_SOON_RAIDS = [
   { id:'coming_3', name:'COMING SOON', subtitle:'Prochain raid à venir...', accentColor:'rgba(255,255,255,0.2)', bgGradient:'linear-gradient(135deg,#0a0a14,#14101e)' },
@@ -29,7 +30,7 @@ const HERO_ART_OVERRIDES: Record<string, { height?: string; right?: number }> = 
 
 // Fond illustré de la carte raid (chute vers bgGradient si l'image est absente).
 function RaidCardBg({ raid }: { raid: RaidBossDef }) {
-  const { src, failed, onError } = useFallbackImage(buildImageCandidates(raid.bgImagePath));
+  const { src, failed, onError } = useFallbackImage(raidImageCandidates(raid.bgImagePath));
   if (failed || !src) return <div style={{ position:'absolute', inset:0, background: raid.bgGradient }} />;
   const override = BG_ART_OVERRIDES[raid.id];
   return (
@@ -43,7 +44,7 @@ function RaidCardBg({ raid }: { raid: RaidBossDef }) {
 // Artwork du personnage, en surimpression à droite de la carte, fondu vers la
 // gauche pour laisser le texte lisible (voir mask-image ci-dessous).
 function RaidCardHero({ raid }: { raid: RaidBossDef }) {
-  const { src, failed, onError } = useFallbackImage(buildImageCandidates(stripKnownExtension(raid.spritePath)));
+  const { src, failed, onError } = useFallbackImage(raidImageCandidates(stripKnownExtension(raid.spritePath)));
   if (failed || !src) return null;
   const fade = 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 20%, black 45%)';
   const override = HERO_ART_OVERRIDES[raid.id];
