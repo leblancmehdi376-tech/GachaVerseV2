@@ -26,6 +26,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     changes: [
       "Le **résumé d'invocation** met aussi en avant les cartes d'édition **Émeraude ou mieux**, quelle que soit leur rareté.",
       "L'**édition** de ces cartes est indiquée à côté de leur rareté (ex : Peu commun **Émeraude**).",
+      "Les cartes mises en avant sont **triées par rareté**, puis **par édition** au sein d'une même rareté.",
     ],
   },
   {

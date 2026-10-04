@@ -1,19 +1,25 @@
 'use client';
-import { RARITY_CONFIG } from '@/types/game';
+import { RARITY_CONFIG, RARITY_ORDER_ASC } from '@/types/game';
 import { getCharacterById } from '@/lib/game/characters';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { EditionBadge } from '@/components/ui/EditionBadge';
-import { isEditionAtLeast } from '@/lib/game/editions';
+import { isEditionAtLeast, editionTier } from '@/lib/game/editions';
 import { HIGH_RARITY, HIGH_EDITION, type Res } from './gachaTypes';
 
 // Résumé — affiché après que toutes les cartes sont révélées
 export function PullSummary({ results, onClose }: { results: Res[]; onClose: () => void }) {
   const newChars = results.filter(r => r.isNew);
   // Mis en avant : rareté Légendaire+ OU édition Émeraude+ (quelle que soit la rareté).
-  const highChars = results.filter(r => {
-    const tpl = getCharacterById(r.templateId);
-    return tpl && (HIGH_RARITY.includes(tpl.rarity) || isEditionAtLeast(r.edition, HIGH_EDITION));
-  });
+  // Triés par rareté décroissante, puis par édition décroissante au sein d'une même rareté.
+  const highChars = results
+    .flatMap(r => {
+      const tpl = getCharacterById(r.templateId);
+      return tpl && (HIGH_RARITY.includes(tpl.rarity) || isEditionAtLeast(r.edition, HIGH_EDITION))
+        ? [{ r, rank: RARITY_ORDER_ASC.indexOf(tpl.rarity) }]
+        : [];
+    })
+    .sort((a, b) => b.rank - a.rank || editionTier(b.r.edition) - editionTier(a.r.edition))
+    .map(x => x.r);
 
   return (
     <div style={{
@@ -62,7 +68,7 @@ export function PullSummary({ results, onClose }: { results: Res[]; onClose: () 
                     <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:cfg.color }}>{tpl.name}</div>
                     <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
                       <RarityBadge rarity={tpl.rarity} size="xs" />
-                      {isEditionAtLeast(r.edition, HIGH_EDITION) && <EditionBadge edition={r.edition} style={{ fontSize:12, padding:'1px 6px' }} />}
+                      {isEditionAtLeast(r.edition, HIGH_EDITION) && <EditionBadge edition={r.edition} style={{ fontSize:14, padding:'1px 6px' }} />}
                     </div>
                   </div>
                   {r.isNew && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'#4ade80', fontWeight:700 }}>NEW</span>}
