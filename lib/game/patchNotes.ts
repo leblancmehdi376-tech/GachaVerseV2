@@ -23,6 +23,26 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Les noms des **équipements** sont désormais tous **en français**.",
+      "**Toy Knife** → **Couteau Jouet**, **Draconic Sword** → **Épée Draconique**, **Spirit Excalibur** → **Excalibur Spirituelle**.",
+      "**Ice Ballon** → **Ballon de Glace**, **Blood Chain** → **Chaîne de Sang**, **Umbreaker** → **Parapluie Briseur**.",
+      "**Nichirin Blade** → **Lame Nichirin**, **Dragonslayer Swordspear** → **Épée-lance Tueuse de Dragons**.",
+      "**Jumpscare** (arme de Puppet) → **Frayeur Soudaine**, **Skill Hunter** → **Chasseur de Capacités**.",
+      "La rareté **Uncommun** s'appelle désormais **Peu commun** partout dans le jeu.",
+      "Corrections d'orthographe : **Cigarette Électronique**, **Arbre à Chat**, **Épée en Netherite**, **Gène Démoniaque**, **Miroir du Crépuscule**, **Master Ball**.",
+      "**Compagnons** : nouveau bouton **Tout déséquiper** à côté de **Équiper le meilleur**, pour retirer d'un coup tout l'équipement de l'allié sélectionné.",
+      "**Compagnons** : nouvelle carte dans l'onglet **Collection**, avec une **image plus grande**, le **niveau** de l'allié affiché à côté de son DPS, et le **numéro de forme** en coin de l'image.",
+      "**Compagnons** : les cartes de l'**équipe active** sont plus grandes.",
+      "Le **sort ultime** s'affiche au survol de la carte, et reste visible dans le panneau du personnage sélectionné.",
+      "Nouvel artwork pour **Rokoul & Ayro**, sur sa carte et sur son **boss de raid**.",
+      "**Jauge d'édition** : nouveau panneau **Ordre des éditions** qui liste les 8 éditions de la plus commune à la plus rare, avec leurs points, leur bonus de DPS et leur bonus de **📈 Croissance** (de **+0,2** à **+1,4** rareté).",
+      "**Veille automatique** : en sortant de la veille, un **récap** affiche tout ce qui a été obtenu entre-temps (Pixel-Coins, Neko-Gemmes, monstres et boss vaincus, paliers, couronnes, orbes, objets et équipements, boss de raid).",
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.1.9',
     sections: [
       {
         icon: '💤',

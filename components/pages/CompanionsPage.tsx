@@ -41,14 +41,18 @@ export function hasEquippedItems(owned: OwnedCharacter): boolean {
 
 // ── Petits blocs réutilisés ────────────────────────────────────────────────
 
-function EquippedBadge({ position }: { position: 'top-right' | 'bottom-left' }) {
-  const posStyle = position === 'top-right' ? { top: 8, right: 8 } : { bottom: 8, left: 8 };
+function EquippedBadge({ position }: { position: 'top-right' | 'bottom-left' | 'thumb' }) {
+  const posStyle = position === 'top-right' ? { top: 8, right: 8 } : position === 'thumb' ? { top: -6, left: -6 } : { bottom: 8, left: 8 };
   return (
-    <Tooltip content={<span style={{ fontWeight: 700 }}>Équipements équipés</span>}>
-      <div style={{ position: 'absolute', ...posStyle, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 14, zIndex: 30 }}>
-        ⚔️
-      </div>
-    </Tooltip>
+    // Le positionnement absolu est porté par le conteneur extérieur : le <span>
+    // ajouté par Tooltip ne doit pas rester dans le flux (sinon il décale la carte).
+    <div style={{ position: 'absolute', ...posStyle, zIndex: 30 }}>
+      <Tooltip content={<span style={{ fontWeight: 700 }}>Équipements équipés</span>}>
+        <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 6px', fontSize: 14, lineHeight: 1 }}>
+          ⚔️
+        </div>
+      </Tooltip>
+    </div>
   );
 }
 
@@ -191,8 +195,8 @@ function TeamSlotCard({
             name={getCharFormName(tpl, owned.currentForm)}
             rarity={tpl.rarity}
             edition={owned.edition}
-            width={77}
-            height={106}
+            width={116}
+            height={160}
             frameOverlay
           />
           {hasEquippedItems(owned) && <EquippedBadge position="top-right" />}
@@ -311,19 +315,31 @@ function SelectedCharacterHero({
 
 // ── Slots d'équipement du personnage sélectionné ───────────────────────────
 function EquipmentSlotsCard({
-  equippedItems, onEquipBest, onUnequip,
+  equippedItems, onEquipBest, onUnequip, onUnequipAll,
 }: {
   equippedItems: OwnedCharacter['equippedItems'];
   onEquipBest: () => void;
   onUnequip: (slot: EquipmentSlot) => void;
+  onUnequipAll: () => void;
 }) {
+  const hasAnyEquipped = EQUIPMENT_SLOTS.some(slot => !!equippedItems?.[slot]);
   return (
     <div className="companion-card-hero">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
         <div style={{ fontFamily: 'var(--f-ui)', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Équipement</div>
-        <button className="companion-button companion-button--primary" onClick={onEquipBest}>
-          Équiper le meilleur
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="companion-button companion-button--primary" onClick={onEquipBest}>
+            Équiper le meilleur
+          </button>
+          <button
+            className="companion-button companion-button--danger"
+            onClick={onUnequipAll}
+            disabled={!hasAnyEquipped}
+            style={{ opacity: hasAnyEquipped ? 1 : 0.45, cursor: hasAnyEquipped ? 'pointer' : 'not-allowed' }}
+          >
+            Tout déséquiper
+          </button>
+        </div>
       </div>
       {EQUIPMENT_SLOTS.map((slot) => {
         const equippedId = equippedItems?.[slot] ?? null;
@@ -420,56 +436,58 @@ const CollectionCard = memo(function CollectionCard({
   return (
     <div
       className="companion-item-card"
+      title={ult ? `${ult.name} : ${ult.description}` : undefined}
       onClick={() => onClick(instanceKey, isLocked)}
       style={{
         cursor: 'pointer',
         position: 'relative',
+        padding: 12,
         opacity: isLocked ? 0.45 : 1,
         background: isEquipped ? `${cfg.color}12` : 'rgba(255,255,255,0.03)',
         borderColor: isSelecting ? 'var(--purple-dim)' : isEquipped ? `${cfg.color}55` : 'rgba(255,255,255,0.08)',
         boxShadow: isEquipped ? `0 0 16px ${cfg.glow}15` : undefined,
       }}
     >
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-        <CharacterCardThumb
-          templateId={tpl.id}
-          formIndex={owned.currentForm}
-          name={getCharFormName(tpl, owned.currentForm)}
-          rarity={tpl.rarity}
-          edition={owned.edition}
-          width={67}
-          height={94}
-          frameOverlay
-        />
-        {hasEquippedItems(owned) && <EquippedBadge position="bottom-left" />}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tpl.name}</span>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <CharacterCardThumb
+            templateId={tpl.id}
+            formIndex={owned.currentForm}
+            name={getCharFormName(tpl, owned.currentForm)}
+            rarity={tpl.rarity}
+            edition={owned.edition}
+            width={96}
+            height={134}
+            frameOverlay
+          />
+          {hasEquippedItems(owned) && <EquippedBadge position="thumb" />}
+          {tpl.forms && tpl.forms.length > 1 && (
+            <div title={`Forme ${owned.currentForm + 1}/${tpl.forms.length}`} style={{ position: 'absolute', bottom: -6, right: -6, zIndex: 30, background: cfg.color, borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: '2px solid var(--bg-deep)', fontWeight: 700, color: '#000' }}>{owned.currentForm + 1}</div>
+          )}
+        </div>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{tpl.name}</span>
             {isEquipped && (
-              <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: cfg.color, fontWeight: 700, background: `${cfg.color}15`, border: `1px solid ${cfg.color}44`, borderRadius: 9999, padding: '3px 8px' }}>
+              <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: cfg.color, fontWeight: 700, background: `${cfg.color}15`, border: `1px solid ${cfg.color}44`, borderRadius: 9999, padding: '2px 8px', whiteSpace: 'nowrap' }}>
                 Équipé
               </span>
             )}
             {isLocked && (
-              <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: '#f87171', fontWeight: 700, background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 9999, padding: '3px 8px' }}>
+              <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: '#f87171', fontWeight: 700, background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 9999, padding: '2px 8px', whiteSpace: 'nowrap' }}>
                 🔒 Palier {RARITY_GATES[tpl.rarity].unlockPalier}
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <RarityBadge rarity={tpl.rarity} />
             <EditionBadge edition={owned.edition} />
-            <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-muted)' }}>{owned.copies} copies</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <span style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 18, color: 'var(--green)' }}>{formatNumber(dps)}/s</span>
+          <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'var(--f-num)', fontSize: 16, fontWeight: 800, color: cfg.color }}>Niv.{owned.level}</span>
+            <span style={{ fontFamily: 'var(--f-num)', fontWeight: 800, fontSize: 18, color: 'var(--green)', whiteSpace: 'nowrap' }}>{formatNumber(dps)}/s</span>
           </div>
-          <EditionGaugeMini owned={owned} style={{ marginTop: 6 }} />
-          {ult && (
-            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 8 }}>
-              <UltimateBlurb ult={ult} />
-            </div>
-          )}
+          <EditionGaugeMini owned={owned} />
         </div>
       </div>
     </div>
@@ -657,6 +675,9 @@ export function CompanionsPage() {
                   equippedItems={selectedCharacter.equippedItems}
                   onEquipBest={handleEquipBest}
                   onUnequip={(slot) => unequipItem(selectedCharacterId!, slot)}
+                  onUnequipAll={() => {
+                    for (const slot of EQUIPMENT_SLOTS) unequipItem(selectedCharacterId!, slot);
+                  }}
                 />
                 <EquipmentInventoryCard
                   ownedEquipment={ownedEquipment}

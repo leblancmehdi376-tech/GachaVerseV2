@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { computeSleepMode } from '@/lib/ui/autoSleep';
 import { useDisplaySettingsStore, setSleepLowFx } from '@/store/displaySettingsStore';
 import { useSleepStore } from '@/store/sleepStore';
+import { useGameStore } from '@/store/gameStore';
+import { takeSleepSnapshot, computeSleepRecap } from '@/lib/ui/sleepRecap';
 
 // Veille automatique quand la fenêtre n'a plus le focus (jeu ouvert sur un
 // deuxième écran pendant qu'on joue à autre chose) : voir lib/ui/autoSleep.ts.
@@ -23,8 +25,16 @@ export function useAutoSleep() {
 
     const apply = () => {
       const mode = computeSleepMode({ now: Date.now(), focused, blurAt, lastInputAt, delay });
-      if (mode === useSleepStore.getState().mode) return;
-      useSleepStore.getState().setMode(mode);
+      const sleep = useSleepStore.getState();
+      if (mode === sleep.mode) return;
+      // Récap de la veille complète : instantané à l'endormissement, comparé
+      // à l'état du jeu au réveil (SleepRecapModal).
+      if (mode === 'full') sleep.setSnapshot(takeSleepSnapshot(useGameStore.getState(), Date.now()));
+      else if (sleep.mode === 'full' && sleep.snapshot) {
+        sleep.setRecap(computeSleepRecap(sleep.snapshot, useGameStore.getState(), Date.now()));
+        sleep.setSnapshot(null);
+      }
+      sleep.setMode(mode);
       if (mode === 'awake') document.documentElement.removeAttribute('data-sleep');
       else document.documentElement.setAttribute('data-sleep', mode);
       setSleepLowFx(mode !== 'awake');
@@ -46,6 +56,7 @@ export function useAutoSleep() {
       for (const ev of INPUT_EVENTS) window.removeEventListener(ev, onInput);
       clearInterval(interval);
       // Démontage (ou changement de délai) : on repart éveillé.
+      useSleepStore.getState().setSnapshot(null);
       useSleepStore.getState().setMode('awake');
       document.documentElement.removeAttribute('data-sleep');
       setSleepLowFx(false);

@@ -100,6 +100,15 @@ export function getEditionPowBonus(edition: CardEdition | undefined): number {
   return (EDITION_CONFIG[edition ?? 'base'] ?? EDITION_CONFIG.base).powBonus;
 }
 
+// Écart de croissance entre deux raretés consécutives (RARITY_CONFIG.dpsMultiplier).
+const RARITY_POW_STEP = 0.001;
+
+// Bonus de croissance d'une édition exprimé en raretés (Bronze 0,2 → Prismatique 1,4),
+// pour l'afficher aux joueurs sans passer par la base de croissance brute.
+export function getEditionGrowthInRarities(edition: CardEdition | undefined): number {
+  return Math.round((getEditionPowBonus(edition) / RARITY_POW_STEP) * 10) / 10;
+}
+
 // ── Anciennes clés d'instance ───────────────────────────────────────────
 // Avant le rework, chaque édition était une entrée SÉPARÉE de la collection
 // ("id" pour Base, "id::gold"/"id::diamond" pour les shiny). Les clés sont

@@ -1,9 +1,9 @@
 'use client';
 // Badge d'édition (pastille "🥉 BRONZE"…) et jauge d'édition d'une carte
 // possédée (points accumulés vers le palier suivant, voir lib/game/editions.ts).
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { OwnedCharacter } from '@/types/game';
-import { EDITION_CONFIG, EDITION_MAX_POINTS, getEditionPoints, nextEdition, type CardEdition } from '@/lib/game/editions';
+import { EDITION_CONFIG, EDITION_MAX_POINTS, EDITION_ORDER, getEditionGrowthInRarities, getEditionPoints, nextEdition, type CardEdition } from '@/lib/game/editions';
 import { EditionIcon } from '@/components/ui/EditionLogo';
 
 const PRISM_GRADIENT = 'linear-gradient(90deg,#f87171,#fbbf24,#4ade80,#22d3ee,#818cf8,#e879f9)';
@@ -75,6 +75,65 @@ export function EditionGauge({ owned }: { owned: Pick<OwnedCharacter, 'edition' 
           ? <span style={{ color: EDITION_CONFIG[next].color }}><EditionIcon edition={next} size={14} /> {EDITION_CONFIG[next].label} dans {to - points} pt{to - points > 1 ? 's' : ''}</span>
           : <span style={{ color: 'var(--text-muted)' }}>Édition maximale</span>}
       </div>
+      <EditionOrderInfo current={edition} />
+    </div>
+  );
+}
+
+// Explication dépliable de l'ordre des éditions (de la plus commune à la plus rare).
+function EditionOrderInfo({ current }: { current: CardEdition }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{
+          width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+          background: 'none', border: 'none', borderTop: '1px solid var(--border)', padding: '6px 0 0', cursor: 'pointer',
+          fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, color: 'var(--text-dim)', textAlign: 'left',
+        }}
+      >
+        <span>ℹ️ Ordre des éditions</span>
+        <span aria-hidden>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-sub)' }}>
+          <p style={{ margin: 0, lineHeight: 1.4 }}>
+            Chaque carte tirée (doublon compris) ajoute sa valeur à la jauge. Chaque édition vaut le <b>double</b> de la précédente :
+            2 Normales = 1 Bronze, 2 Bronzes = 1 Or, etc. La jauge ne redescend jamais.
+          </p>
+          <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {EDITION_ORDER.map((id, i) => {
+              const ed = EDITION_CONFIG[id];
+              const isCurrent = id === current;
+              const growth = getEditionGrowthInRarities(id);
+              return (
+                <li key={id} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 8px', borderRadius: 8,
+                  background: isCurrent ? `${ed.glow}22` : 'transparent', border: `1px solid ${isCurrent ? `${ed.glow}77` : 'transparent'}`,
+                }}>
+                  <span style={{ fontFamily: 'var(--f-num)', color: 'var(--text-muted)', minWidth: 20, flexShrink: 0 }}>{i + 1}.</span>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontWeight: 700, color: ed.color, display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <EditionIcon edition={id} size={14} /> {ed.label}
+                      {isCurrent && <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>(actuelle)</span>}
+                    </span>
+                    <span style={{ fontFamily: 'var(--f-num)', display: 'flex', flexWrap: 'wrap', columnGap: 10, rowGap: 2 }}>
+                      <span style={{ whiteSpace: 'nowrap' }}>{ed.points} pt{ed.points > 1 ? 's' : ''}</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>DPS ×{ed.statMult.toLocaleString('fr-FR')}</span>
+                      {growth > 0 && <span style={{ whiteSpace: 'nowrap' }}>📈 +{growth.toLocaleString('fr-FR')} rareté</span>}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+          <p style={{ margin: 0, lineHeight: 1.4 }}>
+            <b>📈 Croissance</b> : ton DPS par niveau grandit comme si la carte était d&apos;une rareté plus haute.
+            Ce bonus compte surtout à haut niveau.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

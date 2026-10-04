@@ -348,7 +348,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
 
   // ── Armes Transcendantes personnalisées ──────────────────────────────────
   weapon_transcendant: {
-    id: 'weapon_transcendant', name: 'Cigarette Electronique', slot:'weapon', rarity:'T', icon:'⌨️', color:'#e879f9',
+    id: 'weapon_transcendant', name: 'Cigarette Électronique', slot:'weapon', rarity:'T', icon:'⌨️', color:'#e879f9',
     description:'Bonus si équipé par NekoZ.', dpsMultiplier:RARITY_BASE_MULT.T,
     bonusFor:{ templateId:'nekoz', multiplier:PERSO_BONUS_MULT.T, description:'Bonus si équipé par NekoZ' },
   },
@@ -400,7 +400,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'benimaru', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Benimaru' },
   },
   weapon_primordial_brume: {
-    id: 'weapon_primordial_brume', name: 'Arbre a chat', slot:'weapon', rarity:'P', icon:'🌳', color:'#ff6b35',
+    id: 'weapon_primordial_brume', name: 'Arbre à Chat', slot:'weapon', rarity:'P', icon:'🌳', color:'#ff6b35',
     description:"Un perchoir mystique qui décuple les instincts félins. Bonus si équipé par Brume.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'brume', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Brume' },
   },
@@ -410,7 +410,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'brunhilde', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Brunhilde' },
   },
   weapon_primordial_chara: {
-    id: 'weapon_primordial_chara', name: 'Toy Knife', slot:'weapon', rarity:'P', icon:'🔪', color:'#ff6b35',
+    id: 'weapon_primordial_chara', name: 'Couteau Jouet', slot:'weapon', rarity:'P', icon:'🔪', color:'#ff6b35',
     description:"Un couteau jouet à la lame étrangement acérée. Bonus si équipé par Chara.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'chara', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Chara' },
   },
@@ -435,7 +435,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'goku', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Goku' },
   },
   weapon_primordial_draconic: {
-    id: 'weapon_primordial_draconic', name: 'Draconic Sword', slot:'weapon', rarity:'P', icon:'🐉', color:'#ff6b35',
+    id: 'weapon_primordial_draconic', name: 'Épée Draconique', slot:'weapon', rarity:'P', icon:'🐉', color:'#ff6b35',
     description:'Bonus si équipé par Limule.', dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'limule', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Limule' },
   },
@@ -445,12 +445,12 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'ouchuu', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Ouchuu' },
   },
   weapon_primordial_rayquaza: {
-    id: 'weapon_primordial_rayquaza', name: 'MasterBall', slot:'weapon', rarity:'P', icon:'🔴', color:'#ff6b35',
+    id: 'weapon_primordial_rayquaza', name: 'Master Ball', slot:'weapon', rarity:'P', icon:'🔴', color:'#ff6b35',
     description:"La ball la plus rare, réservée aux légendaires. Bonus si équipé par Rayquaza.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'rayquaza', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Rayquaza' },
   },
   weapon_primordial_steve: {
-    id: 'weapon_primordial_steve', name: 'épée en netherite', slot:'weapon', rarity:'P', icon:'🗡️', color:'#ff6b35',
+    id: 'weapon_primordial_steve', name: 'Épée en Netherite', slot:'weapon', rarity:'P', icon:'🗡️', color:'#ff6b35',
     description:"L'arme la plus solide qu'un mineur puisse forger. Bonus si équipé par Steve.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'steve', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Steve' },
   },
@@ -460,7 +460,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'the_knight', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par The Knight' },
   },
   weapon_primordial_vegeto: {
-    id: 'weapon_primordial_vegeto', name: 'Spirit Excalibur', slot:'weapon', rarity:'P', icon:'🗡️', color:'#ff6b35',
+    id: 'weapon_primordial_vegeto', name: 'Excalibur Spirituelle', slot:'weapon', rarity:'P', icon:'🗡️', color:'#ff6b35',
     description:"Une lame nourrie par les âmes vaincues. Bonus si équipé par Végéto.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'vegeto', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Végéto' },
   },
@@ -470,7 +470,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'yoriichi', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Yoriichi Tsugikuni' },
   },
   weapon_primordial_shawn_frost: {
-    id: 'weapon_primordial_shawn_frost', name: 'Ice Ballon', slot:'weapon', rarity:'P', icon:'⚽', color:'#ff6b35',
+    id: 'weapon_primordial_shawn_frost', name: 'Ballon de Glace', slot:'weapon', rarity:'P', icon:'⚽', color:'#ff6b35',
     description:"Un ballon gelé qui glace les gardiens sur place. Bonus si équipé par Shawn Frost.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'shawn_frost', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Shawn Frost' },
   },
@@ -480,7 +480,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'frieren', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Frieren' },
   },
   weapon_primordial_enjin: {
-    id: 'weapon_primordial_enjin', name: 'Umbreaker', slot:'weapon', rarity:'P', icon:'☂️', color:'#ff6b35',
+    id: 'weapon_primordial_enjin', name: 'Parapluie Briseur', slot:'weapon', rarity:'P', icon:'☂️', color:'#ff6b35',
     description:"Un parapluie transformé en arme redoutable. Bonus si équipé par Enjin.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'enjin', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Enjin' },
   },
@@ -500,7 +500,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'chiaki_nanami', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Chiaki Nanami' },
   },
   weapon_primordial_makima: {
-    id: 'weapon_primordial_makima', name: 'Blood Chain', slot:'weapon', rarity:'P', icon:'⛓️', color:'#ff6b35',
+    id: 'weapon_primordial_makima', name: 'Chaîne de Sang', slot:'weapon', rarity:'P', icon:'⛓️', color:'#ff6b35',
     description:"Des chaînes de sang qui soumettent quiconque à sa volonté. Bonus si équipé par Makima.", dpsMultiplier:RARITY_BASE_MULT.P,
     bonusFor:{ templateId:'makima', multiplier:PERSO_BONUS_MULT.P, description:'Bonus si équipé par Makima' },
   },
@@ -522,12 +522,12 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'gilgamesh', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Gilgamesh' },
   },
   weapon_cosmic_jinkazama: {
-    id: 'weapon_cosmic_jinkazama', name: 'Géne Demoniaque', slot:'weapon', rarity:'CO', icon:'😈', color:'#34d399',
+    id: 'weapon_cosmic_jinkazama', name: 'Gène Démoniaque', slot:'weapon', rarity:'CO', icon:'😈', color:'#34d399',
     description:"Le pouvoir démoniaque qui sommeille en Jin. Bonus si équipé par Jin Kazama.", dpsMultiplier:RARITY_BASE_MULT.CO,
     bonusFor:{ templateId:'jin_tekken', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Jin Kazama' },
   },
   weapon_cosmic_linkmidona: {
-    id: 'weapon_cosmic_linkmidona', name: 'miroir du Crépuscule', slot:'weapon', rarity:'CO', icon:'🪞', color:'#34d399',
+    id: 'weapon_cosmic_linkmidona', name: 'Miroir du Crépuscule', slot:'weapon', rarity:'CO', icon:'🪞', color:'#34d399',
     description:"Le portail entre le monde de la lumière et celui du crépuscule. Bonus si équipé par Link & Midona.", dpsMultiplier:RARITY_BASE_MULT.CO,
     bonusFor:{ templateId:'link_midona', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Link & Midona' },
   },
@@ -562,7 +562,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'luffy', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Luffy' },
   },
   weapon_cosmic_roi_sans_nom: {
-    id: 'weapon_cosmic_roi_sans_nom', name: 'Dragonslayer Swordspear', slot:'weapon', rarity:'CO', icon:'🐲', color:'#34d399',
+    id: 'weapon_cosmic_roi_sans_nom', name: 'Épée-lance Tueuse de Dragons', slot:'weapon', rarity:'CO', icon:'🐲', color:'#34d399',
     description:"Une lance-épée chargée de la foudre des dragons. Bonus si équipé par Le Roi sans Nom.", dpsMultiplier:RARITY_BASE_MULT.CO,
     bonusFor:{ templateId:'roi_sans_nom', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Le Roi sans Nom' },
   },
@@ -617,7 +617,7 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'joseph_joestar', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Joseph Joestar' },
   },
   weapon_cosmic_kuroro: {
-    id: 'weapon_cosmic_kuroro', name: 'Skill Hunter', slot:'weapon', rarity:'CO', icon:'📕', color:'#34d399',
+    id: 'weapon_cosmic_kuroro', name: 'Chasseur de Capacités', slot:'weapon', rarity:'CO', icon:'📕', color:'#34d399',
     description:"Le livre qui vole les Nen de ses adversaires. Bonus si équipé par Kuroro Lucifer.", dpsMultiplier:RARITY_BASE_MULT.CO,
     bonusFor:{ templateId:'kuroro_lucifer', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Kuroro Lucifer' },
   },
@@ -642,12 +642,12 @@ export const EQUIPMENT_DEFS: Record<string, EquipmentDef> = {
     bonusFor:{ templateId:'mori_ogai', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Mori Ogai' },
   },
   weapon_cosmic_giyu: {
-    id: 'weapon_cosmic_giyu', name: 'Nichirin Blade', slot:'weapon', rarity:'CO', icon:'🌊', color:'#34d399',
+    id: 'weapon_cosmic_giyu', name: 'Lame Nichirin', slot:'weapon', rarity:'CO', icon:'🌊', color:'#34d399',
     description:"Un sabre forgé pour trancher les démons. Bonus si équipé par Giyu Tomioka.", dpsMultiplier:RARITY_BASE_MULT.CO,
     bonusFor:{ templateId:'giyu_tomioka', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Giyu Tomioka' },
   },
   weapon_cosmic_puppet: {
-    id: 'weapon_cosmic_puppet', name: 'Jumpscare', slot:'weapon', rarity:'CO', icon:'🎁', color:'#34d399',
+    id: 'weapon_cosmic_puppet', name: 'Frayeur Soudaine', slot:'weapon', rarity:'CO', icon:'🎁', color:'#34d399',
     description:"Surgit de sa boîte quand on s'y attend le moins. Bonus si équipé par Puppet.", dpsMultiplier:RARITY_BASE_MULT.CO,
     bonusFor:{ templateId:'puppet', multiplier:PERSO_BONUS_MULT.CO, description:'Bonus si équipé par Puppet' },
   },

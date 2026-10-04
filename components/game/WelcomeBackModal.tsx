@@ -3,7 +3,7 @@ import type { OfflineGain } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { BN_ZERO, bnMulScalar } from '@/lib/game/bignum';
 
-function fmtDuration(sec: number): string {
+export function fmtDuration(sec: number): string {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   if (h > 0) return m > 0 ? `${h}h ${m}min` : `${h}h`;

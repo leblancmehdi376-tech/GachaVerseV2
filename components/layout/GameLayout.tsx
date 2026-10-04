@@ -22,6 +22,7 @@ import { useDpsTick } from '@/hooks/useDpsTick';
 import { useAutoSleep } from '@/hooks/useAutoSleep';
 import { useSleepStore } from '@/store/sleepStore';
 import { SleepOverlay } from '@/components/system/SleepOverlay';
+import { SleepRecapModal } from '@/components/game/SleepRecapModal';
 import { useGameHydration } from '@/hooks/useGameHydration';
 import { useOfflineGainCheck } from '@/hooks/useOfflineGainCheck';
 import { useBossVictoryWatcher } from '@/hooks/useBossVictoryWatcher';
@@ -164,6 +165,7 @@ export function GameLayout() {
   // Veille automatique quand la fenêtre perd le focus (2e écran, autre jeu).
   useAutoSleep();
   const sleepFull = useSleepStore(s => s.mode === 'full');
+  const sleepRecap = useSleepStore(s => s.recap);
   // Abonnement à la notation des nombres (Paramètres) : re-rend l'interface
   // dès qu'elle change, formatNumber lisant la valeur directement.
   useDisplaySettingsStore(s => s.numberNotation);
@@ -596,6 +598,7 @@ export function GameLayout() {
       {showDailyRewards && <DailyRewardsModal onClose={() => setShowDailyRewards(false)} />}
       {showPatchNotes && <Suspense fallback={null}><PatchNotesModal onClose={() => setShowPatchNotes(false)} /></Suspense>}
       {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={claimOfflineGain} />}
+      {sleepRecap && !sleepFull && <SleepRecapModal recap={sleepRecap} onClose={() => useSleepStore.getState().setRecap(null)} />}
       <UltAnimation />
       <GameWatchers />
     </div>

@@ -11,7 +11,7 @@ export type DleQuestDef =
   | { id: string; label: string; gems: number; kind: 'all' };
 
 const RARITY_QUEST_LABELS: [Rarity, string, number][] = [
-  ['C', 'commun', 25], ['U', 'uncommun', 25], ['R', 'rare', 25], ['E', 'épique', 25], ['L', 'légendaire', 25],
+  ['C', 'commun', 25], ['U', 'peu commun', 25], ['R', 'rare', 25], ['E', 'épique', 25], ['L', 'légendaire', 25],
   ['M', 'mythique', 25], ['S', 'stellaire', 25], ['CO', 'cosmique', 25], ['P', 'primordial', 25], ['T', 'transcendant', 50],
 ];
 

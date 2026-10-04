@@ -29,7 +29,7 @@ export const RARITY_CONFIG: Record<Rarity, {
   // dpsMultiplier = base de croissance par niveau (Math.pow(base, level-1) dans calcCharDps),
   // pas un multiplicateur plat : 1.024 + 0.001 par palier de rareté.
   C:  { label:'Commun',      color:'#9ca3af', glow:'#9ca3af', dpsMultiplier:1.024, },
-  U:  { label:'Uncommun',    color:'#86efac', glow:'#22c55e', dpsMultiplier:1.025, },
+  U:  { label:'Peu commun',  color:'#86efac', glow:'#22c55e', dpsMultiplier:1.025, },
   R:  { label:'Rare',        color:'#60a5fa', glow:'#3b82f6', dpsMultiplier:1.026, },
   E:  { label:'Épique',      color:'#c084fc', glow:'#a855f7', dpsMultiplier:1.027, },
   L:  { label:'Légendaire',  color:'#fbbf24', glow:'#f59e0b', dpsMultiplier:1.028, },
