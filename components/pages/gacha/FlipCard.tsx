@@ -126,7 +126,9 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
           position:'absolute', inset:0,
           backfaceVisibility:'hidden',
           transform:'rotateY(180deg)',
-          borderRadius:12, overflow:'hidden',
+          // Pas d'overflow:hidden : la pastille d'édition de CharacterCardThumb
+          // déborde du coin haut-droit (top/right -8) et serait rognée.
+          borderRadius:12,
           // Ultra révélée : le halo pulsé est porté par <UltraGlow> (après la face).
           boxShadow: isUltra
             ? revealed
@@ -150,7 +152,7 @@ export function FlipCard({ res, index, total, autoFlip, delay, preReveal }: {
               {/* Overlay lumière haute rareté */}
               {isHigh && revealed && (
                 <div style={{
-                  position:'absolute', inset:0,
+                  position:'absolute', inset:0, borderRadius:12,
                   background:`radial-gradient(ellipse at 50% 30%, ${cfg.color}33, transparent 60%)`,
                   animation:'gvGlowPulse 2s ease-in-out infinite',
                   pointerEvents:'none',

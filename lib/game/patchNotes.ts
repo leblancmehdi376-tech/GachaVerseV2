@@ -23,6 +23,14 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Le **butin** affiché en combat montre directement l'**or réellement gagné**, bonus compris, au lieu de l'or de base suivi du total entre parenthèses.",
+      "Lors d'une **invocation**, la pastille d'**édition** des cartes révélées n'est plus rognée dans le coin.",
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.2',
     sections: [
       {
         icon: '⚗️',

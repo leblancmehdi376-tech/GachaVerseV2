@@ -168,8 +168,7 @@ export function TeamBar({
               <GoldBreakdownTooltip>
                 <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>BUTIN <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
                 <div style={{ fontFamily:'var(--f-num)', fontSize:16, fontWeight:700, color:'var(--gold)' }}>
-                  +{formatNumber(pixelCoinsReward)} 🪙
-                  {realGold && <span style={{ fontSize:14, fontWeight:600, color:'rgba(251,191,36,0.6)' }}> (+{formatNumber(realGold)})</span>}
+                  +{formatNumber(realGold ?? pixelCoinsReward)} 🪙
                 </div>
               </GoldBreakdownTooltip>
               {gemsReward > 0 && <div style={{ fontFamily:'var(--f-num)', fontSize:14, fontWeight:700, color:'var(--cyan-hi)' }}>+{gemsReward} 💎</div>}

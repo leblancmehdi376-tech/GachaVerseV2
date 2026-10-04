@@ -103,7 +103,7 @@ export function PrimordialRevealScreen({ res, onDone }: { res: Res; onDone: () =
             {/* FACE */}
             <div style={{
               position:'absolute', inset:0, backfaceVisibility:'hidden',
-              transform:'rotateY(180deg)', borderRadius:14, overflow:'hidden',
+              transform:'rotateY(180deg)', borderRadius:14, // pas d'overflow:hidden : la pastille d'édition déborde du coin
               // Une fois révélée, le halo pulsé est porté par <UltraGlow>.
               boxShadow: revealed
                 ? '0 10px 40px rgba(0,0,0,0.8)'
