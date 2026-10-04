@@ -24,6 +24,15 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '04/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Cosmique** plus fréquent : **0,1761 %** au palier 40 (au lieu de **0,123 %**), soit **+43 %**.",
+      "Les **taux d'invocation** s'affichent avec **une décimale de plus** (ex. **36,944 %**, **0,17610 %**).",
+      "Correction d'un cas extrêmement rare où un tirage pouvait donner une **rareté pas encore débloquée**.",
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.2.2',
+    changes: [
       "Dans le **résumé d'invocation**, touche une carte des **meilleurs tirages** pour l'**afficher en grand**.",
     ],
   },

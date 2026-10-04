@@ -34,7 +34,7 @@ export function getPullsToNextToken(totalGachaPulls: number): { pullsInCycle: nu
 
 // Affichage adapté aux très petits taux (< 0.01% → plus de décimales).
 export function formatDropRate(rate: number): string {
-  return rate >= 0.01 ? `${rate.toFixed(2)}%` : rate > 0 ? `${rate.toFixed(4)}%` : '0%';
+  return rate >= 0.01 ? `${rate.toFixed(3)}%` : rate > 0 ? `${rate.toFixed(5)}%` : '0%';
 }
 
 // Bouton de tirage : même style pour ×1/×10/×100, aux couleurs de la bannière.
@@ -88,7 +88,7 @@ export function GachaPage() {
   // Taux dynamiques calculés pour le palier max atteint DEPUIS LE DERNIER
   // PRESTIGE (pas le lifetime maxPalierReached, qui ne redescend jamais).
   const maxPalierReached = useGameStore(s => s.getRunPeakPalier());
-  const currentRates = getDynamicRates(maxPalierReached);
+  const currentRates = getDynamicRates(maxPalierReached, bannerId);
   // Coûts après réduction éventuelle des anomalies "Réduc. Coût Gacha".
   const costs = useGameStore(useShallow(s => s.getGachaCosts()));
   // Progression vers le prochain Jeton d'Anomalie (1 tous les 100 tirages cumulés).

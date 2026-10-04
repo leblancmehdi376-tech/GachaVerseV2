@@ -61,24 +61,25 @@ export function getBanner(id: BannerId): GachaBanner {
 // de déblocage). En dessous, son taux est nul et le budget est reporté sur les
 // raretés déjà débloquées. Une fois débloquée, son taux progresse linéairement
 // entre rateAtUnlock et rateAtMax jusqu'au palier 40.
-// rateAtUnlock : taux (%) brut au palier de déblocage (avant normalisation à 100%)
-// rateAtMax    : taux (%) brut au palier 40
+// rateAtUnlock : poids brut au palier de déblocage (renormalisé avec les autres
+//                raretés débloquées pour que le total fasse 100 %)
+// rateAtMax    : taux (%) exact au palier 40 — la somme des rateAtMax vaut 100
 
 export const RARITY_GATES: Record<Rarity, {
   unlockPalier: number;
   rateAtUnlock: number;
   rateAtMax:    number;
 }> = {
-  C:  { unlockPalier: 1,  rateAtUnlock: 100.0000, rateAtMax: 30.000 },
-  U:  { unlockPalier: 3,  rateAtUnlock: 5.0000, rateAtMax: 20.000 },
-  R:  { unlockPalier: 5,  rateAtUnlock:  2.0000, rateAtMax: 15.000 },
-  E:  { unlockPalier: 7,  rateAtUnlock:  0.5000, rateAtMax: 10.000 },
-  L:  { unlockPalier: 9,  rateAtUnlock:  0.1500, rateAtMax:  4.000 },
-  M:  { unlockPalier: 11, rateAtUnlock:  0.0300, rateAtMax:  1.500 },
-  S:  { unlockPalier: 13, rateAtUnlock:  0.0060, rateAtMax:  0.500 },
-  CO: { unlockPalier: 15, rateAtUnlock:  0.0015, rateAtMax:  0.100 },
-  P:  { unlockPalier: 17, rateAtUnlock:  0.0006, rateAtMax:  0.050 },
-  T:  { unlockPalier: 19, rateAtUnlock:  0.0002, rateAtMax:  0.010 },
+  C:  { unlockPalier: 1,  rateAtUnlock: 123.2,   rateAtMax: 36.9444 },
+  U:  { unlockPalier: 3,  rateAtUnlock:   6.16,  rateAtMax: 24.6296 },
+  R:  { unlockPalier: 5,  rateAtUnlock:   2.464, rateAtMax: 18.4723 },
+  E:  { unlockPalier: 7,  rateAtUnlock:   0.616, rateAtMax: 12.3148 },
+  L:  { unlockPalier: 9,  rateAtUnlock:   0.1848,  rateAtMax: 4.9285 },
+  M:  { unlockPalier: 11, rateAtUnlock:   0.037,   rateAtMax: 1.8482 },
+  S:  { unlockPalier: 13, rateAtUnlock:   0.0074,  rateAtMax: 0.6161 },
+  CO: { unlockPalier: 15, rateAtUnlock:   0.00265, rateAtMax: 0.1761 },
+  P:  { unlockPalier: 17, rateAtUnlock:   0.00072, rateAtMax: 0.0600 },
+  T:  { unlockPalier: 19, rateAtUnlock:   0.00021, rateAtMax: 0.0100 },
 };
 
 const MAX_PALIER = 40;
@@ -89,17 +90,22 @@ const RARITY_ORDER: Rarity[] = ['T','P','CO','S','M','L','E','R','U','C'];
  * - Retourne uniquement les raretés débloquées.
  * - Les taux progressent linéairement entre rateAtUnlock et rateAtMax.
  * - La somme est toujours normalisée à exactement 100%.
+ * - Avec `bannerId`, les raretés sans aucun personnage dans cette bannière
+ *   sont exclues avant normalisation (leur part est répartie sur les autres),
+ *   pour que les taux affichés restent exactement ceux du tirage.
  */
-export function getDynamicRates(maxPalier: number): Partial<Record<Rarity, number>> {
+export function getDynamicRates(maxPalier: number, bannerId?: BannerId): Partial<Record<Rarity, number>> {
   // Passé le palier 40 (prestige), les taux ne doivent plus continuer à
   // extrapoler : T est déjà à son taux max à ce stade.
   const clampedMax = Math.min(maxPalier, MAX_PALIER);
+  const bannerRarities = bannerId ? new Set(getBanner(bannerId).pool.map(c => c.rarity)) : null;
   const raw: Partial<Record<Rarity, number>> = {};
   let total = 0;
 
   for (const r of RARITY_ORDER) {
     const gate = RARITY_GATES[r];
     if (clampedMax < gate.unlockPalier) continue;
+    if (bannerRarities && !bannerRarities.has(r)) continue;
 
     // Interpolation linéaire entre unlock et max
     const range = MAX_PALIER - gate.unlockPalier;
@@ -114,31 +120,35 @@ export function getDynamicRates(maxPalier: number): Partial<Record<Rarity, numbe
   if (total === 0) return { C: 100 };
   const normalized: Partial<Record<Rarity, number>> = {};
   for (const [r, v] of Object.entries(raw) as [Rarity, number][]) {
-    normalized[r] = parseFloat(((v / total) * 100).toFixed(4));
+    // 6 décimales : l'affichage descend à 5 décimales pour les taux < 0,01 %.
+    normalized[r] = parseFloat(((v / total) * 100).toFixed(6));
   }
   return normalized;
 }
 
-export function rollRarity(maxPalier = 1): Rarity {
-  const rates = getDynamicRates(maxPalier);
+export function rollRarity(maxPalier = 1, bannerId?: BannerId): Rarity {
+  const rates = getDynamicRates(maxPalier, bannerId);
   const rand = Math.random() * 100;
   let cum = 0;
+  let last: Rarity = 'C';
   for (const r of RARITY_ORDER) {
-    cum += rates[r] ?? 0;
-    if (rand <= cum) return r;
+    const rate = rates[r] ?? 0;
+    if (rate <= 0) continue; // rareté verrouillée ou absente : jamais tirée
+    cum += rate;
+    last = r;
+    if (rand < cum) return r;
   }
-  return 'C';
+  // Arrondis : la somme peut être très légèrement < 100.
+  return last;
 }
 
 export function rollCharacter(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string {
   const bannerPool = getBanner(bannerId).pool;
-  const rarity = rollRarity(maxPalier);
+  const rarity = rollRarity(maxPalier, bannerId);
   const pool   = bannerPool.filter(c => c.rarity === rarity);
-  if (pool.length === 0) {
-    const fallback = bannerPool.filter(c => c.rarity === 'R');
-    return fallback[Math.floor(Math.random() * fallback.length)].id;
-  }
-  return pool[Math.floor(Math.random() * pool.length)].id;
+  // Ne peut arriver que si aucune rareté débloquée n'existe dans la bannière.
+  const source = pool.length > 0 ? pool : bannerPool;
+  return source[Math.floor(Math.random() * source.length)].id;
 }
 
 export function rollMulti(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string[] {

@@ -21,15 +21,15 @@ describe('formatDropRate', () => {
     expect(formatDropRate(0)).toBe('0%');
   });
 
-  it('affiche 2 décimales pour un taux normal', () => {
-    expect(formatDropRate(12.3)).toBe('12.30%');
+  it('affiche 3 décimales pour un taux normal', () => {
+    expect(formatDropRate(12.3)).toBe('12.300%');
   });
 
-  it('affiche 4 décimales pour un taux très petit (< 0.01%)', () => {
-    expect(formatDropRate(0.0042)).toBe('0.0042%');
+  it('affiche 5 décimales pour un taux très petit (< 0.01%)', () => {
+    expect(formatDropRate(0.0042)).toBe('0.00420%');
   });
 
-  it('affiche 2 décimales pile au seuil de 0.01%', () => {
-    expect(formatDropRate(0.01)).toBe('0.01%');
+  it('affiche 3 décimales pile au seuil de 0.01%', () => {
+    expect(formatDropRate(0.01)).toBe('0.010%');
   });
 });
