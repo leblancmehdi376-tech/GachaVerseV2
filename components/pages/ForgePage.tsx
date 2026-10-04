@@ -13,9 +13,13 @@ import { ForgeRevealOverlay } from './ForgeRevealOverlay';
 
 // Recettes et drops triés par rareté du personnage forgé (du plus commun au
 // plus rare), puis par palier requis ; un drop sans recette passe en dernier.
+// La rareté vient du personnage lui-même (source de vérité), pas du champ
+// recopié dans la recette, pour que tri, filtre et badge restent d'accord.
+const rewardRarity = (r: CraftRecipe): Rarity | undefined =>
+  CHARACTER_POOL.find(c => c.id === r.reward.characterId)?.rarity ?? r.reward.rarity;
 const rarityRank = (r?: Rarity) => (r ? RARITY_ORDER_ASC.indexOf(r) : RARITY_ORDER_ASC.length);
 const SORTED_RECIPES = [...CRAFT_RECIPES].sort((a, b) =>
-  rarityRank(a.reward.rarity) - rarityRank(b.reward.rarity) || a.palierRequired - b.palierRequired);
+  rarityRank(rewardRarity(a)) - rarityRank(rewardRarity(b)) || a.palierRequired - b.palierRequired);
 const dropRank = (dropId: string) => {
   const i = SORTED_RECIPES.findIndex(r => r.ingredients.some(ing => ing.type === 'drop' && ing.id === dropId));
   return i < 0 ? SORTED_RECIPES.length : i;
@@ -24,7 +28,9 @@ const SORTED_DROPS = [...PALIER_DROPS].sort((a, b) => dropRank(a.id) - dropRank(
 
 type ForgeTab = 'equipment' | 'weapons' | 'recipes';
 type RecipeStatus = 'ready' | 'progress' | 'locked';
-type RecipeFilter = 'all' | RecipeStatus;
+
+// Raretés proposées dans le filtre des rituels : seulement celles qui ont au moins un rituel.
+const RECIPE_RARITIES = RARITY_ORDER_ASC.filter(r => SORTED_RECIPES.some(x => rewardRarity(x) === r));
 
 // getSpecialWeaponGroup parcourt tout le catalogue : calculé une seule fois.
 const SPECIAL_WEAPON_POOLS = Object.fromEntries(
@@ -152,7 +158,7 @@ function RecipeCard({ recipe, status }: { recipe: CraftRecipe; status: RecipeSta
         ) : (
           <button onClick={handleCraft} disabled={!ready} className={ready ? 'btn-primary' : 'btn-secondary'}
             style={{ flex: 1, minHeight: 44, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            ⚗ FORGER{alreadyOwned ? ' (doublon)' : ''}
+            ⚗ ACCOMPLIR{alreadyOwned ? ' (doublon)' : ''}
           </button>
         )}
         <button onClick={() => setShowLore(v => !v)} className="btn-secondary" aria-expanded={showLore}
@@ -171,35 +177,37 @@ function RecipeCard({ recipe, status }: { recipe: CraftRecipe; status: RecipeSta
 // memo : ne se re-rend pas à chaque drop d'équipement (statuts mémoïsés par ForgePage).
 const RecipesTab = memo(function RecipesTab({ statuses }: { statuses: Record<string, RecipeStatus> }) {
   const { dropInventory, focusExpedition } = useGameStore(useShallow(s => ({ dropInventory: s.expeditionDropInventory, focusExpedition: s.focusExpedition })));
-  const [filter, setFilter] = useState<RecipeFilter>('all');
+  // Filtre par rareté du personnage obtenu ; aucun filtre = tous les rituels.
+  // Un second clic sur la rareté active la désélectionne.
+  const [rarity, setRarity] = useState<Rarity | null>(null);
 
-  const count = (f: RecipeFilter) => f === 'all' ? SORTED_RECIPES.length : SORTED_RECIPES.filter(r => statuses[r.id] === f).length;
-  const shown = SORTED_RECIPES.filter(r => filter === 'all' || statuses[r.id] === filter);
+  const shown = SORTED_RECIPES.filter(r => !rarity || rewardRarity(r) === rarity);
   const ownedDrops = SORTED_DROPS.filter(d => (dropInventory[d.id] ?? 0) > 0);
 
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
       <div style={{ flex: '999 1 520px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {([
-            { k: 'all' as const, label: 'Toutes' },
-            { k: 'ready' as const, label: 'Prêtes' },
-            { k: 'progress' as const, label: 'En cours' },
-            { k: 'locked' as const, label: 'Verrouillées' },
-          ]).map(f => (
-            <button key={f.k} onClick={() => setFilter(f.k)} aria-pressed={filter === f.k}
-              style={{
-                minHeight: 44, padding: '0 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15,
-                background: filter === f.k ? 'rgba(232,121,249,0.14)' : 'var(--bg-card)',
-                border: `1px solid ${filter === f.k ? '#e879f9' : 'var(--border)'}`,
-                color: filter === f.k ? '#f5d0fe' : 'var(--text-sub)',
-              }}>
-              {f.label} ({count(f.k)})
-            </button>
-          ))}
+        <div role="group" aria-label="Filtrer par rareté" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {RECIPE_RARITIES.map(r => {
+            const cfg = RARITY_CONFIG[r];
+            const on = rarity === r;
+            return (
+              <button key={r} onClick={() => setRarity(on ? null : r)} aria-pressed={on}
+                style={{
+                  minHeight: 44, padding: '0 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 15,
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  background: on ? `${cfg.color}22` : 'var(--bg-card)',
+                  border: `1px solid ${on ? cfg.color : 'var(--border)'}`,
+                  color: on ? cfg.color : 'var(--text-sub)',
+                }}>
+                <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: cfg.color }} />
+                {cfg.label} ({SORTED_RECIPES.filter(x => rewardRarity(x) === r).length})
+              </button>
+            );
+          })}
         </div>
         {shown.length === 0 ? (
-          <div className="companion-empty">Aucune recette dans cette catégorie.</div>
+          <div className="companion-empty">Aucun rituel de cette rareté.</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 12 }}>
             {shown.map(r => <RecipeCard key={r.id} recipe={r} status={statuses[r.id]} />)}
@@ -209,10 +217,10 @@ const RecipesTab = memo(function RecipesTab({ statuses }: { statuses: Record<str
 
       {/* Ingrédients récoltés : colonne latérale, sous les recettes sur téléphone */}
       <div className="panel" style={{ flex: '1 1 260px', minWidth: 0, padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ fontFamily: 'var(--f-title)', fontSize: 16, letterSpacing: 1, color: 'var(--text-sub)' }}>MES INGRÉDIENTS</div>
+        <div style={{ fontFamily: 'var(--f-title)', fontSize: 16, letterSpacing: 1, color: 'var(--text-sub)' }}>MES COMPOSANTS</div>
         {ownedDrops.length === 0 ? (
           <div style={{ fontFamily: 'var(--f-ui)', fontSize: 15, color: 'var(--text-muted)' }}>
-            Aucun drop pour l’instant. Lance des expéditions pour récolter des objets rares !
+            Aucun composant pour l’instant. Lance des expéditions pour en récolter !
           </div>
         ) : ownedDrops.map(drop => {
           const expDef = EXPEDITION_DEFS.find(x => x.rewards.dropId === drop.id);
@@ -338,46 +346,35 @@ export function ForgePage() {
   }, [canCraft, runPeakPalier, dropInventory, championInventory, collection]);
   const readyRecipes = Object.values(statuses).filter(s => s === 'ready').length;
 
-  const tabs: { k: ForgeTab; label: string; badge: number; badgeLabel: string; color: string }[] = [
-    { k: 'equipment', label: 'Équipement',      badge: equipFusions,  badgeLabel: String(equipFusions),  color: 'var(--green)' },
-    { k: 'weapons',   label: 'Armes spéciales', badge: weaponFusions, badgeLabel: String(weaponFusions), color: 'var(--green)' },
-    { k: 'recipes',   label: 'Recettes',        badge: readyRecipes,  badgeLabel: `${readyRecipes} prête${readyRecipes > 1 ? 's' : ''}`, color: '#e879f9' },
+  const tabs: { k: ForgeTab; label: string; short: string; badge: number; badgeLabel: string; color: string }[] = [
+    { k: 'equipment', label: 'Équipement',      short: 'Équipement', badge: equipFusions,  badgeLabel: `${equipFusions} fusion${equipFusions > 1 ? 's' : ''} possible${equipFusions > 1 ? 's' : ''}`,   color: 'var(--green)' },
+    { k: 'weapons',   label: 'Armes spéciales', short: 'Armes',      badge: weaponFusions, badgeLabel: `${weaponFusions} fusion${weaponFusions > 1 ? 's' : ''} possible${weaponFusions > 1 ? 's' : ''}`, color: 'var(--green)' },
+    { k: 'recipes',   label: 'Rituels',         short: 'Rituels',    badge: readyRecipes,  badgeLabel: `${readyRecipes} prêt${readyRecipes > 1 ? 's' : ''}`, color: '#e879f9' },
   ];
 
   return (
     <div className="page-pad" style={{ height: '100%', overflowY: 'auto' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        <div className="panel" style={{ padding: '18px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
-            <div style={{ width: 4, height: 18, background: 'linear-gradient(180deg,#e879f9,#c084fc)', borderRadius: 2, boxShadow: '0 0 8px #e879f9' }} />
-            <span className="page-title" style={{ color: '#e879f9' }}>FORGE ⚗</span>
+        {/* Onglets seuls : le titre « FORGE » est déjà dans l'en-tête de page de GameLayout */}
+        <div className="forge-head">
+          <div role="tablist" aria-label="Sections de la forge" className="forge-tabs">
+            {tabs.map(t => {
+              const active = tab === t.k;
+              return (
+                <button key={t.k} role="tab" aria-selected={active} onClick={() => setTab(t.k)}
+                  className={`forge-tab${active ? ' forge-tab--on' : ''}`}>
+                  <span className="forge-tab__long">{t.label}</span>
+                  <span className="forge-tab__short">{t.short}</span>
+                  {t.badge > 0 && (
+                    <span aria-label={t.badgeLabel} style={{ padding: '0 8px', borderRadius: 999, fontFamily: 'var(--f-num)', fontSize: 14, lineHeight: '22px', color: t.color, background: 'rgba(255,255,255,0.06)' }}>
+                      {t.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          <div style={{ fontFamily: 'var(--f-ui)', fontSize: 15, color: 'var(--text-dim)' }}>
-            Fusionne ton équipement, recycle tes armes spéciales et forge des personnages uniques
-          </div>
-        </div>
-
-        <div role="tablist" aria-label="Sections de la forge" style={{ display: 'flex', overflowX: 'auto', borderBottom: '1px solid var(--border)' }}>
-          {tabs.map(t => {
-            const active = tab === t.k;
-            return (
-              <button key={t.k} role="tab" aria-selected={active} onClick={() => setTab(t.k)}
-                style={{
-                  flexShrink: 0, minHeight: 50, padding: '0 18px', marginBottom: -1, cursor: 'pointer',
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  background: 'transparent', border: 'none', borderBottom: `3px solid ${active ? '#e879f9' : 'transparent'}`,
-                  color: active ? '#f5d0fe' : 'var(--text-dim)', fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 17,
-                }}>
-                {t.label}
-                {t.badge > 0 && (
-                  <span style={{ padding: '0 8px', borderRadius: 999, fontSize: 14, lineHeight: '22px', color: t.color, background: 'rgba(255,255,255,0.06)' }}>
-                    {t.badgeLabel}
-                  </span>
-                )}
-              </button>
-            );
-          })}
         </div>
 
         {tab === 'equipment' && <EquipmentWorkbench />}

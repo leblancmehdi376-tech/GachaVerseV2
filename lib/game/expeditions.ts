@@ -215,7 +215,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     ingredients: [
       { type:'drop', id:'bijou_divin', quantity:100, label:'Bijou Divin' },
     ],
-    reward: { type:'character', characterId:'brunhilde', rarity:'CO', label:'Brunhilde', icon:'🛡' },
+    reward: { type:'character', characterId:'brunhilde', rarity:'P', label:'Brunhilde', icon:'🛡' },
   },
   // ── Undertale ────────────────────────────────────────────────────────────
   {

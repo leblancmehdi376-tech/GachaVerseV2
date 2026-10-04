@@ -280,7 +280,7 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
 
   canCraft: (recipeId) => {
     const recipe = CRAFT_RECIPES.find(r => r.id === recipeId);
-    if (!recipe) return { ok:false, missing:['Recette introuvable'] };
+    if (!recipe) return { ok:false, missing:['Rituel introuvable'] };
 
     const gs = get();
     const missing: string[] = [];
@@ -312,7 +312,7 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
   craftRecipe: (recipeId) => {
     const { ok, missing } = get().canCraft(recipeId);
     if (!ok) {
-      toast.error('Impossible de forger', missing[0]);
+      toast.error('Rituel impossible', missing[0]);
       return false;
     }
 

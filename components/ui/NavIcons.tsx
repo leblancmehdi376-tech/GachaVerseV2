@@ -158,9 +158,10 @@ export function IconFoldedMap({ size = 18, color = 'currentColor' }: IconProps) 
 export function IconForge({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
-      <path d="M4 16l3-8 3 4 3-6 3 10" />
-      <path d="M3 16h14" />
-      <path d="M8 8c0-3 4-3 4 0" />
+      {/* Enclume, surmontée d'un marteau incliné vers elle */}
+      <path d="M2.5 10.5H15v2h-2.8q-1 1.2-.2 2.7h1.5v2.3H5v-2.3h1.5q.8-1.5-.2-2.7H6q-2 0-3.5-2z" />
+      <path d="M6.5 5.1L11 9.6" />
+      <rect x="2.75" y="2.6" width="5.5" height="2.8" rx=".6" transform="rotate(-45 5.5 4)" />
     </svg>
   );
 }

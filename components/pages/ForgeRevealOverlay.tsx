@@ -55,7 +55,7 @@ export function ForgeRevealOverlay({ characterId, recipeIcon, onClose }: { chara
         <>
           <div style={{ position:'fixed', inset:0, background:'#fff', pointerEvents:'none', animation:'forgeFlash 0.6s ease-out forwards' }} />
           <div style={{ fontFamily:'var(--f-title)', fontSize:22, letterSpacing:4, color:'#e879f9', textShadow:'0 0 12px rgba(232,121,249,0.6)', animation:'forgeRise 0.5s ease-out both' }}>
-            ⚗ FORGE RÉUSSIE
+            ⚗ RITUEL ACCOMPLI
           </div>
           <div style={{
             position:'relative', width:w, height:h, borderRadius:12, overflow:'hidden',

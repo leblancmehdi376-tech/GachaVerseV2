@@ -118,15 +118,17 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'ÉQUIPE', items: [
     { id:'companions',   label:'COMPAGNONS',      accent:'var(--purple-hi)'     },
     { id:'champions',    label:'INV. CHAMPIONS',  accent:'#fbbf24'            },
+    { id:'mastery',    label:'MAÎTRISE',        accent:'#f472b6'            },
     { id:'forge',        label:'FORGE',           accent:'#e879f9'            },
-    { id:'collection',   label:'COMPADEX',        accent:'#60a5fa'            },
-    { id:'mastery',      label:'MAÎTRISE',        accent:'#f472b6'            },
   ]},
   { title:'PROGRESSION', items: [
     { id:'upgrades',     label:'AMÉLIORATIONS',   accent:'var(--gold)'          },
     { id:'prestige',     label:'PRESTIGE',        accent:'var(--purple-glow)'   },
     { id:'anomalie',     label:'ANOMALIE',        accent:'#e879f9'            },
     { id:'mine',         label:'MINE',            accent:'var(--cyan-hi)'       },
+  ]},
+  { title:'COMPLÉTION', items: [
+    { id:'collection',   label:'COMPADEX',        accent:'#60a5fa'            },
     { id:'achievements', label:'SUCCÈS',          accent:'#fbbf24'            },
   ]},
   { title:'ACTIVITÉS', items: [

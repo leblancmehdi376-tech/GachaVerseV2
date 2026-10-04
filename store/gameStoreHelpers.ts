@@ -150,7 +150,7 @@ export function rollQuestDefs(defs: QuestDef[]): Omit<Quest,'current'|'done'>[] 
 
 // ── Quêtes de raid (permanentes jusqu'à complétion, valeurs fixes) ────
 export const RAID_QUESTS: Omit<Quest,'current'|'done'>[] = [
-  { id:'e_forge_1',        label:'Forger ton premier personnage',        icon:'⚗',  target:1,   reward:200, rewardType:'gems', type:'raid' },
+  { id:'e_forge_1',        label:'Accomplir ton premier rituel',         icon:'⚗',  target:1,   reward:200, rewardType:'gems', type:'raid' },
   { id:'e_expedition_10',  label:'Terminer 10 expéditions',              icon:'🧭', target:10,  reward:200, rewardType:'gems', type:'raid' },
   { id:'e_palier_20',      label:'Atteindre le palier 20',               icon:'🌌', target:20,  reward:300, rewardType:'gems', type:'raid' },
   { id:'e_prestige_1',     label:'Prestiger 1 fois',                     icon:'⭐', target:1,   reward:400, rewardType:'gems', type:'raid' },

@@ -533,7 +533,7 @@ export function ExpeditionsPage() {
         {/* Filtres */}
         <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
           {[
-            { k:'forge'     as const, label:'⚒️ ITEM DE FORGE'    },
+            { k:'forge'     as const, label:'⚒️ COMPOSANTS DE RITUEL' },
             { k:'equipment' as const, label:'🛠️ ATELIER ÉQUIPEMENT' },
             { k:'gems'      as const, label:'💎 EXPÉDITIONS DE GEMMES' },
             { k:'special'   as const, label:'🔷 OBJETS SPÉCIAUX'  },
