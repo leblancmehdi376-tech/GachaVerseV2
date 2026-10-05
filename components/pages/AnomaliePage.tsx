@@ -6,9 +6,10 @@ import { PageScroll } from '@/components/ui/Page';
 import { RARITY_CONFIG, RARITY_ORDER_ASC } from '@/types/game';
 import {
   Anomaly, ANOMALY_BONUS_DEFS, ANOMALY_RARITY_TABLE, ANOMALY_RARITY_ORDER_DESC,
-  ANOMALY_MAX_SLOTS, AnomalyBonusType,
+  ANOMALY_MAX_SLOTS, AnomalyBonusType, ANOMALY_BONUS_TYPES,
 } from '@/lib/game/anomalies';
-import { AFFINITY_CONFIG, Affinity } from '@/lib/game/affinities';
+import { AFFINITY_CONFIG, AFFINITY_ORDER, Affinity } from '@/lib/game/affinities';
+import type { Rarity } from '@/types/game';
 import { SYNERGIES_LIST } from '@/lib/game/synergies';
 import { formatNumber } from '@/lib/game/format';
 
@@ -31,7 +32,25 @@ export function formatBonusRange(type: AnomalyBonusType, [min, max]: [number, nu
   return `+${min.toFixed(decimals)}% – +${max.toFixed(decimals)}%`;
 }
 
-function AnomalyCard({ anomaly, onToggleLock }: { anomaly: Anomaly; onToggleLock: () => void }) {
+// [DEV] Bouton « changer d'anomalie » affiché uniquement en local, jamais en prod.
+function useIsLocalDev() {
+  return typeof window !== 'undefined' && (
+    process.env.NODE_ENV === 'development' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname.startsWith('127.')
+  );
+}
+
+function DevEditButton({ onClick, active }: { onClick: () => void; active: boolean }) {
+  return (
+    <button onClick={onClick} title="[DEV] Changer cette anomalie"
+      style={{ background: active ? 'rgba(232,121,249,0.2)' : 'rgba(255,255,255,0.05)', border: `1px solid ${active ? '#e879f9' : 'var(--border)'}`, borderRadius: 8, minWidth: 36, minHeight: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>
+      🛠️
+    </button>
+  );
+}
+
+function AnomalyCard({ anomaly, onToggleLock, onDevEdit, devActive }: { anomaly: Anomaly; onToggleLock: () => void; onDevEdit?: () => void; devActive?: boolean }) {
   const cfg = RARITY_CONFIG[anomaly.rarity];
   const def = ANOMALY_BONUS_DEFS[anomaly.bonusType];
   const target = targetLabel(anomaly);
@@ -45,11 +64,14 @@ function AnomalyCard({ anomaly, onToggleLock }: { anomaly: Anomaly; onToggleLock
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, fontWeight: 700, letterSpacing: 2, color: cfg.color, textTransform: 'uppercase' }}>{cfg.label}</span>
-        <button onClick={onToggleLock}
-          title={anomaly.locked ? 'Déverrouiller' : 'Verrouiller (protège du prochain reroll)'}
-          style={{ background: anomaly.locked ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${anomaly.locked ? '#fbbf24' : 'var(--border)'}`, borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>
-          {anomaly.locked ? '🔒' : '🔓'}
-        </button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {onDevEdit && <DevEditButton onClick={onDevEdit} active={!!devActive} />}
+          <button onClick={onToggleLock}
+            title={anomaly.locked ? 'Déverrouiller' : 'Verrouiller (protège du prochain reroll)'}
+            style={{ background: anomaly.locked ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${anomaly.locked ? '#fbbf24' : 'var(--border)'}`, borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>
+            {anomaly.locked ? '🔒' : '🔓'}
+          </button>
+        </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: 22 }}>{def.icon}</span>
@@ -63,10 +85,82 @@ function AnomalyCard({ anomaly, onToggleLock }: { anomaly: Anomaly; onToggleLock
   );
 }
 
-function EmptySlot() {
+function EmptySlot({ onDevEdit, devActive }: { onDevEdit?: () => void; devActive?: boolean }) {
   return (
-    <div style={{ borderRadius: 12, padding: '16px', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 118, color: 'var(--text-muted)', fontFamily: 'var(--f-ui)', fontSize: 14 }}>
+    <div style={{ borderRadius: 12, padding: '16px', border: '1px dashed var(--border)', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', justifyContent: 'center', minHeight: 118, color: 'var(--text-muted)', fontFamily: 'var(--f-ui)', fontSize: 14 }}>
       Emplacement vide
+      {onDevEdit && <DevEditButton onClick={onDevEdit} active={!!devActive} />}
+    </div>
+  );
+}
+
+const devFieldStyle: React.CSSProperties = {
+  width: '100%', minHeight: 44, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-deep)',
+  border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'var(--f-ui)', fontSize: 14,
+};
+const devLabelStyle: React.CSSProperties = {
+  display: 'flex', flexDirection: 'column', gap: 4, fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)',
+};
+
+// [DEV] Éditeur local : choisit type, rareté, cible et valeur de l'anomalie
+// d'un emplacement (valeur bornée à la plage du barème, voir debugSetAnomaly).
+function DevAnomalyEditor({ slotIndex, current, onClose }: { slotIndex: number; current: Anomaly | null; onClose: () => void }) {
+  const debugSetAnomaly = useGameStore(s => s.debugSetAnomaly);
+  const [bonusType, setBonusType] = useState<AnomalyBonusType>(current?.bonusType ?? 'upgradeCostReduction');
+  const [rarity, setRarity] = useState<Rarity>(current?.rarity ?? 'T');
+  const [target, setTarget] = useState<string | null>(current?.target ?? null);
+  const [value, setValue] = useState('');
+  const [min, max] = ANOMALY_RARITY_TABLE[rarity].ranges[bonusType];
+  const targetOptions = bonusType === 'synergyBoost'
+    ? SYNERGIES_LIST.map(syn => ({ id: syn.universe, label: `${syn.icon} ${syn.universe}` }))
+    : bonusType === 'typeDamage'
+      ? AFFINITY_ORDER.map(a => ({ id: a as string, label: `${AFFINITY_CONFIG[a].icon} ${AFFINITY_CONFIG[a].label}` }))
+      : [];
+  const effectiveTarget = targetOptions.length === 0 ? null
+    : targetOptions.some(o => o.id === target) ? target : targetOptions[0].id;
+  const parsed = parseFloat(value);
+
+  const apply = () => {
+    debugSetAnomaly(slotIndex, { bonusType, rarity, target: effectiveTarget, value: Number.isFinite(parsed) ? parsed : max });
+    onClose();
+  };
+
+  return (
+    <div className="panel" style={{ padding: 16, marginTop: 12, borderColor: '#e879f9', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: '#e879f9', letterSpacing: 1 }}>
+        🛠️ [DEV] EMPLACEMENT {slotIndex + 1}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 10 }}>
+        <label style={devLabelStyle}>
+          Type
+          <select value={bonusType} onChange={e => setBonusType(e.target.value as AnomalyBonusType)} style={devFieldStyle}>
+            {ANOMALY_BONUS_TYPES.map(t => <option key={t} value={t}>{ANOMALY_BONUS_DEFS[t].icon} {ANOMALY_BONUS_DEFS[t].label}</option>)}
+          </select>
+        </label>
+        <label style={devLabelStyle}>
+          Rareté
+          <select value={rarity} onChange={e => setRarity(e.target.value as Rarity)} style={devFieldStyle}>
+            {ANOMALY_RARITY_ORDER_DESC.map(r => <option key={r} value={r}>{RARITY_CONFIG[r].label}</option>)}
+          </select>
+        </label>
+        {targetOptions.length > 0 && (
+          <label style={devLabelStyle}>
+            Cible
+            <select value={effectiveTarget ?? ''} onChange={e => setTarget(e.target.value)} style={devFieldStyle}>
+              {targetOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+          </label>
+        )}
+        <label style={devLabelStyle}>
+          Valeur % ({formatBonusRange(bonusType, [min, max])}, vide = max)
+          <input type="number" inputMode="decimal" step="any" min={min} max={max} value={value} placeholder={String(max)}
+            onChange={e => setValue(e.target.value)} style={devFieldStyle} />
+        </label>
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button onClick={apply} className="btn-primary" style={{ flex: '1 1 140px', minHeight: 44, fontSize: 14 }}>APPLIQUER</button>
+        <button onClick={onClose} className="btn-secondary" style={{ flex: '1 1 140px', minHeight: 44, fontSize: 14 }}>ANNULER</button>
+      </div>
     </div>
   );
 }
@@ -119,6 +213,9 @@ export function AnomaliePage() {
     getAnomalyRerollCost, rerollAnomalies, toggleAnomalyLock, getAnomalySlotCost, buyAnomalySlot,
   } = useGameStore(useShallow(s => ({ anomalyTokens: s.anomalyTokens, ownedAnomalies: s.ownedAnomalies, anomalySlots: s.anomalySlots, prestigeLevel: s.prestigeLevel, bossCrowns: s.bossCrowns, getAnomalyRerollCost: s.getAnomalyRerollCost, rerollAnomalies: s.rerollAnomalies, toggleAnomalyLock: s.toggleAnomalyLock, getAnomalySlotCost: s.getAnomalySlotCost, buyAnomalySlot: s.buyAnomalySlot })));
   const [showTable, setShowTable] = useState(false);
+  const isLocalDev = useIsLocalDev();
+  const [devSlot, setDevSlot] = useState<number | null>(null);
+  const toggleDevSlot = (i: number) => setDevSlot(cur => cur === i ? null : i);
 
   const lockedCount = ownedAnomalies.filter(a => a.locked).length;
   const rerollCost = getAnomalyRerollCost();
@@ -300,10 +397,14 @@ export function AnomaliePage() {
           </div>
           <div className="anomaly-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
             {slots.map((a, i) => a
-              ? <AnomalyCard key={a.id} anomaly={a} onToggleLock={() => toggleAnomalyLock(a.id)} />
-              : <EmptySlot key={`empty_${i}`} />
+              ? <AnomalyCard key={a.id} anomaly={a} onToggleLock={() => toggleAnomalyLock(a.id)}
+                  onDevEdit={isLocalDev ? () => toggleDevSlot(i) : undefined} devActive={devSlot === i} />
+              : <EmptySlot key={`empty_${i}`} onDevEdit={isLocalDev ? () => toggleDevSlot(i) : undefined} devActive={devSlot === i} />
             )}
           </div>
+          {isLocalDev && devSlot !== null && devSlot < anomalySlots && (
+            <DevAnomalyEditor key={devSlot} slotIndex={devSlot} current={ownedAnomalies[devSlot] ?? null} onClose={() => setDevSlot(null)} />
+          )}
         </div>
 
         {/* Extension d'emplacements (Boss Crowns, post-Prestige) */}

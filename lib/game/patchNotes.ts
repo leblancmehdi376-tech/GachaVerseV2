@@ -21,8 +21,16 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '04/10/2026',
+    date: '05/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "**Améliorations** : les prix affichés (Coffre d'Or, LVL UP, Évoluer) tiennent maintenant compte de tes anomalies **Réduc. Coût Amélioration**.",
+      "Les boutons s'activent dès que tu peux payer le **prix réduit**, et plus seulement le prix plein.",
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.2.4',
     changes: [
       "**Raid** : sur les téléphones peu hauts, la **barre de vie du boss** reste toujours visible, le boss rétrécit pour lui laisser la place.",
     ],

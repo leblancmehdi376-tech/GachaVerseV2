@@ -4,7 +4,7 @@
 // débloquée après le premier Prestige. Extrait de gameStore.ts (Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
 import {
-  rollAnomaly, getAnomalyRerollCost, getAnomalySlotCost, ANOMALY_MAX_SLOTS,
+  rollAnomaly, getAnomalyRerollCost, getAnomalySlotCost, ANOMALY_MAX_SLOTS, ANOMALY_RARITY_TABLE,
 } from '@/lib/game/anomalies';
 import { broadcastLocalState, requestUrgentSave } from '../gameStoreHelpers';
 import type { GameStore, AnomalyActions } from '../gameStore.types';
@@ -44,5 +44,20 @@ export const createAnomalySlice: StateCreator<GameStore, [], [], AnomalyActions>
     set({ bossCrowns: s.bossCrowns - cost, anomalySlots: s.anomalySlots + 1 });
     broadcastLocalState();
     requestUrgentSave('anomaly_slot');
+  },
+
+  debugSetAnomaly: (slotIndex, anomaly) => {
+    const s = get();
+    if (slotIndex < 0 || slotIndex >= s.anomalySlots) return;
+    // Valeur ramenée dans la plage du barème, sinon migrateAnomalyValue la
+    // retirerait au prochain chargement.
+    const [min, max] = ANOMALY_RARITY_TABLE[anomaly.rarity].ranges[anomaly.bonusType];
+    const value = Math.min(max, Math.max(min, anomaly.value));
+    const prev = s.ownedAnomalies[slotIndex];
+    const next = { ...anomaly, value, id: `anom_dev_${Date.now()}`, locked: prev?.locked ?? false };
+    const owned = [...s.ownedAnomalies];
+    if (slotIndex < owned.length) owned[slotIndex] = next; else owned.push(next);
+    set({ ownedAnomalies: owned });
+    broadcastLocalState();
   },
 });
