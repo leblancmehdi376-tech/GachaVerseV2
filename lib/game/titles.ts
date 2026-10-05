@@ -30,6 +30,9 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = {
   // ── GachaDle — toutes les quêtes accomplies (succès dle_pro) ─────────
   'Pro du GachaverseDLE': 10,
 
+  // ── Le Grand Périple du Multivers — dernier palier (voir PERIPLE_TITLE) ──
+  '🗺️ Grand Voyageur du Multivers': 15,
+
   // ── Raid (voir RAID_TITLES) ───────────────────────────────────────────
   'Shadow Monarch':  8,
   'Shadow Eminence': 10,

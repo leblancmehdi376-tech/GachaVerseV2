@@ -5,9 +5,9 @@ import { useEffect, useRef } from 'react';
 // en continu FPS, temps de frame, long tasks, long animation frames, heap JS,
 // nœuds DOM, animations actives, CLS et latence des interactions, puis envoie
 // un échantillon par seconde au moniteur local (npm run perf). Chargé
-// uniquement en dev ou avec NEXT_PUBLIC_PERF_MONITOR=1 (voir GameLayout).
-// Si le moniteur ne tourne pas, les envois échouent en silence et
-// s'espacent toutes les 5 s.
+// uniquement avec NEXT_PUBLIC_PERF_MONITOR=1 (voir GameLayout ; posé
+// automatiquement par npm run dev:perf / start:perf). Si le moniteur ne
+// répond pas, les envois échouent et s'espacent toutes les 5 s.
 
 const MONITOR_URL = process.env.NEXT_PUBLIC_PERF_MONITOR_URL || 'http://localhost:4321';
 const SAMPLE_MS = 1000;
@@ -75,7 +75,9 @@ export default function PerfReporter({ page }: { page: string }) {
         duration: Math.round(e.duration),
         blocking: Math.round(e.blockingDuration ?? 0),
         ts: Date.now(),
-        scripts: (e.scripts ?? [])
+        // Copie : le tableau fourni par le navigateur est figé (sort() sur
+        // place lève « Cannot assign to read only property »).
+        scripts: [...(e.scripts ?? [])]
           .sort((a, b) => b.duration - a.duration)
           .slice(0, 3)
           .map(s => ({

@@ -22,11 +22,11 @@ Ouvre [http://localhost:3000](http://localhost:3000).
 
 Tableau de bord en direct des performances graphiques du jeu (FPS, temps de frame, long tasks, mémoire JS, nœuds DOM, animations actives, veille), sur [http://localhost:4321](http://localhost:4321).
 
-- `npm run perf` — moniteur seul (à lancer à côté de `npm run dev`)
-- `npm run dev:perf` — moniteur + serveur de développement
+- `npm run dev:perf` — moniteur + serveur de développement (le plus simple)
+- `npm run perf` — moniteur seul, à lancer à côté d'un serveur de dev démarré avec `NEXT_PUBLIC_PERF_MONITOR=1`
 - `npm run start:perf` — moniteur + build de production instrumenté + `next start` (chiffres réalistes)
 
-Le capteur (`components/system/PerfReporter.tsx`) n'est chargé qu'en développement, ou dans un build fait avec `NEXT_PUBLIC_PERF_MONITOR=1` (ce que fait `start:perf`). Un `npm run build` normal ne le contient pas. Port modifiable avec `PERF_MONITOR_PORT` (côté jeu : `NEXT_PUBLIC_PERF_MONITOR_URL`). Code : `scripts/perf-monitor/`.
+Le capteur (`components/system/PerfReporter.tsx`) n'est chargé qu'avec `NEXT_PUBLIC_PERF_MONITOR=1`, que `dev:perf` et `start:perf` posent eux-mêmes : un simple `npm run dev` ne l'active plus (plus d'erreurs `ERR_CONNECTION_REFUSED` dans la console quand le moniteur ne tourne pas), et un `npm run build` normal ne le contient pas. Port modifiable avec `PERF_MONITOR_PORT` (côté jeu : `NEXT_PUBLIC_PERF_MONITOR_URL`). Code : `scripts/perf-monitor/`.
 
 ## Arborescence
 

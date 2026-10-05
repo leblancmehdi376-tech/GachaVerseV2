@@ -21,8 +21,50 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '04/10/2026',
+    date: '05/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    sections: [
+      {
+        icon: '🗺️',
+        title: 'Événement : Le Grand Périple du Multivers',
+        changes: [
+          "Nouvel **événement temporaire** jusqu'au **26/10** : un jeu de plateau dans le nouvel onglet **Événements** (rubrique Activités).",
+          "Le **GachaDle** rejoint cet onglet **Événements** : un seul endroit pour tous les événements.",
+          "Lance le **dé** pour faire avancer ton équipe, en petites **figurines chibi**, sur une **île flottante** de **24 cases**.",
+          "Plateau et mini-jeux optimisés pour rester **fluides**, même sur téléphone.",
+          "**1 dé** se recharge toutes les **2 h** (réserve de **6**), d'autres se gagnent en jouant.",
+        ],
+      },
+      {
+        icon: '🎮',
+        title: 'Un mini-jeu sur chaque case',
+        changes: [
+          "**Combat Rapide** : le **Duel Éclair**, frappe au bon moment, les coups critiques comptent double.",
+          "**Isekai** : le **Portail des Runes**, mémorise des séquences de plus en plus longues.",
+          "**Action** : le **Combo Rush**, enchaîne 12 directions contre la montre.",
+          "**Sci-Fi** : le **Piratage**, retrouve les paires de modules avant la coupure.",
+          "Médaille de **Bronze**, d'**Argent** ou d'**Or** : meilleure est la médaille, meilleure est la récompense.",
+          "**Chance** : les **Cartes du Destin**, choisis une carte parmi trois (dés, gemmes, couronnes, bond en avant…).",
+          "**Gacha** : la **Roue des Invocations**, jusqu'à **10 invocations** offertes.",
+          "**Case spéciale**, pile en face du Départ : la **Chasse aux Raretés**. Touche un maximum de personnages de la rareté demandée en **20 s** : plus ton score est haut, plus la récompense est grosse (jusqu'à **5 invocations** et **40 gemmes** en bonus).",
+        ],
+      },
+      {
+        icon: '🎁',
+        title: 'Récompenses',
+        changes: [
+          "**15 paliers** : jusqu'à **85 invocations**, **770 gemmes**, **4 coffres d'équipement**, **2 Jetons d'Anomalie**…",
+          "Dernier palier : le titre exclusif **🗺️ Grand Voyageur du Multivers** (**+15 %** d'or).",
+          "**6 missions quotidiennes** (dés, jetons, gemmes, invocations, **orbes du Néant**).",
+          "**13 quêtes d'événement** exigeantes à boucler sur toute sa durée (dont l'**Or aux 5 jeux d'adresse**), avec **20 000 gemmes** à la clé.",
+          "**Boutique** en 4 rayons : exclusivités, invocations, ressources et **offres du jour** renouvelées chaque jour.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '04/10/2026',
+    title: 'Maj v2.8.2.4',
     changes: [
       "**Raid** : sur les téléphones peu hauts, la **barre de vie du boss** reste toujours visible, le boss rétrécit pour lui laisser la place.",
     ],
