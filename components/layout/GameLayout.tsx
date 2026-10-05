@@ -69,12 +69,15 @@ const PAGE_LOADERS = {
   MinePage: () => import('@/components/pages/MinePage').then(m => ({ default: m.MinePage })),
   AnomaliePage: () => import('@/components/pages/AnomaliePage').then(m => ({ default: m.AnomaliePage })),
   MasteryPage: () => import('@/components/pages/MasteryPage').then(m => ({ default: m.MasteryPage })),
-  GachaDlePage: () => import('@/components/pages/GachaDlePage').then(m => ({ default: m.GachaDlePage })),
+  // Onglet « Événements » : Grand Périple + GachaDle (sous-onglets).
+  EventsPage: () => import('@/components/pages/EventsPage').then(m => ({ default: m.EventsPage })),
 };
-// Capteur du moniteur de performances local (npm run perf) : dev uniquement,
-// ou build de prod avec NEXT_PUBLIC_PERF_MONITOR=1. Hors de ces cas, la
-// condition est constante au build et le module sort du bundle.
-const PerfReporter = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_PERF_MONITOR === '1'
+// Capteur du moniteur de performances local : chargé seulement avec
+// NEXT_PUBLIC_PERF_MONITOR=1 (posé par npm run dev:perf / start:perf). Sans
+// moniteur lancé, chaque envoi raté afficherait ERR_CONNECTION_REFUSED dans
+// la console. Hors de ce cas, la condition est constante au build et le
+// module sort du bundle.
+const PerfReporter = process.env.NEXT_PUBLIC_PERF_MONITOR === '1'
   ? lazy(() => import('@/components/system/PerfReporter'))
   : null;
 const UpgradesPage = lazy(PAGE_LOADERS.UpgradesPage);
@@ -95,14 +98,14 @@ const PrestigePage = lazy(PAGE_LOADERS.PrestigePage);
 const MinePage = lazy(PAGE_LOADERS.MinePage);
 const AnomaliePage = lazy(PAGE_LOADERS.AnomaliePage);
 const MasteryPage = lazy(PAGE_LOADERS.MasteryPage);
-const GachaDlePage = lazy(PAGE_LOADERS.GachaDlePage);
+const EventsPage = lazy(PAGE_LOADERS.EventsPage);
 // Les patch notes (tout l'historique, plusieurs dizaines de Ko de texte) ne
 // sont utiles qu'à l'ouverture de la popup : chargées à part, hors du bundle
 // initial.
 const loadPatchNotes = () => import('@/components/layout/PatchNotesModal');
 const PatchNotesModal = lazy(() => loadPatchNotes().then(m => ({ default: m.PatchNotesModal })));
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'mine' | 'anomalie' | 'mastery' | 'gachadle';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'mine' | 'anomalie' | 'mastery' | 'events';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -131,7 +134,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'ACTIVITÉS', items: [
     { id:'raids',        label:'RAIDS',           accent:'#fbbf24'            },
     { id:'expeditions',  label:'EXPÉDITIONS',     accent:'#fb923c'            },
-    { id:'gachadle',     label:'GACHADLE',        accent:'#38bdf8'            },
+    { id:'events',       label:'ÉVÉNEMENTS',      accent:'#fb923c'            },
   ]},
   { title:'ÉCONOMIE', items: [
     { id:'gacha',        label:'GACHA',           accent:'var(--cyan-hi)'       },
@@ -578,7 +581,7 @@ export function GameLayout() {
                   {contentPage === 'mine'        && <MinePage />}
                   {contentPage === 'anomalie'    && <AnomaliePage />}
                   {contentPage === 'mastery'     && <MasteryPage />}
-                  {contentPage === 'gachadle'    && <GachaDlePage />}
+                  {contentPage === 'events'      && <EventsPage />}
                   {contentPage === 'profile'     && <ProfilePage />}
                 </PageTransition>
                 </Suspense>

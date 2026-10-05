@@ -36,6 +36,8 @@ import { migrateLegacyDrops } from '@/lib/game/expeditions';
 import { createMineSlice } from './slices/mineSlice';
 import { createAnomalySlice } from './slices/anomalySlice';
 import { createGachaDleSlice } from './slices/gachaDleSlice';
+import { createPeripleSlice } from './slices/peripleSlice';
+import { emptyPeripleDaily } from '@/lib/game/periple';
 import { migrateAnomalies } from '@/lib/game/anomalies';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
@@ -146,6 +148,21 @@ const makeInitial = () => ({
   dleBestGuesses: 0,
   dleRaritiesFound: [] as Rarity[],
   dleQuestsClaimed: [] as string[],
+  // ── Le Grand Périple du Multivers (jamais reset au Prestige) ──
+  // peripleEventId vide : ensurePeriple() initialise l'édition en cours.
+  peripleEventId: '',
+  peripleDice: 0,
+  peripleDiceAt: 0,
+  periplePos: 0,
+  peripleLaps: 0,
+  peripleTokens: 0,
+  periplePoints: 0,
+  peripleTiersClaimed: [] as number[],
+  peripleShopBought: {} as Record<string, number>,
+  peripleDaily: emptyPeripleDaily(),
+  periplePending: null as GameStore['periplePending'],
+  peripleStats: {} as GameStore['peripleStats'],
+  peripleQuestsClaimed: [] as string[],
   // ── Combat de boss de raid en cours (jamais persisté, voir GameStore) ──
   raidBossFight: null as GameStore['raidBossFight'],
   // ── Historique de solde (graphe admin, voir CurrencySnapshot) ──
@@ -235,6 +252,7 @@ export const useGameStore = create<GameStore>()(
       ...createMineSlice(set, get, api),
       ...createAnomalySlice(set, get, api),
       ...createGachaDleSlice(set, get, api),
+      ...createPeripleSlice(set, get, api),
 
       resetGame: () => {
         try { localStorage.clear(); } catch {}
@@ -424,6 +442,12 @@ export const useGameStore = create<GameStore>()(
         dleRecentWins:s.dleRecentWins ?? [],
         dleGamesWon:s.dleGamesWon ?? 0, dleBestGuesses:s.dleBestGuesses ?? 0,
         dleRaritiesFound:s.dleRaritiesFound ?? [], dleQuestsClaimed:s.dleQuestsClaimed ?? [],
+        // Le Grand Périple — jamais reset au Prestige.
+        peripleEventId:s.peripleEventId ?? '', peripleDice:s.peripleDice ?? 0, peripleDiceAt:s.peripleDiceAt ?? 0,
+        periplePos:s.periplePos ?? 0, peripleLaps:s.peripleLaps ?? 0, peripleTokens:s.peripleTokens ?? 0,
+        periplePoints:s.periplePoints ?? 0, peripleTiersClaimed:s.peripleTiersClaimed ?? [],
+        peripleShopBought:s.peripleShopBought ?? {}, peripleDaily:s.peripleDaily ?? emptyPeripleDaily(),
+        periplePending:s.periplePending ?? null, peripleStats:s.peripleStats ?? {}, peripleQuestsClaimed:s.peripleQuestsClaimed ?? [],
         // Compadex — jamais reset au Prestige (même traitement qu'historicalEditionPoints).
         compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
         // Historique de solde (graphe admin) — persisté localement comme le

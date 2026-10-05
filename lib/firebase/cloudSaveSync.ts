@@ -12,6 +12,7 @@ import { liquidateChampionInventory } from '@/lib/game/shop';
 import { coerceBonusLevels } from '@/lib/game/prestige';
 import type { Quest } from '@/store/gameStore.types';
 import { ACHIEVEMENT_BY_ID, type CharMastery } from '@/lib/game/achievements';
+import { emptyPeripleDaily, type PeripleStats } from '@/lib/game/periple';
 
 // Logique pure/orchestration de la synchro cloud (indépendante de React) —
 // voir hooks/useCloudSave.ts, qui ne garde que le wiring useEffect/useState
@@ -143,6 +144,21 @@ export function getSerializableState() {
     dleBestGuesses:   s.dleBestGuesses ?? 0,
     dleRaritiesFound: s.dleRaritiesFound ?? [],
     dleQuestsClaimed: s.dleQuestsClaimed ?? [],
+    // Le Grand Périple — synchronisé pour que dés, jetons et paliers déjà
+    // réclamés suivent le joueur d'un appareil à l'autre.
+    peripleEventId:      s.peripleEventId ?? '',
+    peripleDice:         s.peripleDice ?? 0,
+    peripleDiceAt:       s.peripleDiceAt ?? 0,
+    periplePos:          s.periplePos ?? 0,
+    peripleLaps:         s.peripleLaps ?? 0,
+    peripleTokens:       s.peripleTokens ?? 0,
+    periplePoints:       s.periplePoints ?? 0,
+    peripleTiersClaimed: s.peripleTiersClaimed ?? [],
+    peripleShopBought:   s.peripleShopBought ?? {},
+    peripleDaily:        s.peripleDaily ?? emptyPeripleDaily(),
+    periplePending:      s.periplePending ?? null,
+    peripleStats:        s.peripleStats ?? {},
+    peripleQuestsClaimed: s.peripleQuestsClaimed ?? [],
     // Historique de solde (graphe admin) — voir recordCurrencySnapshot,
     // appelé juste avant dans saveToFirebase : ce champ ne fait donc que
     // grossir un payload déjà écrit, sans lecture/écriture Firestore en plus.
@@ -178,6 +194,7 @@ export function mergeMonotonicState(
   compadexCharactersSeen: Record<string, true>; compadexEquipmentSeen: Record<string, true>;
   achievementStats: Record<string, number>; charMastery: Record<string, CharMastery>;
   dleQuestsClaimed: string[];
+  peripleQuestsClaimed: string[]; peripleTiersClaimed: number[]; peripleStats: PeripleStats;
 } {
   const current = useGameStore.getState();
   const achievementsClaimed: Record<string, boolean> = { ...current.achievementsClaimed };
@@ -241,9 +258,30 @@ export function mergeMonotonicState(
   const remoteDle = remote?.dleQuestsClaimed as string[] | undefined;
   if (Array.isArray(remoteDle)) for (const id of remoteDle) dleQuestsClaimed.add(id);
 
+  // Grand Périple (même édition seulement) : quêtes et paliers réclamés ne
+  // font que grandir — sinon un appareil en retard rendrait réclamable une
+  // quête déjà payée (jusqu'à 2 500 💎) ; compteurs fusionnés au max par clé.
+  const peripleQuestsClaimed = new Set<string>(current.peripleQuestsClaimed ?? []);
+  const peripleTiersClaimed = new Set<number>(current.peripleTiersClaimed ?? []);
+  const peripleStats: PeripleStats = { ...(current.peripleStats ?? {}) };
+  if (remote && remote.peripleEventId === current.peripleEventId) {
+    const rq = remote.peripleQuestsClaimed as string[] | undefined;
+    if (Array.isArray(rq)) for (const id of rq) peripleQuestsClaimed.add(id);
+    const rt = remote.peripleTiersClaimed as number[] | undefined;
+    if (Array.isArray(rt)) for (const i of rt) if (typeof i === 'number') peripleTiersClaimed.add(i);
+    const rs = remote.peripleStats as Record<string, unknown> | undefined;
+    if (rs) for (const [k, v] of Object.entries(rs)) {
+      const key = k as keyof PeripleStats;
+      if (typeof v === 'number' && Number.isFinite(v) && v > (peripleStats[key] ?? 0)) peripleStats[key] = v;
+    }
+  }
+
   return {
     achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen, achievementStats, charMastery,
     dleQuestsClaimed: Array.from(dleQuestsClaimed),
+    peripleQuestsClaimed: Array.from(peripleQuestsClaimed),
+    peripleTiersClaimed: Array.from(peripleTiersClaimed).sort((a, b) => a - b),
+    peripleStats,
   };
 }
 
@@ -292,6 +330,14 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   delete data.achievementStats;
   delete data.charMastery;
   delete data.dleQuestsClaimed;
+  // Grand Périple : même édition → fusion par mergeMonotonicState (ne fait que
+  // grandir) ; édition différente → appliqué tel quel (ensurePeriple remet à
+  // zéro ce qui ne correspond pas à l'édition en cours).
+  if (data.peripleEventId === useGameStore.getState().peripleEventId) {
+    delete data.peripleQuestsClaimed;
+    delete data.peripleTiersClaimed;
+    delete data.peripleStats;
+  }
 
   // Migration BigNum : une sauvegarde cloud écrite par une version antérieure
   // (ou par un client qui n'a pas encore rechargé ce code) stocke encore ces

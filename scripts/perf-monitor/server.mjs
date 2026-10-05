@@ -121,7 +121,7 @@ function runAlongside(script, env = {}) {
 }
 
 if (process.argv.includes('--with-dev')) {
-  runAlongside('dev').on('exit', code => process.exit(code ?? 0));
+  runAlongside('dev', { NEXT_PUBLIC_PERF_MONITOR: '1' }).on('exit', code => process.exit(code ?? 0));
 }
 
 // Build de production avec le capteur (NEXT_PUBLIC_PERF_MONITOR est figé

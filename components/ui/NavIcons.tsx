@@ -242,6 +242,29 @@ export function IconAnomaly({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconEvents({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Drapeau d'événement étoilé (onglet Événements) */}
+      <path d="M4 18V3" />
+      <path d="M4 3.5h11l-2.5 3.5L15 10.5H4" />
+      <path d="M9.5 5.2l.7 1.4 1.5.2-1.1 1 .3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1 1.5-.2z" fill={color} strokeWidth={0.6} />
+    </svg>
+  );
+}
+
+export function IconDice({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Dé (événement Grand Périple) */}
+      <rect x="3" y="3" width="14" height="14" rx="3.2" />
+      <circle cx="7" cy="7" r="0.9" fill={color} />
+      <circle cx="10" cy="10" r="0.9" fill={color} />
+      <circle cx="13" cy="13" r="0.9" fill={color} />
+    </svg>
+  );
+}
+
 // Map from nav id to icon component
 export function IconQuestion({ size = 18, color = 'currentColor' }: IconProps) {
   return (
@@ -271,6 +294,8 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   mine:         IconMine,
   anomalie:     IconAnomaly,
   gachadle:     IconQuestion,
+  periple:      IconDice,
+  events:       IconEvents,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,
   champions:    IconVoidPortal,

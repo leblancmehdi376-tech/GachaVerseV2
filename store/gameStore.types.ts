@@ -24,6 +24,9 @@ import { Affinity } from '@/lib/game/affinities';
 import { Anomaly } from '@/lib/game/anomalies';
 import { BigNum } from '@/lib/game/bignum';
 import type { GoldGainBreakdown } from './gameStoreHelpers';
+import type { PeripleDaily, PeripleStats } from '@/lib/game/periple';
+import type { PeripleLoot, PeriplePending, PeripleRollResult, PeripleChanceResult, PeripleWheelResult } from './slices/peripleSlice';
+import type { Medal } from '@/lib/game/periple';
 
 export interface Quest {
   id: string; label: string; icon: string;
@@ -365,6 +368,38 @@ export interface GachaDleActions {
 }
 export type GachaDleSlice = GachaDleState & GachaDleActions;
 
+// ─── Le Grand Périple du Multivers (événement plateau, jamais reset au Prestige) ─
+export interface PeripleState {
+  peripleEventId: string;               // édition de l'événement des champs ci-dessous
+  peripleDice: number;
+  peripleDiceAt: number;                // départ du minuteur de régénération des dés
+  periplePos: number;                   // case du pion (0 = Départ)
+  peripleLaps: number;
+  peripleTokens: number;                // monnaie de la boutique de l'événement
+  periplePoints: number;                // points des paliers de récompenses
+  peripleTiersClaimed: number[];        // index de PERIPLE_TIERS réclamés
+  peripleShopBought: Record<string, number>;
+  peripleDaily: PeripleDaily;           // compteurs, missions et achats du jour
+  periplePending: PeriplePending | null; // mini-jeu à jouer avant le prochain lancer
+  peripleStats: PeripleStats;            // compteurs cumulés de l'édition (quêtes)
+  peripleQuestsClaimed: string[];        // quêtes de l'événement réclamées
+}
+export interface PeripleActions {
+  ensurePeriple: () => void;
+  // Consomme un dé et déplace le pion ; laisse un mini-jeu en attente (sauf Départ).
+  rollPeriple: () => PeripleRollResult | null;
+  finishPeripleGame: (medal: Medal) => PeripleLoot | null;
+  // Chasse aux Raretés : récompense proportionnelle au score.
+  finishPeripleHunt: (score: number) => PeripleLoot | null;
+  playPeripleChance: (picked: number) => PeripleChanceResult | null;
+  spinPeripleWheel: () => PeripleWheelResult | null;
+  claimPeripleTier: (index: number) => PeripleLoot | null;
+  claimPeripleMission: (id: string) => PeripleLoot | null;
+  claimPeripleQuest: (id: string) => PeripleLoot | null;
+  buyPeripleItem: (id: string) => PeripleLoot | null;
+}
+export type PeripleSlice = PeripleState & PeripleActions;
+
 // ─── Prestige (New Game+) ───────────────────────────────────────────────────
 export interface PrestigeState {
   prestigeLevel: number;
@@ -513,6 +548,7 @@ export type GameStore = GameState
   & MineSlice
   & AnomalySlice
   & GachaDleSlice
+  & PeripleSlice
   & {
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;
