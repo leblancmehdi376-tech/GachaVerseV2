@@ -72,7 +72,7 @@ export function MinePage() {
               <span className="page-title" style={{ color:'var(--cyan-hi)' }}>⛏️ MINE DE GEMMES</span>
             </div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', maxWidth:460, lineHeight:1.6 }}>
-              Produit des gemmes en continu jusqu&apos;à son plafond de stockage, même hors-ligne (dans la limite de tes quotas AFK). Améliore le plafond et la vitesse avec des BossCrowns.
+              Produit des gemmes en continu jusqu&apos;à son plafond de stockage, même hors-ligne, à pleine vitesse. Améliore le plafond et la vitesse avec des BossCrowns.
             </div>
           </div>
           <div style={{ fontFamily:'var(--f-num)', fontSize:'16px', fontWeight:700, color:'var(--cyan-hi)', flexShrink:0 }}>👑 {bossCrowns}</div>

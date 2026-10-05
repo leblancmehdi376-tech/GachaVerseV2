@@ -24,6 +24,13 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '05/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Mine de gemmes** : elle produit à **100 %** pendant **toute ton absence**, sans limite de durée AFK, jusqu'à son stockage plein.",
+    ],
+  },
+  {
+    date: '05/10/2026',
+    title: 'Maj v2.8.2.5',
+    changes: [
       "**Améliorations** : les prix affichés (Coffre d'Or, LVL UP, Évoluer) tiennent maintenant compte de tes anomalies **Réduc. Coût Amélioration**.",
       "Les boutons s'activent dès que tu peux payer le **prix réduit**, et plus seulement le prix plein.",
     ],
