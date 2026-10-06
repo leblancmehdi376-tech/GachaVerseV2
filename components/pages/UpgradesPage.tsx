@@ -14,7 +14,8 @@ import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { CollectionFilters } from '@/components/ui/CollectionFilters';
 import { compareCharacters, matchesCharacterFilters } from '@/lib/game/collectionFilters';
-import { bnGte } from '@/lib/game/bignum';
+import { bnGte, bnMulScalar } from '@/lib/game/bignum';
+import { calcAnomalyBonuses } from '@/lib/game/anomalies';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
 import { VirtualGrid } from '@/components/ui/VirtualGrid';
 
@@ -67,11 +68,12 @@ function useIsClient() {
 // maxPalierReached, qui ne redescend jamais) — pas de plafond fixe, il
 // grandit avec la progression du joueur dans le run en cours.
 function GoldUpgradeCard() {
-  const { goldUpgradeLevel, upgradeGold, pixelCoins, getRunPeakPalier } = useGameStore(useShallow(s => ({
+  const { goldUpgradeLevel, upgradeGold, pixelCoins, getRunPeakPalier, costMult } = useGameStore(useShallow(s => ({
     goldUpgradeLevel: s.goldUpgradeLevel,
     upgradeGold: s.upgradeGold,
     pixelCoins: s.pixelCoins,
     getRunPeakPalier: s.getRunPeakPalier,
+    costMult: 1 - calcAnomalyBonuses(s.ownedAnomalies).upgradeCostReductionPct,
   })));
   const level      = goldUpgradeLevel ?? 0;
   const maxLevel   = getRunPeakPalier();
@@ -79,7 +81,8 @@ function GoldUpgradeCard() {
   // combat : le bonus grandit en ×1.2 par niveau, un % deviendrait illisible.
   const mult       = getGoldChestMultiplier(level);
   const locked     = level >= maxLevel;
-  const nextCost   = getGoldChestCost(level);
+  // Prix réel payé par upgradeGold : réduit par les anomalies « Réduc. Coût Amélioration ».
+  const nextCost   = bnMulScalar(getGoldChestCost(level), costMult);
   const nextMult   = getGoldChestMultiplier(level + 1);
   const canAfford  = !locked && bnGte(pixelCoins, nextCost);
 
@@ -121,13 +124,16 @@ function GoldUpgradeCard() {
 // re-rend plus que sa carte, et les gains de coins du combat ne re-rendent
 // une carte que quand son bouton passe de grisé à actif (ou l'inverse).
 const CharCard = memo(function CharCard({ templateId }: { templateId: string }) {
-  const { owned, canAffordLv, canAffordEvo, levelUpCharacter, levelUpCharacterN, evolveCharacter, inventory, focusExpedition, expeditionDropInventory: dropInventory } = useGameStore(useShallow(s => {
+  const { owned, costMult, canAffordLv, canAffordEvo, levelUpCharacter, levelUpCharacterN, evolveCharacter, inventory, focusExpedition, expeditionDropInventory: dropInventory } = useGameStore(useShallow(s => {
     const owned = s.collection[templateId];
     const tpl = owned ? getCharacterById(parseInstanceKey(templateId).templateId) : undefined;
+    // Mêmes coûts réduits que levelUpCharacterN / evolveCharacter dans le store.
+    const costMult = 1 - calcAnomalyBonuses(s.ownedAnomalies).upgradeCostReductionPct;
     return {
       owned,
-      canAffordLv: !!owned && bnGte(s.pixelCoins, levelUpCost(owned.level)),
-      canAffordEvo: !!owned && !!tpl && bnGte(s.pixelCoins, evoCost(tpl.rarity, owned.currentForm)),
+      costMult,
+      canAffordLv: !!owned && bnGte(s.pixelCoins, bnMulScalar(levelUpCost(owned.level), costMult)),
+      canAffordEvo: !!owned && !!tpl && bnGte(s.pixelCoins, bnMulScalar(evoCost(tpl.rarity, owned.currentForm), costMult)),
       levelUpCharacter: s.levelUpCharacter,
       levelUpCharacterN: s.levelUpCharacterN,
       evolveCharacter: s.evolveCharacter,
@@ -140,8 +146,8 @@ const CharCard = memo(function CharCard({ templateId }: { templateId: string }) 
   const tpl   = getCharacterById(pureId);
   if (!owned || !tpl) return null;
   const canEvo_  = canEvolve(tpl, owned, inventory, dropInventory);
-  const lvCost   = levelUpCost(owned.level);
-  const evoCostV = evoCost(tpl.rarity, owned.currentForm);
+  const lvCost   = bnMulScalar(levelUpCost(owned.level), costMult);
+  const evoCostV = bnMulScalar(evoCost(tpl.rarity, owned.currentForm), costMult);
   const dps      = calcCharDps(tpl, owned);
   const cfg      = RARITY_CONFIG[tpl.rarity];
   const nextForm = tpl.forms?.[owned.currentForm + 1];

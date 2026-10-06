@@ -522,6 +522,8 @@ export interface AnomalyActions {
   toggleAnomalyLock: (id: string) => void;
   getAnomalySlotCost: () => number | null;
   buyAnomalySlot: () => void;
+  // [DEV] Remplace l'anomalie de l'emplacement `slotIndex` (bouton local uniquement).
+  debugSetAnomaly: (slotIndex: number, anomaly: Omit<Anomaly, 'id' | 'locked'>) => void;
 }
 export type AnomalySlice = AnomalyState & AnomalyActions;
 

@@ -20,6 +20,8 @@ function restartIfFull(s: GameStore): Partial<GameStore> {
 }
 
 // Production de la mine depuis le dernier tick (null si rien ne bouge).
+// Même calcul en ligne et hors-ligne : la mine produit à 100 % pendant toute
+// l'absence (ni durée max ni rendement AFK), seul son stockage la plafonne.
 export function mineTickPatch(s: GameStore): Partial<GameStore> | null {
   if (!s.mineOwned) return null;
   const now = correctedNow();
@@ -77,21 +79,8 @@ export const createMineSlice: StateCreator<GameStore, [], [], MineActions> = (se
     if (patch) set(patch);
   },
 
-  // Rattrapage hors-ligne : même logique que checkOfflineGain (durée
-  // plafonnée par getOfflineCapHours, rendement réduit par
-  // getOfflineRewardScale) pour que la mine ne contourne pas les quotas AFK
-  // déjà en place sur le reste du revenu passif.
-  applyMineOfflineProduction: () => {
-    const s = get();
-    if (!s.mineOwned) return;
-    const now = correctedNow();
-    const rawSeconds = Math.max(0, Math.floor((now - s.mineLastTickAt) / 1000));
-    if (rawSeconds <= 0) return;
-    const capSeconds = s.getOfflineCapHours() * 3600;
-    const hours = Math.min(rawSeconds, capSeconds) / 3600;
-    const produced = s.getMineRatePerHour() * hours * s.getOfflineRewardScale();
-    set({ mineGems: Math.min(s.mineGems + produced, s.getMineCap()), mineLastTickAt: now });
-  },
+  // Rattrapage au retour (voir useOfflineGainCheck) : même calcul que le tick.
+  applyMineOfflineProduction: () => get().tickMine(),
 
   collectMineGems: () => {
     const amount = Math.floor(get().mineGems);
