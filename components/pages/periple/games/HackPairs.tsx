@@ -2,12 +2,12 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import type { Medal } from '@/lib/game/periple';
 
-// Piratage : 6 paires de modules à retrouver en 45 s.
-// Or = fini avec au moins 18 s restantes, Argent = fini, Bronze = 3 paires.
+// Piratage : 6 paires de modules à retrouver en 30 s.
+// Or = fini avec au moins 12 s restantes, Argent = fini, Bronze = 3 paires.
 // Le chrono s'écrit directement dans le DOM : la grille ne se re-rend
 // qu'au retournement d'une carte.
-const TIME_MS = 45_000;
-const GOLD_LEFT_MS = 18_000;
+const TIME_MS = 30_000;
+const GOLD_LEFT_MS = 12_000;
 
 const GLYPHS: { color: string; path: string }[] = [
   { color: '#22d3ee', path: 'M14 14h20v20H14z M18 8v6 M24 8v6 M30 8v6 M18 34v6 M24 34v6 M30 34v6 M8 18h6 M8 24h6 M8 30h6 M34 18h6 M34 24h6 M34 30h6' }, // puce

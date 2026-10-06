@@ -28,7 +28,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
         icon: '🗺️',
         title: 'Événement : Le Grand Périple du Multivers',
         changes: [
-          "Nouvel **événement temporaire** jusqu'au **26/10** : un jeu de plateau dans le nouvel onglet **Événements** (rubrique Activités).",
+          "Nouvel **événement temporaire** jusqu'au **01/11 à 2 h** : un jeu de plateau dans le nouvel onglet **Événements** (rubrique Activités).",
           "Le **GachaDle** rejoint cet onglet **Événements** : un seul endroit pour tous les événements.",
           "Lance le **dé** pour faire avancer ton équipe, en petites **figurines chibi**, sur une **île flottante** de **24 cases**.",
           "Plateau et mini-jeux optimisés pour rester **fluides**, même sur téléphone.",
@@ -42,7 +42,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "**Combat Rapide** : le **Duel Éclair**, frappe au bon moment, les coups critiques comptent double.",
           "**Isekai** : le **Portail des Runes**, mémorise des séquences de plus en plus longues.",
           "**Action** : le **Combo Rush**, enchaîne 12 directions contre la montre.",
-          "**Sci-Fi** : le **Piratage**, retrouve les paires de modules avant la coupure.",
+          "**Sci-Fi** : le **Piratage**, retrouve les **6 paires** de modules en **30 s** avant la coupure.",
           "Médaille de **Bronze**, d'**Argent** ou d'**Or** : meilleure est la médaille, meilleure est la récompense.",
           "**Chance** : les **Cartes du Destin**, choisis une carte parmi trois (dés, gemmes, couronnes, bond en avant…).",
           "**Gacha** : la **Roue des Invocations**, jusqu'à **10 invocations** offertes.",

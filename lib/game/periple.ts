@@ -18,7 +18,7 @@
 export const PERIPLE_EVENT = {
   id: 'periple-2026-10',
   name: 'Le Grand Périple du Multivers',
-  endsAt: Date.parse('2026-10-26T02:00:00+01:00'),
+  endsAt: Date.parse('2026-11-01T02:00:00+01:00'),
 };
 
 export function isPeripleActive(now = Date.now()): boolean {
