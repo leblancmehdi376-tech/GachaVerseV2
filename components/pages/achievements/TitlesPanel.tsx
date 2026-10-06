@@ -4,6 +4,7 @@ import { useGameStore } from '@/store/gameStore';
 import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { TITLE_GOLD_BONUS_PCT, RAID_TITLES, getTotalTitleGoldBonusPct } from '@/lib/game/titles';
 import { DAILY_REWARD_TITLES } from '@/lib/game/dailyRewards';
+import { PERIPLE_TITLE, PERIPLE_TIER_COUNT } from '@/lib/game/periple';
 
 function TitleCard({ icon, title, subtitle, unlocked, active, onSelect }: {
   icon: string; title: string; subtitle: string; unlocked: boolean; active: boolean; onSelect: () => void;
@@ -87,6 +88,14 @@ export function TitlesPanel() {
               unlocked={isUnlk} active={activeTitle === titleStr} onSelect={() => setActiveTitle(titleStr)} />
           );
         })}
+      </div>
+
+      {/* ── Titres d'événement — dernier palier du Grand Périple du Multivers ── */}
+      <div style={SECTION_LABEL}>TITRES D&apos;ÉVÉNEMENT</div>
+      <div style={GRID}>
+        <TitleCard icon="🗺️" title={PERIPLE_TITLE}
+          subtitle={`Le Grand Périple du Multivers — palier ${PERIPLE_TIER_COUNT}`}
+          unlocked={unlockedTitles.includes(PERIPLE_TITLE)} active={activeTitle === PERIPLE_TITLE} onSelect={() => setActiveTitle(PERIPLE_TITLE)} />
       </div>
 
       {/* ── Titres de raid — drop rare de boss de raid, pas de succès associé ── */}

@@ -23,6 +23,13 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '06/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Le titre **« 🗺️ Grand Voyageur du Multivers »** (palier **100** du Grand Périple) apparaît maintenant dans l'onglet **Titres**, dans une nouvelle rubrique **Titres d'événement**.",
+    ],
+  },
+  {
+    date: '06/10/2026',
+    title: 'Maj v2.8.2.7',
     sections: [
       {
         icon: '🗺️',
