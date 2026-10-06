@@ -53,8 +53,8 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
         icon: '🎁',
         title: 'Récompenses',
         changes: [
-          "**15 paliers** : jusqu'à **85 invocations**, **770 gemmes**, **4 coffres d'équipement**, **2 Jetons d'Anomalie**…",
-          "Dernier palier : le titre exclusif **🗺️ Grand Voyageur du Multivers** (**+15 %** d'or).",
+          "**100 paliers** jusqu'à **20 000 points**, avec un **gros palier** tous les 10 : jusqu'à **150 invocations**, **1 200 gemmes**, **7 coffres d'équipement**, **4 Jetons d'Anomalie**…",
+          "Le palier **100** donne le titre exclusif **🗺️ Grand Voyageur du Multivers** (**+15 %** d'or).",
           "**6 missions quotidiennes** (dés, jetons, gemmes, invocations, **orbes du Néant**).",
           "**13 quêtes d'événement** exigeantes à boucler sur toute sa durée (dont l'**Or aux 5 jeux d'adresse**), avec **20 000 gemmes** à la clé.",
           "**Boutique** en 4 rayons : exclusivités, invocations, ressources et **offres du jour** renouvelées chaque jour.",

@@ -1,5 +1,5 @@
 'use client';
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { useNow } from '@/hooks/useNow';
 import {
   PERIPLE_MAX_DICE, PERIPLE_TIERS, PERIPLE_MISSIONS, PERIPLE_MAX_POINTS, TILE_INFO,
@@ -86,6 +86,17 @@ export const TiersCard = memo(function TiersCard({ points, claimed, onClaim }: {
   const { next, pct, overallPct } = getPeripleTierProgress(points);
   const reached = PERIPLE_TIERS.filter(t => points >= t.points).length;
   const ready = PERIPLE_TIERS.filter((t, i) => points >= t.points && !claimed.includes(i)).length;
+  // 100 paliers dans une rangée qui défile : on amène le premier palier à
+  // réclamer (sinon le prochain à atteindre) au début de la zone visible.
+  const focus = PERIPLE_TIERS.findIndex((t, i) => !claimed.includes(i));
+  const rowRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = rowRef.current;
+    const el = focus >= 0 ? row?.children[focus] as HTMLElement | undefined : undefined;
+    if (!row || !el) return;
+    const left = el.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft - 8;
+    row.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  }, [focus]);
   return (
     <div className="pp-card">
       <div className="pp-card__head">
@@ -107,7 +118,7 @@ export const TiersCard = memo(function TiersCard({ points, claimed, onClaim }: {
           </div>
         </div>
       )}
-      <div className="pp-tiers">
+      <div className="pp-tiers" ref={rowRef}>
         {PERIPLE_TIERS.map((t, i) => {
           const done = claimed.includes(i);
           const isReady = !done && points >= t.points;

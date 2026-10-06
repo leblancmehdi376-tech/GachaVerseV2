@@ -241,24 +241,33 @@ export function PeriplePage() {
 
           {/* ── HUD ── */}
           <div className="pp-hud">
-            <DiceCard dice={dice} nextDieAt={ended ? null : nextDieAt} canRoll={canRoll} busy={busy} ended={ended}
-              pending={fresh && s.pending && !game ? s.pending.kind : null} onRoll={roll} onResume={resume} />
-            {isLocalDev && (
-              <button className="pp-btn pp-btn--green pp-btn--small" onClick={devAddDice} title="Visible uniquement en local">
-                [DEV] +10 dés
-              </button>
-            )}
-            {isLocalDev && (
-              <button className={`pp-btn pp-btn--small ${devTeleport ? 'pp-btn--purple' : 'pp-btn--blue'}`} disabled={busy}
-                onClick={() => setDevTeleport(v => !v)} title="Visible uniquement en local">
-                {devTeleport ? '[DEV] Touche une case… (annuler)' : '[DEV] Se téléporter'}
-              </button>
-            )}
+            {/* Dé + outils de dev groupés : une seule case de la grille sur tablette. */}
+            <div className="pp-hud__play">
+              <DiceCard dice={dice} nextDieAt={ended ? null : nextDieAt} canRoll={canRoll} busy={busy} ended={ended}
+                pending={fresh && s.pending && !game ? s.pending.kind : null} onRoll={roll} onResume={resume} />
+              {isLocalDev && (
+                <button className="pp-btn pp-btn--green pp-btn--small" onClick={devAddDice} title="Visible uniquement en local">
+                  [DEV] +10 dés
+                </button>
+              )}
+              {isLocalDev && (
+                <button className={`pp-btn pp-btn--small ${devTeleport ? 'pp-btn--purple' : 'pp-btn--blue'}`} disabled={busy}
+                  onClick={() => setDevTeleport(v => !v)} title="Visible uniquement en local">
+                  {devTeleport ? '[DEV] Touche une case… (annuler)' : '[DEV] Se téléporter'}
+                </button>
+              )}
+            </div>
             <TokensCard tokens={s.tokens} laps={s.laps} onShop={openShop} />
-            <TiersCard points={s.points} claimed={s.tiersClaimed} onClaim={claimTier} />
-            <MissionsCard daily={daily} onClaim={claimMission} />
-            <EventQuestsCard stats={stats} tiersClaimed={fresh ? s.tiersClaimed.length : 0} claimed={questsClaimed} onClaim={claimQuest} />
           </div>
+        </div>
+
+        {/* ── Paliers : toute la largeur pour la rangée des 100 paliers ── */}
+        <TiersCard points={s.points} claimed={s.tiersClaimed} onClaim={claimTier} />
+
+        {/* ── Missions du jour et quêtes de l'événement côte à côte ── */}
+        <div className="pp-bottom">
+          <MissionsCard daily={daily} onClaim={claimMission} />
+          <EventQuestsCard stats={stats} tiersClaimed={fresh ? s.tiersClaimed.length : 0} claimed={questsClaimed} onClaim={claimQuest} />
         </div>
       </div>
 

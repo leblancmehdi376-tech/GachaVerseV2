@@ -54,8 +54,8 @@ describe('récompenses', () => {
     expect(PERIPLE_QUESTS_TOTAL_GEMS).toBe(20_000);
     expect(new Set(PERIPLE_QUESTS.map(q => q.id)).size).toBe(PERIPLE_QUESTS.length);
     const tiersQuest = PERIPLE_QUESTS.find(q => q.stat === 'tiers')!;
-    expect(tiersQuest.target).toBe(PERIPLE_TIERS.length);
-    expect(getPeripleQuestProgress(tiersQuest, {}, 99)).toBe(tiersQuest.target);
+    expect(tiersQuest.target).toBeLessThanOrEqual(PERIPLE_TIERS.length);
+    expect(getPeripleQuestProgress(tiersQuest, {}, PERIPLE_TIERS.length)).toBe(tiersQuest.target);
     const allGold = PERIPLE_QUESTS.find(q => q.stat === 'goldAll')!;
     expect(getPeripleQuestProgress(allGold, { gold_combat: 4, gold_hunt: 1, gold: 9 }, 0)).toBe(2);
   });
@@ -90,6 +90,16 @@ describe('récompenses', () => {
     expect(getPeripleTierProgress(0)).toMatchObject({ next: 0, pct: 0 });
     expect(getPeripleTierProgress(PERIPLE_TIERS[0].points).next).toBe(1);
     expect(getPeripleTierProgress(999_999)).toMatchObject({ next: -1, pct: 100, overallPct: 100 });
+  });
+
+  it('100 paliers de plus en plus espacés, jusqu\'à 20 000 pts', () => {
+    expect(PERIPLE_TIERS).toHaveLength(100);
+    expect(PERIPLE_TIERS.at(-1)!.points).toBe(20_000);
+    for (let i = 1; i < PERIPLE_TIERS.length; i++) {
+      expect(PERIPLE_TIERS[i].points).toBeGreaterThan(PERIPLE_TIERS[i - 1].points);
+      expect(PERIPLE_TIERS[i].reward).toBeDefined();
+    }
+    expect(PERIPLE_TIERS.filter(t => t.big)).toHaveLength(10);
   });
 
   it('le titre exclusif a un bonus d\'or', () => {

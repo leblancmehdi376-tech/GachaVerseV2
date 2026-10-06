@@ -7,10 +7,10 @@
 // Repères d'équilibrage (voir quêtes quotidiennes, ~100-150 💎/jour, et
 // GACHA_COSTS, 10 💎 l'invocation) : un joueur actif lance ~15 dés par jour
 // (régénération + missions), soit ~300 lancers sur 3 semaines. Un lancer
-// rapporte en moyenne ~45 points et ~30 jetons : le joueur actif termine
-// les 15 paliers vers la fin de la 2e semaine, un joueur occasionnel
-// (~8 dés/jour) atteint les paliers 11-12. La boutique coûte bien plus que
-// ce qu'on peut gagner : il faut choisir.
+// rapporte en moyenne ~45 points et ~30 jetons : sur les 100 paliers, le
+// joueur actif atteint ~le palier 73, un joueur occasionnel (~8 dés/jour)
+// ~le palier 40 (voir PERIPLE_TIERS). La boutique coûte bien plus que ce
+// qu'on peut gagner : il faut choisir.
 
 // ─── Fenêtre de l'événement ──────────────────────────────────────────────────
 // Changer `id` à chaque nouvelle édition : la progression de l'édition
@@ -275,23 +275,38 @@ export function spinGachaWheel(rand: () => number = Math.random): number {
 // ─── Paliers de récompenses ──────────────────────────────────────────────────
 export interface PeripleTier { points: number; reward: PeripleReward; big?: boolean }
 
-export const PERIPLE_TIERS: PeripleTier[] = [
-  { points: 200,   reward: { kind: 'dice',      amount: 5   } },
-  { points: 500,   reward: { kind: 'gems',      amount: 120 } },
-  { points: 900,   reward: { kind: 'pulls',     amount: 15  }, big: true },
-  { points: 1300,  reward: { kind: 'crowns',    amount: 10  } },
-  { points: 1800,  reward: { kind: 'dice',      amount: 8   } },
-  { points: 2400,  reward: { kind: 'chestRare', amount: 2   } },
-  { points: 3100,  reward: { kind: 'gems',      amount: 250 } },
-  { points: 3900,  reward: { kind: 'orbs',      amount: 600 } },
-  { points: 4800,  reward: { kind: 'pulls',     amount: 20  }, big: true },
-  { points: 5800,  reward: { kind: 'boost',     amount: 120 } },
-  { points: 6900,  reward: { kind: 'gems',      amount: 400 } },
-  { points: 8100,  reward: { kind: 'chestEpic', amount: 2   } },
-  { points: 9400,  reward: { kind: 'anomaly',   amount: 2   }, big: true },
-  { points: 10800, reward: { kind: 'pulls',     amount: 50  }, big: true },
-  { points: 12000, reward: { kind: 'title',     amount: 1   }, big: true },
+// 100 paliers de 60 à 20 000 pts, de plus en plus espacés (courbe n^1.25) :
+// un joueur actif (~13 500 pts) atteint ~le palier 73, un très assidu (~16 000)
+// ~le palier 83, le titre du palier 100 est réservé aux plus acharnés.
+// Petits paliers en cycle, palier moyen tous les 10 (5, 15…), gros palier
+// tous les 10 (10, 20…). Totaux : 1 200 💎, 150 invocations, 20 dés,
+// 600 jetons, 1 000 orbes, 16 couronnes, 4 coffres Rares, 3 Épiques,
+// 4 jetons d'Anomalie, 120 min de boost et le titre.
+const TIER_SMALL_CYCLE: PeripleReward[] = [
+  { kind: 'dice', amount: 1 }, { kind: 'gems', amount: 30 }, { kind: 'tokens', amount: 60 }, { kind: 'pulls', amount: 3 },
+  { kind: 'dice', amount: 1 }, { kind: 'gems', amount: 30 }, { kind: 'orbs', amount: 100 }, { kind: 'pulls', amount: 3 },
 ];
+const TIER_MEDIUM_CYCLE: PeripleReward[] = [
+  { kind: 'crowns', amount: 8 }, { kind: 'chestRare', amount: 2 }, { kind: 'gems', amount: 100 },
+  { kind: 'boost', amount: 60 }, { kind: 'pulls', amount: 5 },
+];
+const TIER_BIG: Record<number, PeripleReward> = {
+  10: { kind: 'pulls', amount: 15 },  20: { kind: 'anomaly', amount: 1 },   30: { kind: 'chestEpic', amount: 1 },
+  40: { kind: 'pulls', amount: 25 },  50: { kind: 'anomaly', amount: 1 },   60: { kind: 'gems', amount: 400 },
+  70: { kind: 'chestEpic', amount: 2 }, 80: { kind: 'pulls', amount: 40 }, 90: { kind: 'anomaly', amount: 2 },
+  100: { kind: 'title', amount: 1 },
+};
+export const PERIPLE_TIER_COUNT = 100;
+const PERIPLE_TIER_MAX_POINTS = 20_000;
+
+export const PERIPLE_TIERS: PeripleTier[] = Array.from({ length: PERIPLE_TIER_COUNT }, (_, i) => {
+  const n = i + 1;
+  const points = Math.round(PERIPLE_TIER_MAX_POINTS * Math.pow(n / PERIPLE_TIER_COUNT, 1.25) / 10) * 10;
+  if (n % 10 === 0) return { points, reward: TIER_BIG[n], big: true };
+  if (n % 10 === 5) return { points, reward: TIER_MEDIUM_CYCLE[(n - 5) / 10 % TIER_MEDIUM_CYCLE.length] };
+  const small = n - Math.floor(n / 5);   // rang parmi les petits paliers (1-based)
+  return { points, reward: TIER_SMALL_CYCLE[(small - 1) % TIER_SMALL_CYCLE.length] };
+});
 
 export const PERIPLE_MAX_POINTS = PERIPLE_TIERS[PERIPLE_TIERS.length - 1].points;
 
@@ -374,7 +389,7 @@ export const PERIPLE_QUESTS: PeripleQuest[] = [
   { id: 'q_hunt_22',      label: 'Atteindre 22 à la Chasse aux Raretés',            stat: 'huntBest', target: 22,     gems: 1500 },
   { id: 'q_missions_110', label: 'Accomplir 110 missions du jour',                  stat: 'missions', target: 110,    gems: 2000 },
   { id: 'q_spent_12000',  label: 'Dépenser 12 000 jetons en boutique',              stat: 'spent',    target: 12000,  gems: 1500 },
-  { id: 'q_tiers_15',     label: 'Réclamer les 15 paliers',                         stat: 'tiers',    target: 15,     gems: 2500 },
+  { id: 'q_tiers_75',     label: 'Réclamer 75 paliers',                             stat: 'tiers',    target: 75,     gems: 2500 },
 ];
 
 export const PERIPLE_QUESTS_TOTAL_GEMS = PERIPLE_QUESTS.reduce((s, q) => s + q.gems, 0);
