@@ -24,6 +24,14 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '07/10/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Mémoire des Pierres** : les cartes obtenues **avant la refonte des éditions** (1er octobre) retrouvent leur mémoire au prochain chargement.",
+      "Ton ancien **rang ★** maximum est converti en jauge d'édition (1 rang = 1 copie de son édition), toujours plafonnée par ton niveau de Mémoire des Pierres.",
+    ],
+  },
+  {
+    date: '07/10/2026',
+    title: 'Maj v2.8.2.9',
+    changes: [
       "Nouveau **Comparateur de cartes** ⚖️ : bouton **COMPARER** en haut à droite (icône balance sur mobile).",
       "Cherche **deux persos** par nom ou univers (filtre **Mes cartes** pour ta collection), choisis leur **édition** et leur **forme d'évolution**, entre un **niveau** puis clique sur **COMPARER**.",
       "Chaque perso compte avec son **propre DPS de base** : deux Légendaires ne se valent pas forcément (ex. **Mario 53** contre **Lily Lovebraids 47**).",

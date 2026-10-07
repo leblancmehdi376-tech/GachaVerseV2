@@ -134,4 +134,24 @@ describe('migrateEditionSave', () => {
     expect(Object.keys(data.collection as object)).toEqual(['a']);
     expect(data.equippedTeam).toEqual(['a']);
   });
+
+  it("migrateEditionFields convertit l'ancien historique de rangs en mémoire de jauge (Mémoire des Pierres)", () => {
+    const data: Record<string, unknown> = {
+      historicalMaxRank: { minato: 5, 'minato::gold': 3, naruto: 7, sasuke: 2 },
+      bankedRanks: { 'naruto::diamond': 7 },
+      historicalEditionPoints: { sasuke: 20 },
+    };
+    migrateEditionFields(data);
+    expect(data.historicalEditionPoints).toEqual({
+      minato: 5 * 1 + 3 * 4,                   // 17
+      naruto: Math.min(EDITION_MAX_POINTS, 7 + 7 * 16), // 119
+      sasuke: 20,                               // pic plus récent conservé
+    });
+    expect(data.historicalMaxRank).toBeUndefined();
+    expect(data.bankedRanks).toBeUndefined();
+    // Idempotente (le doc cloud garde les champs legacy).
+    data.historicalMaxRank = { minato: 5, 'minato::gold': 3 };
+    migrateEditionFields(data);
+    expect((data.historicalEditionPoints as Record<string, number>).minato).toBe(17);
+  });
 });

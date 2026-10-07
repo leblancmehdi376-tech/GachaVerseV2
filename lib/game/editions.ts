@@ -196,11 +196,50 @@ export function migrateEditionSave<T extends LegacyOwned>(input: EditionMigratio
 }
 
 /**
+ * Mémoire des Pierres : convertit l'ancien historique "Mémoire des Rangs"
+ * (historicalMaxRank + l'encore plus ancien bankedRanks, rang ★ 1-7 par clé
+ * "id::édition") en jauge d'édition (historicalEditionPoints), sinon les
+ * cartes possédées avant le rework des éditions perdent leur mémoire. Même
+ * conversion que migrateEditionSave (1 rang = 1 copie de cette édition),
+ * Math.max pour ne jamais écraser un pic plus récent. Idempotente : les
+ * champs legacy restent dans le doc Firestore (setDoc en mergeFields).
+ */
+export function migrateLegacyEditionHistory(data: Record<string, unknown>): void {
+  const legacyMaps = [data.historicalMaxRank, data.bankedRanks]
+    .filter((m): m is Record<string, number> => !!m && typeof m === 'object');
+  delete data.historicalMaxRank;
+  delete data.bankedRanks;
+  if (legacyMaps.length === 0) return;
+
+  // Pic par clé d'instance (les deux anciennes banques peuvent se recouper).
+  const peakByKey: Record<string, number> = {};
+  for (const map of legacyMaps) {
+    for (const [key, rank] of Object.entries(map)) {
+      if (typeof rank === 'number' && Number.isFinite(rank) && rank > 0) peakByKey[key] = Math.max(peakByKey[key] ?? 0, rank);
+    }
+  }
+  const pointsById: Record<string, number> = {};
+  for (const [key, rank] of Object.entries(peakByKey)) {
+    const { templateId, edition } = parseInstanceKey(key);
+    pointsById[templateId] = (pointsById[templateId] ?? 0) + Math.floor(rank) * EDITION_CONFIG[edition].points;
+  }
+
+  const current = (data.historicalEditionPoints && typeof data.historicalEditionPoints === 'object')
+    ? data.historicalEditionPoints as Record<string, number> : {};
+  const merged = { ...current };
+  for (const [templateId, points] of Object.entries(pointsById)) {
+    merged[templateId] = Math.max(merged[templateId] ?? 0, Math.min(EDITION_MAX_POINTS, points));
+  }
+  data.historicalEditionPoints = merged;
+}
+
+/**
  * Applique migrateEditionSave sur un état brut de sauvegarde (réhydratation
  * localStorage dans gameStore.ts::merge, chargement cloud dans
  * cloudSaveSync.ts::applyRemoteState). Ne touche à rien sans `collection`.
  */
 export function migrateEditionFields(data: Record<string, unknown>): void {
+  migrateLegacyEditionHistory(data);
   if (!data.collection || typeof data.collection !== 'object') return;
   const migrated = migrateEditionSave({
     collection: data.collection as Record<string, LegacyOwned>,
