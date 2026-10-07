@@ -3,6 +3,7 @@ import { useGameStore } from '@/store/gameStore';
 import { GACHA_COSTS } from '@/lib/game/gacha';
 import { getVoidOrbsForCharacter } from '@/lib/game/shop';
 import type { Anomaly } from '@/lib/game/anomalies';
+import { RAID_BOSSES } from '@/lib/game/raidBoss';
 
 function anomaly(overrides: Partial<Anomaly>): Anomaly {
   return { id: `a_${Math.random()}`, rarity: 'C', bonusType: 'gachaCostReduction', value: 0.1, target: null, locked: false, ...overrides };
@@ -147,5 +148,26 @@ describe('gachaSlice — addToCollection (une carte par perso, jauge d\'édition
     useGameStore.setState({ historicalEditionPoints: { minato: 40 }, prestigeRankRecoveryLevel: 0 });
     useGameStore.getState().addToCollection('minato');
     expect(useGameStore.getState().collection.minato.editionPoints).toBe(1);
+  });
+
+  it('Mémoire des Pierres : appliquée aussi aux achats de la boutique Orbe du Néant', () => {
+    rollNormal();
+    useGameStore.setState({
+      historicalEditionPoints: { minato: 40 }, prestigeRankRecoveryLevel: 3, voidOrbs: 1_000_000_000,
+      dailyShop: { dayKey: 'test', characterIds: ['minato'], purchased: [], rerollCount: 0 },
+    });
+    useGameStore.getState().buyShopCharacter(0);
+    expect(useGameStore.getState().collection.minato.editionPoints).toBe(8 + 1);
+  });
+
+  it('Mémoire des Pierres : appliquée aussi aux achats de la boutique de Raid', () => {
+    rollNormal();
+    const boss = RAID_BOSSES[0];
+    useGameStore.setState({
+      historicalEditionPoints: { [boss.characterId]: 40 }, prestigeRankRecoveryLevel: 3,
+      inventory: { [boss.coinItemId]: 1_000_000_000 },
+    });
+    expect(useGameStore.getState().buyRaidCharacter(boss.id)).toBe(true);
+    expect(useGameStore.getState().collection[boss.characterId].editionPoints).toBe(8 + 1);
   });
 });
