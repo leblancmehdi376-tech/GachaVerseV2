@@ -265,6 +265,17 @@ export function IconDice({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconScales({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Balance (comparateur de cartes) */}
+      <path d="M10 3v14M6 17h8M4 6h12" />
+      <path d="M4 6l-2.5 5.5a2.5 2.5 0 0 0 5 0z" />
+      <path d="M16 6l-2.5 5.5a2.5 2.5 0 0 0 5 0z" />
+    </svg>
+  );
+}
+
 // Map from nav id to icon component
 export function IconQuestion({ size = 18, color = 'currentColor' }: IconProps) {
   return (
@@ -302,4 +313,5 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   profile:      IconProfile,
   settings:     IconGear,
   dailyReward:  IconCalendar,
+  compare:      IconScales,
 };

@@ -21,8 +21,19 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '06/10/2026',
+    date: '07/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Nouveau **Comparateur de cartes** ⚖️ : bouton **COMPARER** en haut à droite (icône balance sur mobile).",
+      "Cherche **deux persos** par nom ou univers (filtre **Mes cartes** pour ta collection), choisis leur **édition** et leur **forme d'évolution**, entre un **niveau** puis clique sur **COMPARER**.",
+      "Chaque perso compte avec son **propre DPS de base** : deux Légendaires ne se valent pas forcément (ex. **Mario 53** contre **Lily Lovebraids 47**).",
+      "Une carte que tu possèdes est pré-remplie avec **son édition et sa forme actuelles**.",
+      "Le résultat te dit laquelle est la plus forte, **de combien**, et **à partir de quel niveau** l'autre passe devant.",
+    ],
+  },
+  {
+    date: '06/10/2026',
+    title: 'Maj v2.8.2.8',
     changes: [
       "Le titre **« 🗺️ Grand Voyageur du Multivers »** (palier **100** du Grand Périple) apparaît maintenant dans l'onglet **Titres**, dans une nouvelle rubrique **Titres d'événement**.",
     ],

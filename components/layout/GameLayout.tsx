@@ -104,6 +104,7 @@ const EventsPage = lazy(PAGE_LOADERS.EventsPage);
 // initial.
 const loadPatchNotes = () => import('@/components/layout/PatchNotesModal');
 const PatchNotesModal = lazy(() => loadPatchNotes().then(m => ({ default: m.PatchNotesModal })));
+const CardCompareModal = lazy(() => import('@/components/game/CardCompareModal').then(m => ({ default: m.CardCompareModal })));
 
 type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'mine' | 'anomalie' | 'mastery' | 'events';
 
@@ -173,6 +174,7 @@ export function GameLayout() {
   const [showAuth,      setShowAuth]      = useState(false);
   const [showDailyRewards, setShowDailyRewards] = useState(false);
   const [showPatchNotes, setShowPatchNotes] = useState(false);
+  const [showCompare,   setShowCompare]   = useState(false);
   // Titre connu d'emblée (la dernière entrée porte toujours la version
   // courante, voir AGENTS.md) ; la date arrive avec le chunk des patch notes,
   // chargé juste après le premier rendu pour que la popup s'ouvre sans délai.
@@ -416,6 +418,14 @@ export function GameLayout() {
           </button>
         )}
 
+        {/* Comparateur (mobile) — icône seule */}
+        {isMobile && (
+          <button onClick={() => setShowCompare(true)} aria-label="Comparateur de cartes"
+            style={{ flexShrink:0, width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.04)', border:'1px solid var(--border)', borderRadius:'8px', cursor:'pointer', color:'var(--text-dim)' }}>
+            <NAV_ICONS.compare size={16} color="currentColor" />
+          </button>
+        )}
+
         {/* Breadcrumb page — masqué en mode compact pour laisser la place aux icônes */}
         {!isMobile && !isCompactHeader && <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 14px', background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'8px' }}>
           {(() => { const Icon = NAV_ICONS[currentNav.id]; return Icon ? <Icon size={14} color={currentNav.accent ?? 'var(--text-sub)'} /> : null; })()}
@@ -433,6 +443,13 @@ export function GameLayout() {
             {!dailyRewardClaimedToday && (
               <div style={{ position:'absolute', top:'2px', right:'2px', width:10, height:10, background:'#ef4444', borderRadius:'50%', border:'1px solid var(--bg-dark)' }} />
             )}
+          </button>
+          <button onClick={() => setShowCompare(true)} title="Comparer deux cartes"
+            style={{ background:'none', border:'1px solid transparent', borderRadius:'8px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px', padding: isCompactHeader?'6px 8px':'5px 10px', color:'var(--text-dim)', transition:'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='var(--text-sub)'; (e.currentTarget as HTMLElement).style.borderColor='var(--border)'; (e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='var(--text-dim)'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; (e.currentTarget as HTMLElement).style.background='none'; }}>
+            <NAV_ICONS.compare size={18} color="currentColor" />
+            {!isCompactHeader && <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', fontWeight:600, letterSpacing:'0.5px' }}>COMPARER</span>}
           </button>
           {([
             { id:'leaderboard', label:'CLASSEMENT' },
@@ -594,6 +611,7 @@ export function GameLayout() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showDailyRewards && <DailyRewardsModal onClose={() => setShowDailyRewards(false)} />}
       {showPatchNotes && <Suspense fallback={null}><PatchNotesModal onClose={() => setShowPatchNotes(false)} /></Suspense>}
+      {showCompare && <Suspense fallback={null}><CardCompareModal onClose={() => setShowCompare(false)} /></Suspense>}
       {offlineGain && <WelcomeBackModal gain={offlineGain} onClose={claimOfflineGain} />}
       {sleepRecap && !sleepFull && <SleepRecapModal recap={sleepRecap} onClose={() => useSleepStore.getState().setRecap(null)} />}
       <UltAnimation />
