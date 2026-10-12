@@ -17,6 +17,7 @@ import { PalierTravelModal } from '@/components/game/battle-zone/PalierTravelMod
 import { EnemyHud } from '@/components/game/battle-zone/EnemyHud';
 import { TeamBar } from '@/components/game/battle-zone/TeamBar';
 import { useLowFx } from '@/hooks/useLowFx';
+import { useSpoilerStore, getSafeEnemyDisplay } from '@/store/spoilerStore';
 
 interface Dmg { id: number; x: number; y: number; val: BigNum; }
 
@@ -68,6 +69,8 @@ export function BattleZone() {
   const ultActiveUlts = useGameStore(s => s.ultActiveUlts);
   const dpsUltMult  = ultActiveUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
   const enemyAffinity = getAffinityForId(currentEnemy.name);
+  useSpoilerStore(s => s.protectedUniverses); // re-rendu quand l'anti-spoil change
+  const shownEnemy = getSafeEnemyDisplay(currentEnemy);
   const cfg = getPalierConfig(palier);
   const isFarming = palier < runPeakPalier; // voyage sur un palier déjà validé CETTE run
   const hp  = bnDivRatio(currentEnemy.currentHp, currentEnemy.maxHp) * 100;
@@ -100,6 +103,7 @@ export function BattleZone() {
         bossActive={bossActive}
         bossTimeLeft={bossTimeLeft}
         bossWarn={bossWarn}
+        shownName={shownEnemy.name}
         enemyAffinity={enemyAffinity}
         eventDpsMult={eventDpsMult}
         hp={hp}
@@ -114,7 +118,7 @@ export function BattleZone() {
 
       {/* ENNEMI centré */}
       <div onMouseDown={e => e.preventDefault()} style={{ flex:1, position:'relative', zIndex:2, cursor:'default', display:'flex', alignItems:'center', justifyContent:'center', userSelect:'none', WebkitUserSelect:'none' }}>
-        <EnemySprite spritePath={currentEnemy.spritePath} name={currentEnemy.name} isBoss={!!currentEnemy.isBoss} accentColor={cfg.accentColor} />
+        <EnemySprite spritePath={shownEnemy.spritePath} name={shownEnemy.name} isBoss={!!currentEnemy.isBoss} accentColor={cfg.accentColor} />
         <DamageNumbers dps={dps} enemyAlive={!bnIsZero(currentEnemy.currentHp)} />
       </div>
 

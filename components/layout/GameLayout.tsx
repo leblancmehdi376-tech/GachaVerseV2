@@ -21,6 +21,7 @@ import { formatSyncStatus } from '@/lib/firebase/cloudSaveSync';
 import { useDpsTick } from '@/hooks/useDpsTick';
 import { useAutoSleep } from '@/hooks/useAutoSleep';
 import { useSleepStore } from '@/store/sleepStore';
+import { getSafeEnemyDisplay } from '@/store/spoilerStore';
 import { SleepOverlay } from '@/components/system/SleepOverlay';
 import { SleepRecapModal } from '@/components/game/SleepRecapModal';
 import { useGameHydration } from '@/hooks/useGameHydration';
@@ -308,7 +309,8 @@ export function GameLayout() {
     // affichés à la sortie du splash : on les télécharge pendant l'animation
     // plutôt qu'après.
     preload(getPalierBgCandidates(useGameStore.getState().palier)[0], { as: 'image', fetchPriority: 'high' });
-    const enemySprite = useGameStore.getState().currentEnemy?.spritePath;
+    const enemy = useGameStore.getState().currentEnemy;
+    const enemySprite = enemy ? getSafeEnemyDisplay(enemy).spritePath : undefined;
     if (enemySprite) preload(getSpriteCandidates(enemySprite, ENEMY_SPRITES_ASSET_VERSION)[0], { as: 'image', fetchPriority: 'high' });
     return <SplashScreen onComplete={() => setSplashDone(true)} />;
   }

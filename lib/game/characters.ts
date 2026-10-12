@@ -386,7 +386,10 @@ export const BANNER_VOL2_CHARACTERS: CharacterTemplate[] = [
     f('giyu_tomioka_evo2', 'Giyu Tomioka — Onzième Mouvement', 'giyu_tomioka'),
   ]),
   c('pride',                     'Pride',                           'CO',  79, 'Fullmetal Alchemist Brotherhood'),
-  c('hades_va',                  'Hadès',                           'CO',  82, 'Valkyrie Apocalypse'),
+  ce('hades_va', 'Hadès', 'CO', 82, 'Valkyrie Apocalypse', [
+    f('hades_va_base', 'Hadès', 'hades_va'),
+    f('hades_va_evo1', 'Hadès — Ichor Desmos', 'hades_va'),
+  ]),
   ce('puppet', 'Puppet', 'CO', 83, "Five Nights At Freddy's", [
     f('puppet_base', 'Puppet', 'puppet'),
     f('puppet_evo1', 'Puppet — Marionnette Vengeresse', 'puppet'),
@@ -1017,7 +1020,10 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('yoriichi_base',   'Yoriichi',             'yoriichi'),
     f('yoriichi_sun',    'Danse du Soleil',      'yoriichi'),
   ]),
-  c('brunhilde',   'Brunhilde',                  'P', 89, 'Valkyrie Apocalypse'),
+  ce('brunhilde', 'Brunhilde', 'P', 89, 'Valkyrie Apocalypse', [
+    f('brunhilde_base',     'Brunhilde',            'brunhilde'),
+    f('brunhilde_valkyrie', 'Aînée des Valkyries',  'brunhilde'),
+  ]),
   ce('chara', 'Chara', 'P', 93, 'Undertale', [
     f('chara_base',      'Chara',                'chara'),
     f('chara_genocide',  'Route Génocide',       'chara'),

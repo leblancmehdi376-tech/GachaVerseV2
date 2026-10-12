@@ -21,8 +21,31 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '07/10/2026',
+    date: '12/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    sections: [
+      {
+        icon: '✨',
+        title: 'Nouvelles évolutions',
+        changes: [
+          "**Hadès** (Cosmique) peut désormais évoluer en **Hadès — Ichor Desmos**.",
+          "**Brunhilde** (Primordiale) peut désormais évoluer en **Aînée des Valkyries**.",
+        ],
+      },
+      {
+        icon: '🙈',
+        title: 'Anti-spoil',
+        changes: [
+          "Les ennemis des paliers d'un univers protégé sont maintenant **masqués** : ils apparaissent tous en **Saibaman**.",
+          "Seuls le nom et l'apparence changent : PV, récompenses et affinité de l'ennemi restent les mêmes.",
+          "Les persos de cet univers gardent toujours l'illustration de leur **forme de base**.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '07/10/2026',
+    title: 'Maj v2.8.2.10',
     changes: [
       "**Mémoire des Pierres** : les cartes obtenues **avant la refonte des éditions** (1er octobre) retrouvent leur mémoire au prochain chargement.",
       "Ton ancien **rang ★** maximum est converti en jauge d'édition (1 rang = 1 copie de son édition), toujours plafonnée par ton niveau de Mémoire des Pierres.",

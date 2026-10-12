@@ -8,10 +8,13 @@ import type { Enemy } from '@/types/game';
 
 // ── HUD ennemi : timer boss, en-tête palier/étage, nom + affinité, barre de vie ──
 export function EnemyHud({
-  currentEnemy, cfg, wave, isFarming, runPeakPalier, bossActive, bossTimeLeft, bossWarn,
+  currentEnemy, shownName, cfg, wave, isFarming, runPeakPalier, bossActive, bossTimeLeft, bossWarn,
   enemyAffinity, eventDpsMult, hp, onOpenTravel, onReturnToPeak, onDebugKill,
 }: {
-  currentEnemy: Enemy; cfg: PalierConfig; wave: number; isFarming: boolean; runPeakPalier: number;
+  currentEnemy: Enemy;
+  /** Nom affiché (masqué par l'anti-spoil), distinct du vrai nom qui porte l'affinité. */
+  shownName: string;
+  cfg: PalierConfig; wave: number; isFarming: boolean; runPeakPalier: number;
   bossActive: boolean; bossTimeLeft: number; bossWarn: boolean;
   enemyAffinity: Affinity; eventDpsMult: number; hp: number;
   onOpenTravel: () => void; onReturnToPeak: () => void;
@@ -88,7 +91,7 @@ export function EnemyHud({
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom:8 }}>
           <h2 style={{ fontFamily:'var(--f-title)', fontSize:currentEnemy.isBoss?'20px':'18px', fontWeight:700, color:'white', letterSpacing:2, textShadow:currentEnemy.isBoss?'0 0 24px rgba(239,68,68,0.7)':'0 0 16px rgba(255,255,255,0.2)', margin:0 }}>
-            {currentEnemy.name}
+            {shownName}
           </h2>
           <AffinityTooltip affinity={enemyAffinity}>
             <AffinityBadge affinity={enemyAffinity} size="sm" />

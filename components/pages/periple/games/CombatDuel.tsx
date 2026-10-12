@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PixelSprite } from '@/components/ui/PixelSprite';
 import { generateEnemy, ENEMY_SPRITES_ASSET_VERSION } from '@/lib/game/enemies';
 import { useGameStore } from '@/store/gameStore';
+import { getSafeEnemyDisplay } from '@/store/spoilerStore';
 import type { Medal } from '@/lib/game/periple';
 
 // Duel Éclair : 3 frappes. Un curseur fait l'aller-retour sur une jauge ;
@@ -25,7 +26,8 @@ export function medalForDamage(dmg: number): Medal {
 export function CombatDuel({ onFinish }: { onFinish: (m: Medal) => void }) {
   const [enemy] = useState(() => {
     const palier = useGameStore.getState().palier;
-    return generateEnemy(1 + Math.floor(Math.random() * 9), palier);
+    const e = generateEnemy(1 + Math.floor(Math.random() * 9), palier);
+    return { ...e, ...getSafeEnemyDisplay(e) };
   });
   const [strike, setStrike] = useState(0);
   const [hits, setHits] = useState<Hit[]>([]);

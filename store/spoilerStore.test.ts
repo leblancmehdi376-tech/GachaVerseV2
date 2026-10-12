@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { useSpoilerStore, getSafeFormIndex, getSpoilerUniverses } from './spoilerStore';
+import { useSpoilerStore, getSafeFormIndex, getSpoilerUniverses, getSafeEnemyDisplay, isPalierProtected } from './spoilerStore';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { SYNERGIES } from '@/lib/game/synergies';
+import { PALIERS } from '@/lib/game/paliers';
+import { generateEnemy } from '@/lib/game/enemies';
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -102,6 +104,40 @@ describe('anti-spoil appliqué partout', () => {
   it('CharacterCardThumb et la bannière du Gacha appliquent bien l’anti-spoil', () => {
     for (const f of ['components/ui/CharacterCardThumb.tsx', 'components/pages/GachaPage.tsx']) {
       expect(fs.readFileSync(path.join(ROOT, f), 'utf8')).toContain('getSafeFormIndex(');
+    }
+  });
+});
+
+describe('getSafeEnemyDisplay', () => {
+  beforeEach(() => useSpoilerStore.setState({ protectedUniverses: {} }));
+  const enemy = (palier: number, wave = 3, isBoss = false) => ({ ...generateEnemy(wave, palier), isBoss });
+
+  it("affiche le vrai ennemi quand l'univers du palier n'est pas protégé", () => {
+    const e = enemy(31);
+    expect(getSafeEnemyDisplay(e)).toEqual({ name: e.name, spritePath: e.spritePath });
+  });
+
+  it("remplace les ennemis d'un univers protégé par des Saibaman", () => {
+    useSpoilerStore.getState().toggleUniverse('Valkyrie Apocalypse', true);
+    const shown = getSafeEnemyDisplay(enemy(31));
+    expect(shown.name).toBe('Saibaman');
+    expect(shown.spritePath).toMatch(/^\/sprites\/enemies\/palier1\/saibaman\d?\.png$/);
+    expect(getSafeEnemyDisplay(enemy(31, 10, true)).name).toBe('★ BOSS — Saibaman');
+    expect(getSafeEnemyDisplay(enemy(32)).name).not.toBe('Saibaman');
+  });
+
+  it('suit le cycle des paliers et les univers nommés autrement', () => {
+    useSpoilerStore.getState().toggleUniverse('Fullmetal Alchemist Brotherhood', true);
+    expect(isPalierProtected(27)).toBe(true);
+    expect(isPalierProtected(27 + PALIERS.length)).toBe(true);
+    useSpoilerStore.getState().toggleUniverse('Dragon Ball Z', true);
+    expect(isPalierProtected(24)).toBe(true);
+  });
+
+  it('chaque univers de palier correspond à un univers proposé dans les réglages', () => {
+    for (const p of PALIERS) {
+      useSpoilerStore.setState({ protectedUniverses: Object.fromEntries(getSpoilerUniverses().map(u => [u, true])) });
+      expect(isPalierProtected(p.id), `palier ${p.id} (${p.universe}) impossible à protéger`).toBe(true);
     }
   });
 });
