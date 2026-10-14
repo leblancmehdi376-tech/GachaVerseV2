@@ -21,7 +21,7 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '12/10/2026',
+    date: '14/10/2026',
     title: `Maj v${GAME_VERSION}`,
     sections: [
       {
@@ -94,6 +94,29 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Trois nouveaux **titres** avec bonus d'or : **🪕 Résonance du Biwa** (étage 30), **🏯 Seigneur du Château Infini** (étage 100) et **♾️ Élu de l'Infini** (Gachapon).",
           "Onglet **Records** : paliers, statistiques et historique de tes 10 dernières runs.",
           "Nouvel onglet **🏯 Château de Nakime** dans le **Classement** : les joueurs sont classés selon leur **record d'étages**, avec l'équipe du record.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '12/10/2026',
+    title: 'Maj v2.8.2.11',
+    sections: [
+      {
+        icon: '✨',
+        title: 'Nouvelles évolutions',
+        changes: [
+          "**Hadès** (Cosmique) peut désormais évoluer en **Hadès — Ichor Desmos**.",
+          "**Brunhilde** (Primordiale) peut désormais évoluer en **Aînée des Valkyries**.",
+        ],
+      },
+      {
+        icon: '🙈',
+        title: 'Anti-spoil',
+        changes: [
+          "Les ennemis des paliers d'un univers protégé sont maintenant **masqués** : ils apparaissent tous en **Saibaman**.",
+          "Seuls le nom et l'apparence changent : PV, récompenses et affinité de l'ennemi restent les mêmes.",
+          "Les persos de cet univers gardent toujours l'illustration de leur **forme de base**.",
         ],
       },
     ],

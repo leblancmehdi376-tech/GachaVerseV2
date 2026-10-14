@@ -371,7 +371,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
             <span className="section-title" style={{ color:'#60a5fa' }}>🙈 ANTI-SPOIL</span>
           </div>
           <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', marginBottom:'14px', lineHeight:1.5 }}>
-            Coche les univers que tu n&apos;as pas encore terminés (anime, jeu, série...). Pour ces univers, les personnages qui évoluent garderont l&apos;illustration de leur forme de base au lieu de révéler leurs évolutions — partout dans le jeu.
+            Coche les univers que tu n&apos;as pas encore terminés (anime, jeu, série...). Pour ces univers, les personnages qui évoluent garderont l&apos;illustration de leur forme de base au lieu de révéler leurs évolutions — partout dans le jeu — et les ennemis des paliers de ces univers apparaîtront en Saibaman.
           </div>
 
           <input

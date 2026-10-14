@@ -96,6 +96,7 @@ X_CENTER_OVERRIDES = {
     'JillValentine_ResidentEvil_Evo0': 0.42,
     'Shisui_LesCarnetsdelApothicaire_Evo0': 0.43,
     'Hades_ValkyrieApocalypse_Evo0': 0.55,
+    'Hades_ValkyrieApocalypse_Evo1': 0.55,
     'Maliketh_EldenRing_Evo1': 0.68,
     'Capuchon_NosAnimaux_Evo0': 0.58,
     # Bulle de texte japonais sur le bord droit.
@@ -111,6 +112,7 @@ X_CENTER_OVERRIDES = {
 ZOOM_OVERRIDES = {
     'Garp_OnePiece_Evo0': 1.35,
     'Hades_ValkyrieApocalypse_Evo0': 1.1,
+    'Hades_ValkyrieApocalypse_Evo1': 1.1,
     'JosephJoestar_JoJosBizarreAdventure_Evo0': 1.4,
     'DioBrando_JoJosBizarreAdventure_Evo0': 1.3,
     'Emolga_Pokemon_Evo0': 1.4,
@@ -146,6 +148,7 @@ VERTICAL_BIAS_OVERRIDES = {
     'Ryuk_DeathNote_Evo0': 1.0,
     'SoulEvans_SoulEater_Evo0': 0.30,
     'Hades_ValkyrieApocalypse_Evo0': 0.7,
+    'Hades_ValkyrieApocalypse_Evo1': 0.7,
     # Chignon coupé avec le biais par défaut.
     'Gyokuyo_LesCarnetsdelApothicaire_Evo1': 0.05,
     'LesdeuxIsis_NosAnimaux_Evo0': 1.0,
