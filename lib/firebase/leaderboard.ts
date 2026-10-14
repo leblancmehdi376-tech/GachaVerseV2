@@ -31,6 +31,15 @@ export interface LeaderboardEntry {
   // saves plus anciennes) : zéro lecture en plus. Jour ('2026-09-29') →
   // nombre d'essais pour chaque défi réussi encore connu (aujourd'hui, hier).
   dleWins: Record<string, number>;
+  // Château de Nakime — mêmes champs `saves/{uid}` (nakimeBestFloor,
+  // nakimeHistory, nakimeTotals) : zéro lecture en plus.
+  nakime: NakimeRecord;
+}
+
+export interface NakimeRecord {
+  best: number;     // record d'étages franchis
+  runs: number;     // runs jouées à vie
+  team: string[];   // équipe du record si la run est encore dans l'historique
 }
 
 export interface LeaderboardTeamMember {
@@ -106,6 +115,17 @@ export function extractDleWins(data: Record<string, unknown>): { dleWins: Record
   return { dleWins };
 }
 
+// Record du Château de Nakime. L'historique ne garde que les dernières runs :
+// l'équipe du record n'est connue que si cette run y figure encore.
+export function extractNakime(data: Record<string, unknown>): { nakime: NakimeRecord } {
+  const best = num(data.nakimeBestFloor);
+  const totals = (data.nakimeTotals && typeof data.nakimeTotals === 'object') ? data.nakimeTotals as Record<string, unknown> : {};
+  const history = Array.isArray(data.nakimeHistory) ? data.nakimeHistory as { floors?: unknown; team?: unknown }[] : [];
+  const bestRun = best > 0 ? history.find(h => h?.floors === best && Array.isArray(h.team)) : undefined;
+  const team = bestRun ? (bestRun.team as unknown[]).filter((id): id is string => typeof id === 'string') : [];
+  return { nakime: { best, runs: num(totals.runs) || num(data.nakimeRunsPlayed), team } };
+}
+
 // Cache mémoire partagé par tous les classements (palier, GachaDle) : revenir
 // sur la page Classement ou changer d'onglet dans le TTL ne relit rien. Le
 // bouton "Actualiser" (déjà limité à 1 appel / 15s) le contourne via `force`.
@@ -148,6 +168,24 @@ export function rankByDleGuesses(entries: LeaderboardEntry[], dateKey: string): 
   sorted.forEach(({ entry, guesses }, i) => {
     const prev = rows[i - 1];
     rows.push({ entry, guesses, rank: prev && prev.guesses === guesses ? prev.rank : i + 1 });
+  });
+  return rows;
+}
+
+export interface NakimeRankingRow { entry: LeaderboardEntry; rank: number }
+
+/**
+ * Classement du Château de Nakime : record d'étages DESC, joueurs sans run
+ * exclus. Les ex æquo partagent le même rang (1, 1, 3...).
+ */
+export function rankByNakime(entries: LeaderboardEntry[]): NakimeRankingRow[] {
+  const sorted = entries
+    .filter(e => (e.nakime?.best ?? 0) > 0)
+    .sort((a, b) => b.nakime.best - a.nakime.best || a.username.localeCompare(b.username, 'fr'));
+  const rows: NakimeRankingRow[] = [];
+  sorted.forEach((entry, i) => {
+    const prev = rows[i - 1];
+    rows.push({ entry, rank: prev && prev.entry.nakime.best === entry.nakime.best ? prev.rank : i + 1 });
   });
   return rows;
 }
@@ -200,6 +238,7 @@ async function fetchLeaderboardEntries(): Promise<LeaderboardEntry[]> {
         selectedAvatarChampionId, avatarFormIndex,
         profile: extractProfile(data),
         ...extractDleWins(data),
+        ...extractNakime(data),
       };
     });
 

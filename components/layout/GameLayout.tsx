@@ -71,6 +71,7 @@ const PAGE_LOADERS = {
   MasteryPage: () => import('@/components/pages/MasteryPage').then(m => ({ default: m.MasteryPage })),
   // Onglet « Événements » : Grand Périple + GachaDle (sous-onglets).
   EventsPage: () => import('@/components/pages/EventsPage').then(m => ({ default: m.EventsPage })),
+  NakimePage: () => import('@/components/pages/NakimePage').then(m => ({ default: m.NakimePage })),
 };
 // Capteur du moniteur de performances local : chargé seulement avec
 // NEXT_PUBLIC_PERF_MONITOR=1 (posé par npm run dev:perf / start:perf). Sans
@@ -99,6 +100,7 @@ const MinePage = lazy(PAGE_LOADERS.MinePage);
 const AnomaliePage = lazy(PAGE_LOADERS.AnomaliePage);
 const MasteryPage = lazy(PAGE_LOADERS.MasteryPage);
 const EventsPage = lazy(PAGE_LOADERS.EventsPage);
+const NakimePage = lazy(PAGE_LOADERS.NakimePage);
 // Les patch notes (tout l'historique, plusieurs dizaines de Ko de texte) ne
 // sont utiles qu'à l'ouverture de la popup : chargées à part, hors du bundle
 // initial.
@@ -106,7 +108,7 @@ const loadPatchNotes = () => import('@/components/layout/PatchNotesModal');
 const PatchNotesModal = lazy(() => loadPatchNotes().then(m => ({ default: m.PatchNotesModal })));
 const CardCompareModal = lazy(() => import('@/components/game/CardCompareModal').then(m => ({ default: m.CardCompareModal })));
 
-type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'mine' | 'anomalie' | 'mastery' | 'events';
+type Page = 'home' | 'upgrades' | 'companions' | 'collection' | 'gacha' | 'shop' | 'quests' | 'raids' | 'settings' | 'leaderboard' | 'marketplace' | 'achievements' | 'profile' | 'expeditions' | 'forge' | 'prestige' | 'mine' | 'anomalie' | 'mastery' | 'events' | 'nakime';
 
 type NavItem = { id: Page; label: string; accent?: string };
 
@@ -135,6 +137,7 @@ const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
   { title:'ACTIVITÉS', items: [
     { id:'raids',        label:'RAIDS',           accent:'#fbbf24'            },
     { id:'expeditions',  label:'EXPÉDITIONS',     accent:'#fb923c'            },
+    { id:'nakime',       label:'CHÂTEAU NAKIME',  accent:'#fb7185'            },
     { id:'events',       label:'ÉVÉNEMENTS',      accent:'#fb923c'            },
   ]},
   { title:'ÉCONOMIE', items: [
@@ -599,6 +602,7 @@ export function GameLayout() {
                   {contentPage === 'anomalie'    && <AnomaliePage />}
                   {contentPage === 'mastery'     && <MasteryPage />}
                   {contentPage === 'events'      && <EventsPage />}
+                  {contentPage === 'nakime'      && <NakimePage />}
                   {contentPage === 'profile'     && <ProfilePage />}
                 </PageTransition>
                 </Suspense>

@@ -5,6 +5,8 @@ import { ACHIEVEMENTS } from '@/lib/game/achievements';
 import { TITLE_GOLD_BONUS_PCT, RAID_TITLES, getTotalTitleGoldBonusPct } from '@/lib/game/titles';
 import { DAILY_REWARD_TITLES } from '@/lib/game/dailyRewards';
 import { PERIPLE_TITLE, PERIPLE_TIER_COUNT } from '@/lib/game/periple';
+import { NAKIME_MILESTONES } from '@/lib/game/nakimeContent';
+import { NAKIME_GACHA_TITLE } from '@/lib/game/nakimeGacha';
 
 function TitleCard({ icon, title, subtitle, unlocked, active, onSelect }: {
   icon: string; title: string; subtitle: string; unlocked: boolean; active: boolean; onSelect: () => void;
@@ -96,6 +98,17 @@ export function TitlesPanel() {
         <TitleCard icon="🗺️" title={PERIPLE_TITLE}
           subtitle={`Le Grand Périple du Multivers — palier ${PERIPLE_TIER_COUNT}`}
           unlocked={unlockedTitles.includes(PERIPLE_TITLE)} active={activeTitle === PERIPLE_TITLE} onSelect={() => setActiveTitle(PERIPLE_TITLE)} />
+      </div>
+
+      {/* ── Titres du Château de Nakime — paliers de record ── */}
+      <div style={SECTION_LABEL}>TITRES DU CHÂTEAU DE NAKIME</div>
+      <div style={GRID}>
+        {NAKIME_MILESTONES.filter(m => m.title).map(m => (
+          <TitleCard key={m.title} icon="🏯" title={m.title!} subtitle={`Château de Nakime — atteindre l'étage ${m.floor}`}
+            unlocked={unlockedTitles.includes(m.title!)} active={activeTitle === m.title} onSelect={() => setActiveTitle(m.title!)} />
+        ))}
+        <TitleCard icon="🪕" title={NAKIME_GACHA_TITLE} subtitle="Gachapon de l'Infini — lot Mythique « Bénédiction de Nakime »"
+          unlocked={unlockedTitles.includes(NAKIME_GACHA_TITLE)} active={activeTitle === NAKIME_GACHA_TITLE} onSelect={() => setActiveTitle(NAKIME_GACHA_TITLE)} />
       </div>
 
       {/* ── Titres de raid — drop rare de boss de raid, pas de succès associé ── */}

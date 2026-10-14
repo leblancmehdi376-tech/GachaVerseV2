@@ -33,6 +33,11 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = {
   // ── Le Grand Périple du Multivers — dernier palier (voir PERIPLE_TITLE) ──
   '🗺️ Grand Voyageur du Multivers': 15,
 
+  // ── Château de Nakime — paliers de record (voir NAKIME_MILESTONES) ─────
+  '🪕 Résonance du Biwa':          10,
+  '🏯 Seigneur du Château Infini': 20,
+  "♾️ Élu de l'Infini":            25,   // lot Mythique du Gachapon de l'Infini
+
   // ── Raid (voir RAID_TITLES) ───────────────────────────────────────────
   'Shadow Monarch':  8,
   'Shadow Eminence': 10,

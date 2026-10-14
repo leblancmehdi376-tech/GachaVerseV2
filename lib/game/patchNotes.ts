@@ -21,8 +21,86 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '07/10/2026',
+    date: '12/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    sections: [
+      {
+        icon: '🏯',
+        title: 'Nouveau mode : Château de Nakime',
+        changes: [
+          "Nouvelle activité **Château de Nakime** dans la rubrique **Activités** : un mode **roguelike infini** où tu montes le plus haut possible.",
+          "Compose une équipe de **5 cartes** différentes. Comptent : leur **rareté**, leur **édition**, leur **rôle**, leurs **synergies d'univers** et leur **type**. Le niveau et l'équipement du jeu principal ne servent pas ici.",
+          "L'**édition** donne **+10 % de PV et d'ATQ par cran**, jusqu'à **+70 %** en **Prismatique**.",
+          "Les places **1 et 2** forment le **front** : elles sont visées deux fois plus souvent.",
+          "Filtre ta collection par **univers**, rareté ou rôle, et trie-la par **univers** ; touche une synergie de ton équipe pour afficher les cartes de cet univers.",
+          "**1 entrée par jour** (jusqu'à 3 avec la Mémoire du Château), remise à zéro à 2 h.",
+        ],
+      },
+      {
+        icon: '🗺️',
+        title: 'Le château',
+        changes: [
+          "Le château se découpe en **actes de 10 étages**, chacun dans un **monde du multivers** avec ses ennemis et son décor.",
+          "Acte 1 dans l'**Infinite Castle**, face à **Nakime** ; une **Lune Supérieure** (Akaza, Doma, Kokushibo, puis Muzan) garde le château tous les **5 actes**.",
+          "Trace ta route sur une **carte à embranchements** : Combat, Élite, Rencontre, Boutique, Forge, Repos et Trésor, avec un **boss** à la fin de chaque acte.",
+          "Les **PV perdus restent perdus** d'un étage à l'autre. Le **Repos** soigne 35 % des PV et relève les cartes KO, et chaque nouvel acte rend 30 % des PV.",
+          "Tes cartes gagnent de l'**expérience** et montent de niveau pendant la run (**niveau 20 maximum**).",
+          "Le château **s'adapte à ton équipe** : plus tes cartes sont rares, plus les ennemis sont coriaces.",
+          "Objectif ultime : l'**étage 100**, à la portée des seules équipes **Transcendantes prismatiques** avec toute la **Mémoire du Château**.",
+        ],
+      },
+      {
+        icon: '⚔️',
+        title: 'Combats',
+        changes: [
+          "Les combats se jouent **tout seuls** : tu n'as rien à faire pendant le combat, ton équipe se bat automatiquement.",
+          "Regarde le combat en **vitesse ×1, ×2 ou ×4**, ou appuie sur **Passer** pour voir directement le résultat.",
+          "Tes cartes lancent **automatiquement** leurs **vraies techniques** : **Kamehameha** et **Genkidama** pour Goku, **Gomu Gomu no Pistol** pour Luffy, **Rasengan** pour Naruto, **ZA WARUDO !** pour Dio… (**410 personnages**).",
+          "Chaque personnage a un **rôle** (**Assaillant**, **Gardien**, **Soigneur**, **Assassin** ou **Mage**) qui décide de sa façon de se battre : c'est en composant ton équipe que tu fais tes choix.",
+          "Les boss entrent en **rage** sous 50 % PV.",
+        ],
+      },
+      {
+        icon: '🎁',
+        title: 'Récompenses de run',
+        changes: [
+          "Après chaque combat, choisis une **bénédiction** ; après une élite ou un boss, une **relique**.",
+          "**26 reliques** (10 communes, 10 rares, 6 de boss) : vol de vie, boucliers, critiques, résurrection, bonus Demon Slayer…",
+          "**12 rencontres** à choix : la Maison aux Glycines, le Forgeron Masqué, le Laboratoire de Tamayo…",
+          "**Boutique** : soins, résurrection, entraînement et reliques, avec relance. **Forge** : armes, armures, pierre à aiguiser, **Pierres d'Évolution** et **coffres d'équipement**.",
+          "Chaque **fin d'acte** (boss vaincu) rapporte un **Ticket de l'Infini** 🎟️.",
+          "La run s'arrête à la première défaite ou quand tu te retires. Tu gardes **tout le butin** : gemmes, Pierres d'Évolution, coffres d'équipement, Tickets de l'Infini et **Notes de Biwa**.",
+        ],
+      },
+      {
+        icon: '🎰',
+        title: "Gachapon de l'Infini",
+        changes: [
+          "Nouvel onglet **Gachapon** : un **Ticket de l'Infini** = une **capsule**. Ouvre-en **1** ou **5** d'un coup.",
+          "5 raretés de capsules : **Commune** (55,25 %), **Rare** (30 %), **Épique** (12,5 %), **Légendaire** (2 %) et **Mythique** (0,25 %).",
+          "Lots : **gemmes**, **invocations gratuites**, **Pierres d'Évolution**, **Notes de Biwa** et **coffres d'équipement**.",
+          "**Légendaire** : 1500 gemmes, 20 invocations, ou 3 coffres épiques + 10 Pierres + 1 Jeton d'Anomalie.",
+          "**Mythique** : le **Jackpot de l'Infini** (5000 gemmes, 30 invocations, 5 coffres épiques) ou la **Bénédiction de Nakime** (titre exclusif **♾️ Élu de l'Infini**, 2000 gemmes et 2 Jetons d'Anomalie).",
+          "**Garantie** : au plus tard tous les **20 tickets**, une capsule Légendaire ou Mythique. Toutes les **probabilités** sont affichées.",
+        ],
+      },
+      {
+        icon: '🎵',
+        title: 'Progression permanente',
+        changes: [
+          "Chaque run rapporte des **Notes de Biwa** pour la **Mémoire du Château** : 10 améliorations permanentes, dont **Tranchant** et **Endurance** (+8 % d'ATQ et de PV par niveau, **+80 %** au maximum), Seconde chance et Clé supplémentaire.",
+          "La Mémoire se construit **sur la durée** : chaque niveau coûte **2 à 2,5 fois** le précédent, et une **entrée quotidienne supplémentaire** coûte 1000 puis 3000 Notes.",
+          "**Paliers de record** (étages 10 à 200) : gemmes, Pierres d'Évolution et coffres épiques, payés une seule fois.",
+          "Trois nouveaux **titres** avec bonus d'or : **🪕 Résonance du Biwa** (étage 30), **🏯 Seigneur du Château Infini** (étage 100) et **♾️ Élu de l'Infini** (Gachapon).",
+          "Onglet **Records** : paliers, statistiques et historique de tes 10 dernières runs.",
+          "Nouvel onglet **🏯 Château de Nakime** dans le **Classement** : les joueurs sont classés selon leur **record d'étages**, avec l'équipe du record.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '07/10/2026',
+    title: 'Maj v2.8.2.10',
     changes: [
       "**Mémoire des Pierres** : les cartes obtenues **avant la refonte des éditions** (1er octobre) retrouvent leur mémoire au prochain chargement.",
       "Ton ancien **rang ★** maximum est converti en jauge d'édition (1 rang = 1 copie de son édition), toujours plafonnée par ton niveau de Mémoire des Pierres.",

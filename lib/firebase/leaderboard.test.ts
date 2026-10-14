@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { extractDleWins, getLeaderboardEntries, rankByDleGuesses, updatePlayerScore, type LeaderboardEntry } from './leaderboard';
+import { extractDleWins, extractNakime, getLeaderboardEntries, rankByDleGuesses, rankByNakime, updatePlayerScore, type LeaderboardEntry } from './leaderboard';
 
 const setDocMock    = vi.fn(async (..._args: unknown[]) => {});
 const updateDocMock = vi.fn(async (..._args: unknown[]) => {});
@@ -143,5 +143,23 @@ describe('getLeaderboardEntries — aucune lecture Firestore en trop', () => {
     await getLeaderboardEntries(true);
     await getLeaderboardEntries(true);
     expect(getDocsMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('Classement Château de Nakime', () => {
+  it("lit le record, les runs jouées et l'équipe du record encore dans l'historique", () => {
+    expect(extractNakime({
+      nakimeBestFloor: 42, nakimeTotals: { runs: 7 },
+      nakimeHistory: [{ floors: 12, team: ['a'] }, { floors: 42, team: ['goku', 'naruto', 3] }],
+    }).nakime).toEqual({ best: 42, runs: 7, team: ['goku', 'naruto'] });
+    // Run du record sortie de l'historique : équipe inconnue.
+    expect(extractNakime({ nakimeBestFloor: 42, nakimeHistory: [{ floors: 10, team: ['a'] }] }).nakime.team).toEqual([]);
+    expect(extractNakime({}).nakime).toEqual({ best: 0, runs: 0, team: [] });
+  });
+
+  it('trie par record décroissant, exclut les joueurs sans run et partage les rangs ex æquo', () => {
+    const e = (uid: string, best: number) => ({ uid, username: uid, nakime: { best, runs: 1, team: [] } }) as unknown as LeaderboardEntry;
+    const rows = rankByNakime([e('c', 20), e('zero', 0), e('a', 35), e('b', 20), e('d', 5)]);
+    expect(rows.map(r => [r.entry.uid, r.rank])).toEqual([['a', 1], ['b', 2], ['c', 2], ['d', 4]]);
   });
 });

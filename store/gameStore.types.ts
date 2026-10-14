@@ -27,6 +27,8 @@ import type { GoldGainBreakdown } from './gameStoreHelpers';
 import type { PeripleDaily, PeripleStats } from '@/lib/game/periple';
 import type { PeripleLoot, PeriplePending, PeripleRollResult, PeripleChanceResult, PeripleWheelResult } from './slices/peripleSlice';
 import type { Medal } from '@/lib/game/periple';
+import type { NakimeRun, NakimeMetaLevels, MetaUpgradeId } from '@/lib/game/nakime';
+import type { NakimeNodeOutcome, NakimeRunEnd, NakimeHistoryEntry, NakimeTotals, NakimeBattleOutcome, NakimeGachaResult } from './slices/nakimeSlice';
 
 export interface Quest {
   id: string; label: string; icon: string;
@@ -400,6 +402,42 @@ export interface PeripleActions {
 }
 export type PeripleSlice = PeripleState & PeripleActions;
 
+// ─── Château de Nakime (roguelike infini, jamais reset au Prestige) ───────────
+export interface NakimeState {
+  nakimeRun: NakimeRun | null;          // run en cours (sauvegardée : pas de reroll au refresh)
+  nakimeBestFloor: number;              // record d'étages franchis
+  nakimeRunsPlayed: number;
+  nakimeDay: string;                    // jour (getTodayDayKey) du compteur ci-dessous
+  nakimeEntriesUsed: number;            // entrées utilisées ce jour-là
+  nakimeNotes: number;                  // Notes de Biwa (monnaie de la Mémoire du Château)
+  nakimeTickets: number;                // Tickets de l'Infini (1 par acte terminé), dépensés au Gachapon
+  nakimeGachaPity: number;              // capsules d'affilée sans Légendaire ou mieux (garantie)
+  nakimeGachaPulls: number;             // capsules ouvertes au total
+  nakimeMeta: NakimeMetaLevels;         // niveaux des améliorations permanentes
+  nakimeMilestones: number[];           // paliers de record déjà récompensés (étages)
+  nakimeHistory: NakimeHistoryEntry[];  // dernières runs
+  nakimeTotals: NakimeTotals;           // cumuls à vie
+}
+export interface NakimeActions {
+  // Renvoie un message d'erreur, ou null si la run a démarré.
+  startNakimeRun: (keys: string[]) => string | null;
+  enterNakimeNode: (col: number) => NakimeNodeOutcome | null;
+  // Ordre en combat : capacité + cible (ability null = l'IA joue ce tour).
+  actNakimeBattle: (ability: string | null, target?: string) => NakimeBattleOutcome | string;
+  // index null = passer la récompense. Renvoie une erreur ou null.
+  chooseNakimeReward: (index: number | null) => string | null;
+  // Renvoie le récit de l'événement, ou un message d'erreur (string).
+  chooseNakimeEvent: (index: number) => string[] | string;
+  buyNakimeOffer: (offerIndex: number, memberIndex?: number) => string | null;
+  rerollNakimeShop: () => string | null;
+  leaveNakimeRoom: () => void;
+  abandonNakimeRun: () => NakimeRunEnd | null;
+  buyNakimeMeta: (id: MetaUpgradeId) => string | null;
+  // Gachapon de l'Infini : dépense `count` tickets. Renvoie les capsules, ou une erreur.
+  pullNakimeGacha: (count: number) => NakimeGachaResult[] | string;
+}
+export type NakimeSlice = NakimeState & NakimeActions;
+
 // ─── Prestige (New Game+) ───────────────────────────────────────────────────
 export interface PrestigeState {
   prestigeLevel: number;
@@ -549,6 +587,7 @@ export type GameStore = GameState
   & AnomalySlice
   & GachaDleSlice
   & PeripleSlice
+  & NakimeSlice
   & {
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;

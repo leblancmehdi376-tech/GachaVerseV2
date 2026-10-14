@@ -897,6 +897,14 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
 // PV du boss d'un palier (vague 10, hpMult:10) — exposé pour calibrer d'autres
 // systèmes (ex: seuils de DPS d'expédition dans expeditions.ts) sur la même
 // courbe de puissance que le combat, sans dupliquer les constantes.
+// Roster d'ennemis d'un monde (10 vagues, boss en dernier) — réutilisé par le
+// Château de Nakime (lib/game/nakimeContent.ts) pour peupler ses actes.
+export interface EnemyRosterEntry { name: string; sprite: string; isBoss: boolean }
+export const ENEMY_ROSTER_PALIERS: number[] = Object.keys(PALIER_ENEMIES).map(Number).sort((a, b) => a - b);
+export function getPalierEnemyRoster(palier: number): EnemyRosterEntry[] {
+  return (PALIER_ENEMIES[palier] ?? []).map((d, i) => ({ name: d.name, sprite: `/${d.sprite}`, isBoss: d.isBoss ?? i === 9 }));
+}
+
 export function getPalierBossHp(palier: number): BigNum {
   const global = (palier - 1) * 10 + 10;
   return bnMulScalar(baseHpForGlobal(global), 10);

@@ -159,6 +159,21 @@ export function getSerializableState() {
     periplePending:      s.periplePending ?? null,
     peripleStats:        s.peripleStats ?? {},
     peripleQuestsClaimed: s.peripleQuestsClaimed ?? [],
+    // Château de Nakime — run en cours, record et entrées du jour suivent le
+    // joueur d'un appareil à l'autre.
+    nakimeRun:          s.nakimeRun ?? null,
+    nakimeBestFloor:    s.nakimeBestFloor ?? 0,
+    nakimeRunsPlayed:   s.nakimeRunsPlayed ?? 0,
+    nakimeDay:          s.nakimeDay ?? '',
+    nakimeEntriesUsed:  s.nakimeEntriesUsed ?? 0,
+    nakimeNotes:        s.nakimeNotes ?? 0,
+    nakimeTickets:      s.nakimeTickets ?? 0,
+    nakimeGachaPity:    s.nakimeGachaPity ?? 0,
+    nakimeGachaPulls:   s.nakimeGachaPulls ?? 0,
+    nakimeMeta:         s.nakimeMeta ?? {},
+    nakimeMilestones:   s.nakimeMilestones ?? [],
+    nakimeHistory:      s.nakimeHistory ?? [],
+    nakimeTotals:       s.nakimeTotals ?? { runs: 0, floors: 0, fights: 0, elites: 0, bosses: 0 },
     // Historique de solde (graphe admin) — voir recordCurrencySnapshot,
     // appelé juste avant dans saveToFirebase : ce champ ne fait donc que
     // grossir un payload déjà écrit, sans lecture/écriture Firestore en plus.
@@ -195,6 +210,7 @@ export function mergeMonotonicState(
   achievementStats: Record<string, number>; charMastery: Record<string, CharMastery>;
   dleQuestsClaimed: string[];
   peripleQuestsClaimed: string[]; peripleTiersClaimed: number[]; peripleStats: PeripleStats;
+  nakimeMilestones: number[];
 } {
   const current = useGameStore.getState();
   const achievementsClaimed: Record<string, boolean> = { ...current.achievementsClaimed };
@@ -276,7 +292,14 @@ export function mergeMonotonicState(
     }
   }
 
+  // Château de Nakime : un palier de record réclamé ne doit jamais redevenir
+  // réclamable (sinon ses gemmes pourraient être touchées deux fois).
+  const nakimeMilestones = new Set<number>(current.nakimeMilestones ?? []);
+  const rm = remote?.nakimeMilestones as number[] | undefined;
+  if (Array.isArray(rm)) for (const f of rm) if (typeof f === 'number') nakimeMilestones.add(f);
+
   return {
+    nakimeMilestones: Array.from(nakimeMilestones).sort((a, b) => a - b),
     achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen, achievementStats, charMastery,
     dleQuestsClaimed: Array.from(dleQuestsClaimed),
     peripleQuestsClaimed: Array.from(peripleQuestsClaimed),
@@ -330,6 +353,7 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   delete data.achievementStats;
   delete data.charMastery;
   delete data.dleQuestsClaimed;
+  delete data.nakimeMilestones;
   // Grand Périple : même édition → fusion par mergeMonotonicState (ne fait que
   // grandir) ; édition différente → appliqué tel quel (ensurePeriple remet à
   // zéro ce qui ne correspond pas à l'édition en cours).

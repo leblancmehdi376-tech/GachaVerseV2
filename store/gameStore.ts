@@ -38,6 +38,7 @@ import { createAnomalySlice } from './slices/anomalySlice';
 import { createGachaDleSlice } from './slices/gachaDleSlice';
 import { createPeripleSlice } from './slices/peripleSlice';
 import { emptyPeripleDaily } from '@/lib/game/periple';
+import { createNakimeSlice, emptyNakimeTotals } from './slices/nakimeSlice';
 import { migrateAnomalies } from '@/lib/game/anomalies';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
@@ -163,6 +164,20 @@ const makeInitial = () => ({
   periplePending: null as GameStore['periplePending'],
   peripleStats: {} as GameStore['peripleStats'],
   peripleQuestsClaimed: [] as string[],
+  // ── Château de Nakime (jamais reset au Prestige) ──
+  nakimeRun: null as GameStore['nakimeRun'],
+  nakimeBestFloor: 0,
+  nakimeRunsPlayed: 0,
+  nakimeDay: '',
+  nakimeEntriesUsed: 0,
+  nakimeNotes: 0,
+  nakimeTickets: 0,
+  nakimeGachaPity: 0,
+  nakimeGachaPulls: 0,
+  nakimeMeta: {} as GameStore['nakimeMeta'],
+  nakimeMilestones: [] as number[],
+  nakimeHistory: [] as GameStore['nakimeHistory'],
+  nakimeTotals: emptyNakimeTotals(),
   // ── Combat de boss de raid en cours (jamais persisté, voir GameStore) ──
   raidBossFight: null as GameStore['raidBossFight'],
   // ── Historique de solde (graphe admin, voir CurrencySnapshot) ──
@@ -253,6 +268,7 @@ export const useGameStore = create<GameStore>()(
       ...createAnomalySlice(set, get, api),
       ...createGachaDleSlice(set, get, api),
       ...createPeripleSlice(set, get, api),
+      ...createNakimeSlice(set, get, api),
 
       resetGame: () => {
         try { localStorage.clear(); } catch {}
@@ -448,6 +464,12 @@ export const useGameStore = create<GameStore>()(
         periplePoints:s.periplePoints ?? 0, peripleTiersClaimed:s.peripleTiersClaimed ?? [],
         peripleShopBought:s.peripleShopBought ?? {}, peripleDaily:s.peripleDaily ?? emptyPeripleDaily(),
         periplePending:s.periplePending ?? null, peripleStats:s.peripleStats ?? {}, peripleQuestsClaimed:s.peripleQuestsClaimed ?? [],
+        // Château de Nakime — jamais reset au Prestige ; la run en cours est
+        // persistée pour qu'un refresh ne permette pas de rejouer un combat.
+        nakimeRun:s.nakimeRun ?? null, nakimeBestFloor:s.nakimeBestFloor ?? 0, nakimeRunsPlayed:s.nakimeRunsPlayed ?? 0,
+        nakimeDay:s.nakimeDay ?? '', nakimeEntriesUsed:s.nakimeEntriesUsed ?? 0,
+        nakimeNotes:s.nakimeNotes ?? 0, nakimeTickets:s.nakimeTickets ?? 0, nakimeGachaPity:s.nakimeGachaPity ?? 0, nakimeGachaPulls:s.nakimeGachaPulls ?? 0, nakimeMeta:s.nakimeMeta ?? {}, nakimeMilestones:s.nakimeMilestones ?? [],
+        nakimeHistory:s.nakimeHistory ?? [], nakimeTotals:s.nakimeTotals ?? emptyNakimeTotals(),
         // Compadex — jamais reset au Prestige (même traitement qu'historicalEditionPoints).
         compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
         // Historique de solde (graphe admin) — persisté localement comme le

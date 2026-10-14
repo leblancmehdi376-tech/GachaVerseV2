@@ -5,8 +5,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import {
-  getLeaderboardEntries, rankByDleGuesses, rankByPalier, updatePlayerScore, extractDleWins,
-  type DleRankingRow, type LeaderboardEntry,
+  getLeaderboardEntries, rankByDleGuesses, rankByNakime, rankByPalier, updatePlayerScore, extractDleWins, extractNakime,
+  type DleRankingRow, type LeaderboardEntry, type NakimeRankingRow,
 } from '@/lib/firebase/leaderboard';
 import { getDleDateKey, getPreviousDleDateKey } from '@/lib/game/gachadle';
 import { PageScroll } from '@/components/ui/Page';
@@ -14,6 +14,7 @@ import { AvatarVisual } from '@/components/layout/AvatarVisual';
 import { getCharacterById } from '@/lib/game/characters';
 import { PlayerProfileModal } from '@/components/pages/leaderboard/PlayerProfileModal';
 import { Countdown } from '@/components/pages/QuestsPage';
+import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 
 // Chaque appel à getLeaderboardEntries coûte ~100 lectures Firestore (hors
 // cache) — sans cooldown, spammer le bouton "Actualiser" spammerait autant
@@ -55,13 +56,28 @@ export function getDleRanking(
   return rankByDleGuesses(merged, getDleDayKey(day, todayKey));
 }
 
+/**
+ * Lignes du classement du Château de Nakime. Mon propre record vient du store
+ * local (toujours à jour), comme pour le GachaDle.
+ */
+export function getNakimeRanking(
+  entries: LeaderboardEntry[],
+  me?: { uid: string; data: Record<string, unknown> },
+): NakimeRankingRow[] {
+  const merged = me ? entries.map(e => e.uid === me.uid ? { ...e, ...extractNakime(me.data) } : e) : entries;
+  return rankByNakime(merged);
+}
+
+type LeaderboardTab = 'palier' | 'dle' | 'nakime';
+const TABS: [LeaderboardTab, string][] = [['palier', '🏆 Palier max'], ['dle', '📅 GachaDle du jour'], ['nakime', '🏯 Château de Nakime']];
+
 export function LeaderboardPage() {
   const { user } = useAuth();
   const { username, palier, maxPalierReached, wave, pixelCoins, setUsername, getTotalDps } = useGameStore(useShallow(s => ({ username: s.username, palier: s.palier, maxPalierReached: s.maxPalierReached, wave: s.wave, pixelCoins: s.pixelCoins, setUsername: s.setUsername, getTotalDps: s.getTotalDps })));
 
   const [loading,   setLoading]   = useState(true);
   const [allEntries, setAllEntries] = useState<LeaderboardEntry[]>([]);
-  const [tab,       setTab]       = useState<'palier' | 'dle'>('palier');
+  const [tab,       setTab]       = useState<LeaderboardTab>('palier');
   const [dleDay,    setDleDay]    = useState<DleDay>('today');
   const [nameInput, setNameInput] = useState(username || '');
   const [feedback,  setFeedback]  = useState<{ ok: boolean; msg: string } | null>(null);
@@ -154,6 +170,14 @@ export function LeaderboardPage() {
     : undefined,
   ), [allEntries, dleDay, todayKey, user, dleDailyDate, dleDailyGuesses, dleLastWinDate, dleRecentWins]);
   const myDleRow = dleRows.find(r => r.entry.uid === user?.uid);
+
+  const nakimeBestFloor = useGameStore(s => s.nakimeBestFloor);
+  const nakimeHistory   = useGameStore(s => s.nakimeHistory);
+  const nakimeTotals    = useGameStore(s => s.nakimeTotals);
+  const nakimeRows = useMemo(() => getNakimeRanking(allEntries, user
+    ? { uid: user.uid, data: { nakimeBestFloor, nakimeHistory, nakimeTotals } }
+    : undefined,
+  ), [allEntries, user, nakimeBestFloor, nakimeHistory, nakimeTotals]);
 
   const myEntry = entries.find(e => e.uid === user?.uid);
   const myRank  = myEntry ? entries.indexOf(myEntry) + 1 : null;
@@ -249,9 +273,9 @@ export function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Onglets — même lecture Firestore pour les deux */}
+        {/* Onglets — même lecture Firestore pour tous */}
         <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
-          {([['palier', '🏆 Palier max'], ['dle', '📅 GachaDle du jour']] as const).map(([id, label]) => (
+          {TABS.map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)}
               style={{ padding:'8px 14px', borderRadius:'8px', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', cursor:'pointer',
                 background: tab === id ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.03)',
@@ -266,6 +290,10 @@ export function LeaderboardPage() {
           <DleDailyTable rows={dleRows} loading={loading} myUid={user?.uid} day={dleDay} onDayChange={setDleDay}
             myRow={myDleRow} iWonDay={(dleRecentWins ?? []).some(w => w.date === getDleDayKey(dleDay, todayKey))}
             onOpenProfile={setProfileUid} />
+        )}
+
+        {tab === 'nakime' && (
+          <NakimeTable rows={nakimeRows} loading={loading} myUid={user?.uid} myBest={nakimeBestFloor ?? 0} onOpenProfile={setProfileUid} />
         )}
 
         {/* Tableau */}
@@ -442,6 +470,84 @@ function DleDailyTable({ rows, loading, myUid, day, onDayChange, myRow, iWonDay,
                 <div style={{ textAlign:'center', minWidth:70 }}>
                   <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>ESSAIS</div>
                   <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'18px', color:'#fbbf24' }}>{guesses}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Classement du Château de Nakime : record d'étages, ex æquo au même rang.
+// L'équipe du record s'affiche quand la run est encore dans l'historique.
+function NakimeTable({ rows, loading, myUid, myBest, onOpenProfile }: {
+  rows: NakimeRankingRow[];
+  loading: boolean;
+  myUid: string | undefined;
+  myBest: number;
+  onOpenProfile: (uid: string) => void;
+}) {
+  const myRow = rows.find(r => r.entry.uid === myUid);
+  const emptyStyle = { fontFamily:'var(--f-ui)', fontSize:'16px', color:'var(--text-dim)', padding:'20px 0' } as const;
+  return (
+    <div className="panel" style={{ padding:'20px' }}>
+      <div style={{ fontFamily:'var(--f-title)', fontSize:'16px', fontWeight:700, color:'var(--text)', letterSpacing:'1px', marginBottom:'6px' }}>
+        CHÂTEAU DE NAKIME : RECORD D&apos;ÉTAGES
+      </div>
+      <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', marginBottom:'16px' }}>
+        {myRow
+          ? <>Tu es classé <span style={{ color:'#fbbf24', fontWeight:700 }}>#{myRow.rank}</span> sur {rows.length} avec <b>{myRow.entry.nakime.best}</b> étage{myRow.entry.nakime.best > 1 ? 's' : ''}.</>
+          : myBest > 0 ? 'Ton record apparaîtra ici à la prochaine actualisation.'
+          : 'Termine une run dans le Château de Nakime (rubrique Activités) pour entrer dans le classement !'}
+      </div>
+      {loading && rows.length === 0 ? (
+        <div style={emptyStyle}>Chargement…</div>
+      ) : rows.length === 0 ? (
+        <div style={emptyStyle}>Personne n&apos;a encore exploré le château.</div>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+          {rows.map(({ entry, rank }) => {
+            const isMe = entry.uid === myUid;
+            const { best, runs, team } = entry.nakime;
+            return (
+              <div key={entry.uid} role="button" tabIndex={0} title={`Voir le profil de ${entry.username}`}
+                onClick={() => onOpenProfile(entry.uid)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenProfile(entry.uid); } }}
+                style={{
+                  display:'grid', gridTemplateColumns:'48px minmax(0, 1fr) auto', alignItems:'center', gap:'8px', cursor:'pointer',
+                  padding:'10px 16px', borderRadius:'10px',
+                  background: isMe ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
+                  border: isMe ? '1px solid rgba(168,85,247,0.4)' : '1px solid var(--border)',
+                }}>
+                <div style={{ fontFamily:'var(--f-num)', fontWeight:900, fontSize: rank <= 3 ? '22px' : '16px', color:getRankColor(rank - 1), textAlign:'center' }}>
+                  {getRankDisplay(rank - 1)}
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:'6px', minWidth:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
+                    <PlayerAvatar entry={entry} />
+                    <div style={{ display:'flex', flexDirection:'column', gap:'2px', minWidth:0, overflow:'hidden' }}>
+                      <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'16px', color: isMe ? '#c084fc' : 'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        {entry.username}{isMe && ' (toi)'}
+                      </div>
+                      {runs > 0 && (
+                        <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>{runs} run{runs > 1 ? 's' : ''}</div>
+                      )}
+                    </div>
+                  </div>
+                  {team.length > 0 && (
+                    <div style={{ display:'flex', gap:'4px', flexWrap:'wrap' }} aria-label="Équipe du record">
+                      {team.map(tid => {
+                        const tpl = getCharacterById(tid);
+                        return tpl ? <CharacterCardThumb key={tid} templateId={tid} name={tpl.name} rarity={tpl.rarity} width={32} height={44} /> : null;
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div style={{ textAlign:'center', minWidth:70 }}>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)' }}>ÉTAGES</div>
+                  <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'18px', color:'#fbbf24' }}>{best}</div>
                 </div>
               </div>
             );

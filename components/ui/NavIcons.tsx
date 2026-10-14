@@ -253,6 +253,19 @@ export function IconEvents({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconCastle({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Pagode à étages (Château de Nakime) */}
+      <path d="M10 2.5l-5 3h10z" />
+      <path d="M6.5 5.5v2.5h7V5.5" />
+      <path d="M3.5 10.5L6.5 8h7l3 2.5z" />
+      <path d="M5.5 10.5V17.5h9V10.5" />
+      <path d="M8.5 17.5v-3.5h3v3.5" />
+    </svg>
+  );
+}
+
 export function IconDice({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
@@ -307,6 +320,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   gachadle:     IconQuestion,
   periple:      IconDice,
   events:       IconEvents,
+  nakime:       IconCastle,
   leaderboard:  IconTrophy,
   marketplace:  IconMarket,
   champions:    IconVoidPortal,
