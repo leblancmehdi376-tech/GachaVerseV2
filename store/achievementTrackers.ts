@@ -261,3 +261,18 @@ export function trackCompleteSets(universeComplete: boolean, rarityComplete: boo
 export function trackGemsSpent(totalGemsSpent: number) {
   useGameStore.getState().setProgress('gems_spent_10k', Math.min(totalGemsSpent, 10000));
 }
+
+/** `discoveredCount` = liens légendaires découverts (voir countDiscoveredBonds), à vie. */
+export function trackBonds(discoveredCount: number) {
+  const s = useGameStore.getState();
+  s.setProgress('bond_1', Math.min(discoveredCount, 1));
+  s.setProgress('bond_all', Math.min(discoveredCount, s.getAchievement('bond_all')!.target));
+}
+
+/** Château de Nakime : record d'étages et capsules du Gachapon de l'Infini (à vie). */
+export function trackNakime(bestFloor: number, gachaPulls: number) {
+  const s = useGameStore.getState();
+  s.setProgress('nakime_floor_10', Math.min(bestFloor, 10));
+  s.setProgress('nakime_floor_50', Math.min(bestFloor, 50));
+  s.setProgress('nakime_gacha_50', Math.min(gachaPulls, 50));
+}

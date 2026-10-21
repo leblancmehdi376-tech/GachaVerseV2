@@ -12,6 +12,9 @@ import { RARITY_CONFIG, RARITY_ORDER_ASC, type CharacterTemplate, type OwnedChar
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { formatNumber } from '@/lib/game/format';
 import { RoleTag, TypeTag, fmtEntries } from './NakimeBits';
+import { AFFINITY_CONFIG } from '@/lib/game/affinities';
+import { getCosmicTide, TIDE_UP_MULT, TIDE_DOWN_MULT } from '@/lib/game/tides';
+import { pct } from '@/components/game/battle-zone/DpsBreakdownTooltip';
 
 // Dernière équipe composée, mémorisée sur cet appareil.
 const TEAM_KEY = 'gv_nakime_team';
@@ -80,7 +83,9 @@ export function NakimeTeamBuilder({ entriesLeft, entriesMax }: { entriesLeft: nu
   const teamTids = new Set(team.map(k => parseInstanceKey(k).templateId));
   const synergies = useMemo(() => computeSynergyProgress(team), [team]);
   const synPct = useMemo(() => nakimeSynergyAtkPct(team), [team]);
-  const bonus = { atkPct: 0, hpPct: 0, energy: 0, metaAtkPct: (meta?.team_atk ?? 0) * NAKIME_META_STAT_PCT, metaHpPct: (meta?.team_hp ?? 0) * NAKIME_META_STAT_PCT };
+  // Marée du jour comprise : c'est celle que la run gardera (voir createRun).
+  const tide = getCosmicTide();
+  const bonus = { atkPct: 0, hpPct: 0, energy: 0, metaAtkPct: (meta?.team_atk ?? 0) * NAKIME_META_STAT_PCT, metaHpPct: (meta?.team_hp ?? 0) * NAKIME_META_STAT_PCT, tideUp: tide.up, tideDown: tide.down };
   const power = teamPower(team, bonus, Object.fromEntries(team.map(k => [k, collection[k]?.edition])));
   const roles = new Set(team.map(k => byKey.get(k)?.role));
 
@@ -129,6 +134,10 @@ export function NakimeTeamBuilder({ entriesLeft, entriesMax }: { entriesLeft: nu
         <span className="chip">Puissance <b style={{ color: 'var(--gold-hi)' }}>{formatNumber(power)}</b></span>
       </div>
       <p className="nk-muted">Les places 1 et 2 forment le <b>front</b> : elles sont visées deux fois plus souvent. Touche une carte de l&apos;équipe pour la déplacer ou la retirer.</p>
+      <p className="nk-muted">
+        🌊 Marée du jour : <b style={{ color: AFFINITY_CONFIG[tide.up].color }}>{AFFINITY_CONFIG[tide.up].icon} {AFFINITY_CONFIG[tide.up].label}</b> {pct(TIDE_UP_MULT)} ATQ ·{' '}
+        <b style={{ color: AFFINITY_CONFIG[tide.down].color }}>{AFFINITY_CONFIG[tide.down].icon} {AFFINITY_CONFIG[tide.down].label}</b> {pct(TIDE_DOWN_MULT)} ATQ, pour toute la run.
+      </p>
 
       <div className="nk-slots">
         {Array.from({ length: NAKIME_TEAM_SIZE }, (_, i) => {

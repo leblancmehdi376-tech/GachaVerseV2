@@ -6,22 +6,27 @@ import { RarityBadge } from '@/components/ui/RarityBadge';
 import { EditionBadge } from '@/components/ui/EditionBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { getCharacterById } from '@/lib/game/characters';
-import { getDynamicRates, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
+import { getDynamicRates, getRateUpShare, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, FEATURED_RATE_UP, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
+import { getFeaturedBanner, SPARK_COSTS } from '@/lib/game/featuredBanner';
+import { msUntilNextDailyReset } from '@/lib/game/shop';
 import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
+import { useNow } from '@/hooks/useNow';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
-import { formatNumber } from '@/lib/game/format';
+import { formatNumber, formatTimeLeft } from '@/lib/game/format';
 import { PageScroll } from '@/components/ui/Page';
 import { GachaRevealOverlay } from './gacha/GachaRevealOverlay';
+import { SparkExchangeModal } from './gacha/SparkExchangeModal';
 import type { Res } from './gacha/gachaTypes';
 
 // Dernier volume de gacha sélectionné, mémorisé en local uniquement (pas
 // dans la sauvegarde cloud) pour réatterrir dessus en revenant sur la page.
 const BANNER_STORAGE_KEY = 'gv_gacha_banner';
+const BANNER_IDS: BannerId[] = [...GACHA_BANNERS.map(b => b.id), 'featured'];
 function loadBannerId(): BannerId {
   try {
     const saved = localStorage.getItem(BANNER_STORAGE_KEY);
-    if (saved && GACHA_BANNERS.some(b => b.id === saved)) return saved as BannerId;
+    if (saved && BANNER_IDS.includes(saved as BannerId)) return saved as BannerId;
   } catch {}
   return DEFAULT_BANNER_ID;
 }
@@ -83,8 +88,19 @@ export function GachaPage() {
   // Incrémenté à chaque clic sans assez de gemmes : relance l'animation du compteur.
   const [gemShake,    setGemShake]    = useState(0);
   const onInsufficient = () => setGemShake(n => n + 1);
-  const banner = getBanner(bannerId);
+  // Bannière vedette : nouvel univers tiré chaque jour à 2h. Horloge à la
+  // minute pour le compte à rebours et pour basculer si la page reste ouverte.
+  const now = useNow(60_000);
+  const featuredBanner = getFeaturedBanner();
+  const featuredUniverse = featuredBanner.subtitle;
+  const banners = [...GACHA_BANNERS, featuredBanner];
+  const isFeatured = bannerId === 'featured';
+  const banner = isFeatured ? featuredBanner : getBanner(bannerId);
   const theme  = banner.theme;
+  const { gachaSparks, exchangeSparks } = useGameStore(useShallow(s => ({ gachaSparks: s.gachaSparks ?? 0, exchangeSparks: s.exchangeSparks })));
+  const [showExchange, setShowExchange] = useState(false);
+  // Repère de la jauge d'Étincelles : le prix d'un perso Stellaire.
+  const sparkTarget = SPARK_COSTS.S;
   // Taux dynamiques calculés pour le palier max atteint DEPUIS LE DERNIER
   // PRESTIGE (pas le lifetime maxPalierReached, qui ne redescend jamais).
   const maxPalierReached = useGameStore(s => s.getRunPeakPalier());
@@ -134,24 +150,39 @@ export function GachaPage() {
 
   const handleClose = () => { setShowOverlay(false); setResults([]); };
 
+  const doExchange = (templateId: string) => {
+    const wasNew = !collection[templateId];
+    const res = exchangeSparks(templateId);
+    if (!res) return;
+    setShowExchange(false);
+    setResults([{ templateId: res.templateId, isNew: wasNew, edition: res.edition }]);
+    setShowOverlay(true);
+  };
+
   return (
     <PageScroll>
       {showOverlay && <GachaRevealOverlay results={results} onClose={handleClose} />}
+      {showExchange && (
+        <SparkExchangeModal universe={featuredUniverse} sparks={gachaSparks} runPeakPalier={maxPalierReached}
+          collection={collection} onExchange={doExchange} onClose={() => setShowExchange(false)} />
+      )}
 
-        {/* Choix de la bannière */}
-        <div style={{ display:'flex', gap:8 }}>
-          {GACHA_BANNERS.map(b => {
+        {/* Choix de la bannière — 3 onglets : sur téléphone, 2 par ligne et la vedette en dessous */}
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+          {banners.map(b => {
             const active = b.id === bannerId;
             const t = b.theme;
             return (
               <button key={b.id} onClick={() => setBannerId(b.id)}
-                style={{ flex:1, padding:'10px 14px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:active?`linear-gradient(135deg,${t.dark},${t.deep})`:'var(--bg-card)', border:`1px solid ${active?t.accent:'var(--border)'}`, boxShadow:active?`0 0 18px ${t.glow}`:'none', display:'flex', flexDirection:'column', alignItems:'center', gap:2, position:'relative', overflow:'hidden' }}>
+                style={{ flex:'1 1 150px', minWidth:0, padding:'10px 14px', borderRadius:10, cursor:'pointer', transition:'all 0.15s', background:active?`linear-gradient(135deg,${t.dark},${t.deep})`:'var(--bg-card)', border:`1px solid ${active?t.accent:'var(--border)'}`, boxShadow:active?`0 0 18px ${t.glow}`:'none', display:'flex', flexDirection:'column', alignItems:'center', gap:2, position:'relative', overflow:'hidden', textAlign:'center' }}>
                 {b.isNew && (
                   // Ruban en diagonale sur le coin haut-gauche, façon paquet cadeau.
                   <span className="gacha-new-ribbon" style={{ position:'absolute', top:9, left:-26, width:88, background:'linear-gradient(90deg,#f59e0b,#fde047,#f59e0b)', color:'#3b1d00', fontFamily:'var(--f-num)', fontWeight:900, fontSize:14, letterSpacing:2, textAlign:'center', padding:'2px 0', boxShadow:'0 2px 6px rgba(0,0,0,0.5)', borderTop:'1px solid rgba(255,255,255,0.6)', borderBottom:'1px solid rgba(120,53,15,0.6)', pointerEvents:'none' }}>NEW</span>
                 )}
-                <span style={{ fontFamily:'var(--f-title)', fontSize:16, fontWeight:900, letterSpacing:2, color:active?'white':'var(--text-sub)' }}>{b.title}</span>
-                <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:active?t.hi:'var(--text-muted)' }}>{b.subtitle} · {b.pool.length}</span>
+                <span style={{ fontFamily:'var(--f-title)', fontSize:16, fontWeight:900, letterSpacing:2, lineHeight:1.2, color:active?'white':'var(--text-sub)' }}>{b.title}</span>
+                <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:active?t.hi:'var(--text-muted)' }}>
+                  {b.id === 'featured' ? `✦ ${b.subtitle}` : `${b.subtitle} · ${b.pool.length}`}
+                </span>
               </button>
             );
           })}
@@ -194,12 +225,39 @@ export function GachaPage() {
             <div>
               <div style={{ fontFamily:'var(--f-title)', fontSize:22, fontWeight:900, color:'white', letterSpacing:2, textShadow:`0 0 18px ${theme.accent}, 0 2px 4px rgba(0,0,0,0.8)` }}>{banner.title}</div>
               <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:`${theme.hi}bb` }}>
-                {banner.pool.length} personnages · 10 raretés · cartes shiny
+                {isFeatured
+                  ? <>{featuredUniverse} à l&apos;honneur · chances ×{FEATURED_RATE_UP} · change dans {formatTimeLeft(msUntilNextDailyReset(now))}</>
+                  : `${banner.pool.length} personnages · 10 raretés · cartes shiny`}
               </div>
             </div>
-            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:theme.hi, letterSpacing:2, border:`1px solid ${theme.accent}77`, borderRadius:20, padding:'4px 12px', background:'rgba(0,0,0,0.3)' }}>✦ BANNIÈRE EXCLUSIVE</div>
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:theme.hi, letterSpacing:2, border:`1px solid ${theme.accent}77`, borderRadius:20, padding:'4px 12px', background:'rgba(0,0,0,0.3)' }}>
+              {isFeatured ? '✦ UNIVERS DU JOUR' : '✦ BANNIÈRE EXCLUSIVE'}
+            </div>
           </div>
         </div>
+
+        {/* Bannière vedette : Étincelles (1 par invocation) à échanger contre un perso au choix */}
+        {isFeatured && (
+          <div className="panel" style={{ padding:'14px 18px', display:'flex', alignItems:'center', gap:14, flexWrap:'wrap', borderColor:`${theme.accent}55` }}>
+            <span style={{ fontSize:24, flexShrink:0 }} aria-hidden>✨</span>
+            <div style={{ flex:'1 1 200px', minWidth:0 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, marginBottom:6, flexWrap:'wrap' }}>
+                <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:theme.hi, letterSpacing:2 }}>ÉTINCELLES</span>
+                <span style={{ fontFamily:'var(--f-num)', fontSize:14, color:'var(--text-dim)' }}>{formatNumber(gachaSparks)} ✨ · Stellaire à {sparkTarget}</span>
+              </div>
+              <div className="prog-track">
+                <div className="prog-fill" style={{ width:`${Math.min(100, (gachaSparks / sparkTarget) * 100)}%`, background:`linear-gradient(90deg,${theme.deep},${theme.accent})`, boxShadow:`0 0 6px ${theme.accent}` }} />
+              </div>
+              <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-muted)', marginTop:6, lineHeight:1.4 }}>
+                +1 par invocation ici, conservées d&apos;un jour à l&apos;autre. Échange-les contre le perso {featuredUniverse} de ton choix.
+              </div>
+            </div>
+            <button onClick={() => setShowExchange(true)}
+              style={{ flexShrink:0, minHeight:44, padding:'0 18px', borderRadius:10, cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:800, fontSize:14, letterSpacing:1.5, color:'#1a1003', background:`linear-gradient(135deg, ${theme.hi}, ${theme.accent})`, border:'none', boxShadow:`0 0 14px ${theme.glow}` }}>
+              ÉCHANGER
+            </button>
+          </div>
+        )}
 
         {/* Gems + Boutons */}
         <div className="gacha-pull-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr 1fr 1fr', gap:12, alignItems:'stretch' }}>
@@ -249,6 +307,11 @@ export function GachaPage() {
               <div style={{ background:'rgba(124,58,237,0.08)', border:'1px solid var(--border-glow)', borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(192,132,252,0.8)', lineHeight:1.6 }}>
                 💡 Chaque rareté se débloque à partir d'un certain palier (voir 🔒 ci-dessous). Une fois débloquée, plus tu montes en palier, plus ses chances augmentent et se normalisent !
               </div>
+              {isFeatured && (
+                <div style={{ background:`${theme.accent}14`, border:`1px solid ${theme.accent}55`, borderRadius:8, padding:'10px 14px', fontFamily:'var(--f-ui)', fontSize:14, color:theme.hi, lineHeight:1.6 }}>
+                  ✦ Mêmes taux par rareté que la Vol.1 mais, à rareté égale, les persos {featuredUniverse} ont {FEATURED_RATE_UP} fois plus de chances de tomber. Leur part est indiquée sous chaque rareté.
+                </div>
+              )}
 
               {/* Taux par rareté */}
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -259,15 +322,24 @@ export function GachaPage() {
                   const maxRate    = Math.max(...all.map(x => currentRates[x] ?? 0));
                   const fillPct    = maxRate > 0 ? Math.min(100, (rate / maxRate) * 100) : 0;
                   const rateTxt    = formatDropRate(rate);
+                  // Bannière vedette : part de l'univers vedette dans cette rareté.
+                  const featuredRate = isFeatured && rate > 0 ? rate * getRateUpShare(r, featuredUniverse) : 0;
                   return (
-                    <div key={r} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', background:'rgba(255,255,255,0.02)', borderRadius:8 }}>
-                      <div style={{ width:132, flexShrink:0 }}><RarityBadge rarity={r} /></div>
-                      <div className="prog-track" style={{ flex:1 }}>
-                        <div className="prog-fill" style={{ width:`${fillPct}%`, background:`linear-gradient(90deg,${cfg2.color}88,${cfg2.color})`, boxShadow:`0 0 6px ${cfg2.glow}` }} />
+                    <div key={r} style={{ padding:'8px 12px', background:'rgba(255,255,255,0.02)', borderRadius:8 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:132, flexShrink:0 }}><RarityBadge rarity={r} /></div>
+                        <div className="prog-track" style={{ flex:1 }}>
+                          <div className="prog-fill" style={{ width:`${fillPct}%`, background:`linear-gradient(90deg,${cfg2.color}88,${cfg2.color})`, boxShadow:`0 0 6px ${cfg2.glow}` }} />
+                        </div>
+                        <div style={{ display:'flex', gap:10, flexShrink:0, alignItems:'center' }}>
+                          <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:16, color:cfg2.color, minWidth:64, textAlign:'right' }}>{rateTxt}</span>
+                        </div>
                       </div>
-                      <div style={{ display:'flex', gap:10, flexShrink:0, alignItems:'center' }}>
-                        <span style={{ fontFamily:'var(--f-num)', fontWeight:700, fontSize:16, color:cfg2.color, minWidth:64, textAlign:'right' }}>{rateTxt}</span>
-                      </div>
+                      {featuredRate > 0 && (
+                        <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:theme.hi, textAlign:'right', marginTop:4 }}>
+                          ✦ dont {formatDropRate(featuredRate)} pour un perso {featuredUniverse}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -277,12 +349,15 @@ export function GachaPage() {
               <div style={{ borderTop:'1px solid var(--border)', paddingTop:14 }}>
                 <div style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-dim)', letterSpacing:2, marginBottom:10 }}>TOUS LES PERSONNAGES</div>
                 <div className="gacha-pool-grid" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
-                  {banner.pool.map(tpl => {
+                  {/* Bannière vedette : persos de l'univers vedette en tête, liseré doré. */}
+                  {(isFeatured ? [...banner.pool].sort((a, b) => Number(b.universe === featuredUniverse) - Number(a.universe === featuredUniverse)) : banner.pool).map(tpl => {
                     const cfg       = RARITY_CONFIG[tpl.rarity];
                     const owned     = collection[tpl.id];
                     const rarLocked = maxPalierReached < RARITY_GATES[tpl.rarity].unlockPalier;
+                    const spotlight = isFeatured && tpl.universe === featuredUniverse;
                     return (
-                      <div key={tpl.id} style={{ background:owned?`${cfg.color}0d`:'rgba(255,255,255,0.02)', border:`1px solid ${owned?cfg.color+'55':'var(--border)'}`, borderRadius:8, padding:'10px 6px', display:'flex', flexDirection:'column', alignItems:'center', gap:5, opacity: rarLocked ? 0.3 : owned ? 1 : 0.55 }}>
+                      <div key={tpl.id} style={{ background:owned?`${cfg.color}0d`:'rgba(255,255,255,0.02)', border:`1px solid ${spotlight ? theme.accent : owned?cfg.color+'55':'var(--border)'}`, borderRadius:8, padding:'10px 6px', display:'flex', flexDirection:'column', alignItems:'center', gap:5, opacity: rarLocked ? 0.3 : owned || spotlight ? 1 : 0.55 }}>
+                        {spotlight && <span style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:theme.hi }}>✦ VEDETTE</span>}
                         <CharacterCardThumb templateId={tpl.id} formIndex={owned?.currentForm??0} name={tpl.name} rarity={tpl.rarity} edition={owned?.edition} width={48} height={66} frameOverlay />
                         <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'var(--text-sub)', textAlign:'center', lineHeight:1.2 }}>{tpl.name}</span>
                         <RarityBadge rarity={tpl.rarity} size="xs" />

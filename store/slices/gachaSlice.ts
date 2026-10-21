@@ -2,7 +2,8 @@
 // Extrait de gameStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
 import { defaultEquippedItems } from '@/types/game';
-import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, DEFAULT_BANNER_ID } from '@/lib/game/gacha';
+import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, DEFAULT_BANNER_ID, type BannerId } from '@/lib/game/gacha';
+import { getFeaturedUniverse, canExchangeForCharacter, SPARK_COSTS } from '@/lib/game/featuredBanner';
 import { getCharacterById } from '@/lib/game/characters';
 import { getVoidOrbsForCharacter } from '@/lib/game/shop';
 import {
@@ -22,6 +23,23 @@ import { STAT } from '@/lib/game/achievements';
 // chevauche plusieurs paliers de 100 d'un coup.
 function anomalyTokensEarned(before: number, after: number): number {
   return Math.floor(after / 100) - Math.floor(before / 100);
+}
+
+// Bannière vedette : univers mis en avant aujourd'hui (rate-up du tirage).
+function rateUpFor(bannerId: BannerId): string | undefined {
+  return bannerId === 'featured' ? getFeaturedUniverse() : undefined;
+}
+
+// Compteurs communs à tout tirage de `count` invocations (même set() que
+// totalGachaPulls) : Jetons d'Anomalie et, sur la bannière vedette, 1
+// Étincelle par invocation.
+function pullCountersPatch(s: GameStore, bannerId: BannerId, count: number): Partial<GameStore> {
+  const total = (s.totalGachaPulls ?? 0) + count;
+  return {
+    totalGachaPulls: total,
+    anomalyTokens: s.anomalyTokens + anomalyTokensEarned(s.totalGachaPulls ?? 0, total),
+    ...(bannerId === 'featured' && { gachaSparks: (s.gachaSparks ?? 0) + count }),
+  };
 }
 
 export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (set, get) => ({
@@ -44,15 +62,13 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     const cost = get().getGachaCosts().single;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
-    const id = rollCharacter(runPeakPalierOf(get()), bannerId);
+    const id = rollCharacter(runPeakPalierOf(get()), bannerId, rateUpFor(bannerId));
     const edition = get().addToCollection(id);
     get().recordGachaResults([id], bannerId === 'vol2');
     get().bumpQuestProgress('d_gacha', 1);
     get().bumpQuestProgress('w_gacha', 1);
-    set(s => {
-      const total = (s.totalGachaPulls ?? 0) + 1;
-      return { totalGachaPulls: total, anomalyTokens: s.anomalyTokens + anomalyTokensEarned(s.totalGachaPulls ?? 0, total) };
-    });
+    set(s => pullCountersPatch(s, bannerId, 1));
+    if (bannerId === 'featured') get().addStat(STAT.featuredPulls, 1);
     broadcastLocalState();
     requestUrgentSave('gacha_single');
     return { templateId: id, edition };
@@ -61,15 +77,13 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     const cost = get().getGachaCosts().multi10;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
-    const ids = rollMulti(runPeakPalierOf(get()), bannerId);
+    const ids = rollMulti(runPeakPalierOf(get()), bannerId, rateUpFor(bannerId));
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().recordGachaResults(ids, bannerId === 'vol2');
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);
-    set(s => {
-      const total = (s.totalGachaPulls ?? 0) + ids.length;
-      return { totalGachaPulls: total, anomalyTokens: s.anomalyTokens + anomalyTokensEarned(s.totalGachaPulls ?? 0, total) };
-    });
+    set(s => pullCountersPatch(s, bannerId, ids.length));
+    if (bannerId === 'featured') get().addStat(STAT.featuredPulls, ids.length);
     broadcastLocalState();
     requestUrgentSave('gacha_multi10');
     return results;
@@ -78,15 +92,13 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     const cost = get().getGachaCosts().multi100;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
-    const ids = rollMulti100(runPeakPalierOf(get()), bannerId);
+    const ids = rollMulti100(runPeakPalierOf(get()), bannerId, rateUpFor(bannerId));
     const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
     get().recordGachaResults(ids, bannerId === 'vol2');
     get().bumpQuestProgress('d_gacha', ids.length);
     get().bumpQuestProgress('w_gacha', ids.length);
-    set(s => {
-      const total = (s.totalGachaPulls ?? 0) + ids.length;
-      return { totalGachaPulls: total, anomalyTokens: s.anomalyTokens + anomalyTokensEarned(s.totalGachaPulls ?? 0, total) };
-    });
+    set(s => pullCountersPatch(s, bannerId, ids.length));
+    if (bannerId === 'featured') get().addStat(STAT.featuredPulls, ids.length);
     broadcastLocalState();
     requestUrgentSave('gacha_multi100');
     return results;
@@ -128,6 +140,23 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     });
     get().setQuestProgress('e_collection_100', Object.keys(get().collection).length);
     return edition;
+  },
+
+  exchangeSparks: (templateId) => {
+    const s = get();
+    const tpl = getCharacterById(templateId);
+    if (!tpl || !canExchangeForCharacter(tpl, getFeaturedUniverse(), runPeakPalierOf(s))) return null;
+    // Carte déjà Prismatique : l'obtenir de nouveau la recyclerait en Orbes.
+    const owned = s.collection[templateId];
+    if (owned && getEditionPoints(owned) >= EDITION_MAX_POINTS) return null;
+    const cost = SPARK_COSTS[tpl.rarity];
+    if ((s.gachaSparks ?? 0) < cost) return null;
+    set(st => ({ gachaSparks: (st.gachaSparks ?? 0) - cost }));
+    const edition = get().addToCollection(templateId);
+    get().addStat(STAT.sparkExchanges);
+    broadcastLocalState();
+    requestUrgentSave('gacha_sparks');
+    return { templateId, edition };
   },
 
   buyRaidCharacter: (bossId) => {

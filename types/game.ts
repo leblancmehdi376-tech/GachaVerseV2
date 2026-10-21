@@ -201,6 +201,9 @@ export interface GameState {
   // aucune autre action : on n'y fait qu'AJOUTER (voir useCompadexTracker).
   compadexCharactersSeen: Record<string, true>;
   compadexEquipmentSeen: Record<string, true>;
+  // Liens légendaires déjà réunis au moins une fois (voir lib/game/bonds.ts) —
+  // même règle que le Compadex : jamais vidé, on ne fait qu'y ajouter.
+  discoveredBonds: Record<string, true>;
   hero: HeroState;
   bossActive: boolean; bossTimeLeft: number; lastSaved: number;
   bossAvoided: boolean;

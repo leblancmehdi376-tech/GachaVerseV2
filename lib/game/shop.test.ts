@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateDailyShopCharacters, getVoidOrbsForCharacter, liquidateChampionInventory } from './shop';
+import { generateDailyShopCharacters, getVoidOrbsForCharacter, liquidateChampionInventory, msUntilNextDailyReset } from './shop';
 import { getCharacterById } from './characters';
 
 describe('generateDailyShopCharacters', () => {
@@ -44,5 +44,19 @@ describe('liquidateChampionInventory', () => {
     const data: Record<string, unknown> = { championInventory: { minato: 1 } };
     expect(liquidateChampionInventory(data)).toBe(0);
     expect(data.championInventory).toEqual({ minato: 1 });
+  });
+});
+
+describe('msUntilNextDailyReset (2h Paris)', () => {
+  it('le prochain reset quotidien arrive dans moins de 24 h', () => {
+    const ms = msUntilNextDailyReset();
+    expect(ms).toBeGreaterThan(0);
+    expect(ms).toBeLessThanOrEqual(24 * 3600 * 1000);
+  });
+
+  it('diminue avec le temps qui passe (même journée de jeu)', () => {
+    const now = Date.now();
+    const ms = msUntilNextDailyReset(now);
+    if (ms > 60_000) expect(msUntilNextDailyReset(now + 60_000)).toBe(ms - 60_000);
   });
 });

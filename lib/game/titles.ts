@@ -30,6 +30,9 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = {
   // ── GachaDle — toutes les quêtes accomplies (succès dle_pro) ─────────
   'Pro du GachaverseDLE': 10,
 
+  // ── Liens légendaires — tous découverts (succès bond_all) ────────────
+  '🔗 Maître des Liens': 12,
+
   // ── Le Grand Périple du Multivers — dernier palier (voir PERIPLE_TITLE) ──
   '🗺️ Grand Voyageur du Multivers': 15,
 

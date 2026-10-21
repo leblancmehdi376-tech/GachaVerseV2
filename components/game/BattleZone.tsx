@@ -13,6 +13,7 @@ import { BattleParticles } from '@/components/game/BattleParticles';
 import { bnDivRatio, bnIsZero, type BigNum } from '@/lib/game/bignum';
 import { PalierBg } from '@/components/game/battle-zone/PalierBg';
 import { ActiveBoostsBar } from '@/components/game/battle-zone/ActiveBoostsBar';
+import { CosmicTideBar } from '@/components/game/battle-zone/CosmicTideBar';
 import { PalierTravelModal } from '@/components/game/battle-zone/PalierTravelModal';
 import { EnemyHud } from '@/components/game/battle-zone/EnemyHud';
 import { TeamBar } from '@/components/game/battle-zone/TeamBar';
@@ -28,6 +29,7 @@ const MemoBattleParticles = memo(BattleParticles);
 const MemoRandomEventOverlay = memo(RandomEventOverlay);
 const MemoActiveUltsBar = memo(ActiveUltsBar);
 const MemoActiveBoostsBar = memo(ActiveBoostsBar);
+const MemoCosmicTideBar = memo(CosmicTideBar);
 const MemoTeamBar = memo(TeamBar);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,6 +116,7 @@ export function BattleZone() {
 
       {/* Barre des effets actifs */}
       <MemoActiveUltsBar />
+      <MemoCosmicTideBar />
       <MemoActiveBoostsBar />
 
       {/* ENNEMI centré */}

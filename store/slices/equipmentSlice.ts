@@ -9,6 +9,24 @@ import {
 import type { GameStore, EquipmentActions } from '../gameStore.types';
 import { STAT } from '@/lib/game/achievements';
 
+// Rend à l'inventaire tout l'équipement porté par `key` (retrait de l'équipe,
+// voir characterSlice), sous forme de patch à fusionner dans un set()
+// existant — {} si le perso ne porte rien.
+export function unequipAllPatch(
+  state: Pick<GameStore, 'collection' | 'equipmentInventory'>,
+  key: string,
+): Partial<Pick<GameStore, 'collection' | 'equipmentInventory'>> {
+  const owned = state.collection[key];
+  const worn = Object.values(owned?.equippedItems ?? {}).filter((id): id is string => !!id);
+  if (!owned || worn.length === 0) return {};
+  const equipmentInventory = { ...state.equipmentInventory };
+  for (const id of worn) equipmentInventory[id] = (equipmentInventory[id] ?? 0) + 1;
+  return {
+    collection: { ...state.collection, [key]: { ...owned, equippedItems: defaultEquippedItems() } },
+    equipmentInventory,
+  };
+}
+
 export const createEquipmentSlice: StateCreator<GameStore, [], [], EquipmentActions> = (set, get) => ({
   addItem: (itemId, qty = 1) => set(s => ({
     inventory: { ...s.inventory, [itemId]: (s.inventory[itemId] ?? 0) + qty },

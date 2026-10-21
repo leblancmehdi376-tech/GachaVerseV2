@@ -11,6 +11,7 @@ import { EQUIPMENT_DEFS } from '@/lib/game/items';
 import { computeActiveSynergies } from '@/lib/game/synergies';
 import { isEditionAtLeast, type CardEdition } from '@/lib/game/editions';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
+import { countDiscoveredBonds } from '@/lib/game/bonds';
 import { countDleQuestsDone } from '@/lib/game/gachadle';
 import { getDleStats } from '@/store/slices/gachaDleSlice';
 import {
@@ -19,6 +20,7 @@ import {
   trackVoidOrbs, trackUnlockedTitles, trackGachaPulls, trackShinyEditions, trackRank7, trackSynergyMax,
   trackCompadexCharacters, trackCompadexEquipment, trackCompadexBoth, trackDleQuests,
   trackAchievementStats, trackMastery, trackSeenRarities, trackCompleteSets, trackGemsSpent,
+  trackBonds, trackNakime,
 } from '@/store/achievementTrackers';
 
 // Personnages "collectionnables" (hors héros), groupés par licence et par
@@ -72,8 +74,13 @@ export function useAchievementTrackers() {
   const charMastery = useGameStore(s => s.charMastery);
   const totalGemsSpent = useGameStore(s => s.totalGemsSpent);
   const dleQuestsDone = useGameStore(s => countDleQuestsDone(getDleStats(s)));
+  const discoveredBonds = useGameStore(s => s.discoveredBonds);
+  const nakimeBestFloor = useGameStore(s => s.nakimeBestFloor);
+  const nakimeGachaPulls = useGameStore(s => s.nakimeGachaPulls);
 
   useEffect(() => { trackAchievementStats(achievementStats ?? {}); }, [achievementStats]);
+  useEffect(() => { trackBonds(countDiscoveredBonds(discoveredBonds ?? {})); }, [discoveredBonds]);
+  useEffect(() => { trackNakime(nakimeBestFloor ?? 0, nakimeGachaPulls ?? 0); }, [nakimeBestFloor, nakimeGachaPulls]);
   useEffect(() => { trackMastery(charMastery ?? {}); }, [charMastery]);
   useEffect(() => { trackGemsSpent(totalGemsSpent ?? 0); }, [totalGemsSpent]);
   // Secret "Six-Seven" : posséder exactement 67 Neko-Gemmes.
@@ -95,6 +102,8 @@ export function useAchievementTrackers() {
       a.threshold === a.def.thresholds[a.def.thresholds.length - 1]
     );
     trackSynergyMax(hasMax);
+    // Liens légendaires réunis pour la première fois → découverts.
+    useGameStore.getState().discoverActiveBonds();
   }, [equippedTeam]);
   useEffect(() => { trackDps(totalDps); }, [totalDps]);
   useEffect(() => { trackKills(totalKills); }, [totalKills]);

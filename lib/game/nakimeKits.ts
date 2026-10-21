@@ -121,7 +121,6 @@ const K: Record<string, string> = {
   zenitsu:        "assassin|Premier mouvement : Éclair foudroyant@sn_exec@⚡|Sixfold@sk_flurry@🌩️",
   // ── Digital Circus ──
   gangle:         "soigneur|Masque comique@hl_heal@🎭",
-  garry_fish:     "soigneur|Écaille brillante@hl_heal@🐟",
   gummigoo:       "gardien|Garde de bonbon@gd_taunt@🍬",
   jax:            "assassin|Coup bas de Jax@sn_lowblow@🐰|Blague cruelle@sn_poison@😈",
   kinger:         "gardien|Forteresse d'oreillers@gd_wall@🛏️|Échec et mat@gd_bash@♟️|Lucidité du Roi@gd_ult@👑",
@@ -401,6 +400,7 @@ const K: Record<string, string> = {
   yor:            "assassin|Thorn Princess@sn_exec@🌹|Coup de pied d'Yor@as_charge@🦵",
   // ── Subnautica ──
   anguille_tesla: "mage|Décharge électrique@mg_bolt@⚡",
+  garry_fish:     "soigneur|Écaille brillante@hl_heal@🐟",
   leviathan_tenebreux: "assassin|Embuscade des abysses@sn_exec@🦑|Morsure obscure@sn_poison@🌑|Prédateur des abysses@sn_ult@🌊",
   reaper_leviathan: "assaillant|Rugissement@mg_curse@🔊|Morsure du Reaper@as_charge@🦈",
   sea_emperor:    "soigneur|Chant de l'Empereur@hl_prayer@🐋|Enzyme 42@hl_purify@🧪",

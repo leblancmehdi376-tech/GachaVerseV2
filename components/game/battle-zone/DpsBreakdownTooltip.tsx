@@ -72,7 +72,12 @@ function BreakdownContent({ b }: { b: DpsBreakdown }) {
                       ))}</>} />
                 )}
                 {c.selfUltMult !== 1 && <Row sub label="Ultime" value={pct(c.selfUltMult)} color={bonus(c.selfUltMult)} />}
+                {c.bondMult !== 1 && (
+                  <Row sub value={pct(c.bondMult)} color={bonus(c.bondMult)}
+                    label={<>Lien{c.bonds.length > 1 ? 's' : ''} {c.bonds.map(b => `${b.icon} ${b.name}`).join(', ')}</>} />
+                )}
                 {c.typeMult !== 1 && <Row sub label={`${c.typeMult > 1 ? 'Avantage' : 'Désavantage'} de type`} value={pct(c.typeMult)} color={bonus(c.typeMult)} />}
+                {c.tideMult !== 1 && <Row sub label={`Marée ${c.tideMult > 1 ? 'haute' : 'basse'}`} value={pct(c.tideMult)} color={bonus(c.tideMult)} />}
               </div>
             );
           })}

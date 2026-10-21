@@ -70,6 +70,8 @@ export function getSerializableState() {
     // correctif : un refresh/reconnexion faisait revenir le prix à son
     // tarif de départ (bug mineur, favorable au joueur).
     raidCharacterPurchases: s.raidCharacterPurchases ?? {},
+    // Étincelles de la bannière vedette (dépensables, "dernier gagne" comme les gemmes).
+    gachaSparks: s.gachaSparks ?? 0,
     // Fusion/drop d'équipement débloqués par rareté (via expéditions) — vraie
     // progression, jamais synchronisée avant ce correctif : revenait à ['C']
     // sur tout nouvel appareil, rebloquant équipement et expéditions déjà acquis.
@@ -132,6 +134,8 @@ export function getSerializableState() {
     // doit donc être synchronisé pour survivre à un changement d'appareil.
     compadexCharactersSeen: s.compadexCharactersSeen ?? {},
     compadexEquipmentSeen:  s.compadexEquipmentSeen ?? {},
+    // Liens légendaires découverts — même règle que le Compadex.
+    discoveredBonds:        s.discoveredBonds ?? {},
     // GachaDle — jamais reset au Prestige. Les essais du défi du jour sont
     // synchronisés pour qu'un autre appareil ne puisse pas le rejouer.
     dleDailyDate:     s.dleDailyDate ?? '',
@@ -207,6 +211,7 @@ export function mergeMonotonicState(
 ): {
   achievementsClaimed: Record<string, boolean>; unlockedTitles: string[]; activeTitle: string;
   compadexCharactersSeen: Record<string, true>; compadexEquipmentSeen: Record<string, true>;
+  discoveredBonds: Record<string, true>;
   achievementStats: Record<string, number>; charMastery: Record<string, CharMastery>;
   dleQuestsClaimed: string[];
   peripleQuestsClaimed: string[]; peripleTiersClaimed: number[]; peripleStats: PeripleStats;
@@ -240,6 +245,9 @@ export function mergeMonotonicState(
   const compadexEquipmentSeen: Record<string, true> = { ...current.compadexEquipmentSeen };
   const remoteEquip = remote?.compadexEquipmentSeen as Record<string, unknown> | undefined;
   if (remoteEquip) for (const id of Object.keys(remoteEquip)) compadexEquipmentSeen[id] = true;
+  const discoveredBonds: Record<string, true> = { ...(current.discoveredBonds ?? {}) };
+  const remoteBonds = remote?.discoveredBonds as Record<string, unknown> | undefined;
+  if (remoteBonds) for (const id of Object.keys(remoteBonds)) discoveredBonds[id] = true;
 
   // Statistiques de succès : max par clé. Quelques clés ne sont pas
   // strictement croissantes (série de victoires en cours, dernier palier
@@ -300,7 +308,7 @@ export function mergeMonotonicState(
 
   return {
     nakimeMilestones: Array.from(nakimeMilestones).sort((a, b) => a - b),
-    achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen, achievementStats, charMastery,
+    achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen, discoveredBonds, achievementStats, charMastery,
     dleQuestsClaimed: Array.from(dleQuestsClaimed),
     peripleQuestsClaimed: Array.from(peripleQuestsClaimed),
     peripleTiersClaimed: Array.from(peripleTiersClaimed).sort((a, b) => a - b),
@@ -350,6 +358,7 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   delete data.activeTitle;
   delete data.compadexCharactersSeen;
   delete data.compadexEquipmentSeen;
+  delete data.discoveredBonds;
   delete data.achievementStats;
   delete data.charMastery;
   delete data.dleQuestsClaimed;

@@ -111,8 +111,13 @@ export interface CharacterSlice {
   // Cohésion d'équipe (combat de l'accueil uniquement) — voir lib/game/cohesion.ts
   getTeamCohesion: () => CohesionResult;
   getCharDpsBreakdown: (templateId: string) => { base: BigNum; typeMult: number; final: BigNum };
+  // Retirer un perso de l'équipe (slot vidé ou remplacé) lui retire aussi
+  // tout son équipement, rendu à l'inventaire.
   equipCharacter: (id: string, slot: number) => void;
   unequipCharacter: (slot: number) => void;
+  // Liens légendaires réunis dans l'équipe mais pas encore découverts →
+  // ajoutés à discoveredBonds (toast de découverte). Voir lib/game/bonds.ts.
+  discoverActiveBonds: () => void;
 }
 
 // Détail du DPS d'équipe affiché au survol du DPS (combat de l'accueil).
@@ -129,6 +134,9 @@ export interface DpsBreakdownChar {
   synergies: { label: string; color: string; global: boolean }[]; // synergies qui s'appliquent à CE perso
   selfUltMult: number;    // ultime personnel actif
   typeMult: number;       // avantage/désavantage de type vs l'ennemi (+ anomalies de type)
+  tideMult: number;       // Marée cosmique du jour (voir lib/game/tides.ts)
+  bondMult: number;       // Liens légendaires actifs dont le perso fait partie
+  bonds: { name: string; icon: string }[];
 }
 export interface DpsBreakdown {
   total: BigNum;
@@ -185,6 +193,9 @@ export interface GachaState {
   // Nombre d'achats déjà effectués par boss : le prix (getRaidCharacterCost)
   // augmente de 10% à chaque achat.
   raidCharacterPurchases: Record<string, number>;
+  // Étincelles de la bannière vedette (1 par invocation, conservées d'un
+  // jour à l'autre) — voir lib/game/featuredBanner.ts.
+  gachaSparks: number;
 }
 export interface GachaActions {
   setCollectionFilters: (patch: Partial<CollectionFilterState>) => void;
@@ -194,6 +205,8 @@ export interface GachaActions {
   pullMulti: (bannerId?: BannerId) => { templateId: string; edition: CardEdition }[] | null;
   pullMulti100: (bannerId?: BannerId) => { templateId: string; edition: CardEdition }[] | null;
   addToCollection: (id: string) => CardEdition;
+  // Échange des Étincelles contre un perso de l'univers vedette (null si impossible).
+  exchangeSparks: (templateId: string) => { templateId: string; edition: CardEdition } | null;
   grantMaxedCharacter: (templateId: string, edition?: CardEdition) => void;
   buyRaidCharacter: (bossId: string) => boolean;
 }

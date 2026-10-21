@@ -11,6 +11,7 @@ import { TITLE_GOLD_BONUS_PCT } from './titles';
 import { trackAchievementStats, trackMastery } from '@/store/achievementTrackers';
 import { mergeMonotonicState } from '@/lib/firebase/cloudSaveSync';
 import { bnToNumber } from './bignum';
+import { getAffinityForId, type Affinity } from './affinities';
 
 const commons = CHARACTER_POOL.filter(c => c.rarity === 'C' && !c.isHero).slice(0, 4).map(c => c.id);
 const timer = (palier: number) => getPalierConfig(palier).bossTimerSeconds;
@@ -269,5 +270,38 @@ describe('getDpsBreakdown', () => {
     expect(bd.chars.reduce((s, c) => s + bnToNumber(c.dps), 0)).toBeCloseTo(total);
     expect(bd.chars.find(c => c.templateId === a)!.masteryMult).toBeCloseTo(1.2);
     expect(bd.chars.find(c => c.templateId === b)!.masteryMult).toBe(1);
+  });
+});
+
+describe('Surfeur Cosmique (CHAL.tide)', () => {
+  // 4 persos du même type, pour viser la marée haute de ce type.
+  const byType = new Map<string, string[]>();
+  for (const c of CHARACTER_POOL) {
+    if (c.isHero) continue;
+    const a = getAffinityForId(c.id);
+    byType.set(a, [...(byType.get(a) ?? []), c.id]);
+  }
+  const [tideType, ids] = [...byType.entries()].find(([, list]) => list.length >= 4)!;
+  const team = ids.slice(0, 4);
+
+  it("se valide sur un boss du palier 10+ avec 4 persos du type en marée haute", () => {
+    const patch = killAchievementPatch({ ...bossState({ palier: 10, bossTimeLeft: timer(10) - 30 }), equippedTeam: team, tideUp: tideType as Affinity }, true);
+    expect(patch.achievementStats![CHAL.tide]).toBe(1);
+  });
+
+  it('ne se valide pas sous le palier 10, ni avec un perso d\'un autre type', () => {
+    const low = killAchievementPatch({ ...bossState({ palier: 9, bossTimeLeft: timer(9) - 30 }), equippedTeam: team, tideUp: tideType as Affinity }, true);
+    expect(low.achievementStats![CHAL.tide]).toBeUndefined();
+    const other = [...byType.entries()].find(([a]) => a !== tideType)![1][0];
+    const mixed = killAchievementPatch({ ...bossState({ palier: 10, bossTimeLeft: timer(10) - 30 }), equippedTeam: [...team.slice(0, 3), other], tideUp: tideType as Affinity }, true);
+    expect(mixed.achievementStats![CHAL.tide]).toBeUndefined();
+  });
+});
+
+describe('mergeMonotonicState — liens légendaires', () => {
+  it('fusionne les liens découverts sur les deux appareils sans jamais en perdre', () => {
+    useGameStore.setState({ discoveredBonds: { rivaux_eternels: true } });
+    const merged = mergeMonotonicState({ discoveredBonds: { equipe_7: true } }, null);
+    expect(merged.discoveredBonds).toEqual({ rivaux_eternels: true, equipe_7: true });
   });
 });

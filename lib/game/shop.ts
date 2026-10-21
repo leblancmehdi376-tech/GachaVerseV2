@@ -142,6 +142,13 @@ export function getThisWeekKey(): string {
   return `week-${monday.getUTCFullYear()}-${String(monday.getUTCMonth()+1).padStart(2,'0')}-${String(monday.getUTCDate()).padStart(2,'0')}`;
 }
 
+// Temps restant avant le prochain changement de getTodayDayKey (2h Paris).
+export function msUntilNextDailyReset(now = Date.now()): number {
+  const shifted = now + getParisOffsetMs() - 2 * 3600 * 1000;
+  const d = new Date(shifted);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1) - shifted;
+}
+
 export function generateDailyShopCharacters(maxPalier = 1): string[] {
   const ids = new Set<string>();
   let guard = 0;

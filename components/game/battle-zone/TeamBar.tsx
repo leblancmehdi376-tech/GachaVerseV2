@@ -1,12 +1,14 @@
 'use client';
 import { formatNumber } from '@/lib/game/format';
 import { computeActiveSynergies, computeSynergyProgress } from '@/lib/game/synergies';
+import { computeActiveBonds } from '@/lib/game/bonds';
 import { bnFromNumber, bnGt, bnMul, type BigNum } from '@/lib/game/bignum';
 import { AllyCard } from './AllyCard';
 import { CohesionBadge } from '@/components/ui/CohesionBadge';
 import { DpsBreakdownTooltip } from './DpsBreakdownTooltip';
 import { GoldBreakdownTooltip } from './GoldBreakdownTooltip';
 import { SynergyBreakdownTooltip } from './SynergyBreakdownTooltip';
+import { BondBreakdownTooltip } from './BondBreakdownTooltip';
 
 const ONE = bnFromNumber(1);
 const noop = () => {};
@@ -25,6 +27,7 @@ export function TeamBar({
   // Section visible dès qu'une synergie est entamée (1 membre suffit), pour
   // pouvoir consulter les paliers atteignables même sans synergie active.
   const hasSynergyProgress = syns.length > 0 || computeSynergyProgress(equippedTeam).length > 0;
+  const bonds = computeActiveBonds(equippedTeam);
   // `goldMult` regroupe TOUS les boosts d'or (coffre, titre, ult, boost
   // boutique, prestige, anomalies — voir getGoldGainMultiplier), pour que ce
   // "vrai" montant entre parenthèses corresponde à ce qui sera réellement
@@ -160,6 +163,20 @@ export function TeamBar({
                 ))}
               </div>
               </SynergyBreakdownTooltip>
+              </div>
+            )}
+
+            {/* Liens légendaires réunis — détail au survol (voir BondBreakdownTooltip) */}
+            {bonds.length > 0 && (
+              <div className="combat-info__cell" style={{ padding:'7px 14px', textAlign:'right' }}>
+                <BondBreakdownTooltip>
+                  <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.55)', letterSpacing:1, marginBottom:3 }}>LIENS <span style={{ fontSize:14, opacity:0.8 }}>ⓘ</span></div>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center', justifyContent:'flex-end', minHeight:16 }}>
+                    {bonds.map(b => (
+                      <span key={b.id} style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:'#f472b6', whiteSpace:'nowrap' }}>{b.icon} +{b.dpsBonus}%</span>
+                    ))}
+                  </div>
+                </BondBreakdownTooltip>
               </div>
             )}
 

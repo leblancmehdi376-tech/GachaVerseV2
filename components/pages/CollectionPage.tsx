@@ -17,6 +17,8 @@ import { EditionBadge, EditionGauge, EditionGaugeMini } from '@/components/ui/Ed
 import { getAffinityForId, AFFINITY_CONFIG } from '@/lib/game/affinities';
 import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
 import { CompadexEquipment, EQUIPMENT_LIST } from './CompadexEquipment';
+import { CompadexBonds } from './CompadexBonds';
+import { BONDS, countDiscoveredBonds } from '@/lib/game/bonds';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 
@@ -205,7 +207,8 @@ export function CollectionPage() {
     compadexCharactersSeen: s.compadexCharactersSeen,
     compadexEquipmentSeen: s.compadexEquipmentSeen,
   })));
-  const [view, setView] = useState<'characters' | 'equipment'>('characters');
+  const [view, setView] = useState<'characters' | 'equipment' | 'bonds'>('characters');
+  const discoveredBondsCount = useGameStore(s => countDiscoveredBonds(s.discoveredBonds ?? {}));
   const [detailKey, setDetailKey] = useState<string | null>(null);
 
   // Une entrée par template ; un template jamais obtenu OU perdu depuis
@@ -246,7 +249,8 @@ export function CollectionPage() {
 
   const charPct  = Math.round((compadexCharCount / CHARACTER_POOL.length) * 100);
   const equipPct = Math.round((compadexEquipCount / EQUIPMENT_LIST.length) * 100);
-  const headerPct = view === 'characters' ? charPct : equipPct;
+  const bondsPct = Math.round((discoveredBondsCount / BONDS.length) * 100);
+  const headerPct = view === 'characters' ? charPct : view === 'equipment' ? equipPct : bondsPct;
 
   return (
     <PageScroll>
@@ -255,7 +259,9 @@ export function CollectionPage() {
         <SectionHeader
           eyebrow={view === 'characters'
             ? `${compadexCharCount} / ${CHARACTER_POOL.length} personnages compadexés · ${filtered.length} affichés`
-            : `${compadexEquipCount} / ${EQUIPMENT_LIST.length} équipements compadexés`}
+            : view === 'equipment'
+              ? `${compadexEquipCount} / ${EQUIPMENT_LIST.length} équipements compadexés`
+              : `${discoveredBondsCount} / ${BONDS.length} liens légendaires découverts`}
           title="COMPADEX"
           accent="#60a5fa"
           right={
@@ -275,6 +281,7 @@ export function CollectionPage() {
           {([
             { key:'characters' as const, label:'PERSONNAGES' },
             { key:'equipment' as const,  label:'ÉQUIPEMENT' },
+            { key:'bonds' as const,      label:'LIENS' },
           ]).map(tab => (
             <button key={tab.key} type="button" role="tab" aria-selected={view===tab.key} className="compadex-tab" onClick={() => setView(tab.key)}>
               {tab.label}
@@ -321,9 +328,12 @@ export function CollectionPage() {
               <VirtualGrid className="collection-grid" items={sorted} getKey={entry => entry.key} renderItem={entry => <CharCard entry={entry} onSelect={setDetailKey} />} />
             )}
           </>
-        ) : (
+        ) : view === 'equipment' ? (
           /* ── ÉQUIPEMENT ──────────────────────────────────────────────────── */
           <CompadexEquipment />
+        ) : (
+          /* ── LIENS LÉGENDAIRES ───────────────────────────────────────────── */
+          <CompadexBonds />
         )}
 
         {detailKey && (() => {

@@ -21,8 +21,76 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '14/10/2026',
+    date: '21/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    sections: [
+      {
+        icon: '🎰',
+        title: 'Bannière Vedette',
+        changes: [
+          "Nouvelle **Bannière Vedette** dans le Gacha : chaque jour à 2 h, un **univers** tiré au hasard est mis à l'honneur.",
+          "Les **12 univers** vedettes passent chacun une fois tous les 12 jours, jamais deux jours de suite.",
+          "Mêmes taux par rareté que la Vol.1, mais à rareté égale, les persos de l'univers vedette ont **3 fois plus de chances** de tomber.",
+          "Le détail des taux indique la part de l'univers vedette dans chaque rareté.",
+          "Chaque invocation sur cette bannière rapporte **1 Étincelle** ✨, conservée d'un jour à l'autre.",
+          "Échange tes Étincelles contre le perso vedette **de ton choix** : de **40** ✨ pour un Commun à **800** ✨ pour un Stellaire, jusqu'à **8 000** ✨ pour un Transcendant.",
+          "L'échange demande une **confirmation**, et la rareté du perso doit être débloquée.",
+        ],
+      },
+      {
+        icon: '🔗',
+        title: 'Liens Légendaires',
+        changes: [
+          "**18 Liens légendaires** cachés : des duos et trios iconiques du multivers.",
+          "Réunis tous les membres d'un lien dans ton équipe pour le **découvrir**.",
+          "Tant qu'ils combattent ensemble, chaque membre gagne **+10 % de DPS** (duo) ou **+15 %** (trio), en plus des synergies.",
+          "Nouvel onglet **Liens** dans le **Compadex** : les liens découverts s'y affichent, les autres restent un **mystère**. À toi de trouver qui réunir !",
+          "En combat, les liens actifs s'affichent à côté des synergies, avec leur détail.",
+        ],
+      },
+      {
+        icon: '🌊',
+        title: 'Marées Cosmiques',
+        changes: [
+          "Chaque jour à 2 h, un **type** passe en **marée haute** (**+25 %** de dégâts) et le type opposé en **marée basse** (**−15 %**).",
+          "La marée du jour s'affiche dans la zone de combat : touche-la pour voir tes compagnons concernés et la marée du lendemain.",
+          "Elle compte au **combat** et dans le **Château de Nakime**, où la marée du jour d'entrée vaut pour toute la run.",
+          "Les raids et les expéditions ne sont pas concernés.",
+          "En 8 jours, chaque type passe une fois en marée haute.",
+        ],
+      },
+      {
+        icon: '🏆',
+        title: '10 nouveaux succès',
+        changes: [
+          "**Fan de la Vedette** : 100 invocations sur la Bannière Vedette.",
+          "**Étincelle de Génie** : échanger des Étincelles contre un perso.",
+          "**Pluie de Capsules** : ouvrir 50 capsules au Gachapon de l'Infini.",
+          "**Métamorphoses** : faire évoluer des personnages 25 fois.",
+          "**Premier Lien** et **Maître des Liens**, qui offre le titre **🔗 Maître des Liens** (**+12 %** d'or).",
+          "**Premier Acte** et **Au Cœur du Château** : franchir les étages **10** et **50** du Château de Nakime.",
+          "**Surfeur Cosmique** : vaincre un boss du palier 10 ou plus avec 4 persos du type en marée haute.",
+          "**Œil d'Expert** : comparer deux cartes avec le Comparateur.",
+          "Les succès du Château et du Gachapon tiennent compte de tes records déjà établis.",
+        ],
+      },
+      {
+        icon: '🛠️',
+        title: 'Changements et corrections',
+        changes: [
+          "Retirer un perso de ton équipe, ou le remplacer, lui retire maintenant **tout son équipement**, qui retourne dans ton inventaire.",
+          "**Garry Fish** rejoint l'univers **Subnautica** au lieu de Digital Circus : il compte désormais pour la synergie Subnautica.",
+          "Dans le GachaDle, Garry Fish compte comme une créature sans genre, comme les autres espèces de Subnautica.",
+          "**Bella** (R.E.P.O) peut désormais évoluer en **Bella — Grand Final**, et **Atsushi** en **Atsushi — Bête au Clair de Lune**, avec la même illustration que leur forme de base.",
+          "**Link & Midona** (Cosmique) peut désormais évoluer en **Link & Midona — Loup du Crépuscule**, avec sa propre illustration.",
+          "**Classement** : le profil d'un joueur affiche sa progression **Compadex** (persos et équipements obtenus), la même que dans son menu, au lieu de sa collection actuelle.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '14/10/2026',
+    title: 'Maj v2.8.2.12',
     sections: [
       {
         icon: '🏯',

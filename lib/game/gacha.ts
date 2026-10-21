@@ -7,7 +7,9 @@ export const GACHA_COSTS = { single: 10, multi10: 95, multi100: 900 };
 // Même coût et mêmes taux par rareté partout : seule la liste des
 // personnages tirables change. Vol.1 couvre tout le roster (nouveaux
 // personnages compris), Vol.2 uniquement les personnages de la Bannière Vol.2.
-export type BannerId = 'vol1' | 'vol2';
+// La bannière vedette reprend le pool de la Vol.1 avec un univers mis en
+// avant chaque jour (voir lib/game/featuredBanner.ts).
+export type BannerId = 'vol1' | 'vol2' | 'featured';
 
 // Couleurs propres à chaque bannière (onglet, visuel, bandeau, boutons).
 export interface BannerTheme {
@@ -50,9 +52,22 @@ export const GACHA_BANNERS: GachaBanner[] = [
   },
 ];
 
+// Partie fixe de la bannière vedette : sous-titre et cartes vedettes
+// dépendent du jour (voir getFeaturedBanner).
+export const FEATURED_BANNER_BASE: GachaBanner = {
+  id: 'featured', title: 'BANNIÈRE VEDETTE', subtitle: '', pool: BANNER_POOL, featuredIds: [],
+  isNew: true,
+  // Or : se distingue du violet (Vol.1) et du pourpre (Vol.2).
+  theme: { accent: '#f59e0b', hi: '#fcd34d', dark: '#1a1003', deep: '#7c4a03', glow: 'rgba(245,158,11,0.35)' },
+};
+
+// À rareté égale, un perso de l'univers vedette pèse ce poids (1 pour les autres).
+export const FEATURED_RATE_UP = 3;
+
 export const DEFAULT_BANNER_ID: BannerId = 'vol1';
 
 export function getBanner(id: BannerId): GachaBanner {
+  if (id === 'featured') return FEATURED_BANNER_BASE;
   return GACHA_BANNERS.find(b => b.id === id) ?? GACHA_BANNERS[0];
 }
 
@@ -142,20 +157,41 @@ export function rollRarity(maxPalier = 1, bannerId?: BannerId): Rarity {
   return last;
 }
 
-export function rollCharacter(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string {
+/**
+ * Tire un personnage. Avec `rateUpUniverse` (bannière vedette), la rareté est
+ * tirée normalement, puis les persos de cet univers pèsent FEATURED_RATE_UP
+ * fois plus que les autres au sein de cette rareté : les taux par rareté
+ * affichés restent exacts.
+ */
+export function rollCharacter(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID, rateUpUniverse?: string): string {
   const bannerPool = getBanner(bannerId).pool;
   const rarity = rollRarity(maxPalier, bannerId);
   const pool   = bannerPool.filter(c => c.rarity === rarity);
   // Ne peut arriver que si aucune rareté débloquée n'existe dans la bannière.
   const source = pool.length > 0 ? pool : bannerPool;
-  return source[Math.floor(Math.random() * source.length)].id;
+  if (!rateUpUniverse) return source[Math.floor(Math.random() * source.length)].id;
+  const weight = (c: CharacterTemplate) => (c.universe === rateUpUniverse ? FEATURED_RATE_UP : 1);
+  let r = Math.random() * source.reduce((sum, c) => sum + weight(c), 0);
+  for (const c of source) {
+    r -= weight(c);
+    if (r < 0) return c.id;
+  }
+  return source[source.length - 1].id;
 }
 
-export function rollMulti(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string[] {
-  return Array.from({ length: 10 }, () => rollCharacter(maxPalier, bannerId));
+/** Part (0 à 1) des persos de `rateUpUniverse` parmi les tirages d'une rareté. */
+export function getRateUpShare(rarity: Rarity, rateUpUniverse: string, bannerId: BannerId = 'featured'): number {
+  const pool = getBanner(bannerId).pool.filter(c => c.rarity === rarity);
+  const featured = pool.filter(c => c.universe === rateUpUniverse).length;
+  const total = pool.length + featured * (FEATURED_RATE_UP - 1);
+  return total > 0 ? (featured * FEATURED_RATE_UP) / total : 0;
 }
 
-export function rollMulti100(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID): string[] {
-  return Array.from({ length: 100 }, () => rollCharacter(maxPalier, bannerId));
+export function rollMulti(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID, rateUpUniverse?: string): string[] {
+  return Array.from({ length: 10 }, () => rollCharacter(maxPalier, bannerId, rateUpUniverse));
+}
+
+export function rollMulti100(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID, rateUpUniverse?: string): string[] {
+  return Array.from({ length: 100 }, () => rollCharacter(maxPalier, bannerId, rateUpUniverse));
 }
 

@@ -4,6 +4,7 @@ import { CHARACTER_POOL } from './characters';
 import { EQUIPMENT_DEFS } from './items';
 import { PALIERS } from './paliers';
 import { DLE_QUESTS } from './gachadleQuests';
+import { BONDS } from './bonds';
 import { RARITY_ORDER_ASC, type Rarity } from '@/types/game';
 
 // Totaux du Compadex — voir la section COMPADEX ci-dessous. Exportés pour que
@@ -100,6 +101,10 @@ export const STAT = {
   gachaMiracle:    'gachaMiracle',
   pullsVol2:       'pullsVol2',
   prestigeQuint:   'prestigeQuint',   // 1 = tirage x5 de jetons de Prestige tombé 5 fois sur le même bonus
+  featuredPulls:   'featuredPulls',   // invocations sur la bannière vedette
+  sparkExchanges:  'sparkExchanges',  // persos obtenus contre des Étincelles
+  evolutions:      'evolutions',      // évolutions de personnages effectuées
+  cardsCompared:   'cardsCompared',   // comparaisons lancées dans le Comparateur
   eventsSeen:      'eventsSeen',
   eventsJoined:    'eventsJoined',
   interactions:    'interactions',
@@ -133,6 +138,7 @@ export const CHAL = {
   solo:      'chal:solo',      // un seul personnage (palier ≥ 10)
   maxDiff:   'chal:maxdiff',   // boss du dernier monde
   clean:     'chal:clean',     // palier ≥ 20 sans défaite ni retraite, boss en ≤ 30 s
+  tide:      'chal:tide',      // palier ≥ 10, équipe de 4 persos du type en marée haute
 } as const;
 
 // Événements réussis parfaitement.
@@ -359,6 +365,26 @@ export const ACHIEVEMENTS: Achievement[] = [
     tier:'platinum',
   },
 
+  // — Bannière vedette, Étincelles et Gachapon de l'Infini —
+  {
+    id:'featured_pulls_100', category:'gacha', icon:'🌟',
+    title:'Fan de la Vedette', name:'Fan de la Vedette',
+    description:'Effectue 100 invocations sur la Bannière Vedette.', target:100, stat:STAT.featuredPulls,
+    reward:{ type:'gems', value:150 },
+  },
+  {
+    id:'sparks_exchange_1', category:'gacha', icon:'🎇',
+    title:'Étincelle de Génie', name:'Étincelle de Génie',
+    description:'Échange tes Étincelles contre un personnage de l\'univers vedette.', target:1, stat:STAT.sparkExchanges,
+    reward:{ type:'gems', value:100 },
+  },
+  {
+    id:'nakime_gacha_50', category:'gacha', icon:'🎟️',
+    title:'Collectionneur de Capsules', name:'Pluie de Capsules',
+    description:'Ouvre 50 capsules au Gachapon de l\'Infini.', target:50,
+    reward:{ type:'gems', value:300 },
+  },
+
   // ── COLLECTION ──────────────────────────────────────────────────────────
   // — Obtenir des personnages différents —
   {
@@ -576,6 +602,29 @@ export const ACHIEVEMENTS: Achievement[] = [
     reward:{ type:'gems', value:300 },
   },
 
+  // — Évolutions —
+  {
+    id:'evolve_25', category:'collection', icon:'🦋',
+    title:'Métamorphe', name:'Métamorphoses',
+    description:'Fais évoluer des personnages 25 fois au total.', target:25, stat:STAT.evolutions,
+    reward:{ type:'gems', value:200 },
+  },
+
+  // — Liens légendaires (voir lib/game/bonds.ts) —
+  {
+    id:'bond_1', category:'collection', icon:'🔗',
+    title:'Âmes Liées', name:'Premier Lien',
+    description:'Découvre un Lien légendaire en réunissant tous ses membres dans ton équipe.', target:1,
+    reward:{ type:'gems', value:50 },
+  },
+  {
+    id:'bond_all', category:'collection', icon:'🪢',
+    title:'🔗 Maître des Liens', name:'Maître des Liens',
+    description:`Découvre les ${BONDS.length} Liens légendaires.`, target:BONDS.length,
+    reward:{ type:'title', value:'🔗 Maître des Liens' },
+    tier:'platinum',
+  },
+
   // ── COMBAT ──────────────────────────────────────────────────────────────
   // — Vaincre des monstres —
   {
@@ -696,6 +745,20 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Tueur de Légendes', name:'Chasseur de Légendes',
     description:'Vaincs 25 boss de raid.', target:25, stat:STAT.raidBossKills,
     reward:{ type:'gems', value:500 },
+  },
+
+  // — Château de Nakime (record d'étages, voir nakimeBestFloor) —
+  {
+    id:'nakime_floor_10', category:'combat', icon:'🏯',
+    title:'Invité du Château', name:'Premier Acte',
+    description:'Franchis l\'étage 10 du Château de Nakime.', target:10,
+    reward:{ type:'gems', value:100 },
+  },
+  {
+    id:'nakime_floor_50', category:'combat', icon:'🌙',
+    title:'Chasseur de Lunes', name:'Au Cœur du Château',
+    description:'Franchis l\'étage 50 du Château de Nakime.', target:50,
+    reward:{ type:'gems', value:1000 },
   },
 
   // — Dégâts par seconde —
@@ -998,6 +1061,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:'Accomplis toutes les quêtes GachaDle.', target:DLE_QUESTS.length,
     reward:{ type:'title', value:'Pro du GachaverseDLE' },
   },
+  {
+    id:'chal_tide', category:'challenges', icon:'🌊',
+    title:'Surfeur Cosmique', name:'Surfeur Cosmique',
+    description:'Vaincs un boss du palier 10 ou plus avec 4 personnages du type en marée haute.', target:1, stat:CHAL.tide,
+    reward:{ type:'gems', value:300 },
+  },
 
   // ── EXPLORATION ─────────────────────────────────────────────────────────
   // — Découvrir les mondes (paliers) —
@@ -1059,6 +1128,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Touche-à-Tout', name:'Mains Baladeuses',
     description:'Interagis avec 100 éléments de l\'interface.', target:100, stat:STAT.interactions,
     reward:{ type:'gems', value:10 },
+  },
+  {
+    id:'explore_compare', category:'exploration', icon:'⚖️',
+    title:'Œil d\'Expert', name:'Œil d\'Expert',
+    description:'Compare deux cartes avec le Comparateur.', target:1, stat:STAT.cardsCompared,
+    reward:{ type:'gems', value:20 },
   },
   {
     id:'explore_passage', category:'exploration', icon:'🕳️',
@@ -1198,6 +1273,7 @@ export const ACHIEVEMENT_SERIES: AchievementSeries[] = [
   { id:'collect',       name:'Collection de Personnages',  icon:'👥', ids:['collect_1', 'collect_10', 'collect_5', 'collect_15', 'collect_30', 'collect_250', 'collect_all'] },
   { id:'compadex_char', name:'Compadex — Personnages',     icon:'📖', ids:['compadex_char_25', 'compadex_char_50', 'compadex_char_75', 'compadex_char_100'] },
   { id:'compadex_equip',name:'Compadex — Équipements',     icon:'🛡', ids:['compadex_equip_25', 'compadex_equip_50', 'compadex_equip_75', 'compadex_equip_100'] },
+  { id:'bonds',         name:'Liens Légendaires',          icon:'🔗', ids:['bond_1', 'bond_all'] },
   { id:'transcendant',  name:'Transcendants',              icon:'🌈', ids:['transcendant_1', 'transcendant_3'] },
   { id:'shiny',         name:'Éditions Brillantes',        icon:'✨', ids:['gold_1', 'shiny_10'] },
   { id:'diamond',       name:'Éditions Diamant',           icon:'💠', ids:['diamond_1', 'diamond_3', 'diamond_10'] },
@@ -1206,6 +1282,7 @@ export const ACHIEVEMENT_SERIES: AchievementSeries[] = [
   { id:'kills',         name:'Chasse aux Monstres',        icon:'⚔', ids:['kills_500', 'kills_5000', 'kills_50000', 'kills_500000', 'kills_1000000'] },
   { id:'bosses',        name:'Victoires contre les Boss',  icon:'💀', ids:['first_boss', 'bosses_5', 'bosses_10', 'bosses_20', 'bosses_67', 'bosses_100', 'bosses_1000'] },
   { id:'raid',          name:'Boss de Raid',               icon:'🐉', ids:['raid_boss_1', 'raid_boss_25'] },
+  { id:'nakime',        name:'Château de Nakime',          icon:'🏯', ids:['nakime_floor_10', 'nakime_floor_50'] },
   { id:'dps',           name:'Dégâts par Seconde',         icon:'💥', ids:['dps_1000', 'dps_100k', 'dps_1m', 'dps_100m', 'dps_1b'] },
   // Maîtrise
   { id:'mastery_lv',    name:"Niveau d'un Personnage",   icon:'🏵', ids:['mastery_lv_10', 'mastery_lv_50', 'mastery_lv_100'] },

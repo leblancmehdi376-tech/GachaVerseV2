@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { extractDleWins, extractNakime, getLeaderboardEntries, rankByDleGuesses, rankByNakime, updatePlayerScore, type LeaderboardEntry } from './leaderboard';
+import { extractDleWins, extractNakime, extractProfile, getLeaderboardEntries, rankByDleGuesses, rankByNakime, updatePlayerScore, type LeaderboardEntry } from './leaderboard';
 
 const setDocMock    = vi.fn(async (..._args: unknown[]) => {});
 const updateDocMock = vi.fn(async (..._args: unknown[]) => {});
@@ -161,5 +161,23 @@ describe('Classement Château de Nakime', () => {
     const e = (uid: string, best: number) => ({ uid, username: uid, nakime: { best, runs: 1, team: [] } }) as unknown as LeaderboardEntry;
     const rows = rankByNakime([e('c', 20), e('zero', 0), e('a', 35), e('b', 20), e('d', 5)]);
     expect(rows.map(r => [r.entry.uid, r.rank])).toEqual([['a', 1], ['b', 2], ['c', 2], ['d', 4]]);
+  });
+});
+
+describe('Profil public — progression du Compadex', () => {
+  it('compte les persos et équipements déjà obtenus (comme la barre latérale), pas la collection actuelle', () => {
+    const profile = extractProfile({
+      compadexCharactersSeen: { goku: true, vegeta: true, perso_supprime: true },
+      compadexEquipmentSeen: { helmet_common: true },
+      // Collection vidée par un Prestige : seul naruto est possédé actuellement.
+      collection: { naruto: { currentForm: 0, level: 3, equippedItems: { helmet: 'chest_common' } } },
+      equipmentInventory: { boots_common: 2, weapon_common: 0 },
+    });
+    // goku, vegeta, naruto + helmet_common, chest_common (porté), boots_common.
+    expect(profile.compadexCount).toBe(6);
+  });
+
+  it('vaut 0 pour une sauvegarde vide', () => {
+    expect(extractProfile({}).compadexCount).toBe(0);
   });
 });
