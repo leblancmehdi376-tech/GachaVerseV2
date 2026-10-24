@@ -17,7 +17,7 @@ import { getCharacterById } from './characters';
 import { getAffinityForId, type Affinity } from './affinities';
 import {
   makeRng, subSeed, pickWeighted, relicMods, actWorld, isNakimeEligible, eventScale, boonShards, rarityIdx, NAKIME_META_STAT_PCT,
-  NAKIME_RELIC_LIST, NAKIME_RELICS, NAKIME_EVENTS, NAKIME_EVENT_BY_ID, BOON_INFO,
+  NAKIME_RELIC_LIST, NAKIME_RELICS, NAKIME_EVENTS, NAKIME_EVENT_BY_ID, NAKIME_SECRET_EVENT, NAKIME_SECRET_EVENT_CHANCE, BOON_INFO,
   type BoonKind, type EventEffect, type RelicTier, type MetaUpgradeId,
 } from './nakimeContent';
 import {
@@ -402,7 +402,9 @@ export function rollTreasureRelic(seed: number, floor: number, owned: readonly s
 }
 
 export function pickEvent(seed: number, floor: number, col: number): string {
-  return NAKIME_EVENTS[Math.floor(makeRng(subSeed(seed, floor * 16 + col, 8))() * NAKIME_EVENTS.length)].id;
+  const rng = makeRng(subSeed(seed, floor * 16 + col, 8));
+  if (rng() < NAKIME_SECRET_EVENT_CHANCE) return NAKIME_SECRET_EVENT.id;
+  return NAKIME_EVENTS[Math.floor(rng() * NAKIME_EVENTS.length)].id;
 }
 
 // ── Boutique et forge ────────────────────────────────────────────────────

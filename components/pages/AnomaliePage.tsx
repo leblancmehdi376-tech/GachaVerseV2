@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { PageScroll } from '@/components/ui/Page';
+import { useGuideClue } from '@/hooks/useGuideClue';
 import { RARITY_CONFIG, RARITY_ORDER_ASC } from '@/types/game';
 import {
   Anomaly, ANOMALY_BONUS_DEFS, ANOMALY_RARITY_TABLE, ANOMALY_RARITY_ORDER_DESC,
@@ -208,6 +209,7 @@ function RarityTable() {
 }
 
 export function AnomaliePage() {
+  const anomalyClue = useGuideClue('anomalies'); // indice discret de NekoZ-guide
   const {
     anomalyTokens, ownedAnomalies, anomalySlots, prestigeLevel, bossCrowns,
     getAnomalyRerollCost, rerollAnomalies, toggleAnomalyLock, getAnomalySlotCost, buyAnomalySlot,
@@ -380,6 +382,7 @@ export function AnomaliePage() {
             <div style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)', maxWidth: 520, lineHeight: 1.6 }}>
               Bonus passifs PERMANENTS — jamais réinitialisés par le Prestige. Gagne 1 Jeton d&apos;Anomalie tous les 100 tirages gacha. Verrouille une anomalie pour la protéger du prochain tirage (chaque verrou double le coût du reroll).
             </div>
+            {anomalyClue && <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontStyle:'italic', color:'rgba(165,180,252,0.75)', marginTop:6 }}>{anomalyClue}</div>}
           </div>
           <div style={{ fontFamily: 'var(--f-num)', fontSize: 16, fontWeight: 700, color: '#e879f9', flexShrink: 0 }}>🌀 {formatNumber(anomalyTokens)}</div>
         </div>

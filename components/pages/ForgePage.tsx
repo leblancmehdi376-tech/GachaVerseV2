@@ -10,6 +10,7 @@ import { getEquipmentDef, getSpecialWeaponGroup, SPECIAL_WEAPON_FUSION_COST, SPE
 import { getSlotStock, countSlotFusions } from '@/lib/game/equipmentFusion';
 import { EquipmentWorkbench } from './EquipmentWorkbench';
 import { ForgeRevealOverlay } from './ForgeRevealOverlay';
+import { useGuideClue } from '@/hooks/useGuideClue';
 
 // Recettes et drops triés par rareté du personnage forgé (du plus commun au
 // plus rare), puis par palier requis ; un drop sans recette passe en dernier.
@@ -93,6 +94,7 @@ function IngredientRow({ ing }: { ing: CraftIngredient }) {
 function RecipeCard({ recipe, status }: { recipe: CraftRecipe; status: RecipeStatus }) {
   const { craftRecipe, collection } = useGameStore(useShallow(s => ({ craftRecipe: s.craftRecipe, collection: s.collection })));
   const [showLore, setShowLore] = useState(false);
+  const eggsClue = useGuideClue('elfuzzionEggs'); // indice discret de NekoZ-guide
   const [revealing, setRevealing] = useState(false);
 
   const handleCraft = () => {
@@ -146,7 +148,7 @@ function RecipeCard({ recipe, status }: { recipe: CraftRecipe; status: RecipeSta
 
       {showLore && (
         <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)', fontStyle: 'italic', lineHeight: 1.6 }}>
-          {recipe.lore}
+          {recipe.lore}{recipe.id === 'elfuzzion' && eggsClue && ` ${eggsClue}`}
         </div>
       )}
 

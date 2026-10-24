@@ -1929,6 +1929,7 @@ html, body {
   60%  { transform: translateY(20%) rotate(5deg); }
   100% { transform: translateY(110%); }
 }
+.gv-neko.is-guide img { display: block; width: 64px; height: 64px; object-fit: contain; }
 .gv-neko.is-caught { animation: gvNekoJump 0.9s ease-in forwards; }
 @keyframes gvNekoJump { 0% { transform: translateY(22%); } 30% { transform: translateY(-60%) rotate(-12deg); } 100% { transform: translateY(140%) rotate(20deg); opacity: 0; } }
 

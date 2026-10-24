@@ -125,6 +125,7 @@ export const EGG = {
   goldNeko:  'egg:goldneko',
   konami:    'egg:konami',
   night:     'egg:night',
+  guideNeko: 'egg:guideneko', // le guide passe à la place du chat errant
   sixSeven:  'egg:67',
   bankrupt:  'egg:bankrupt',
   trophyRain:'egg:trophyrain',
@@ -1225,6 +1226,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     title:'Oiseau de Nuit', name:'L\'Heure des Chats',
     description:'Tu jouais à 3h33 du matin. Les chats t\'ont vu.', target:1, stat:EGG.night,
     reward:{ type:'gems', value:50 },
+  },
+  {
+    id:'secret_guide', category:'secrets', icon:'🐾',
+    title:'Observateur', name:'Pris sur le fait',
+    description:"Tu as surpris quelqu'un qui ne voulait pas être vu.", target:1, stat:EGG.guideNeko,
+    reward:{ type:'gems', value:77 },
   },
   {
     id:'secret_67', category:'secrets', icon:'🔢',

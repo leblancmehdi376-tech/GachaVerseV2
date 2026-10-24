@@ -1,4 +1,5 @@
 'use client';
+import { useGuideClue } from '@/hooks/useGuideClue';
 
 // Popup des crédits, ouverte depuis le bas de l'onglet Options
 // (components/pages/SettingsPage.tsx). Même habillage que PatchNotesModal.
@@ -8,6 +9,7 @@ const CREDITS: { name: string; icon: string; roles: string[] }[] = [
 ];
 
 export function CreditsModal({ onClose }: { onClose: () => void }) {
+  const guideRole = useGuideClue('credits'); // indice discret de NekoZ-guide : un rôle barré
   return (
     <div
       onClick={onClose}
@@ -37,6 +39,9 @@ export function CreditsModal({ onClose }: { onClose: () => void }) {
                     {r}
                   </span>
                 ))}
+                {c.name === 'NekoZ' && guideRole && (
+                  <span style={{ fontFamily: 'var(--f-ui)', fontSize: 14, color: 'var(--text-dim)', textDecoration: 'line-through', opacity: 0.6, padding: '4px 6px' }}>{guideRole}</span>
+                )}
               </div>
             </div>
           ))}

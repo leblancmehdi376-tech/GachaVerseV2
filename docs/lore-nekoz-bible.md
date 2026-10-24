@@ -182,6 +182,23 @@ Courtes répliques affichées au clic sur le guide. Quand plusieurs sont possibl
 - « Tu as déjà eu l’impression d’avoir vécu une journée en entier… quarante-huit fois ? » (le nombre suit le Prestige du joueur)
 - Réplique retirée à la demande de l’équipe : « J’ai rêvé de toi… » (ne pas la réintroduire).
 
+## 9 bis. Indices discrets dans le jeu (codés, Maj v2.8.2.14)
+
+Chaque indice n’apparaît qu’après la quête qui lui donne du sens (`GUIDE_CLUES` dans `lib/game/nekozGuide.ts`).
+
+| Où | Indice | Après |
+|---|---|---|
+| Raid Rokoul & Ayro (description) | « Et ne les séparez jamais. » | Quête 14 |
+| Forge, Œufs de Dragon d’ElFuZzion (lore) | « … Et pourquoi ils grésillent ? » | Quête 13 |
+| Prestige, Mémoire des Pierres | « Les pierres se souviennent. Quelqu’un d’autre aussi. » | Quête 12 |
+| Prestige, confirmation | « Tout le monde reviendra. … Compte-les quand même. » | Arrivée du guide |
+| Anomalie (sous le titre) | « Certaines anomalies ne sont pas des bonus. » | Quête 7 |
+| Crédits, ligne NekoZ | rôle barré ~~guide~~ | Quête 15 |
+| Chat errant (secret) | 1 fois sur 20, c’est le chibi du guide. L’attraper : « Il ne voulait pas être vu. » + succès secret **Pris sur le fait** (77 💎) | Arrivée du guide |
+| Carte du guide, de 0 h à 5 h | « Tu devrais dormir. … Elle non plus, elle ne dormait plus. » | Acte 2 |
+| Notes de mise à jour v2.8.2.14 | « Merci d’être restés. — ??? » | Toujours |
+| Château de Nakime | Rencontre rare **Un chat à cornes** (1 salle d’événement sur 30). Le guide réagit ensuite sur l’accueil au choix fait, en niant y être allé. | Toujours |
+
 ## 10. Besoins techniques — séparés du lore
 
 **État : les actes 1 et 2 sont codés (Maj v2.8.2.14).**

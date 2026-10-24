@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   GUIDE_QUESTS, initialGuideState, currentGuideQuest, questBaselineFor, pendingGuideLine, nextGuideLine,
-  mergeGuideState, raidKillsStat, ACT_3_FIRST_QUEST, type GuideView, type GuideState,
+  mergeGuideState, raidKillsStat, ACT_3_FIRST_QUEST, GUIDE_CLUES, isClueVisible, nakimeChoiceMark, type GuideView, type GuideState,
 } from './nekozGuide';
 import { STAT } from './achievements';
 import { BONDS } from './bonds';
@@ -140,5 +140,36 @@ describe('acte 3', () => {
     };
     expect(spoken(ACT_3_FIRST_QUEST - 1)).toEqual([]);
     expect(spoken(ACT_3_FIRST_QUEST).sort()).toEqual(['e_elfuzzion1', 'e_elfuzzion2']);
+  });
+});
+
+describe('indices discrets', () => {
+  it("n'affiche rien avant l'arrivée du guide, puis débloque chaque indice après sa quête", () => {
+    expect(isClueVisible(initialGuideState(), 'prestigeConfirm')).toBe(false);
+    expect(isClueVisible({ ...initialGuideState(), arrivalPrestige: 0 }, 'prestigeConfirm')).toBe(true);
+    const anomalyIdx = GUIDE_QUESTS.findIndex(q => q.id === 'g7_anomaly');
+    expect(isClueVisible({ ...initialGuideState(), arrivalPrestige: 0, questIndex: anomalyIdx }, 'anomalies')).toBe(false);
+    expect(isClueVisible({ ...initialGuideState(), arrivalPrestige: 0, questIndex: anomalyIdx + 1 }, 'anomalies')).toBe(true);
+  });
+
+  it('chaque indice pointe vers une quête qui existe', () => {
+    for (const clue of Object.values(GUIDE_CLUES)) {
+      if (clue.after) expect(GUIDE_QUESTS.some(q => q.id === clue.after)).toBe(true);
+    }
+  });
+
+  it('réagit une seule fois à la rencontre du Château, selon le choix fait', () => {
+    const g = { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length, seen: ['end:chain', nakimeChoiceMark(0)] };
+    expect(pendingGuideLine(view({}, g))?.parts[0]).toContain('assis à côté de moi');
+    expect(pendingGuideLine(view({}, { ...g, seen: [...g.seen, 'react:nakime'] }))).toBeNull();
+  });
+
+  it('ne parle de sommeil que la nuit, et à partir de l’acte 2', () => {
+    const g = { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length, seen: ['end:chain'] };
+    const ids = (hour: number, guide = g) => new Set(Array.from({ length: 100 }, (_, i) =>
+      nextGuideLine(view({}, guide), null, () => i / 100, new Date(2026, 9, 24, hour)).id));
+    expect(ids(2).has('night')).toBe(true);
+    expect(ids(14).has('night')).toBe(false);
+    expect(ids(2, { ...g, questIndex: 1, seen: [GUIDE_QUESTS[1].intro.id] }).has('night')).toBe(false);
   });
 });

@@ -7,6 +7,7 @@ import { getItemDef } from '@/lib/game/items';
 import { getCharacterById } from '@/lib/game/characters';
 import { RARITY_CONFIG } from '@/types/game';
 import { formatNumber } from '@/lib/game/format';
+import { useGuideClue } from '@/hooks/useGuideClue';
 import { useFallbackImage, stripKnownExtension } from '@/lib/image-fallback';
 
 const COMING_SOON_RAIDS = [
@@ -72,6 +73,7 @@ function pickRareDrops(dropTable: DropEntry[]): DropEntry[] {
 }
 
 export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
+  const rokoulClue = useGuideClue('raidRokoul'); // indice discret de NekoZ-guide
   const { bossCrowns, nekoGems } = useGameStore(useShallow(s => ({ bossCrowns: s.bossCrowns, nekoGems: s.nekoGems })));
   return (
     <div style={{ height:'100%', overflowY:'auto', position:'relative' }}>
@@ -138,7 +140,7 @@ export function RaidLobby({ onSelect }: { onSelect: (id: string) => void }) {
                     <div>
                       <div style={{ fontFamily:'var(--f-title)', fontSize:22, fontWeight:900, color:'white', letterSpacing:2, marginBottom:5, textShadow:`0 0 20px ${raid.accentColor}bb` }}>{raid.name}</div>
                       <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:1, marginBottom:6 }}>{raid.subtitle}</div>
-                      <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.68)', lineHeight:1.6, maxWidth:'88%' }}>{raid.description}</div>
+                      <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(255,255,255,0.68)', lineHeight:1.6, maxWidth:'88%' }}>{raid.description}{raid.id === 'rokoul_ayro' && rokoulClue && <em> {rokoulClue}</em>}</div>
                     </div>
 
                     {charTpl && charRare && (

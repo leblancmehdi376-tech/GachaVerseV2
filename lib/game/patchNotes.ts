@@ -34,6 +34,8 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Plus tu avances dans ses quêtes, plus il en dit… parfois plus qu'il ne voudrait.",
           "Ses quêtes ne comptent que ce que tu fais **après** les avoir acceptées. Même à Prestige 48, tout le monde commence au même point.",
           "Sa progression n'est **jamais remise à zéro** par le Prestige, et elle te suit d'un appareil à l'autre.",
+          "Un **nouveau secret** s'est glissé dans le jeu. Ouvre l'œil.",
+          "Merci d'être restés. — ???",
         ],
       },
     ],

@@ -259,7 +259,17 @@ export const NAKIME_EVENTS: EventDef[] = [
         effects: [{ k: 'gamble', chance: 0.5, win: [{ k: 'shards', n: 70 }], lose: [{ k: 'damage', pct: 0.18 }] }] },
     ] },
 ];
-export const NAKIME_EVENT_BY_ID: Record<string, EventDef> = Object.fromEntries(NAKIME_EVENTS.map(e => [e.id, e]));
+// Rencontre rare, hors du tirage normal (voir pickEvent) : un clin d'œil à
+// NekoZ-guide (voir lib/game/nekozGuide.ts, qui réagit au choix fait ici).
+export const NAKIME_SECRET_EVENT_CHANCE = 1 / 30;
+export const NAKIME_SECRET_EVENT: EventDef = { id: 'chat_cornes', icon: '🐾', title: 'Un chat à cornes',
+  text: "Au détour d'un couloir, une petite silhouette à cornes est assise contre le mur. Elle te regarde comme si elle t'attendait depuis longtemps.",
+  options: [
+    { label: "S'asseoir à côté de lui", text: 'Soigne 25 % des PV.', effects: [{ k: 'heal', pct: 0.25 }] },
+    { label: 'Lui demander qui il est', text: "Il détourne les yeux. Gagne une relique commune.", effects: [{ k: 'relic', tier: 'commune' }] },
+  ] };
+
+export const NAKIME_EVENT_BY_ID: Record<string, EventDef> = Object.fromEntries([...NAKIME_EVENTS, NAKIME_SECRET_EVENT].map(e => [e.id, e]));
 export const eventScale = (floor: number) => 1 + floor / 10;
 
 // ── Mondes (un par acte) ─────────────────────────────────────────────────

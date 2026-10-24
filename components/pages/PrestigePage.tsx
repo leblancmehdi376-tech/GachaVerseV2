@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
 import { PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PrestigeBonusType, calcTokensAwarded, formatBonusValue, STONE_MEMORY_MAX_LEVEL, getStoneMemoryCost, stoneMemoryCapEdition } from '@/lib/game/prestige';
 import { formatNumber } from '@/lib/game/format';
+import { useGuideClue } from '@/hooks/useGuideClue';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { EditionIcon } from '@/components/ui/EditionLogo';
 import { STAT } from '@/lib/game/achievements';
@@ -19,6 +20,7 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
   saving: boolean;
   syncPending: boolean;
 }) {
+  const prestigeClue = useGuideClue('prestigeConfirm'); // indice discret de NekoZ-guide
   const [typed, setTyped] = useState('');
   const CONFIRM_WORD = 'PRESTIGE';
   const ready = typed === CONFIRM_WORD && !saving && !syncPending;
@@ -61,6 +63,10 @@ function ConfirmDialog({ onConfirm, onCancel, prestigeLevel, tokensToGain, savin
             <div key={item} style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'rgba(74,222,128,0.8)', marginBottom:3 }}>• {item}</div>
           ))}
         </div>
+
+        {prestigeClue && (
+          <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontStyle:'italic', color:'rgba(165,180,252,0.75)', textAlign:'center' }}>{prestigeClue}</div>
+        )}
 
         {/* Confirmation saisie */}
         <div>
@@ -227,6 +233,7 @@ export function PrestigePage() {
     prestigeLevel: level, prestigeTokens: tokens, prestigeBonusLevels: bonusLevels, canPrestige, spendToken, spendAllTokens,
     prestigeRankRecoveryLevel: stoneMemoryLevel, buyStoneMemory, doPrestige,
   } = useGameStore(useShallow(s => ({ prestigeLevel: s.prestigeLevel, prestigeTokens: s.prestigeTokens, prestigeBonusLevels: s.prestigeBonusLevels, canPrestige: s.canPrestige, spendToken: s.spendToken, spendAllTokens: s.spendAllTokens,prestigeRankRecoveryLevel: s.prestigeRankRecoveryLevel, buyStoneMemory: s.buyStoneMemory, doPrestige: s.doPrestige })));
+  const stoneClue = useGuideClue('stoneMemory'); // indice discret de NekoZ-guide
   const [showConfirm, setShowConfirm] = useState(false);
   const [savingPrestige, setSavingPrestige] = useState(false);
   const [syncPending, setSyncPending] = useState(false);
@@ -422,6 +429,7 @@ export function PrestigePage() {
                   : <>Débloque la récupération de la jauge d’édition d’une carte déjà obtenue dans une vie précédente, au lieu de repartir de zéro. Chaque niveau relève le plafond d’une édition (niv. 7 : Prismatique).</>;
               })()}
             </div>
+            {stoneClue && <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontStyle:'italic', color:'rgba(165,180,252,0.75)', marginTop:6 }}>{stoneClue}</div>}
           </div>
           {(() => {
             const cost = getStoneMemoryCost(stoneMemoryLevel);

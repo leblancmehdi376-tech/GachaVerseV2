@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { useRandomEventStore } from '@/store/randomEventStore';
 import { EGG, STAT } from '@/lib/game/achievements';
+import { toast } from '@/hooks/useToast';
 
 // Secrets et easter eggs globaux (succès des catégories Exploration,
 // Événements et Secrets). Monté une seule fois dans GameLayout.
@@ -14,13 +15,14 @@ const NEKO_MIN_DELAY_MS = 150_000;
 const NEKO_MAX_DELAY_MS = 360_000;
 const NEKO_VISIBLE_MS = 7_000;
 const GOLD_NEKO_CHANCE = 0.4; // à chaque événement aléatoire
+const GUIDE_NEKO_CHANCE = 1 / 20; // le guide passe à la place du chat (une fois arrivé)
 const SPARKLE_MIN_DELAY_MS = 180_000;
 const SPARKLE_MAX_DELAY_MS = 420_000;
 const SPARKLE_VISIBLE_MS = 6_000;
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
-type Neko = { id: number; left: number; gold: boolean; caught: boolean };
+type Neko = { id: number; left: number; gold: boolean; caught: boolean; guide?: boolean };
 type Sparkle = { id: number; left: number; top: number };
 
 export function SecretsLayer() {
@@ -73,7 +75,8 @@ export function SecretsLayer() {
     const schedule = () => {
       timer = setTimeout(() => {
         if (document.visibilityState === 'visible') {
-          setNeko(n => n ?? { id: Date.now(), left: rand(8, 86), gold: false, caught: false });
+          const guide = useGameStore.getState().nekozGuide?.arrivalPrestige != null && Math.random() < GUIDE_NEKO_CHANCE;
+          setNeko(n => n ?? { id: Date.now(), left: rand(8, 86), gold: false, caught: false, guide });
         }
         schedule();
       }, rand(NEKO_MIN_DELAY_MS, NEKO_MAX_DELAY_MS));
@@ -99,7 +102,8 @@ export function SecretsLayer() {
 
   const catchNeko = () => {
     if (!neko || neko.caught) return;
-    useGameStore.getState().discover(neko.gold ? EGG.goldNeko : EGG.npc);
+    useGameStore.getState().discover(neko.guide ? EGG.guideNeko : neko.gold ? EGG.goldNeko : EGG.npc);
+    if (neko.guide) toast.info('…', 'Il ne voulait pas être vu.');
     const id = neko.id;
     setNeko({ ...neko, caught: true });
     setTimeout(() => setNeko(n => (n?.id === id ? null : n)), 900);
@@ -125,9 +129,10 @@ export function SecretsLayer() {
   return (
     <>
       {neko && (
-        <button key={neko.id} className={`gv-neko${neko.gold ? ' is-gold' : ''}${neko.caught ? ' is-caught' : ''}`}
+        <button key={neko.id} className={`gv-neko${neko.gold ? ' is-gold' : ''}${neko.guide ? ' is-guide' : ''}${neko.caught ? ' is-caught' : ''}`}
           style={{ left: `${neko.left}%` }} onClick={catchNeko} aria-label="Chat errant">
-          {neko.gold ? '🐈' : '🐈‍⬛'}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {neko.guide ? <img src="/sprites/guide/nekoz_guide.webp" alt="" width={64} height={64} /> : neko.gold ? '🐈' : '🐈‍⬛'}
         </button>
       )}
       {sparkle && (

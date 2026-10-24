@@ -22,6 +22,7 @@ import {
 } from '@/lib/game/nakime';
 import { broadcastLocalState, requestUrgentSave, runPeakPalierOf } from '../gameStoreHelpers';
 import type { GameStore, NakimeActions } from '../gameStore.types';
+import { NAKIME_GUIDE_EVENT_ID, nakimeChoiceMark } from '@/lib/game/nekozGuide';
 
 /** Bilan d'une run terminée (pour l'écran de fin). */
 export interface NakimeRunEnd {
@@ -178,6 +179,11 @@ export const createNakimeSlice: StateCreator<GameStore, [], [], NakimeActions> =
       const res = chooseEventOption(run, index);
       if (typeof res === 'string') return res;
       setRun(res.run);
+      // Rencontre « Un chat à cornes » : le guide s'en souviendra sur l'accueil.
+      if (run.pending?.kind === 'event' && run.pending.id === NAKIME_GUIDE_EVENT_ID) {
+        const mark = nakimeChoiceMark(index);
+        set(s => s.nekozGuide.seen.includes(mark) ? s : { nekozGuide: { ...s.nekozGuide, seen: [...s.nekozGuide.seen, mark] } });
+      }
       return res.lines;
     },
 

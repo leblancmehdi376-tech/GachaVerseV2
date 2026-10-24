@@ -3,7 +3,7 @@ import { useGameStore } from '@/store/gameStore';
 import { CHARACTER_POOL } from './characters';
 import { EVOLUTION_STONE_ITEM_ID, type Rarity } from '@/types/game';
 import {
-  NAKIME_DAILY_ENTRIES, NAKIME_TEAM_SIZE, NAKIME_ACT_FLOORS, NAKIME_EVENTS, NAKIME_MILESTONES, NAKIME_RELIC_LIST, NAKIME_TITLE_BIWA,
+  NAKIME_DAILY_ENTRIES, NAKIME_TEAM_SIZE, NAKIME_ACT_FLOORS, NAKIME_EVENTS, NAKIME_SECRET_EVENT, NAKIME_MILESTONES, NAKIME_RELIC_LIST, NAKIME_TITLE_BIWA,
   generateActMap, createRun, reachableCols, enterNode, chooseReward, chooseEventOption, buyOffer, rerollShop, validateTeam,
   teamPower, actWorld, buildAllies, buildEnemies, createBattle, autoAction, playerAction, battleSeed, floorsCleared, runMemberStats, getNakimeRole,
   memberAbilities, abilityCount, BASIC_ATTACK, ABILITIES, describeAbility, battleAct,
@@ -130,7 +130,7 @@ describe('Château de Nakime — règles', () => {
     const run = createRun(pick('E'), 8);
     const withRelic: NakimeRun = { ...run, relics: ['muzan'] };
     expect(runMemberStats(withRelic)[0].atk).toBeGreaterThan(runMemberStats(run)[0].atk);
-    for (const ev of NAKIME_EVENTS) {
+    for (const ev of [...NAKIME_EVENTS, NAKIME_SECRET_EVENT]) {
       for (let i = 0; i < ev.options.length; i++) {
         const res = chooseEventOption({ ...run, shards: 9999, pending: { kind: 'event', id: ev.id } }, i);
         expect(typeof res).not.toBe('string');

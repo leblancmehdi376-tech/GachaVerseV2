@@ -285,6 +285,19 @@ function echoLines(v: GuideView): GuideLine[] {
   return lines;
 }
 
+// La nuit (0 h – 5 h), à partir de l'acte 2. Le jeu a déjà « L'Heure des Chats » (3 h 33).
+const NIGHT_LINE: GuideLine = { id: 'night', parts: ['Tu devrais dormir.', '… Elle non plus, elle ne dormait plus.'] };
+
+// Rencontre secrète du Château de Nakime (« Un chat à cornes ») : le choix du
+// joueur y est mémorisé dans `seen` ('nakime:sit' / 'nakime:ask'), et le guide
+// y réagit une fois sur l'accueil, en niant y avoir jamais mis les pieds.
+export const NAKIME_GUIDE_EVENT_ID = 'chat_cornes';
+export const nakimeChoiceMark = (optionIndex: number) => (optionIndex === 0 ? 'nakime:sit' : 'nakime:ask');
+const NAKIME_REACTIONS: { mark: string; line: GuideLine }[] = [
+  { mark: 'nakime:sit', line: { id: 'react:nakime', parts: ["Tu t'es assis à côté de moi. Dans ce couloir.", "… Quoi ? Non. Je n'ai jamais mis les pieds dans ce Château."] } },
+  { mark: 'nakime:ask', line: { id: 'react:nakime', parts: ['Il paraît que tu as posé des questions à un chat, au Château.', "Les chats ne répondent pas. C'est pour ça qu'on les aime."] } },
+];
+
 // Fin de la chaîne de quêtes actuelle : le joueur sait que la suite viendra.
 const CHAIN_END_LINE: GuideLine = { id: 'end:chain', parts: ["C'est tout pour l'instant.", '… Je ne vais nulle part. Promis.'] };
 
@@ -309,12 +322,15 @@ export function pendingGuideLine(v: GuideView): GuideLine | null {
   for (const r of CHILL_REACTIONS) {
     if (v.compadexCharactersSeen?.[r.charId] && !g.seen.includes(r.line.id)) return r.line;
   }
+  for (const r of NAKIME_REACTIONS) {
+    if (g.seen.includes(r.mark) && !g.seen.includes(r.line.id)) return r.line;
+  }
   return null;
 }
 
 // Réplique à dire au prochain clic : celle en attente, sinon une réplique au
 // hasard parmi celles que la situation autorise, sans répéter `previousId`.
-export function nextGuideLine(v: GuideView, previousId: string | null, rnd: () => number = Math.random): GuideLine {
+export function nextGuideLine(v: GuideView, previousId: string | null, rnd: () => number = Math.random, now: Date = new Date()): GuideLine {
   const pending = pendingGuideLine(v);
   if (pending) return pending;
 
@@ -325,6 +341,7 @@ export function nextGuideLine(v: GuideView, previousId: string | null, rnd: () =
   if (v.prestigeLevel >= 10) pool.push(...VETERAN_LINES);
   if (v.nekozGuide.questIndex >= ACT_2_FIRST_QUEST) pool.push(...ACT_2_LINES);
   if (v.nekozGuide.questIndex >= ACT_3_FIRST_QUEST) pool.push(...echoLines(v));
+  if (v.nekozGuide.questIndex >= ACT_2_FIRST_QUEST && now.getHours() < 5) pool.push(NIGHT_LINE);
   if (hasInTeam(v, 'ouchuu')) pool.push(OUCHUU_TEAM_LINE);
   if (hasInTeam(v, 'nekoz')) pool.push(NEKOZ_TEAM_LINE);
   const choices = pool.filter(l => l.id !== previousId);
@@ -333,7 +350,26 @@ export function nextGuideLine(v: GuideView, previousId: string | null, rnd: () =
 
 // Répliques dites une seule fois : à mémoriser dans `seen` une fois affichées.
 export function isOneShotLine(id: string): boolean {
-  return id.startsWith('quest:') || id.startsWith('meet:') || id.startsWith('end:');
+  return id.startsWith('quest:') || id.startsWith('meet:') || id.startsWith('end:') || id.startsWith('react:');
+}
+
+// ── Indices discrets dans les autres pages ─────────────────────────────────
+// Chaque indice n'apparaît qu'après la quête qui lui donne du sens (`after`),
+// ou dès l'arrivée du guide (`after: null`). Aucun ne change une règle du jeu.
+export const GUIDE_CLUES = {
+  raidRokoul:      { after: 'g14_rokoul',    text: 'Et ne les séparez jamais.' },
+  elfuzzionEggs:   { after: 'g13_elfuzzion', text: '… Et pourquoi ils grésillent ?' },
+  stoneMemory:     { after: 'g12_stones',    text: "Les pierres se souviennent. Quelqu'un d'autre aussi." },
+  prestigeConfirm: { after: null,            text: 'Tout le monde reviendra. … Compte-les quand même.' },
+  anomalies:       { after: 'g7_anomaly',    text: 'Certaines anomalies ne sont pas des bonus.' },
+  credits:         { after: 'g15_name',      text: 'guide' },
+} as const satisfies Record<string, { after: string | null; text: string }>;
+export type GuideClue = keyof typeof GUIDE_CLUES;
+
+export function isClueVisible(g: GuideState | undefined, clue: GuideClue): boolean {
+  if (!g || g.arrivalPrestige === null) return false;
+  const after = GUIDE_CLUES[clue].after;
+  return after === null || g.questIndex > GUIDE_QUESTS.findIndex(q => q.id === after);
 }
 
 // Fusion cloud : la chaîne de quêtes ne doit jamais reculer (sinon une
