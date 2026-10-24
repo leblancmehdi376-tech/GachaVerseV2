@@ -21,8 +21,14 @@ export const initialGuideState = (): GuideState => ({
   arrivalPrestige: null, lastPrestige: 0, questIndex: 0, questBaseline: 0, seen: [],
 });
 
-// Une réplique = une ou plusieurs bulles, enchaînées au clic.
-export interface GuideLine { id: string; parts: string[] }
+// Une réplique = une ou plusieurs bulles, enchaînées au clic. Une bulle est dite
+// par le guide (texte seul) ou, à partir de l'acte 3, par un Chill&Cool de
+// l'équipe (`by` = templateId, affiché avec le portrait de sa carte).
+export type GuidePart = string | { by: string; text: string };
+export interface GuideLine { id: string; parts: GuidePart[] }
+
+export const partText = (p: GuidePart): string => (typeof p === 'string' ? p : p.text);
+export const partSpeaker = (p: GuidePart): string | null => (typeof p === 'string' ? null : p.by);
 
 // Sous-ensemble du store lu par le guide (gardé étroit pour les tests).
 export interface GuideView {
@@ -55,12 +61,14 @@ export const raidKillsStat = (bossId: string) => `raidKills:${bossId}`;
 // la chaîne serait bloquée une fois l'événement terminé.
 export type GuideQuestMetric =
   | 'expeditions' | 'raidRokoul' | 'nakimeFloors' | 'upgrades' | 'chillTeam'
-  | 'nekozDivine' | 'anomalyRerolls' | 'ouchuuKills' | 'bonds' | 'playMinutes' | 'prestige' | 'stoneMemory';
+  | 'nekozDivine' | 'anomalyRerolls' | 'ouchuuKills' | 'bonds' | 'playMinutes' | 'prestige' | 'stoneMemory'
+  | 'elfuzzionKills' | 'rokoulBossWins' | 'ouchuuNekozTeam' | 'chill3Team';
 
-const STATE_METRICS: ReadonlySet<GuideQuestMetric> = new Set(['chillTeam', 'nekozDivine', 'stoneMemory']);
+const STATE_METRICS: ReadonlySet<GuideQuestMetric> = new Set(['chillTeam', 'nekozDivine', 'stoneMemory', 'ouchuuNekozTeam', 'chill3Team']);
 
-// Première quête de l'acte 2 (les fissures) : débloque aussi de nouvelles répliques.
+// Premières quêtes des actes 2 (les fissures) et 3 (le nom) : débloquent aussi de nouvelles répliques.
 export const ACT_2_FIRST_QUEST = 5;
+export const ACT_3_FIRST_QUEST = 12;
 
 export interface GuideQuestDef {
   id: string;
@@ -135,6 +143,32 @@ export const GUIDE_QUESTS: GuideQuestDef[] = [
     intro: { id: 'quest:g12', parts: ['Les pierres se souviennent. Tu le savais ?', 'Donne-leur un peu de mémoire.', "Il faut que quelqu'un se souvienne. Que ce ne soit pas toujours la même personne."] },
     outro: { id: 'done:g12', parts: ['Voilà. Maintenant, elles se souviennent un peu pour toi.', '… Et pour elle.'] },
   },
+  // ── Acte 3 — Le nom : chaque Chill&Cool portait seul un morceau de la catastrophe ──
+  {
+    id: 'g13_elfuzzion', icon: '🎛️', label: "Vaincre 300 monstres avec ElFuZzion dans l'équipe", metric: 'elfuzzionKills', target: 300, reward: 250,
+    intro: { id: 'quest:g13', parts: ['Ton ElFuZzion. Fais-le jouer. Fort.', "Je veux entendre s'il grésille."] },
+    outro: { id: 'done:g13', parts: ['Là-bas, il entendait un bruit. Très loin. Entre les mondes.', 'Il en a fait un remix. On a tous dansé dessus.', '… Moi le premier.'] },
+  },
+  {
+    id: 'g14_rokoul', icon: '👥', label: "Vaincre 5 boss de palier avec Rokoul & Ayro dans l'équipe", metric: 'rokoulBossWins', target: 5, reward: 250,
+    intro: { id: 'quest:g14', parts: ['Rokoul et Ayro. Contre des boss, cette fois.', 'Ensemble. Toujours ensemble.'] },
+    outro: { id: 'done:g14', parts: ["Quand tout s'est brisé, ils se tenaient ensemble.", "Le monde s'est coupé pile entre les deux.", "… Voilà. Maintenant tu sais pourquoi j'insiste."] },
+  },
+  {
+    id: 'g15_name', icon: '👑', label: "Placer Ouchuu et NekoZ ensemble dans l'équipe", metric: 'ouchuuNekozTeam', target: 1, reward: 300,
+    intro: { id: 'quest:g15', parts: ['Mets-les ensemble. Elle, et lui.', 'Juste… pour voir.'] },
+    outro: { id: 'done:g15', parts: ['…', 'Ouchuu.', "Je connaissais quelqu'un qui s'appelait comme ça. La reine d'un monde.", "Je ne viens pas d'ici. Tu t'en doutais, non ?"] },
+  },
+  {
+    id: 'g16_prestige', icon: '⭐', label: 'Faire un Prestige', metric: 'prestige', target: 1, reward: 400,
+    intro: { id: 'quest:g16', parts: ["Dans mon monde, quelqu'un a tout recommencé une fois de trop.", 'Alors je vais te demander de le refaire. Une fois.', 'Je dois savoir.'] },
+    outro: { id: 'done:g16', parts: ["Rien ne s'est brisé.", "… Alors pourquoi j'ai si peur ?", 'Peut-être que je me suis trompé. Sur quoi, je ne sais pas encore.'] },
+  },
+  {
+    id: 'g17_together', icon: '😎', label: "Placer 3 personnages Chill&Cool dans l'équipe", metric: 'chill3Team', target: 1, reward: 500,
+    intro: { id: 'quest:g17', parts: ['Réunis-les. Au moins trois.', 'Je veux les voir ensemble.', '… Une dernière fois, pour moi. Une première fois, pour toi.'] },
+    outro: { id: 'done:g17', parts: ["Ce jour-là, ils m'ont poussé dehors. Tous. Pas seulement elle.", 'Chacun portait un morceau du problème. Tout seul.', 'Ne refais pas ça. Ne les laisse pas tout porter seuls.'] },
+  },
 ];
 
 function nekozForm(v: GuideView): number {
@@ -159,6 +193,10 @@ function metricValue(v: GuideView, metric: GuideQuestMetric): number {
     case 'playMinutes':  return Math.floor((v.achievementStats[STAT.playtimeSec] ?? 0) / 60);
     case 'prestige':     return v.prestigeLevel;
     case 'stoneMemory':  return (v.prestigeRankRecoveryLevel ?? 0) >= 1 ? 1 : 0;
+    case 'elfuzzionKills': return v.charMastery?.elfuzzion?.k ?? 0;
+    case 'rokoulBossWins': return v.charMastery?.rokoul_ayro?.w ?? 0;
+    case 'ouchuuNekozTeam': return hasInTeam(v, 'ouchuu') && hasInTeam(v, 'nekoz') ? 1 : 0;
+    case 'chill3Team':   return CHILL_COOL_IDS.filter(id => hasInTeam(v, id)).length >= 3 ? 1 : 0;
   }
 }
 
@@ -227,6 +265,26 @@ const ACT_2_LINES: GuideLine[] = [
   { id: 'f5', parts: ['Ton NekoZ dort comme une pierre.', "Le mien… L'autre, je veux dire. … Rien."] },
 ];
 
+// Acte 3 : les Chill&Cool de cette réalité se souviennent par fragments, et
+// le disent quand ils sont dans l'équipe. Le guide ne sait pas quoi répondre.
+function echoLines(v: GuideView): GuideLine[] {
+  const lines: GuideLine[] = [];
+  if (hasInTeam(v, 'ouchuu') && v.prestigeLevel >= 2) {
+    lines.push({ id: 'e_ouchuu2', parts: [{ by: 'ouchuu', text: `Tu as déjà eu l'impression d'avoir vécu une journée en entier… ${v.prestigeLevel} fois ?` }, '…', 'Oui.'] });
+  }
+  if (hasInTeam(v, 'elfuzzion')) {
+    lines.push({ id: 'e_elfuzzion1', parts: [{ by: 'elfuzzion', text: "T'entends pas un bruit, toi ? Genre un grésillement, très loin." }, 'Non.', '… Si. Depuis longtemps.'] });
+    lines.push({ id: 'e_elfuzzion2', parts: [{ by: 'elfuzzion', text: "J'ai un son dans la tête. Je l'ai jamais entendu, et pourtant je connais la fin." }, 'Ne le finis pas.'] });
+  }
+  if (hasInTeam(v, 'rokoul_ayro')) {
+    lines.push({ id: 'e_rokoul1', parts: [{ by: 'rokoul_ayro', text: 'Pourquoi tu nous regardes toujours comme si on allait disparaître ?' }, 'Parce que vous êtes deux.', '… Restez-le.'] });
+  }
+  if (hasInTeam(v, 'nekoz')) {
+    lines.push({ id: 'e_nekoz1', parts: [{ by: 'nekoz', text: "Hé. Pourquoi t'as mes cornes, toi ?" }, "C'est toi qui as les miennes."] });
+  }
+  return lines;
+}
+
 // Fin de la chaîne de quêtes actuelle : le joueur sait que la suite viendra.
 const CHAIN_END_LINE: GuideLine = { id: 'end:chain', parts: ["C'est tout pour l'instant.", '… Je ne vais nulle part. Promis.'] };
 
@@ -266,6 +324,7 @@ export function nextGuideLine(v: GuideView, previousId: string | null, rnd: () =
   if ((v.runPeakPalier ?? v.maxPalierReached) >= PRESTIGE_UNLOCK_PALIER) pool.push(...PRESTIGE_READY_LINES);
   if (v.prestigeLevel >= 10) pool.push(...VETERAN_LINES);
   if (v.nekozGuide.questIndex >= ACT_2_FIRST_QUEST) pool.push(...ACT_2_LINES);
+  if (v.nekozGuide.questIndex >= ACT_3_FIRST_QUEST) pool.push(...echoLines(v));
   if (hasInTeam(v, 'ouchuu')) pool.push(OUCHUU_TEAM_LINE);
   if (hasInTeam(v, 'nekoz')) pool.push(NEKOZ_TEAM_LINE);
   const choices = pool.filter(l => l.id !== previousId);

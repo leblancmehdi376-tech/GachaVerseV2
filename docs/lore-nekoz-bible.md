@@ -178,15 +178,18 @@ Courtes répliques affichées au clic sur le guide. Quand plusieurs sont possibl
 16. *(Ouchuu dans l’équipe)* « Elle dort bien, en ce moment ? … Pour rien. »
 17. *(Angel, à tout moment, très rare)* « Il manque quelqu’un, ici. Elle n’est pas là. … Pas encore. »
 
-### L’Ouchuu de cette réalité (à placer plus tard : nouvelle réplique d’invocation ou réaction en équipe)
-- « J’ai rêvé de toi. Enfin… de quelqu’un avec tes cornes. Il pleurait. »
-- « Tu as déjà eu l’impression d’avoir vécu une journée en entier… quarante-huit fois ? »
+### L’Ouchuu de cette réalité (acte 3, quand elle est dans l’équipe)
+- « Tu as déjà eu l’impression d’avoir vécu une journée en entier… quarante-huit fois ? » (le nombre suit le Prestige du joueur)
+- Réplique retirée à la demande de l’équipe : « J’ai rêvé de toi… » (ne pas la réintroduire).
 
 ## 10. Besoins techniques — séparés du lore
 
 **État : les actes 1 et 2 sont codés (Maj v2.8.2.14).**
 - Acte 2 (quêtes 6 à 12) : Mode Divin, Anomalie (à la place du Grand Périple, événement temporaire), 500 monstres avec Ouchuu, nouveau Lien légendaire, 30 minutes de jeu, un Prestige, puis la Mémoire des Pierres. Elle passe en dernier, car elle s’achète avec des jetons de Prestige.
 - Récompenses de l’acte 2 : 150, 150, 200, 200, 200, 300 et 300 💎.
+- Acte 3 (quêtes 13 à 17), un Chill&Cool par révélation : ElFuZzion (l’avertissement ignoré), Rokoul & Ayro (la cassure entre eux), Ouchuu et NekoZ (le nom), un Prestige (le doute), puis 3 Chill&Cool réunis (*« Ils m’ont poussé dehors. Tous. »*). Récompenses : 250, 250, 300, 400 et 500 💎.
+- À partir de l’acte 3, les Chill&Cool de l’équipe prennent parfois la parole (bulle avec le portrait de leur carte) : ils se souviennent par fragments.
+- Rôles validés : Ouchuu = la mémoire, ElFuZzion = l’avertissement, Rokoul & Ayro = le lien, Angel = la trace, NekoZ = la survie. La catastrophe vient de ce que chacun portait sa part seul ; la solution de l’acte 4 passe par le groupe réuni.
 - À la fin de la chaîne, le guide dit une fois : *« C’est tout pour l’instant. … Je ne vais nulle part. Promis. »*
 - Répliques et quêtes : `lib/game/nekozGuide.ts`.
 - État dans le store : `nekozGuide` (`store/slices/guideSlice.ts`).

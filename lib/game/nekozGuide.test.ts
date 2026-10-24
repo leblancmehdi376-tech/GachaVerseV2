@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   GUIDE_QUESTS, initialGuideState, currentGuideQuest, questBaselineFor, pendingGuideLine, nextGuideLine,
-  mergeGuideState, raidKillsStat, type GuideView, type GuideState,
+  mergeGuideState, raidKillsStat, ACT_3_FIRST_QUEST, type GuideView, type GuideState,
 } from './nekozGuide';
 import { STAT } from './achievements';
 import { BONDS } from './bonds';
@@ -111,5 +111,34 @@ describe('acte 2', () => {
     const done = { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length };
     expect(pendingGuideLine(view({}, done))?.id).toBe('end:chain');
     expect(pendingGuideLine(view({}, { ...done, seen: ['end:chain'] }))).toBeNull();
+  });
+});
+
+describe('acte 3', () => {
+  const at = (metric: string) => ({ arrivalPrestige: 0, questIndex: GUIDE_QUESTS.findIndex(q => q.metric === metric) });
+
+  it('demande Ouchuu et NekoZ ensemble, puis 3 Chill&Cool différents', () => {
+    expect(currentGuideQuest(view({ equippedTeam: ['ouchuu', null, null, null] }, at('ouchuuNekozTeam')))?.claimable).toBe(false);
+    expect(currentGuideQuest(view({ equippedTeam: ['ouchuu', 'nekoz', null, null] }, at('ouchuuNekozTeam')))?.claimable).toBe(true);
+    expect(currentGuideQuest(view({ equippedTeam: ['ouchuu', 'nekoz', 'goku', null] }, at('chill3Team')))?.claimable).toBe(false);
+    expect(currentGuideQuest(view({ equippedTeam: ['ouchuu', 'nekoz', 'elfuzzion', null] }, at('chill3Team')))?.claimable).toBe(true);
+  });
+
+  it('compte les boss vaincus avec Rokoul & Ayro depuis l’activation', () => {
+    const idx = GUIDE_QUESTS.findIndex(q => q.metric === 'rokoulBossWins');
+    const v = view({ charMastery: { rokoul_ayro: { k: 900, w: 12, lv: 0 } } }, { arrivalPrestige: 0, questIndex: idx, questBaseline: 9 });
+    expect(currentGuideQuest(v)?.current).toBe(3);
+  });
+
+  it("ne fait parler les Chill&Cool de l'équipe qu'à partir de l'acte 3", () => {
+    const team = { equippedTeam: ['elfuzzion', null, null, null] };
+    const seenAll = GUIDE_QUESTS.map(q => q.intro.id).concat('end:chain');
+    const spoken = (questIndex: number) => {
+      const ids = new Set<string>();
+      for (let i = 0; i < 200; i++) ids.add(nextGuideLine(view(team, { arrivalPrestige: 0, questIndex, seen: seenAll }), null, () => (i % 100) / 100).id);
+      return [...ids].filter(id => id.startsWith('e_'));
+    };
+    expect(spoken(ACT_3_FIRST_QUEST - 1)).toEqual([]);
+    expect(spoken(ACT_3_FIRST_QUEST).sort()).toEqual(['e_elfuzzion1', 'e_elfuzzion2']);
   });
 });

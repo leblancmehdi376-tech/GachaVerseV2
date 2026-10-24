@@ -30,7 +30,7 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
         changes: [
           "Un **mystérieux personnage** est apparu sur l'accueil, sous les **quêtes quotidiennes**.",
           "**Touche-le** pour lui parler. Ce qu'il dit dépend de ton parcours, et il n'a pas fini de parler.",
-          "Il te confie aussi ses propres **quêtes**, une à la fois : **12 quêtes** pour commencer, récompensées en **gemmes**.",
+          "Il te confie aussi ses propres **quêtes**, une à la fois : **17 quêtes** pour commencer, récompensées en **gemmes**.",
           "Plus tu avances dans ses quêtes, plus il en dit… parfois plus qu'il ne voudrait.",
           "Ses quêtes ne comptent que ce que tu fais **après** les avoir acceptées. Même à Prestige 48, tout le monde commence au même point.",
           "Sa progression n'est **jamais remise à zéro** par le Prestige, et elle te suit d'un appareil à l'autre.",

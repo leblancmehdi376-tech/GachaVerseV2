@@ -2,8 +2,11 @@
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/store/gameStore';
-import { currentGuideQuest, nextGuideLine, pendingGuideLine, type GuideLine } from '@/lib/game/nekozGuide';
+import { currentGuideQuest, nextGuideLine, partSpeaker, partText, pendingGuideLine, type GuideLine } from '@/lib/game/nekozGuide';
 import { formatNumber } from '@/lib/game/format';
+import { getCharacterById } from '@/lib/game/characters';
+import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
+import { getSafeFormIndex } from '@/store/spoilerStore';
 
 // NekoZ-guide : personnage cliquable sous les quêtes. Chaque clic fait avancer
 // sa réplique (une réplique peut tenir en plusieurs bulles), puis en tire une
@@ -68,7 +71,17 @@ export function GuideCard() {
     setPart(0);
   };
 
-  const bubble = line ? line.parts[part] : arrived ? '…' : '… ?';
+  const current = line?.parts[part];
+  const bubble = current !== undefined ? partText(current) : arrived ? '…' : '… ?';
+  // Bulle dite par un Chill&Cool de l'équipe (acte 3) : portrait de sa carte à la place du guide.
+  const speaker = current !== undefined ? getCharacterById(partSpeaker(current) ?? '') : undefined;
+  // Forme actuelle du perso chez le joueur, sauf univers protégé par l'anti-spoil.
+  const speakerForm = speaker
+    ? getSafeFormIndex(speaker.universe ?? '', useGameStore.getState().collection[speaker.id]?.currentForm ?? 0)
+    : 0;
+  const portrait = speaker
+    ? `/sprites/new_cards_processed/${getCardBaseName(speaker, speakerForm)}.webp?v=${NEW_CARDS_ASSET_VERSION}`
+    : '/sprites/guide/nekoz_guide.webp';
   const moreParts = !!line && part < line.parts.length - 1;
   const notify = hasPending || !!questInfo?.claimable;
 
@@ -85,10 +98,15 @@ export function GuideCard() {
       <button onClick={talk} aria-label="Parler au guide"
         style={{ display:'flex', alignItems:'flex-end', gap:'8px', background:'none', border:'none', padding:0, cursor:'pointer', textAlign:'left', minHeight:'88px', width:'100%' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/sprites/guide/nekoz_guide.webp" alt="" width={84} height={84}
-          style={{ width:'84px', height:'84px', flexShrink:0, objectFit:'contain', filter:'drop-shadow(0 4px 10px rgba(99,102,241,0.35))', animation: notify ? 'idleFloat 3s ease-in-out infinite' : undefined }} />
+        <img src={portrait} alt={speaker?.name ?? ''} width={84} height={84}
+          style={speaker
+            ? { width:'84px', height:'84px', flexShrink:0, objectFit:'cover', objectPosition:'top', borderRadius:'12px', border:'2px solid #818cf8', boxShadow:'0 0 12px rgba(99,102,241,0.45)' }
+            : { width:'84px', height:'84px', flexShrink:0, objectFit:'contain', filter:'drop-shadow(0 4px 10px rgba(99,102,241,0.35))', animation: notify ? 'idleFloat 3s ease-in-out infinite' : undefined }} />
         <div key={`${line?.id ?? 'idle'}-${part}`}
-          style={{ position:'relative', flex:1, minWidth:0, alignSelf:'stretch', display:'flex', flexDirection:'column', justifyContent:'center', background:'var(--bg-card)', border:'1px solid rgba(129,140,248,0.3)', borderRadius:'10px', padding:'8px 10px', animation:'fadeIn 0.25s ease-out' }}>
+          style={{ position:'relative', flex:1, minWidth:0, alignSelf:'stretch', display:'flex', flexDirection:'column', justifyContent:'center', background: speaker ? 'rgba(99,102,241,0.12)' : 'var(--bg-card)', border:`1px solid ${speaker ? 'rgba(129,140,248,0.6)' : 'rgba(129,140,248,0.3)'}`, borderRadius:'10px', padding:'8px 10px', animation:'fadeIn 0.25s ease-out' }}>
+          {speaker && (
+            <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'#a5b4fc', marginBottom:'2px' }}>{speaker.name}</span>
+          )}
           <span style={{ fontFamily:'var(--f-ui)', fontWeight:600, fontSize:'14px', color:'var(--text-sub)', lineHeight:1.35 }}>{bubble}</span>
           {(moreParts || !line) && (
             <span style={{ fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', marginTop:'4px', textAlign:'right' }}>{moreParts ? '▸' : 'Touche-le'}</span>
