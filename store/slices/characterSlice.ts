@@ -8,6 +8,8 @@ import { computeEquippedMultiplier } from '@/lib/game/items';
 import { computeActiveSynergies, calcDpsWithSynergies } from '@/lib/game/synergies';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { getAffinityForId, getAffinityMultiplier } from '@/lib/game/affinities';
+import { getCosmicTide, tideMultFor } from '@/lib/game/tides';
+import { computeActiveBonds, getBondDpsMult } from '@/lib/game/bonds';
 import { RARITY_GATES } from '@/lib/game/gacha';
 import { BOOST_MULTIPLIER } from '@/lib/game/shop';
 import { calcAnomalyBonuses } from '@/lib/game/anomalies';
@@ -17,7 +19,9 @@ import type { GameStore, CharacterSlice, DpsBreakdownChar } from '../gameStore.t
 import { BN_ZERO, bnAdd, bnDivRatio, bnGte, bnMulScalar, bnSub, bnToNumber, type BigNum } from '@/lib/game/bignum';
 import { addStats } from '@/lib/game/achievementStats';
 import { STAT, getMasteryDpsMult } from '@/lib/game/achievements';
+import { toast } from '@/hooks/useToast';
 import { bumpQuestsIn } from './questSlice';
+import { unequipAllPatch } from './equipmentSlice';
 
 // Compteurs communs à toute amélioration (quêtes "Améliorer tes personnages"
 // jour/semaine + cumul à vie), sous forme de patch à fusionner dans le set()
@@ -54,9 +58,12 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
   let dpsMemo: Memo<ReturnType<GameStore['getDpsBreakdown']>> | undefined;
   let goldMemo: Memo<ReturnType<GameStore['getGoldBreakdown']>> | undefined;
   const charDpsMemo = new Map<string, Memo<ReturnType<GameStore['getCharDpsBreakdown']>>>();
+  // getCosmicTide() renvoie le même objet toute la journée : le DPS n'est
+  // recalculé qu'au changement de marée (2h).
   const dpsDeps = (s: GameStore) => [
     s.equippedTeam, s.collection, s.charMastery, s.prestigeBonusLevels, s.prestigeRankRecoveryLevel,
     s.ownedAnomalies, s.currentEnemy?.name, s.ultActiveUlts, s.isDpsBoostActive(), s.dpsBoostEndsAt, s.getEventDpsMult(),
+    getCosmicTide(),
   ];
 
   function computeCharDpsBreakdown(templateId: string) {
@@ -78,12 +85,14 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const dpsWithEquip = bnMulScalar(calcCharDps(tpl, owned), equippedMult);
     const withSyn = bnMulScalar(calcDpsWithSynergies(templateId, dpsWithEquip, activeSynergies), anomalySynMult);
     const ultMult = get().getDpsMultiplierFor(templateId);
+    const bondMult = getBondDpsMult(pureId, computeActiveBonds(equippedTeam));
 
     const cohesionMult = get().getTeamCohesion().mult;
-    const base     = bnMulScalar(withSyn, ultMult * boostMult * prestigeMult * anomalyBonuses.globalDpsMult * cohesionMult);
+    const base     = bnMulScalar(withSyn, ultMult * bondMult * boostMult * prestigeMult * anomalyBonuses.globalDpsMult * cohesionMult);
     const charAffinity = getAffinityForId(pureId);
     const anomalyTypeMult = 1 + (anomalyBonuses.typeDamageByAffinity[charAffinity] ?? 0);
-    const typeMult = getAffinityMultiplier(charAffinity, getAffinityForId(get().currentEnemy?.name ?? '')) * anomalyTypeMult;
+    const typeMult = getAffinityMultiplier(charAffinity, getAffinityForId(get().currentEnemy?.name ?? '')) * anomalyTypeMult
+      * tideMultFor(charAffinity, getCosmicTide());
     return { base, typeMult, final: bnMulScalar(base, typeMult) };
   }
 
@@ -97,6 +106,9 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     const teamUltMult = get().ultActiveUlts.reduce((m, a) => m * (a.effect.dpsMultiplier ?? 1), 1);
     const cohesionMult = get().getTeamCohesion().mult; // combat de l'accueil uniquement (pas raids/expéditions)
     const globalMult = prestigeMult * anomalyBonuses.globalDpsMult * cohesionMult;
+    // Liens légendaires et Marée cosmique : combat de l'accueil uniquement, comme la cohésion.
+    const activeBonds = computeActiveBonds(equippedTeam);
+    const tide = getCosmicTide();
 
     const chars: DpsBreakdownChar[] = [];
     let teamDps: BigNum = BN_ZERO;
@@ -117,12 +129,15 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       const charAffinity = getAffinityForId(pureId);
       const anomalyTypeMult = 1 + (anomalyBonuses.typeDamageByAffinity[charAffinity] ?? 0);
       const typeMult = getAffinityMultiplier(charAffinity, enemyAffinity) * anomalyTypeMult; // avantage de type + anomalies
-      const charDps = bnMulScalar(withSyn, ultMult * boostMult * typeMult);
+      const tideMult = tideMultFor(charAffinity, tide);
+      const charBonds = activeBonds.filter(b => b.members.includes(pureId));
+      const bondMult = getBondDpsMult(pureId, charBonds);
+      const charDps = bnMulScalar(withSyn, ultMult * boostMult * typeMult * tideMult * bondMult);
       teamDps = bnAdd(teamDps, charDps);
       chars.push({
         key: id, templateId: pureId, name: tpl.name,
         dps: bnMulScalar(charDps, globalMult),
-        ownDps: bnMulScalar(withSyn, (ultMult / teamUltMult) * typeMult),
+        ownDps: bnMulScalar(withSyn, (ultMult / teamUltMult) * typeMult * tideMult * bondMult),
         equipMult, masteryMult,
         synergyMult: bnDivRatio(withSyn, dpsWithEquip) || 1,
         // Même règle que calcDpsWithSynergies : bonus d'univers pour les persos
@@ -133,6 +148,9 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
         ]),
         selfUltMult: ultMult / teamUltMult,
         typeMult,
+        tideMult,
+        bondMult,
+        bonds: charBonds.map(b => ({ name: b.name, icon: b.icon })),
       });
     }
 
@@ -281,6 +299,7 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
         for (const id of requiredItems) newInventory[id] = Math.max(0, (newInventory[id] ?? 0) - 1);
       }
       const stonesHave = state.expeditionDropInventory[EVOLUTION_STONE_ITEM_ID] ?? 0;
+      const counters = upgradeCountersPatch(state, 1, cost);
       return {
         pixelCoins: bnSub(state.pixelCoins, cost),
         inventory: newInventory,
@@ -291,7 +310,9 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
           ...state.collection,
           [templateId]: { ...owned, currentForm: owned.currentForm + 1, level: owned.level + 1 },
         },
-        ...upgradeCountersPatch(state, 1, cost),
+        ...counters,
+        // Succès "Métamorphoses" (evolve_25).
+        achievementStats: addStats(counters.achievementStats, { [STAT.evolutions]: 1 }),
       };
     });
   },
@@ -337,7 +358,8 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
       if (occupant && occupant !== id && onBoss && state.ultUsedThisFight.includes(occupant)) return { equippedTeam: team };
       if (currentSlot !== -1) team[currentSlot] = null;
       team[slot] = id;
-      return { equippedTeam: team };
+      // Le perso remplacé quitte l'équipe : son équipement retourne à l'inventaire.
+      return { equippedTeam: team, ...(occupant && occupant !== id ? unequipAllPatch(state, occupant) : {}) };
     });
   },
   unequipCharacter: (slot) => set(s => {
@@ -347,7 +369,21 @@ export const createCharacterSlice: StateCreator<GameStore, [], [], CharacterSlic
     if (tid && onBoss && s.ultUsedThisFight.includes(tid)) return s;
     const t = [...s.equippedTeam] as (string|null)[];
     t[slot] = null;
-    return { equippedTeam: t };
+    // Retiré de l'équipe : son équipement retourne à l'inventaire.
+    return { equippedTeam: t, ...(tid ? unequipAllPatch(s, tid) : {}) };
   }),
+
+  discoverActiveBonds: () => {
+    const s = get();
+    const fresh = computeActiveBonds(s.equippedTeam).filter(b => !s.discoveredBonds?.[b.id]);
+    if (fresh.length === 0) return;
+    set(st => {
+      const discoveredBonds = { ...(st.discoveredBonds ?? {}) };
+      for (const b of fresh) discoveredBonds[b.id] = true;
+      return { discoveredBonds };
+    });
+    if (s.suppressToasts) return;
+    for (const b of fresh) toast.levelup(`🔗 Lien découvert : ${b.name}`, `+${b.dpsBonus} % de DPS pour ${b.members.length === 2 ? 'les deux membres' : 'chaque membre'} quand ils sont réunis`);
+  },
   };
 };

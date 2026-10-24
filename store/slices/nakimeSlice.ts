@@ -14,6 +14,7 @@ import { rollCharacter, DEFAULT_BANNER_ID } from '@/lib/game/gacha';
 import { rollGachaPrize, isHighTier, NAKIME_GACHA_PITY, NAKIME_GACHA_TITLE, NAKIME_GACHA_TITLE_DUPLICATE_GEMS, type GachaPrize } from '@/lib/game/nakimeGacha';
 import { rollEquipmentChest } from '@/lib/game/items';
 import { getTodayDayKey } from '@/lib/game/shop';
+import { getCosmicTide } from '@/lib/game/tides';
 import {
   NAKIME_DAILY_ENTRIES, NAKIME_UNLIMITED_ENTRIES, NAKIME_MILESTONES, NAKIME_META_BY_ID,
   battleAct, buyOffer, chooseEventOption, chooseReward, createRun, enterNode, floorsCleared, isValidRun, notesEarned, rerollShop, validateTeam,
@@ -132,7 +133,7 @@ export const createNakimeSlice: StateCreator<GameStore, [], [], NakimeActions> =
       const today = getTodayDayKey();
       const seed = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
       set(st => ({
-        nakimeRun: createRun(keys, seed, st.nakimeMeta ?? {}, Object.fromEntries(keys.map(k => [k, st.collection[k]?.edition]))),
+        nakimeRun: createRun(keys, seed, st.nakimeMeta ?? {}, Object.fromEntries(keys.map(k => [k, st.collection[k]?.edition])), getCosmicTide()),
         nakimeDay: today,
         nakimeEntriesUsed: (st.nakimeDay === today ? st.nakimeEntriesUsed : 0) + 1,
       }));

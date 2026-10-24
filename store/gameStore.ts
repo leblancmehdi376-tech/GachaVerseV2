@@ -68,6 +68,7 @@ const makeInitial = () => ({
   collection: {} as Record<string, OwnedCharacter>,
   compadexCharactersSeen: {} as Record<string, true>,
   compadexEquipmentSeen: {} as Record<string, true>,
+  discoveredBonds: {} as Record<string, true>,
   hero: { level: 1, currentForm: 0, xp: 0 } as HeroState,
   bossActive: false, bossTimeLeft: 0, bossAvoided: false,
   ultUsedThisFight: [] as string[],
@@ -89,6 +90,7 @@ const makeInitial = () => ({
   lastEquipmentDrop: null,
   focusedExpeditionId: null,
   raidCharacterPurchases: {} as Record<string, number>,
+  gachaSparks: 0,
   historicalEditionPoints: {} as Record<string, number>,
   unlockedEquipRarities: ['C'] as Rarity[],
   unlockedEquipDropRarities: ['C'] as Rarity[],
@@ -422,6 +424,7 @@ export const useGameStore = create<GameStore>()(
         // correctif : un refresh/reconnexion faisait revenir le prix à son
         // tarif de départ (bug mineur, favorable au joueur).
         raidCharacterPurchases:s.raidCharacterPurchases ?? {},
+        gachaSparks:s.gachaSparks ?? 0,
         dpsBoostEndsAt:s.dpsBoostEndsAt, goldBoostEndsAt:s.goldBoostEndsAt,
         dailyShop:s.dailyShop, starterPackClaimed:s.starterPackClaimed,
         dailyRewardDayKey:s.dailyRewardDayKey, dailyRewardCurrentDay:s.dailyRewardCurrentDay,
@@ -479,6 +482,8 @@ export const useGameStore = create<GameStore>()(
         nekozGuide:s.nekozGuide ?? initialGuideState(),
         // Compadex — jamais reset au Prestige (même traitement qu'historicalEditionPoints).
         compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
+        // Liens légendaires découverts — jamais reset au Prestige, comme le Compadex.
+        discoveredBonds:s.discoveredBonds ?? {},
         // Historique de solde (graphe admin) — persisté localement comme le
         // reste (gratuit, middleware persist), et synchronisé cloud via
         // getSerializableState (voir son commentaire dans cloudSaveSync.ts).

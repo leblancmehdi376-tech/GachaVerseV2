@@ -283,7 +283,12 @@ export const BANNER_VOL2_CHARACTERS: CharacterTemplate[] = [
     f('kisuke_urahara_evo1', 'Kisuke Urahara — Capitaine', 'kisuke_urahara'),
     f('kisuke_urahara_evo2', 'Kisuke Urahara — Bankai', 'kisuke_urahara'),
   ]),
-  c('bella_repo',                'Bella',                           'S',   71, 'R.E.P.O'),
+  // Évolution sans visuel dédié : la carte garde l'illustration de base (repli
+  // Evo1 → Evo0, voir CharacterCardThumb).
+  ce('bella_repo', 'Bella', 'S', 71, 'R.E.P.O', [
+    f('bella_repo_base', 'Bella', 'bella_repo'),
+    f('bella_repo_evo1', 'Bella — Grand Final', 'bella_repo'),
+  ]),
   ce('bastion', 'Bastion', 'S', 69, 'Overwatch', [
     f('bastion_base', 'Bastion', 'bastion'),
     f('bastion_evo1', 'Bastion — Mode Tourelle', 'bastion'),
@@ -453,7 +458,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   c('cyborg',      'Cyborg',          'C',  8,  'Brotato'),
   c('slime',       'Slime',           'C',  12,  'Minecraft'),
   c('axolotl',     'Axolotl',         'C',  9,  'Minecraft'),
-  c('garry_fish',  'Garry Fish',      'C',  12,  'Digital Circus'),
+  c('garry_fish',  'Garry Fish',      'C',  12,  'Subnautica'),
   c('birthday_boy','Birthday Boy',    'C',  12,  'R.E.P.O'),
   c('gummigoo',    'Gummigoo',        'C',  11,  'Digital Circus'),
   c('yamcha',      'Yamcha',          'C',  10,  'Dragon Ball Z'),
@@ -577,6 +582,7 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   ]),
   ce('link_midona', 'Link & Midona', 'CO', 80, 'The Legend of Zelda', [
     f('link_midona_base', 'Link & Midona',                     'link_midona'),
+    f('link_midona_evo1', 'Link & Midona — Loup du Crépuscule', 'link_midona'),
   ]),
   ce('jinwoo', 'Sung Jin Woo', 'S', 71, 'Solo Leveling', (() => {
     const items = ['elixir_vie', 'manteau_ombre', 'beru'];
@@ -864,8 +870,11 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
     f('alice_sao_armor', 'Armure Légendaire',    'alice_sao'),
     f('alice_sao_max',   'Puissance Maximale',   'alice_sao'),
   ]),
+  // Évolution sans visuel dédié : la carte garde l'illustration de base (repli
+  // Evo1 → Evo0, voir CharacterCardThumb).
   ce('atsushi',           'Atsushi',              'S', 73, 'Bungou Stray Dogs', [
     f('atsushi_base', 'Atsushi', 'atsushi'),
+    f('atsushi_evo1', 'Atsushi — Bête au Clair de Lune', 'atsushi'),
   ]),
   ce('mao_mao_ap', 'Mao Mao', 'S', 72, "Les Carnets de l'Apothicaire", [
     f('mao_mao_ap_base', 'Mao Mao',             'mao_mao_ap'),

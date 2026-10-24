@@ -3,7 +3,8 @@ import { useEffect, type CSSProperties } from 'react';
 import type { LeaderboardEntry } from '@/lib/firebase/leaderboard';
 import { AvatarVisual } from '@/components/layout/AvatarVisual';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
-import { getCharacterById, CHARACTER_POOL } from '@/lib/game/characters';
+import { getCharacterById } from '@/lib/game/characters';
+import { COMPADEX_TOTAL } from '@/lib/game/compadex';
 import { getPalierConfig } from '@/lib/game/paliers';
 import { formatNumber } from '@/lib/game/format';
 import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, MAX_SHOWCASED_TROPHIES, TIER_META, getAchievementTier } from '@/lib/game/achievements';
@@ -42,7 +43,7 @@ export function PlayerProfileModal({ entry, rank, rankColor, isMe, onClose }: Pr
     { label:'PRESTIGE',     val: String(entry.prestigeLevel),                            color:'#a855f7' },
     { label:'DPS TOTAL',    val: `${formatNumber(entry.totalDps)}/s`,                    color:'var(--green)' },
     { label:'PIXEL-COINS',  val: formatNumber(entry.pixelCoins),                         color:'var(--gold)' },
-    { label:'PERSONNAGES',  val: `${profile.ownedCharCount} / ${CHARACTER_POOL.length}`, color:'#60a5fa' },
+    { label:'COMPADEX',     val: `${profile.compadexCount} / ${COMPADEX_TOTAL}`,       color:'#60a5fa' },
     { label:'SUCCÈS',       val: `${profile.achievementsCount} / ${ACHIEVEMENTS.length}`, color:'#fbbf24' },
     { label:'BOSS VAINCUS', val: formatNumber(profile.totalBossKills),                   color:'#f87171' },
     { label:'INVOCATIONS',  val: formatNumber(profile.totalGachaPulls),                  color:'var(--cyan-hi)' },

@@ -14,7 +14,7 @@
 // retirer une carte, des offres ou des récompenses différentes.
 import { parseInstanceKey, type CardEdition } from './editions';
 import { getCharacterById } from './characters';
-import { getAffinityForId } from './affinities';
+import { getAffinityForId, type Affinity } from './affinities';
 import {
   makeRng, subSeed, pickWeighted, relicMods, actWorld, isNakimeEligible, eventScale, boonShards, rarityIdx, NAKIME_META_STAT_PCT,
   NAKIME_RELIC_LIST, NAKIME_RELICS, NAKIME_EVENTS, NAKIME_EVENT_BY_ID, BOON_INFO,
@@ -237,9 +237,14 @@ export function teamEnemyScale(keys: readonly string[]): number {
 
 export type NakimeMetaLevels = Partial<Record<MetaUpgradeId, number>>;
 
-export function createRun(keys: readonly string[], seed: number, meta: NakimeMetaLevels = {}, editions: Record<string, CardEdition | undefined> = {}): NakimeRun {
+// `tide` : Marée cosmique du jour d'entrée (voir lib/game/tides.ts), gardée
+// dans le bonus de la run pour qu'elle reste la même jusqu'à la fin.
+export function createRun(keys: readonly string[], seed: number, meta: NakimeMetaLevels = {}, editions: Record<string, CardEdition | undefined> = {}, tide?: { up: Affinity; down: Affinity }): NakimeRun {
   const lv = (id: MetaUpgradeId) => meta[id] ?? 0;
-  const bonus: TeamBonus = { atkPct: 0, hpPct: 0, energy: 0, metaAtkPct: lv('team_atk') * NAKIME_META_STAT_PCT, metaHpPct: lv('team_hp') * NAKIME_META_STAT_PCT };
+  const bonus: TeamBonus = {
+    atkPct: 0, hpPct: 0, energy: 0, metaAtkPct: lv('team_atk') * NAKIME_META_STAT_PCT, metaHpPct: lv('team_hp') * NAKIME_META_STAT_PCT,
+    ...(tide && { tideUp: tide.up, tideDown: tide.down }),
+  };
   const relics: string[] = [];
   if (lv('start_relic') > 0) {
     const pool = NAKIME_RELIC_LIST.filter(r => r.tier === 'commune');

@@ -76,7 +76,7 @@ const MALE: string[] = [
   // Minecraft
   'steve',
   // Digital Circus
-  'garry_fish', 'gummigoo', 'jax', 'kinger',
+  'gummigoo', 'jax', 'kinger',
   // Poppy Playtime
   'bubba', 'huggy_wuggy', 'catnap', 'doey',
   // R.E.P.O
@@ -243,7 +243,7 @@ const OTHER: string[] = [
   // Minecraft
   'slime', 'axolotl', 'silverfish', 'spider_mc', 'cochon', 'poulet', 'enderman', 'warden', 'golem_de_fer', 'ender_dragon',
   // Subnautica (espèces sans genre ; l'Empereur des Mers est canoniquement sans genre)
-  'reaper_leviathan', 'sea_emperor', 'anguille_tesla', 'leviathan_tenebreux',
+  'reaper_leviathan', 'sea_emperor', 'anguille_tesla', 'leviathan_tenebreux', 'garry_fish',
   // R.E.P.O (robots et monstres)
   'repo_char', 'bangers', 'the_dress', 'taureau',
   // League of Legends (monstres / sbires)

@@ -660,6 +660,22 @@ html, body {
 .collection-panel { display: grid; gap: 18px; }
 
 /* Onglets du Compadex (Personnages / Équipement) — 44px de haut au doigt. */
+/* Liens légendaires (onglet Liens du Compadex, components/pages/CompadexBonds.tsx). */
+.bond-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 12px; }
+.bond-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px; border-radius: 12px; background: rgba(244,114,182,0.06); border: 1px solid rgba(244,114,182,0.3); }
+.bond-card.is-locked { background: rgba(255,255,255,0.02); border: 1px dashed var(--border-lit); }
+.bond-card.is-active { border-color: #f472b6; box-shadow: 0 0 16px rgba(244,114,182,0.25); }
+.bond-card__head { display: flex; align-items: center; gap: 10px; }
+.bond-card__icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+.bond-card__name { font-family: var(--f-ui); font-weight: 800; font-size: 16px; color: #f9a8d4; }
+.bond-card.is-locked .bond-card__name { color: var(--text-sub); }
+.bond-card__meta { font-family: var(--f-ui); font-size: 14px; color: var(--text-dim); }
+.bond-card__badge { flex-shrink: 0; font-family: var(--f-num); font-weight: 800; font-size: 14px; color: #4ade80; border: 1px solid rgba(74,222,128,0.5); border-radius: 999px; padding: 2px 8px; }
+.bond-card__members { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.bond-card__member { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 76px; text-align: center; font-family: var(--f-ui); font-size: 14px; font-weight: 700; color: var(--text-sub); line-height: 1.2; overflow-wrap: anywhere; }
+.bond-card__lore { font-family: var(--f-ui); font-size: 14px; color: var(--text-dim); font-style: italic; line-height: 1.45; }
+.bond-card__unknown { width: 64px; height: 88px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px dashed var(--border-lit); background: rgba(255,255,255,0.03); font-family: var(--f-num); font-weight: 900; font-size: 24px; color: var(--text-muted); }
+
 .compadex-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .compadex-tab {
   min-height: 44px; padding: 10px 18px; border-radius: 10px; cursor: pointer;
@@ -2045,6 +2061,13 @@ html, body {
 .dps-tip__row.syn-tip__tier { color: rgba(255,255,255,0.55); }
 .dps-tip__row.syn-tip__tier.is-active { font-weight: 800; }
 .syn-tip__note { color: var(--text-dim); line-height: 1.35; }
+/* Marée cosmique (CosmicTideBar) et Liens légendaires (TeamBar). */
+.dps-tip--tide { border-color: rgba(56,189,248,0.4); box-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 0 22px rgba(56,189,248,0.12); }
+.dps-tip--tide .dps-tip__title { color: #7dd3fc; }
+.tide-tip__note { color: var(--text-dim); line-height: 1.35; }
+.dps-tip--bond { border-color: rgba(244,114,182,0.4); box-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 0 22px rgba(244,114,182,0.12); }
+.dps-tip--bond .dps-tip__title { color: #f9a8d4; }
+.dps-tip--bond .dps-tip__char + .dps-tip__char { margin-top: 8px; }
 
 /* ═══ Filtres de collection (components/ui/CollectionFilters.tsx) ═══ */
 .cf-frame {

@@ -7,6 +7,8 @@ import { getCharacterById } from './characters';
 import { parseInstanceKey } from './editions';
 import { getPalierConfig } from './paliers';
 import { getDynamicRates } from './gacha';
+import { getAffinityForId, type Affinity } from './affinities';
+import { getCosmicTide } from './tides';
 import type { Rarity } from '@/types/game';
 
 type Stats = Record<string, number>;
@@ -45,6 +47,7 @@ interface KillState {
   ultUsedThisFight?: string[];
   achievementStats?: Stats;
   charMastery?: Mastery;
+  tideUp?: Affinity; // type en marée haute (défaut : marée du jour, voir getCosmicTide)
 }
 
 function teamTemplateIds(team: (string | null)[] | undefined): string[] {
@@ -83,6 +86,8 @@ export function killAchievementPatch(state: KillState, isBoss: boolean): { charM
   flag(CHAL.solo,     state.palier >= 10 && ids.length === 1);
   flag(CHAL.maxDiff,  state.palier >= WORLD_TOTAL);
   flag(CHAL.clean,    state.palier >= 20 && elapsed <= 30 && (stats[STAT.lastFailPalier] ?? 0) !== state.palier);
+  const tideUp = state.tideUp ?? getCosmicTide().up;
+  flag(CHAL.tide,     state.palier >= 10 && ids.length === 4 && ids.every(id => getAffinityForId(id) === tideUp));
 
   return { charMastery, achievementStats: stats };
 }

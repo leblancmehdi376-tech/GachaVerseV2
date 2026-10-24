@@ -3,6 +3,9 @@ import { EQUIPMENT_DEFS } from '@/lib/game/items';
 
 const CHARACTER_IDS = new Set(CHARACTER_POOL.map(c => c.id));
 
+/** Nombre total d'entrées du Compadex (personnages + équipements). */
+export const COMPADEX_TOTAL = CHARACTER_POOL.length + Object.keys(EQUIPMENT_DEFS).length;
+
 // Nombre d'entrées `seen` qui existent ENCORE dans le jeu. Les maps
 // compadex*Seen ne font que grossir (voir hooks/useCompadexTracker.ts) : un
 // personnage/équipement renommé ou retiré y reste pour toujours — le compter
@@ -29,6 +32,5 @@ export function getCompadexProgress(
   compadexEquipmentSeen: Record<string, true>,
 ): { count: number; total: number } {
   const count = countSeenCharacters(compadexCharactersSeen) + countSeenEquipment(compadexEquipmentSeen);
-  const total = CHARACTER_POOL.length + Object.keys(EQUIPMENT_DEFS).length;
-  return { count, total };
+  return { count, total: COMPADEX_TOTAL };
 }

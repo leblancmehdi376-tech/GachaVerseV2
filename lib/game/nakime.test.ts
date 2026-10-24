@@ -11,6 +11,9 @@ import {
 } from './nakime';
 import { autoPlay } from './nakimeAutoplay';
 import { TITLE_GOLD_BONUS_PCT } from './titles';
+import { AFFINITY_ORDER, getAffinityForId } from './affinities';
+import { TIDE_UP_MULT, TIDE_DOWN_MULT } from './tides';
+import { memberStats, NO_BONUS } from './nakimeCombat';
 
 const pick = (rarity: Rarity, n = NAKIME_TEAM_SIZE) => CHARACTER_POOL.filter(c => c.rarity === rarity && !c.isHero).slice(0, n).map(c => c.id);
 const owned = (ids: string[]) => Object.fromEntries(ids.map(id => [id, { templateId: id, copies: 1, level: 1, currentForm: 0, xp: 0 }]));
@@ -220,5 +223,31 @@ describe('Château de Nakime — run complète', () => {
     expect(run.shards).toBe(25);
     expect(run.relics).toHaveLength(1);
     expect(floorsCleared(run)).toBe(0);
+  });
+});
+
+describe('Château de Nakime — Marée cosmique', () => {
+  const id = pick('R', 1)[0];
+  const type = getAffinityForId(id);
+  const opposite = AFFINITY_ORDER[(AFFINITY_ORDER.indexOf(type) + 4) % AFFINITY_ORDER.length];
+  const member = { templateId: id, level: 1, weapon: 0, armor: 0 };
+
+  it("multiplie l'ATQ des cartes du type en marée haute, réduit celle du type en marée basse", () => {
+    const base = memberStats(member, []).atk;
+    const up = memberStats(member, [], 0, { ...NO_BONUS, tideUp: type, tideDown: opposite }).atk;
+    const down = memberStats(member, [], 0, { ...NO_BONUS, tideUp: opposite, tideDown: type }).atk;
+    expect(Math.abs(up - base * TIDE_UP_MULT)).toBeLessThanOrEqual(1);
+    expect(Math.abs(down - base * TIDE_DOWN_MULT)).toBeLessThanOrEqual(1);
+    // Marée sur deux autres types : aucun effet.
+    const i = AFFINITY_ORDER.indexOf(type);
+    const neutral = { ...NO_BONUS, tideUp: AFFINITY_ORDER[(i + 1) % 8], tideDown: AFFINITY_ORDER[(i + 5) % 8] };
+    expect(memberStats(member, [], 0, neutral).atk).toBe(base);
+  });
+
+  it("garde la marée d'entrée dans le bonus de la run", () => {
+    const run = createRun(pick('C'), 1, {}, {}, { up: type, down: opposite });
+    expect(run.bonus.tideUp).toBe(type);
+    expect(run.bonus.tideDown).toBe(opposite);
+    expect(createRun(pick('C'), 1).bonus.tideUp).toBeUndefined();
   });
 });

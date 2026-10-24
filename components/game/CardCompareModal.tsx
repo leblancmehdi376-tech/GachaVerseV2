@@ -9,6 +9,7 @@ import { getCharacterById, getCharFormName } from '@/lib/game/characters';
 import { bnToNumber, type BigNum } from '@/lib/game/bignum';
 import { formatNumber } from '@/lib/game/format';
 import { useGameStore } from '@/store/gameStore';
+import { STAT } from '@/lib/game/achievements';
 import { EditionIcon } from '@/components/ui/EditionLogo';
 import { RarityBadge } from '@/components/ui/RarityBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
@@ -213,6 +214,7 @@ export function CardCompareModal({ onClose }: { onClose: () => void }) {
   const compare = () => {
     if (!a || !b || !levelValid) return;
     setShown({ a, b, level, result: compareCards(a, b, level) });
+    useGameStore.getState().addStat(STAT.cardsCompared); // succès « Œil d'Expert »
   };
 
   return (

@@ -5,6 +5,7 @@ import { logFirestoreOp } from './telemetry';
 import { bnCompare, coerceBigNum, type BigNum } from '@/lib/game/bignum';
 import { parseInstanceKey, type CardEdition } from '@/lib/game/editions';
 import { ACHIEVEMENT_BY_ID } from '@/lib/game/achievements';
+import { getCompadexProgress } from '@/lib/game/compadex';
 
 export interface LeaderboardEntry {
   uid: string;
@@ -55,7 +56,10 @@ export interface LeaderboardProfile {
   showcasedTrophies: string[];
   achievementsCount: number;
   titlesCount: number;
-  ownedCharCount: number;
+  // Progression du Compadex (persos + équipements déjà obtenus, à vie) — même
+  // compteur que la barre latérale du joueur (getCompadexProgress), et non la
+  // collection actuelle, vidée à chaque Prestige.
+  compadexCount: number;
   totalKills: number;
   totalBossKills: number;
   totalGachaPulls: number;
@@ -65,10 +69,30 @@ function num(v: unknown): number {
   return typeof v === 'number' && Number.isFinite(v) ? v : 0;
 }
 
+function record(v: unknown): Record<string, unknown> {
+  return v && typeof v === 'object' ? v as Record<string, unknown> : {};
+}
+
+// Entrées du Compadex d'une sauvegarde. Union avec la collection, l'inventaire
+// et l'équipement porté actuels, comme useCompadexTracker : une sauvegarde
+// pas rouverte depuis l'arrivée du Compadex n'a pas encore ces deux maps.
+function extractCompadexCount(data: Record<string, unknown>, collection: Record<string, { equippedItems?: Record<string, unknown> }>, ownedTemplates: Set<string>): number {
+  const chars: Record<string, true> = {};
+  for (const id of Object.keys(record(data.compadexCharactersSeen))) chars[id] = true;
+  for (const id of ownedTemplates) chars[id] = true;
+  const equip: Record<string, true> = {};
+  for (const id of Object.keys(record(data.compadexEquipmentSeen))) equip[id] = true;
+  for (const [id, qty] of Object.entries(record(data.equipmentInventory))) if (num(qty) > 0) equip[id] = true;
+  for (const owned of Object.values(collection)) {
+    for (const id of Object.values(record(owned?.equippedItems))) if (typeof id === 'string') equip[id] = true;
+  }
+  return getCompadexProgress(chars, equip).count;
+}
+
 // Extrait le profil public d'un doc `saves/{uid}` (voir getSerializableState).
 export function extractProfile(data: Record<string, unknown>): LeaderboardProfile {
   const collection = (data.collection && typeof data.collection === 'object')
-    ? data.collection as Record<string, { currentForm?: number; level?: number; edition?: CardEdition }>
+    ? data.collection as Record<string, { currentForm?: number; level?: number; edition?: CardEdition; equippedItems?: Record<string, unknown> }>
     : {};
   const team: LeaderboardTeamMember[] = [];
   if (Array.isArray(data.equippedTeam)) {
@@ -92,7 +116,7 @@ export function extractProfile(data: Record<string, unknown>): LeaderboardProfil
       : [],
     achievementsCount: Object.entries(claimed).filter(([id, v]) => v && ACHIEVEMENT_BY_ID.has(id)).length,
     titlesCount: Array.isArray(data.unlockedTitles) ? data.unlockedTitles.length : 0,
-    ownedCharCount: ownedTemplates.size,
+    compadexCount: extractCompadexCount(data, collection, ownedTemplates),
     totalKills: num(data.totalKills),
     totalBossKills: num(data.totalBossKills),
     totalGachaPulls: num(data.totalGachaPulls),

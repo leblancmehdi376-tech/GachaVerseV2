@@ -13,6 +13,7 @@ import { getCharacterById } from './characters';
 import { parseInstanceKey, editionTier, type CardEdition } from './editions';
 import { computeActiveSynergies } from './synergies';
 import { getAffinityForId, affinityBeats, affinityBeatenBy, AFFINITY_STRONG, AFFINITY_WEAK, type Affinity } from './affinities';
+import { tideMultFor } from './tides';
 import { ROLE_INFO, getNakimeRole, hashId, rarityIdx, relicMods, type NakimeRole, type RelicMods } from './nakimeContent';
 import {
   ABILITIES, BASIC_ATTACK, BOSS_RAGE_ABILITY, STATUS_DMG_MULT, STATUS_INFO, abilityName, cardAbilities,
@@ -51,7 +52,9 @@ export const editionStatMult = (edition?: CardEdition) => 1 + (NAKIME_EDITION_PC
 /** Bonus de run communs à toute l'équipe (bénédictions, événements, Mémoire). */
 // atkPct/hpPct : bonus de la run (bénédictions, événements...), additionnés aux reliques.
 // metaAtkPct/metaHpPct : Mémoire du Château, multiplicateur à part (jamais dilué).
-export interface TeamBonus { atkPct: number; hpPct: number; energy: number; metaAtkPct?: number; metaHpPct?: number }
+// tideUp/tideDown : Marée cosmique du jour d'entrée (voir lib/game/tides.ts),
+// figée pour toute la run — multiplie l'ATQ des cartes de ces types.
+export interface TeamBonus { atkPct: number; hpPct: number; energy: number; metaAtkPct?: number; metaHpPct?: number; tideUp?: Affinity; tideDown?: Affinity }
 export const NO_BONUS: TeamBonus = { atkPct: 0, hpPct: 0, energy: 0 };
 
 /** Bonus d'ATQ (%) des synergies d'univers de l'équipe, par clé de carte. */
@@ -88,13 +91,15 @@ export function memberStats(
   const special = (idx <= 2 ? mods.lowRarityPct : 0) + (tpl?.universe === 'Demon Slayer' ? mods.slayerPct : 0);
   const ed = editionStatMult(m.edition);
   const hpMult = ed * (1 + (bonus.metaHpPct ?? 0) / 100) * ri.hp * lvl * (1 + (NAKIME_FORGE_TIER_PCT / 100) * m.armor) * Math.max(0.1, 1 + (mods.hpPct + Math.min(NAKIME_RUN_STAT_CAP, bonus.hpPct) + special) / 100);
-  const atkMult = ed * (1 + (bonus.metaAtkPct ?? 0) / 100) * ri.atk * lvl * (1 + (NAKIME_FORGE_TIER_PCT / 100) * m.weapon) * Math.max(0.1, 1 + (mods.atkPct + Math.min(NAKIME_RUN_STAT_CAP, bonus.atkPct) + special) / 100) * (1 + synergyPct / 100);
+  const affinity = getAffinityForId(m.templateId);
+  const tideMult = bonus.tideUp && bonus.tideDown ? tideMultFor(affinity, { up: bonus.tideUp, down: bonus.tideDown }) : 1;
+  const atkMult = ed * (1 + (bonus.metaAtkPct ?? 0) / 100) * ri.atk * lvl * (1 + (NAKIME_FORGE_TIER_PCT / 100) * m.weapon) * Math.max(0.1, 1 + (mods.atkPct + Math.min(NAKIME_RUN_STAT_CAP, bonus.atkPct) + special) / 100) * (1 + synergyPct / 100) * tideMult;
   return {
     maxHp: Math.round(BASE_HP * g * hpMult),
     atk: Math.round(BASE_ATK * g * atkMult),
     speed: 100 + idx * 2 + (hashId(m.templateId) % 10) + ri.speed + mods.speed,
     crit: 0.08 + ri.crit + mods.crit,
-    affinity: getAffinityForId(m.templateId),
+    affinity,
     role,
   };
 }
