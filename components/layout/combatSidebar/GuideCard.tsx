@@ -8,7 +8,20 @@ import { formatNumber } from '@/lib/game/format';
 // NekoZ-guide : personnage cliquable sous les quêtes. Chaque clic fait avancer
 // sa réplique (une réplique peut tenir en plusieurs bulles), puis en tire une
 // nouvelle (voir nextGuideLine). Il propose aussi une chaîne de quêtes.
+
+// [DEV] Boutons « terminer la quête » / « recommencer » affichés uniquement en local, jamais en prod.
+function useIsLocalDev() {
+  return typeof window !== 'undefined' && (
+    process.env.NODE_ENV === 'development' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname.startsWith('127.')
+  );
+}
+
+const devButtonStyle = { flex:'1 1 100px', minHeight:'36px', background:'rgba(232,121,249,0.12)', border:'1px dashed #e879f9', borderRadius:'8px', padding:'6px 8px', cursor:'pointer', fontFamily:'var(--f-ui)', fontWeight:700, fontSize:'14px', color:'#f0abfc' } as const;
+
 export function GuideCard() {
+  const isLocalDev = useIsLocalDev();
   const [line, setLine] = useState<GuideLine | null>(null);
   const [part, setPart] = useState(0);
 
@@ -37,6 +50,21 @@ export function GuideCard() {
     const done = questInfo?.def.outro;
     if (!useGameStore.getState().claimGuideQuest() || !done) return;
     setLine(done);
+    setPart(0);
+  };
+
+  // Même enchaînement qu'un vrai claim : la réplique de fin s'affiche.
+  const devComplete = () => {
+    const done = questInfo?.def.outro;
+    if (!done) return;
+    useGameStore.getState().debugCompleteGuideQuest();
+    setLine(done);
+    setPart(0);
+  };
+
+  const devReset = () => {
+    useGameStore.getState().debugResetGuide();
+    setLine(null);
     setPart(0);
   };
 
@@ -90,6 +118,19 @@ export function GuideCard() {
               </span>
             )}
           </div>
+        </div>
+      )}
+
+      {isLocalDev && (
+        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+          {questInfo && (
+            <button onClick={devComplete} title="[DEV] Terminer la quête en cours, sans récompense (localhost uniquement)" style={devButtonStyle}>
+              🛠️ Finir la quête
+            </button>
+          )}
+          <button onClick={devReset} title="[DEV] Recommencer l'histoire du guide depuis le début (localhost uniquement)" style={devButtonStyle}>
+            🛠️ Recommencer
+          </button>
         </div>
       )}
     </div>

@@ -464,6 +464,10 @@ export interface GuideActions {
   guideSayLine: (id: string) => void;
   // Réclame la quête en cours (gemmes) et active la suivante. false si pas finie.
   claimGuideQuest: () => boolean;
+  // [DEV] Termine la quête en cours sans récompense (bouton local uniquement).
+  debugCompleteGuideQuest: () => void;
+  // [DEV] Remet l'histoire du guide à zéro (bouton local uniquement).
+  debugResetGuide: () => void;
 }
 export type GuideSlice = GuideSliceState & GuideActions;
 

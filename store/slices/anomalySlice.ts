@@ -6,6 +6,7 @@ import type { StateCreator } from 'zustand';
 import {
   rollAnomaly, getAnomalyRerollCost, getAnomalySlotCost, ANOMALY_MAX_SLOTS, ANOMALY_RARITY_TABLE,
 } from '@/lib/game/anomalies';
+import { STAT } from '@/lib/game/achievements';
 import { broadcastLocalState, requestUrgentSave } from '../gameStoreHelpers';
 import type { GameStore, AnomalyActions } from '../gameStore.types';
 
@@ -24,7 +25,11 @@ export const createAnomalySlice: StateCreator<GameStore, [], [], AnomalyActions>
     const kept = s.ownedAnomalies.filter(a => a.locked);
     const toRoll = Math.max(0, s.anomalySlots - kept.length);
     const rolled = Array.from({ length: toRoll }, () => rollAnomaly());
-    set({ anomalyTokens: s.anomalyTokens - cost, ownedAnomalies: [...kept, ...rolled] });
+    set({
+      anomalyTokens: s.anomalyTokens - cost, ownedAnomalies: [...kept, ...rolled],
+      // Cumul à vie (quêtes de NekoZ-guide).
+      achievementStats: { ...s.achievementStats, [STAT.anomalyRerolls]: (s.achievementStats[STAT.anomalyRerolls] ?? 0) + 1 },
+    });
     broadcastLocalState();
     requestUrgentSave('anomaly_reroll');
   },

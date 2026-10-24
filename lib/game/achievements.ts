@@ -95,6 +95,7 @@ export const STAT = {
   lastFailPalier:  'lastFailPalier',
   raidBossKills:   'raidBossKills',
   expeditionsDone: 'expeditionsDone', // expéditions récupérées (quêtes de NekoZ-guide)
+  anomalyRerolls:  'anomalyRerolls',  // relances d'anomalies (quêtes de NekoZ-guide)
   ultComboMax:     'ultComboMax',
   gachaLowRate:    'gachaLowRate',
   gachaSsrCur:     'gachaSsrCur',

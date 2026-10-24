@@ -2,7 +2,7 @@
 // n'est remis à zéro au Prestige (voir doPrestige, qui ne liste pas ce champ).
 // Les données (répliques, quêtes) vivent dans lib/game/nekozGuide.ts.
 import type { StateCreator } from 'zustand';
-import { currentGuideQuest, isOneShotLine, questBaselineFor } from '@/lib/game/nekozGuide';
+import { currentGuideQuest, initialGuideState, isOneShotLine, questBaselineFor } from '@/lib/game/nekozGuide';
 import { requestUrgentSave } from '../gameStoreHelpers';
 import type { GameStore, GuideActions } from '../gameStore.types';
 
@@ -40,4 +40,14 @@ export const createGuideSlice: StateCreator<GameStore, [], [], GuideActions> = (
     requestUrgentSave('guide_quest');
     return true;
   },
+
+  // Pas de gemmes : en local, on peut être connecté à son vrai compte.
+  debugCompleteGuideQuest: () => {
+    const s = get();
+    if (!currentGuideQuest(s)) return;
+    const questIndex = s.nekozGuide.questIndex + 1;
+    set({ nekozGuide: { ...s.nekozGuide, questIndex, questBaseline: questBaselineFor(s, questIndex) } });
+  },
+
+  debugResetGuide: () => set({ nekozGuide: initialGuideState() }),
 });

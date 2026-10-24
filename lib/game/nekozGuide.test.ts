@@ -4,12 +4,14 @@ import {
   mergeGuideState, raidKillsStat, type GuideView, type GuideState,
 } from './nekozGuide';
 import { STAT } from './achievements';
+import { BONDS } from './bonds';
 
 const view = (over: Partial<GuideView> = {}, guide: Partial<GuideState> = {}): GuideView => ({
   nekozGuide: { ...initialGuideState(), ...guide },
   prestigeLevel: 0, maxPalierReached: 1, runPeakPalier: 1,
   equippedTeam: [null, null, null, null],
   compadexCharactersSeen: {}, achievementStats: {}, totalUpgradesPerformed: 0, nakimeTotals: { floors: 0 },
+  collection: {}, charMastery: {}, discoveredBonds: {}, prestigeRankRecoveryLevel: 0,
   ...over,
 });
 
@@ -35,7 +37,7 @@ describe('pendingGuideLine', () => {
 
 describe('nextGuideLine', () => {
   it('ne répète jamais deux fois de suite la même réplique', () => {
-    const v = view({}, { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length });
+    const v = view({}, { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length, seen: ['end:chain'] });
     const first = nextGuideLine(v, null, () => 0.5);
     for (const r of [0.1, 0.3, 0.5, 0.7, 0.99]) expect(nextGuideLine(v, first.id, () => r).id).not.toBe(first.id);
   });
@@ -77,5 +79,37 @@ describe('mergeGuideState', () => {
   it("adopte la quête et sa référence d'un appareil plus avancé", () => {
     const merged = mergeGuideState(initialGuideState(), { arrivalPrestige: 2, lastPrestige: 2, questIndex: 2, questBaseline: 30, seen: [] });
     expect(merged).toMatchObject({ arrivalPrestige: 2, questIndex: 2, questBaseline: 30 });
+  });
+});
+
+describe('acte 2', () => {
+  const at = (metric: string, guide: Partial<GuideState> = {}) =>
+    ({ arrivalPrestige: 0, questIndex: GUIDE_QUESTS.findIndex(q => q.metric === metric), ...guide });
+
+  it('valide le Mode Divin dès que NekoZ est en forme 1 ou plus', () => {
+    expect(currentGuideQuest(view({ collection: { nekoz: { currentForm: 0 } } }, at('nekozDivine')))?.claimable).toBe(false);
+    expect(currentGuideQuest(view({ collection: { nekoz: { currentForm: 1 } } }, at('nekozDivine')))?.claimable).toBe(true);
+  });
+
+  it('offre la quête des liens si tous étaient déjà découverts', () => {
+    const all = Object.fromEntries(BONDS.map(b => [b.id, true as const]));
+    const v = view({ discoveredBonds: all }, at('bonds', { questBaseline: BONDS.length }));
+    expect(currentGuideQuest(v)?.claimable).toBe(true);
+  });
+
+  it("compte le temps de jeu en minutes depuis l'activation", () => {
+    const v = view({ achievementStats: { [STAT.playtimeSec]: 100 * 60 + 59 } }, at('playMinutes', { questBaseline: 80 }));
+    expect(currentGuideQuest(v)?.current).toBe(20);
+  });
+
+  it('compte un nouveau Prestige, et la Mémoire des Pierres comme un état', () => {
+    expect(currentGuideQuest(view({ prestigeLevel: 18 }, at('prestige', { questBaseline: 17, lastPrestige: 18 })))?.claimable).toBe(true);
+    expect(currentGuideQuest(view({ prestigeRankRecoveryLevel: 3 }, at('stoneMemory')))?.claimable).toBe(true);
+  });
+
+  it('annonce une seule fois la fin de la chaîne', () => {
+    const done = { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length };
+    expect(pendingGuideLine(view({}, done))?.id).toBe('end:chain');
+    expect(pendingGuideLine(view({}, { ...done, seen: ['end:chain'] }))).toBeNull();
   });
 });

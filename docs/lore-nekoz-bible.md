@@ -184,7 +184,10 @@ Courtes répliques affichées au clic sur le guide. Quand plusieurs sont possibl
 
 ## 10. Besoins techniques — séparés du lore
 
-**État : l’acte 1 est codé (Maj v2.8.2.14).**
+**État : les actes 1 et 2 sont codés (Maj v2.8.2.14).**
+- Acte 2 (quêtes 6 à 12) : Mode Divin, Anomalie (à la place du Grand Périple, événement temporaire), 500 monstres avec Ouchuu, nouveau Lien légendaire, 30 minutes de jeu, un Prestige, puis la Mémoire des Pierres. Elle passe en dernier, car elle s’achète avec des jetons de Prestige.
+- Récompenses de l’acte 2 : 150, 150, 200, 200, 200, 300 et 300 💎.
+- À la fin de la chaîne, le guide dit une fois : *« C’est tout pour l’instant. … Je ne vais nulle part. Promis. »*
 - Répliques et quêtes : `lib/game/nekozGuide.ts`.
 - État dans le store : `nekozGuide` (`store/slices/guideSlice.ts`).
 - Carte d’accueil : `components/layout/combatSidebar/GuideCard.tsx`.
