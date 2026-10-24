@@ -1,0 +1,81 @@
+import { describe, it, expect } from 'vitest';
+import {
+  GUIDE_QUESTS, initialGuideState, currentGuideQuest, questBaselineFor, pendingGuideLine, nextGuideLine,
+  mergeGuideState, raidKillsStat, type GuideView, type GuideState,
+} from './nekozGuide';
+import { STAT } from './achievements';
+
+const view = (over: Partial<GuideView> = {}, guide: Partial<GuideState> = {}): GuideView => ({
+  nekozGuide: { ...initialGuideState(), ...guide },
+  prestigeLevel: 0, maxPalierReached: 1, runPeakPalier: 1,
+  equippedTeam: [null, null, null, null],
+  compadexCharactersSeen: {}, achievementStats: {}, totalUpgradesPerformed: 0, nakimeTotals: { floors: 0 },
+  ...over,
+});
+
+describe('pendingGuideLine', () => {
+  it("adapte la réplique d'arrivée au Prestige du joueur", () => {
+    expect(pendingGuideLine(view())?.parts[0]).toBe('… Tiens. Encore un.');
+    expect(pendingGuideLine(view({ prestigeLevel: 48 }))?.parts[0]).toBe("… J'arrive tard.");
+  });
+
+  it('réagit à un nouveau Prestige avant tout le reste', () => {
+    const v = view({ prestigeLevel: 18 }, { arrivalPrestige: 17, lastPrestige: 17 });
+    expect(pendingGuideLine(v)?.id).toBe('post_prestige');
+  });
+
+  it("présente la quête en cours, puis les Chill&Cool découverts, une seule fois chacun", () => {
+    const base = { arrivalPrestige: 0, lastPrestige: 0 };
+    const seen = { compadexCharactersSeen: { ouchuu: true as const } };
+    expect(pendingGuideLine(view(seen, base))?.id).toBe(GUIDE_QUESTS[0].intro.id);
+    expect(pendingGuideLine(view(seen, { ...base, seen: [GUIDE_QUESTS[0].intro.id] }))?.id).toBe('meet:ouchuu');
+    expect(pendingGuideLine(view(seen, { ...base, seen: [GUIDE_QUESTS[0].intro.id, 'meet:ouchuu'] }))).toBeNull();
+  });
+});
+
+describe('nextGuideLine', () => {
+  it('ne répète jamais deux fois de suite la même réplique', () => {
+    const v = view({}, { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length });
+    const first = nextGuideLine(v, null, () => 0.5);
+    for (const r of [0.1, 0.3, 0.5, 0.7, 0.99]) expect(nextGuideLine(v, first.id, () => r).id).not.toBe(first.id);
+  });
+});
+
+describe('quêtes du guide', () => {
+  it("compte la progression à partir de l'activation, pas depuis le début du jeu", () => {
+    const s = view({ achievementStats: { [STAT.expeditionsDone]: 40 } });
+    const baseline = questBaselineFor(s, 0);
+    const v = view({ achievementStats: { [STAT.expeditionsDone]: 41 } }, { arrivalPrestige: 48, questBaseline: baseline });
+    expect(currentGuideQuest(v)).toMatchObject({ current: 1, claimable: false });
+  });
+
+  it('suit les victoires contre Rokoul & Ayro uniquement', () => {
+    const v = view({ achievementStats: { [STAT.raidBossKills]: 9, [raidKillsStat('rokoul_ayro')]: 1 } }, { arrivalPrestige: 0, questIndex: 1 });
+    expect(currentGuideQuest(v)?.claimable).toBe(true);
+  });
+
+  it("valide la quête Chill&Cool dès qu'un des leurs est dans l'équipe", () => {
+    const idx = GUIDE_QUESTS.findIndex(q => q.metric === 'chillTeam');
+    const guide = { arrivalPrestige: 0, questIndex: idx };
+    expect(currentGuideQuest(view({}, guide))?.claimable).toBe(false);
+    expect(currentGuideQuest(view({ equippedTeam: ['goku', 'ouchuu', null, null] }, guide))?.claimable).toBe(true);
+  });
+
+  it("n'affiche aucune quête avant l'arrivée ni après la fin de la chaîne", () => {
+    expect(currentGuideQuest(view())).toBeNull();
+    expect(currentGuideQuest(view({}, { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length }))).toBeNull();
+  });
+});
+
+describe('mergeGuideState', () => {
+  it('ne fait jamais reculer la chaîne de quêtes et unit les répliques vues', () => {
+    const local: GuideState = { arrivalPrestige: 5, lastPrestige: 9, questIndex: 3, questBaseline: 100, seen: ['quest:g1'] };
+    const merged = mergeGuideState(local, { arrivalPrestige: 4, lastPrestige: 7, questIndex: 1, questBaseline: 2, seen: ['meet:nekoz'] });
+    expect(merged).toEqual({ arrivalPrestige: 4, lastPrestige: 9, questIndex: 3, questBaseline: 100, seen: ['quest:g1', 'meet:nekoz'] });
+  });
+
+  it("adopte la quête et sa référence d'un appareil plus avancé", () => {
+    const merged = mergeGuideState(initialGuideState(), { arrivalPrestige: 2, lastPrestige: 2, questIndex: 2, questBaseline: 30, seen: [] });
+    expect(merged).toMatchObject({ arrivalPrestige: 2, questIndex: 2, questBaseline: 30 });
+  });
+});

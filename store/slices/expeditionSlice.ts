@@ -12,6 +12,7 @@ import { correctedNow } from '@/lib/firebase/clockOffset';
 import { requestUrgentSave } from '../gameStoreHelpers';
 import type { GameStore, ExpeditionActions, ActiveExpedition } from '../gameStore.types';
 import { bnAdd, bnFromNumber, bnLt } from '@/lib/game/bignum';
+import { STAT } from '@/lib/game/achievements';
 
 function rollAffinity(): Affinity {
   return AFFINITY_ORDER[Math.floor(Math.random() * AFFINITY_ORDER.length)];
@@ -207,6 +208,8 @@ export const createExpeditionSlice: StateCreator<GameStore, [], [], ExpeditionAc
     set(s => ({
       pixelCoins: bnAdd(s.pixelCoins, bnFromNumber(coins)),
       nekoGems:   s.nekoGems   + gems,
+      // Cumul à vie (quêtes de NekoZ-guide).
+      achievementStats: { ...s.achievementStats, [STAT.expeditionsDone]: (s.achievementStats[STAT.expeditionsDone] ?? 0) + 1 },
     }));
     // Quêtes "terminer N expédition(s)"
     get().bumpQuestProgress('w_expedition', 1);

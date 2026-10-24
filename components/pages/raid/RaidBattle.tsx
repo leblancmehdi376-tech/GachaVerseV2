@@ -14,6 +14,7 @@ import { RaidBg, BossSprite } from './RaidSprites';
 import { DropPopup } from './DropPopup';
 import { bnDivRatio, bnIsZero, bnMulScalar, bnSub, type BigNum } from '@/lib/game/bignum';
 import { STAT } from '@/lib/game/achievements';
+import { raidKillsStat } from '@/lib/game/nekozGuide';
 
 export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => void }) {
   const { addItem, nekoGems, bossCrowns, collection, equippedTeam, charMastery, getActiveEnemyDamageTakenMultiplier, unlockedTitles, setRaidBossFight } = useGameStore(useShallow(s => ({ addItem: s.addItem, nekoGems: s.nekoGems, bossCrowns: s.bossCrowns, collection: s.collection, equippedTeam: s.equippedTeam, charMastery: s.charMastery, getActiveEnemyDamageTakenMultiplier: s.getActiveEnemyDamageTakenMultiplier, unlockedTitles: s.unlockedTitles, setRaidBossFight: s.setRaidBossFight })));
@@ -105,7 +106,11 @@ export function RaidBattle({ bossId, onBack }: { bossId: string; onBack: () => v
           nekoGems: s.nekoGems + gemsGained,
           bossCrowns: s.bossCrowns + crownsGained,
           totalBossCrownsEarned: (s.totalBossCrownsEarned ?? 0) + crownsGained,
-          achievementStats: { ...s.achievementStats, [STAT.raidBossKills]: (s.achievementStats[STAT.raidBossKills] ?? 0) + 1 },
+          achievementStats: {
+            ...s.achievementStats,
+            [STAT.raidBossKills]: (s.achievementStats[STAT.raidBossKills] ?? 0) + 1,
+            [raidKillsStat(boss.id)]: (s.achievementStats[raidKillsStat(boss.id)] ?? 0) + 1,
+          },
         };
       });
       for (const r of results) {

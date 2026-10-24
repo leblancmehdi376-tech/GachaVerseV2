@@ -21,8 +21,25 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '14/10/2026',
+    date: '24/10/2026',
     title: `Maj v${GAME_VERSION}`,
+    sections: [
+      {
+        icon: '😼',
+        title: "Quelqu'un vous observe",
+        changes: [
+          "Un **mystérieux personnage** est apparu sur l'accueil, sous les **quêtes quotidiennes**.",
+          "**Touche-le** pour lui parler. Ce qu'il dit dépend de ton parcours, et il n'a pas fini de parler.",
+          "Il te confie aussi ses propres **quêtes**, une à la fois, récompensées en **gemmes**.",
+          "Ses quêtes ne comptent que ce que tu fais **après** les avoir acceptées. Même à Prestige 48, tout le monde commence au même point.",
+          "Sa progression n'est **jamais remise à zéro** par le Prestige, et elle te suit d'un appareil à l'autre.",
+        ],
+      },
+    ],
+  },
+  {
+    date: '14/10/2026',
+    title: 'Maj v2.8.2.12',
     sections: [
       {
         icon: '🏯',

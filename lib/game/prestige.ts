@@ -6,6 +6,9 @@
 // `maxLevel`).
 import { EDITION_CONFIG, EDITION_ORDER, type CardEdition } from './editions';
 
+// Palier à atteindre (dans la run en cours) pour pouvoir prestigier.
+export const PRESTIGE_UNLOCK_PALIER = 41;
+
 export type PrestigeBonusType =
   | 'dps' | 'gold' | 'editionRate' | 'equipDrop' | 'tokenGain';
 

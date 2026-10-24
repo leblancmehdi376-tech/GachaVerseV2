@@ -28,6 +28,7 @@ import type { PeripleDaily, PeripleStats } from '@/lib/game/periple';
 import type { PeripleLoot, PeriplePending, PeripleRollResult, PeripleChanceResult, PeripleWheelResult } from './slices/peripleSlice';
 import type { Medal } from '@/lib/game/periple';
 import type { NakimeRun, NakimeMetaLevels, MetaUpgradeId } from '@/lib/game/nakime';
+import type { GuideState } from '@/lib/game/nekozGuide';
 import type { NakimeNodeOutcome, NakimeRunEnd, NakimeHistoryEntry, NakimeTotals, NakimeBattleOutcome, NakimeGachaResult } from './slices/nakimeSlice';
 
 export interface Quest {
@@ -438,6 +439,21 @@ export interface NakimeActions {
 }
 export type NakimeSlice = NakimeState & NakimeActions;
 
+// ─── NekoZ-guide (personnage de l'accueil, jamais reset au Prestige) ─────────
+// Voir lib/game/nekozGuide.ts (répliques, quêtes) et docs/lore-nekoz-bible.md.
+export interface GuideSliceState {
+  nekozGuide: GuideState;
+}
+export interface GuideActions {
+  // Premier clic sur le guide : fixe son arrivée et active la première quête.
+  guideArrive: () => void;
+  // Réplique affichée : mémorise les répliques uniques et la réaction au Prestige.
+  guideSayLine: (id: string) => void;
+  // Réclame la quête en cours (gemmes) et active la suivante. false si pas finie.
+  claimGuideQuest: () => boolean;
+}
+export type GuideSlice = GuideSliceState & GuideActions;
+
 // ─── Prestige (New Game+) ───────────────────────────────────────────────────
 export interface PrestigeState {
   prestigeLevel: number;
@@ -588,6 +604,7 @@ export type GameStore = GameState
   & GachaDleSlice
   & PeripleSlice
   & NakimeSlice
+  & GuideSlice
   & {
     // Flag to temporarily suppress toasts/notifications during state restore
     suppressToasts: boolean;

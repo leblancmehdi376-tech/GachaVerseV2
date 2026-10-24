@@ -47,6 +47,7 @@ import { BossVictoryScreen } from '@/components/game/BossVictoryScreen';
 import { ProgressCard } from '@/components/layout/combatSidebar/ProgressCard';
 import { QuestsCard } from '@/components/layout/combatSidebar/QuestsCard';
 import { StatsCard } from '@/components/layout/combatSidebar/StatsCard';
+import { GuideCard } from '@/components/layout/combatSidebar/GuideCard';
 
 // Pages chargées à la demande : leur code sort du bundle initial (hydratation
 // plus rapide au lancement), puis est préchargé en arrière-plan une fois le
@@ -670,6 +671,7 @@ function CombatSidebar() {
     <>
       <ProgressCard palier={palier} wave={wave} progressPct={Math.round((wave / 10) * 100)} cfg={getPalierConfig(palier)} />
       <QuestsCard quests={quests} claimQuest={useGameStore.getState().claimQuest} />
+      <GuideCard />
       <StatsCard maxPalierReached={maxPalierReached} />
     </>
   );

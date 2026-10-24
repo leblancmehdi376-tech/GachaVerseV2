@@ -6,14 +6,14 @@
 // directement dans metaProgressionSlice.ts::doPrestige().
 import type { StateCreator } from 'zustand';
 import {
-  PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES,
+  PRESTIGE_BONUS_DEFS, PRESTIGE_BONUS_TYPES, PRESTIGE_UNLOCK_PALIER,
   getStoneMemoryCost,
 } from '@/lib/game/prestige';
 import type { PrestigeBonusType } from '@/lib/game/prestige';
 import type { GameStore, PrestigeActions } from '../gameStore.types';
 
 export const createPrestigeSlice: StateCreator<GameStore, [], [], PrestigeActions> = (set, get) => ({
-  canPrestige: (maxPalierReached) => maxPalierReached >= 41,
+  canPrestige: (maxPalierReached) => maxPalierReached >= PRESTIGE_UNLOCK_PALIER,
 
   spendToken: () => {
     if (get().prestigeTokens <= 0) return null;

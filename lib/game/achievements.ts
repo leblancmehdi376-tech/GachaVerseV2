@@ -93,6 +93,7 @@ export const STAT = {
   bossStreakMax:   'bossStreakMax',
   lastFailPalier:  'lastFailPalier',
   raidBossKills:   'raidBossKills',
+  expeditionsDone: 'expeditionsDone', // expéditions récupérées (quêtes de NekoZ-guide)
   ultComboMax:     'ultComboMax',
   gachaLowRate:    'gachaLowRate',
   gachaSsrCur:     'gachaSsrCur',

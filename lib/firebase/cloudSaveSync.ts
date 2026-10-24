@@ -13,6 +13,7 @@ import { coerceBonusLevels } from '@/lib/game/prestige';
 import type { Quest } from '@/store/gameStore.types';
 import { ACHIEVEMENT_BY_ID, type CharMastery } from '@/lib/game/achievements';
 import { emptyPeripleDaily, type PeripleStats } from '@/lib/game/periple';
+import { initialGuideState, mergeGuideState, type GuideState } from '@/lib/game/nekozGuide';
 
 // Logique pure/orchestration de la synchro cloud (indépendante de React) —
 // voir hooks/useCloudSave.ts, qui ne garde que le wiring useEffect/useState
@@ -174,6 +175,8 @@ export function getSerializableState() {
     nakimeMilestones:   s.nakimeMilestones ?? [],
     nakimeHistory:      s.nakimeHistory ?? [],
     nakimeTotals:       s.nakimeTotals ?? { runs: 0, floors: 0, fights: 0, elites: 0, bosses: 0 },
+    // NekoZ-guide — fusionné par mergeMonotonicState (la chaîne de quêtes ne recule jamais).
+    nekozGuide:         s.nekozGuide,
     // Historique de solde (graphe admin) — voir recordCurrencySnapshot,
     // appelé juste avant dans saveToFirebase : ce champ ne fait donc que
     // grossir un payload déjà écrit, sans lecture/écriture Firestore en plus.
@@ -211,6 +214,7 @@ export function mergeMonotonicState(
   dleQuestsClaimed: string[];
   peripleQuestsClaimed: string[]; peripleTiersClaimed: number[]; peripleStats: PeripleStats;
   nakimeMilestones: number[];
+  nekozGuide: GuideState;
 } {
   const current = useGameStore.getState();
   const achievementsClaimed: Record<string, boolean> = { ...current.achievementsClaimed };
@@ -298,7 +302,12 @@ export function mergeMonotonicState(
   const rm = remote?.nakimeMilestones as number[] | undefined;
   if (Array.isArray(rm)) for (const f of rm) if (typeof f === 'number') nakimeMilestones.add(f);
 
+  // NekoZ-guide : quête en cours au plus loin, répliques uniques vues en union
+  // (sinon un appareil en retard rendrait réclamable une quête déjà payée).
+  const nekozGuide = mergeGuideState(current.nekozGuide ?? initialGuideState(), remote?.nekozGuide);
+
   return {
+    nekozGuide,
     nakimeMilestones: Array.from(nakimeMilestones).sort((a, b) => a - b),
     achievementsClaimed, unlockedTitles: Array.from(unlockedTitles), activeTitle, compadexCharactersSeen, compadexEquipmentSeen, achievementStats, charMastery,
     dleQuestsClaimed: Array.from(dleQuestsClaimed),
@@ -354,6 +363,7 @@ function applyRemoteState(rawData: Record<string, unknown>) {
   delete data.charMastery;
   delete data.dleQuestsClaimed;
   delete data.nakimeMilestones;
+  delete data.nekozGuide;
   // Grand Périple : même édition → fusion par mergeMonotonicState (ne fait que
   // grandir) ; édition différente → appliqué tel quel (ensurePeriple remet à
   // zéro ce qui ne correspond pas à l'édition en cours).

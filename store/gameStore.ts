@@ -40,6 +40,8 @@ import { createPeripleSlice } from './slices/peripleSlice';
 import { emptyPeripleDaily } from '@/lib/game/periple';
 import { createNakimeSlice, emptyNakimeTotals } from './slices/nakimeSlice';
 import { migrateAnomalies } from '@/lib/game/anomalies';
+import { createGuideSlice } from './slices/guideSlice';
+import { initialGuideState } from '@/lib/game/nekozGuide';
 
 // Réexports publics — préservent l'API historique de '@/store/gameStore'
 // pour tous les fichiers qui importent ces symboles.
@@ -178,6 +180,8 @@ const makeInitial = () => ({
   nakimeMilestones: [] as number[],
   nakimeHistory: [] as GameStore['nakimeHistory'],
   nakimeTotals: emptyNakimeTotals(),
+  // ── NekoZ-guide (jamais reset au Prestige) ──
+  nekozGuide: initialGuideState(),
   // ── Combat de boss de raid en cours (jamais persisté, voir GameStore) ──
   raidBossFight: null as GameStore['raidBossFight'],
   // ── Historique de solde (graphe admin, voir CurrencySnapshot) ──
@@ -269,6 +273,7 @@ export const useGameStore = create<GameStore>()(
       ...createGachaDleSlice(set, get, api),
       ...createPeripleSlice(set, get, api),
       ...createNakimeSlice(set, get, api),
+      ...createGuideSlice(set, get, api),
 
       resetGame: () => {
         try { localStorage.clear(); } catch {}
@@ -470,6 +475,8 @@ export const useGameStore = create<GameStore>()(
         nakimeDay:s.nakimeDay ?? '', nakimeEntriesUsed:s.nakimeEntriesUsed ?? 0,
         nakimeNotes:s.nakimeNotes ?? 0, nakimeTickets:s.nakimeTickets ?? 0, nakimeGachaPity:s.nakimeGachaPity ?? 0, nakimeGachaPulls:s.nakimeGachaPulls ?? 0, nakimeMeta:s.nakimeMeta ?? {}, nakimeMilestones:s.nakimeMilestones ?? [],
         nakimeHistory:s.nakimeHistory ?? [], nakimeTotals:s.nakimeTotals ?? emptyNakimeTotals(),
+        // NekoZ-guide — jamais reset au Prestige.
+        nekozGuide:s.nekozGuide ?? initialGuideState(),
         // Compadex — jamais reset au Prestige (même traitement qu'historicalEditionPoints).
         compadexCharactersSeen:s.compadexCharactersSeen ?? {}, compadexEquipmentSeen:s.compadexEquipmentSeen ?? {},
         // Historique de solde (graphe admin) — persisté localement comme le
