@@ -99,10 +99,10 @@ async function toWebp(file: Blob, maxW: number, maxH: number, quality: number): 
 /**
  * Convertit l'image en .webp (redimensionnée à maxW × maxH, qualité réduite si
  * besoin pour tenir dans un document), l'enregistre dans Firestore si elle n'y
- * est pas déjà, et renvoie sa référence content-img.
+ * est pas déjà, et renvoie sa référence content-img. Sans Firebase (mode local
+ * du configurateur), l'image reste seulement dans le cache de ce navigateur.
  */
 export async function uploadContentImage(file: Blob, maxW: number, maxH: number): Promise<string> {
-  if (!db) throw new Error('Firebase indisponible');
   let blob: Blob | null = null;
   let b64 = '';
   for (const q of [0.88, 0.78, 0.66, 0.52, 0.4]) {
@@ -113,9 +113,11 @@ export async function uploadContentImage(file: Blob, maxW: number, maxH: number)
   if (!blob || b64.length > MAX_IMAGE_BASE64) throw new Error('Image trop lourde, même compressée : réduis-la avant de l’envoyer.');
   const id = await sha256Hex(blob);
   const ref = `${CONTENT_IMAGE_PREFIX}${id}`;
-  const target = doc(db, 'contentImages', id);
-  if (!(await getDoc(target)).exists()) {
-    await setDoc(target, { data: b64, mime: 'image/webp', bytes: blob.size, createdAt: Date.now() });
+  if (db) {
+    const target = doc(db, 'contentImages', id);
+    if (!(await getDoc(target)).exists()) {
+      await setDoc(target, { data: b64, mime: 'image/webp', bytes: blob.size, createdAt: Date.now() });
+    }
   }
   register(ref, blob);
   const cache = await openCache();

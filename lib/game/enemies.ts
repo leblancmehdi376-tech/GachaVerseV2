@@ -910,6 +910,11 @@ applyEnemyContent(PALIER_ENEMIES, PALIERS.length, getLoadedContent());
 const spritePathOf = (sprite: string) => (isContentImageRef(sprite) ? sprite : `/${sprite}`);
 
 export const ENEMY_ROSTER_PALIERS: number[] = Object.keys(PALIER_ENEMIES).map(Number).sort((a, b) => a - b);
+
+// Définitions brutes d'un palier (copies), pour le configurateur de la page admin.
+export function getPalierEnemyDefs(palier: number): EnemyDef[] {
+  return (PALIER_ENEMIES[palier] ?? []).map(d => ({ ...d }));
+}
 export function getPalierEnemyRoster(palier: number): EnemyRosterEntry[] {
   return (PALIER_ENEMIES[palier] ?? []).map((d, i) => ({ name: d.name, sprite: spritePathOf(d.sprite), isBoss: d.isBoss ?? i === 9 }));
 }

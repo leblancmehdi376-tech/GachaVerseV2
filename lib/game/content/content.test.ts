@@ -128,3 +128,29 @@ describe('indice de l’écran de chargement', () => {
     }
   });
 });
+
+describe('validateDraft — avant publication', () => {
+  const base = { paliersCount: 2, characterIds: new Set(['goku']), bannerIds: new Set(['vol1', 'vol2']) };
+
+  it('bloque un nouveau palier sans ses 10 ennemis, ou qui laisse un trou', async () => {
+    const { validateDraft } = await import('./validate');
+    const r = validateDraft(content({ paliers: { '3': { name: 'TROIS', universe: 'U' }, '5': { name: 'CINQ', universe: 'U' } } }), base);
+    expect(r.errors).toContain('Palier 3 : il faut ses 10 ennemis.');
+    expect(r.errors.some(e => e.includes('il manque le palier 4'))).toBe(true);
+  });
+
+  it('accepte un nouveau palier complet, et signale seulement l’absence de boss', async () => {
+    const { validateDraft } = await import('./validate');
+    const r = validateDraft(content({ paliers: { '3': { name: 'TROIS', universe: 'U' } }, enemies: { '3': enemies() } }), base);
+    expect(r.errors).toEqual([]);
+    expect(r.warnings).toHaveLength(1);
+  });
+
+  it('refuse un ennemi sans nom ni image', async () => {
+    const { validateDraft } = await import('./validate');
+    const list = enemies();
+    list[2] = { name: ' ', sprite: '', hpMult: 1 };
+    const r = validateDraft(content({ enemies: { '1': list } }), base);
+    expect(r.errors).toEqual(['Palier 1, ennemi 3 : nom manquant.', 'Palier 1, ennemi 3 : image manquante.']);
+  });
+});

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/layout/AuthModal';
@@ -10,9 +10,18 @@ import { useDisplaySettingsStore } from '@/store/displaySettingsStore';
 import { RequestsTab } from '@/components/pages/admin/RequestsTab';
 import { PlayersTab } from '@/components/pages/admin/PlayersTab';
 import { MarketplaceTab } from '@/components/pages/admin/MarketplaceTab';
+import { ContentTab } from '@/components/pages/admin/content/ContentTab';
+import { isLocalContentMode } from '@/lib/game/content/store';
+import { isContentStale } from '@/lib/game/content/runtime';
 import { Button, Card, Feedback, Segmented, StatTile } from '@/components/pages/admin/ui';
 
-type AdminTab = 'requests' | 'players' | 'marketplace';
+type AdminTab = 'requests' | 'players' | 'marketplace' | 'content';
+
+// Mode local du configurateur (Firebase désactivé, sur localhost) : la page
+// s'ouvre sans connexion et n'affiche que l'onglet Contenu, qui travaille
+// dans ce navigateur. Jamais actif en ligne (Firebase y est toujours configuré).
+const noSubscribe = () => () => {};
+const useLocalContentMode = () => useSyncExternalStore(noSubscribe, isLocalContentMode, () => false);
 
 // Cache module-level (hors composant) : survit à un démontage/remontage de
 // la page dans la même session (ex: navigation vers un autre onglet puis
@@ -30,6 +39,10 @@ function formatRelative(ms: number): string {
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
+  const localMode = useLocalContentMode();
+  // Arrivée depuis le jeu sans recharger : les données ont été chargées avec le
+  // contenu en ligne appliqué, alors que le configurateur doit partir du code.
+  useEffect(() => { if (isContentStale(0)) window.location.reload(); }, []);
   // Notation des nombres choisie dans les Paramètres du jeu (suffixes,
   // scientifique, alphabétique) : importer le store la recharge depuis le
   // navigateur, et s'y abonner re-rend le panel si elle change — formatNumber
@@ -156,6 +169,22 @@ export default function AdminPage() {
     });
   };
 
+  if (localMode) {
+    return (
+      <div className="h-screen overflow-y-auto bg-[#050410] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.12),transparent_60%)] font-(family-name:--f-ui) text-white">
+        <header className="sticky top-0 z-20 border-b border-white/15 bg-[#050410]/85 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
+            <Link href="/" className="flex min-h-11 items-center rounded-lg px-2 text-base text-white/75 no-underline hover:bg-white/5 hover:text-white/90">← Retour</Link>
+            <h1 className="text-xl font-black text-violet-300 sm:text-2xl">🛡️ Panel admin · local</h1>
+          </div>
+        </header>
+        <main className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6">
+          <ContentTab />
+        </main>
+      </div>
+    );
+  }
+
   if (loading || !adminChecked) return null;
 
   if (!user || !isAdmin) {
@@ -175,6 +204,7 @@ export default function AdminPage() {
     { id: 'players', label: `👥 Joueurs · ${allUsers.length}` },
     { id: 'requests', label: `📨 Demandes${pending.length > 0 ? ` · ${pending.length}` : ''}` },
     { id: 'marketplace', label: '🏛️ Hôtel de Ville' },
+    { id: 'content', label: '🧩 Contenu' },
   ];
 
   return (
@@ -254,6 +284,8 @@ export default function AdminPage() {
         )}
 
         {showTab === 'marketplace' && <MarketplaceTab />}
+
+        {showTab === 'content' && <ContentTab />}
       </main>
     </div>
   );
