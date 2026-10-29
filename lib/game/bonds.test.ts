@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { BANNER_POOL, getCharacterById } from './characters';
-import { BONDS, BOND_DUO_BONUS, BOND_TRIO_BONUS, computeActiveBonds, countDiscoveredBonds, getBondDpsMult } from './bonds';
+import { BANNER_POOL, GACHA_EXCLUDED_IDS, getCharacterById } from './characters';
+import { BONDS, BOND_DUO_BONUS, BOND_TRIO_BONUS, BOND_QUATUOR_BONUS, computeActiveBonds, countDiscoveredBonds, getBondDpsMult } from './bonds';
 
 describe('Liens légendaires — définitions', () => {
   it('ont des id uniques et des membres distincts, tous existants', () => {
@@ -11,16 +11,17 @@ describe('Liens légendaires — définitions', () => {
     }
   });
 
-  it("chaque membre s'obtient au gacha (tout lien est découvrable)", () => {
-    const gacha = new Set(BANNER_POOL.map(c => c.id));
-    for (const b of BONDS) for (const id of b.members) expect(gacha.has(id), `${b.id} → ${id}`).toBe(true);
+  it("chaque membre s'obtient (gacha, Forge ou raid) : tout lien est découvrable", () => {
+    const obtainable = new Set([...BANNER_POOL.map(c => c.id), ...GACHA_EXCLUDED_IDS]);
+    for (const b of BONDS) for (const id of b.members) expect(obtainable.has(id), `${b.id} → ${id}`).toBe(true);
   });
 
-  it('tiennent dans une équipe de 4, avec le bonus de duo ou de trio', () => {
+  it('tiennent dans une équipe de 4, avec le bonus de duo, de trio ou de quatuor', () => {
+    const bonus: Record<number, number> = { 2: BOND_DUO_BONUS, 3: BOND_TRIO_BONUS, 4: BOND_QUATUOR_BONUS };
     for (const b of BONDS) {
       expect(b.members.length).toBeGreaterThanOrEqual(2);
-      expect(b.members.length).toBeLessThanOrEqual(3);
-      expect(b.dpsBonus).toBe(b.members.length === 3 ? BOND_TRIO_BONUS : BOND_DUO_BONUS);
+      expect(b.members.length).toBeLessThanOrEqual(4);
+      expect(b.dpsBonus).toBe(bonus[b.members.length]);
     }
   });
 });
@@ -46,5 +47,14 @@ describe('computeActiveBonds / getBondDpsMult', () => {
 
   it('countDiscoveredBonds ignore les liens qui n\'existent plus', () => {
     expect(countDiscoveredBonds({ rivaux_eternels: true, lien_supprime: true })).toBe(1);
+  });
+});
+
+describe('Ceux qui restent (lien secret des Chill&Cool)', () => {
+  it("demande les quatre Chill&Cool, et donne +20 % à chacun", () => {
+    expect(computeActiveBonds(['nekoz', 'ouchuu', 'elfuzzion', null]).map(b => b.id)).toEqual([]);
+    const active = computeActiveBonds(['nekoz', 'ouchuu', 'elfuzzion', 'rokoul_ayro']);
+    expect(active.map(b => b.id)).toEqual(['ceux_qui_restent']);
+    expect(getBondDpsMult('rokoul_ayro', active)).toBeCloseTo(1 + BOND_QUATUOR_BONUS / 100);
   });
 });

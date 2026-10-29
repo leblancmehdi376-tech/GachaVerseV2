@@ -5,9 +5,10 @@
 // `nekozGuide`, et n'est JAMAIS remis à zéro par le Prestige (voir doPrestige,
 // qui ne liste pas ce champ).
 import { STAT, type CharMastery } from './achievements';
-import { BONDS, countDiscoveredBonds } from './bonds';
+import { BONDS, CHILL_COOL_BOND_ID, countDiscoveredBonds } from './bonds';
 import { parseInstanceKey } from './editions';
 import { PRESTIGE_UNLOCK_PALIER } from './prestige';
+import { SPLASH_CLUE } from './guideSplashClue';
 
 export interface GuideState {
   arrivalPrestige: number | null; // null = le joueur n'a jamais encore cliqué sur le guide
@@ -298,6 +299,9 @@ const NAKIME_REACTIONS: { mark: string; line: GuideLine }[] = [
   { mark: 'nakime:ask', line: { id: 'react:nakime', parts: ['Il paraît que tu as posé des questions à un chat, au Château.', "Les chats ne répondent pas. C'est pour ça qu'on les aime."] } },
 ];
 
+// Découverte du lien secret « Ceux qui restent » (les quatre Chill&Cool réunis).
+const BOND_REACTION: GuideLine = { id: 'react:bond', parts: ['…', 'Tous les quatre. Dans la même équipe.', "Il en manque une. … Mais c'est déjà plus que ce que j'ai eu."] };
+
 // Fin de la chaîne de quêtes actuelle : le joueur sait que la suite viendra.
 const CHAIN_END_LINE: GuideLine = { id: 'end:chain', parts: ["C'est tout pour l'instant.", '… Je ne vais nulle part. Promis.'] };
 
@@ -325,6 +329,7 @@ export function pendingGuideLine(v: GuideView): GuideLine | null {
   for (const r of NAKIME_REACTIONS) {
     if (g.seen.includes(r.mark) && !g.seen.includes(r.line.id)) return r.line;
   }
+  if (v.discoveredBonds?.[CHILL_COOL_BOND_ID] && !g.seen.includes(BOND_REACTION.id)) return BOND_REACTION;
   return null;
 }
 
@@ -356,6 +361,7 @@ export function isOneShotLine(id: string): boolean {
 // ── Indices discrets dans les autres pages ─────────────────────────────────
 // Chaque indice n'apparaît qu'après la quête qui lui donne du sens (`after`),
 // ou dès l'arrivée du guide (`after: null`). Aucun ne change une règle du jeu.
+// `chance` : indice rare, tiré au hasard à chaque occasion (voir rollClue).
 export const GUIDE_CLUES = {
   raidRokoul:      { after: 'g14_rokoul',    text: 'Et ne les séparez jamais.' },
   elfuzzionEggs:   { after: 'g13_elfuzzion', text: '… Et pourquoi ils grésillent ?' },
@@ -363,13 +369,23 @@ export const GUIDE_CLUES = {
   prestigeConfirm: { after: null,            text: 'Tout le monde reviendra. … Compte-les quand même.' },
   anomalies:       { after: 'g7_anomaly',    text: 'Certaines anomalies ne sont pas des bonus.' },
   credits:         { after: 'g15_name',      text: 'guide' },
-} as const satisfies Record<string, { after: string | null; text: string }>;
+  compadexNekoz:   { after: 'g6_divine',     text: "Une autre version de cette carte existe. Elle n'est pas dans ce Compadex." },
+  mine:            { after: 'g12_stones',    text: 'Tu creuses profond. Il y a des choses enterrées, là-dessous.', chance: 1 / 10 },
+  expeditions:     { after: 'g1_expeditions', text: 'Ils sont tous revenus.', chance: 1 / 5 },
+  splash:          { after: null,            ...SPLASH_CLUE }, // tiré par rollSplashClue (avant le chargement du store)
+} as const satisfies Record<string, { after: string | null; text: string; chance?: number }>;
 export type GuideClue = keyof typeof GUIDE_CLUES;
 
 export function isClueVisible(g: GuideState | undefined, clue: GuideClue): boolean {
   if (!g || g.arrivalPrestige === null) return false;
   const after = GUIDE_CLUES[clue].after;
   return after === null || g.questIndex > GUIDE_QUESTS.findIndex(q => q.id === after);
+}
+
+// Indice rare : son texte si débloqué ET tiré cette fois-ci, sinon null.
+export function rollClue(g: GuideState | undefined, clue: GuideClue, rnd: () => number = Math.random): string | null {
+  const def: { text: string; chance?: number } = GUIDE_CLUES[clue];
+  return isClueVisible(g, clue) && rnd() < (def.chance ?? 1) ? def.text : null;
 }
 
 // Fusion cloud : la chaîne de quêtes ne doit jamais reculer (sinon une

@@ -3,6 +3,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { useGameStore, MINE_PURCHASE_COST_CROWNS, MINE_BASE_RATE_PER_HOUR, MINE_CAP_TIERS, MINE_SPEED_MULT_TIERS } from '@/store/gameStore';
 import { formatNumber } from '@/lib/game/format';
 import { PageScroll } from '@/components/ui/Page';
+import { rollClue } from '@/lib/game/nekozGuide';
+import { toast } from '@/hooks/useToast';
 
 function UpgradeRow({ icon, label, current, next, cost, affordable, onBuy }: {
   icon: string; label: string; current: string; next: string | null; cost: number | null; affordable: boolean; onBuy: () => void;
@@ -32,6 +34,12 @@ export function MinePage() {
     getMineCap, getMineRatePerHour, getMineCapUpgradeCost, getMineSpeedUpgradeCost,
     buyMine, upgradeMineCap, upgradeMineSpeed, collectMineGems,
   } = useGameStore(useShallow(s => ({ prestigeLevel: s.prestigeLevel, bossCrowns: s.bossCrowns, mineOwned: s.mineOwned, mineCapLevel: s.mineCapLevel, mineSpeedLevel: s.mineSpeedLevel, mineGems: s.mineGems, getMineCap: s.getMineCap, getMineRatePerHour: s.getMineRatePerHour, getMineCapUpgradeCost: s.getMineCapUpgradeCost, getMineSpeedUpgradeCost: s.getMineSpeedUpgradeCost, buyMine: s.buyMine, upgradeMineCap: s.upgradeMineCap, upgradeMineSpeed: s.upgradeMineSpeed, collectMineGems: s.collectMineGems })));
+  // Indice rare de NekoZ-guide à la récolte (voir GUIDE_CLUES).
+  const collectWithClue = () => {
+    collectMineGems();
+    const clue = rollClue(useGameStore.getState().nekozGuide, 'mine');
+    if (clue) toast.info('…', clue);
+  };
 
   // ── Verrouillée avant le premier Prestige ──────────────────────────────
   if (prestigeLevel < 1) {
@@ -103,7 +111,7 @@ export function MinePage() {
               <div className="prog-track" style={{ marginBottom:'14px' }}>
                 <div className="prog-fill" style={{ width:`${fillPct}%`, background: fillPct >= 100 ? 'linear-gradient(90deg,#0891b2,#22d3ee)' : undefined }} />
               </div>
-              <button onClick={collectMineGems} disabled={stored <= 0} className={stored > 0 ? 'btn-primary' : 'btn-secondary'}
+              <button onClick={collectWithClue} disabled={stored <= 0} className={stored > 0 ? 'btn-primary' : 'btn-secondary'}
                 style={{ width:'100%', padding:'12px', fontSize:16, cursor: stored > 0 ? 'pointer' : 'not-allowed', opacity: stored > 0 ? 1 : 0.4 }}>
                 💎 COLLECTER {stored > 0 ? `+${formatNumber(stored)}` : ''}
               </button>

@@ -19,6 +19,7 @@ import { countSeenCharacters, countSeenEquipment } from '@/lib/game/compadex';
 import { CompadexEquipment, EQUIPMENT_LIST } from './CompadexEquipment';
 import { CompadexBonds } from './CompadexBonds';
 import { BONDS, countDiscoveredBonds } from '@/lib/game/bonds';
+import { useGuideClue } from '@/hooks/useGuideClue';
 
 const RARITY_ORDER: Rarity[] = COLLECTION_RARITY_ORDER;
 
@@ -107,6 +108,7 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
   const aff   = AFFINITY_CONFIG[getAffinityForId(tpl.id)];
   const forms = tpl.forms ?? [];
   const dps   = owned ? calcCharDps(tpl, owned) : null;
+  const otherVersionClue = useGuideClue('compadexNekoz'); // indice discret de NekoZ-guide
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:9990, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
@@ -130,6 +132,9 @@ const CharDetailModal = ({ entry, onClose }: { entry: CollectionEntry; onClose: 
 
           {tpl.description && (
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:'var(--text-dim)', lineHeight:1.5, textAlign:'center' }}>{tpl.description}</div>
+          )}
+          {tpl.id === 'nekoz' && otherVersionClue && (
+            <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontStyle:'italic', color:'rgba(165,180,252,0.75)', lineHeight:1.5, textAlign:'center' }}>{otherVersionClue}</div>
           )}
 
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>

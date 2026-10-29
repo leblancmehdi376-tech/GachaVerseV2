@@ -9,6 +9,8 @@ import { formatNumber } from '@/lib/game/format';
 import { parseInstanceKey } from '@/lib/game/editions';
 import { AFFINITY_CONFIG, getAffinityForId } from '@/lib/game/affinities';
 import { correctedNow } from '@/lib/firebase/clockOffset';
+import { rollClue } from '@/lib/game/nekozGuide';
+import { toast } from '@/hooks/useToast';
 import { bnCompare, bnFromNumber, bnGte, bnToNumber } from '@/lib/game/bignum';
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
@@ -220,6 +222,12 @@ function CharSelector({ def, onConfirm, onClose }: {
 /* ── Carte expédition active ────────────────────────────────────────────── */
 function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
   const { claimExpedition, cancelExpedition, debugFinishExpedition } = useGameStore(useShallow(s => ({ claimExpedition: s.claimExpedition, cancelExpedition: s.cancelExpedition, debugFinishExpedition: s.debugFinishExpedition })));
+  // Indice rare de NekoZ-guide au retour d'expédition (voir GUIDE_CLUES).
+  const claimWithClue = (id: string) => {
+    claimExpedition(id);
+    const clue = rollClue(useGameStore.getState().nekozGuide, 'expeditions');
+    if (clue) toast.info('…', clue);
+  };
   const [, tick] = useState(0);
   // [DEV] Bouton "finir l'expédition" affiché uniquement en local, jamais en prod.
   const isLocalDev = typeof window !== 'undefined' && (
@@ -285,7 +293,7 @@ function ActiveExpeditionCard({ exp }: { exp: ActiveExpedition }) {
         {/* Actions */}
         <div style={{ display:'flex', flexDirection:'column', gap:6, flexShrink:0 }}>
           {done
-            ? <button onClick={() => claimExpedition(exp.id)} className="btn-primary" style={{ padding:'8px 16px', fontSize:14 }}>RÉCLAMER</button>
+            ? <button onClick={() => claimWithClue(exp.id)} className="btn-primary" style={{ padding:'8px 16px', fontSize:14 }}>RÉCLAMER</button>
             : <button onClick={() => cancelExpedition(exp.id)} className="btn-secondary" style={{ padding:'6px 12px', fontSize:14, cursor:'pointer' }}>ANNULER</button>
           }
           {!done && isLocalDev && (

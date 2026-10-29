@@ -18,7 +18,7 @@ function BondCard({ bond, discovered, active, collection }: {
         <span className="bond-card__icon" aria-hidden>{discovered ? bond.icon : '❔'}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="bond-card__name">{discovered ? bond.name : 'Lien inconnu'}</div>
-          <div className="bond-card__meta">{bond.members.length === 2 ? 'Duo' : 'Trio'} · +{bond.dpsBonus} % de DPS par membre</div>
+          <div className="bond-card__meta">{bond.members.length === 2 ? 'Duo' : bond.members.length === 3 ? 'Trio' : 'Quatuor'} · +{bond.dpsBonus} % de DPS par membre</div>
         </div>
         {active && <span className="bond-card__badge">ACTIF</span>}
       </div>

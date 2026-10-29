@@ -198,6 +198,11 @@ Chaque indice n’apparaît qu’après la quête qui lui donne du sens (`GUIDE_
 | Carte du guide, de 0 h à 5 h | « Tu devrais dormir. … Elle non plus, elle ne dormait plus. » | Acte 2 |
 | Notes de mise à jour v2.8.2.14 | « Merci d’être restés. — ??? » | Toujours |
 | Château de Nakime | Rencontre rare **Un chat à cornes** (1 salle d’événement sur 30). Le guide réagit ensuite sur l’accueil au choix fait, en niant y être allé. | Toujours |
+| Compadex, fiche de NekoZ | « Une autre version de cette carte existe. Elle n’est pas dans ce Compadex. » | Quête 6 |
+| Mine, à la récolte (1 fois sur 10) | « Tu creuses profond. Il y a des choses enterrées, là-dessous. » | Quête 12 |
+| Expéditions, au retour (1 fois sur 5) | « Ils sont tous revenus. » | Quête 1 |
+| Écran de chargement (1 fois sur 25) | « v2.8.2.14 — une autre version existe » | Arrivée du guide |
+| Lien légendaire secret **Ceux qui restent** | Les 4 Chill&Cool dans l’équipe : **+20 % de DPS** chacun (seul quatuor du jeu, compte pour Maître des Liens). Le guide réagit une fois à sa découverte : « Il en manque une. … Mais c’est déjà plus que ce que j’ai eu. » | Toujours |
 
 ## 10. Besoins techniques — séparés du lore
 

@@ -20,10 +20,16 @@ export interface BondDef {
 // plupart des liens activent déjà.
 export const BOND_DUO_BONUS  = 10;
 export const BOND_TRIO_BONUS = 15;
+export const BOND_QUATUOR_BONUS = 20; // toute l'équipe : un seul lien de ce type (Chill&Cool)
 
 function bond(id: string, name: string, icon: string, members: string[], lore: string): BondDef {
-  return { id, name, icon, members, dpsBonus: members.length >= 3 ? BOND_TRIO_BONUS : BOND_DUO_BONUS, lore };
+  const dpsBonus = members.length >= 4 ? BOND_QUATUOR_BONUS : members.length === 3 ? BOND_TRIO_BONUS : BOND_DUO_BONUS;
+  return { id, name, icon, members, dpsBonus, lore };
 }
+
+// Lien des Chill&Cool, lié au lore de NekoZ-guide (voir lib/game/nekozGuide.ts,
+// qui réagit à sa découverte) : les quatre membres jouables réunis.
+export const CHILL_COOL_BOND_ID = 'ceux_qui_restent';
 
 export const BONDS: BondDef[] = [
   // ── Duos ──────────────────────────────────────────────────────────────────
@@ -64,6 +70,9 @@ export const BONDS: BondDef[] = [
     'Partis de Shiganshina, ils ont fini par voir la mer.'),
   bond('quatrieme_section', 'La 4e Section', '🪚', ['denji', 'power_csm', 'aki_csm'],
     'Un homme-tronçonneuse, une démone du sang et leur colocataire désabusé.'),
+  // ── Quatuor ───────────────────────────────────────────────────────────────
+  bond(CHILL_COOL_BOND_ID, 'Ceux qui restent', '🫂', ['nekoz', 'ouchuu', 'elfuzzion', 'rokoul_ayro'],
+    'Une fois, chacun a tout porté seul de son côté. Pas cette fois.'),
 ];
 
 export const BOND_BY_ID: Map<string, BondDef> = new Map(BONDS.map(b => [b.id, b]));

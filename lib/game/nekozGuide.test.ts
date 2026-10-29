@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   GUIDE_QUESTS, initialGuideState, currentGuideQuest, questBaselineFor, pendingGuideLine, nextGuideLine,
-  mergeGuideState, raidKillsStat, ACT_3_FIRST_QUEST, GUIDE_CLUES, isClueVisible, nakimeChoiceMark, type GuideView, type GuideState,
+  mergeGuideState, raidKillsStat, ACT_3_FIRST_QUEST, GUIDE_CLUES, isClueVisible, nakimeChoiceMark, rollClue, type GuideView, type GuideState,
 } from './nekozGuide';
 import { STAT } from './achievements';
 import { BONDS } from './bonds';
@@ -171,5 +171,21 @@ describe('indices discrets', () => {
     expect(ids(2).has('night')).toBe(true);
     expect(ids(14).has('night')).toBe(false);
     expect(ids(2, { ...g, questIndex: 1, seen: [GUIDE_QUESTS[1].intro.id] }).has('night')).toBe(false);
+  });
+});
+
+describe('lien secret des Chill&Cool', () => {
+  it('fait réagir le guide une seule fois à sa découverte', () => {
+    const g = { arrivalPrestige: 0, questIndex: GUIDE_QUESTS.length, seen: ['end:chain'] };
+    const found = { discoveredBonds: { ceux_qui_restent: true as const } };
+    expect(pendingGuideLine(view(found, g))?.id).toBe('react:bond');
+    expect(pendingGuideLine(view(found, { ...g, seen: [...g.seen, 'react:bond'] }))).toBeNull();
+  });
+
+  it('les indices rares ne sortent que débloqués, et selon leur chance', () => {
+    const arrived = { ...initialGuideState(), arrivalPrestige: 0 };
+    expect(rollClue(initialGuideState(), 'splash', () => 0)).toBeNull();
+    expect(rollClue(arrived, 'splash', () => 0)).toBe(GUIDE_CLUES.splash.text);
+    expect(rollClue(arrived, 'splash', () => 0.5)).toBeNull();
   });
 });
