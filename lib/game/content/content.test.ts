@@ -154,3 +154,23 @@ describe('validateDraft — avant publication', () => {
     expect(r.errors).toEqual(['Palier 1, ennemi 3 : nom manquant.', 'Palier 1, ennemi 3 : image manquante.']);
   });
 });
+
+describe('validateDraft — persos et bannières', () => {
+  const base = { paliersCount: 2, characterIds: new Set(['goku']), bannerIds: new Set(['vol1', 'vol2']) };
+
+  it('bloque un nouveau perso incomplet, accepte un perso complet', async () => {
+    const { validateDraft } = await import('./validate');
+    const incomplete = validateDraft(content({ characters: { neuf: { name: 'Neuf', rarity: 'T', baseDps: 10 } } }), base);
+    expect(incomplete.errors).toEqual(['Perso « Neuf » : univers, genre, image de la première forme manquant(s).']);
+    const ok = validateDraft(content({ characters: { neuf: {
+      name: 'Neuf', rarity: 'T', baseDps: 10, universe: 'U', gender: 'female', forms: [{ name: 'Neuf', image: IMG }],
+    } } }), base);
+    expect(ok.errors).toEqual([]);
+  });
+
+  it('bloque une bannière vide ou avec un perso inconnu', async () => {
+    const { validateDraft } = await import('./validate');
+    const r = validateDraft(content({ banners: { vol3: { title: 'V3', characterIds: [] }, vol2: { characterIds: ['fantome'] } } }), base);
+    expect(r.errors).toEqual(['Bannière « V3 » : aucun perso.', 'Bannière « vol2 » : perso(s) inconnu(s) fantome.']);
+  });
+});

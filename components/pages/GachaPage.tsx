@@ -12,7 +12,7 @@ import { msUntilNextDailyReset } from '@/lib/game/shop';
 import { getCardImageCandidates } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { useNow } from '@/hooks/useNow';
-import { RARITY_CONFIG, Rarity } from '@/types/game';
+import { RARITY_CONFIG, RARITY_ORDER_ASC, Rarity } from '@/types/game';
 import { formatNumber, formatTimeLeft } from '@/lib/game/format';
 import { PageScroll } from '@/components/ui/Page';
 import { GachaRevealOverlay } from './gacha/GachaRevealOverlay';
@@ -22,6 +22,14 @@ import type { Res } from './gacha/gachaTypes';
 // Dernier volume de gacha sélectionné, mémorisé en local uniquement (pas
 // dans la sauvegarde cloud) pour réatterrir dessus en revenant sur la page.
 const BANNER_STORAGE_KEY = 'gv_gacha_banner';
+// Cartes du visuel : les vedettes choisies, sinon (bannière créée depuis le
+// configurateur sans vedettes) les 6 persos de plus haute rareté.
+function featuredOf(banner: { featuredIds: string[]; pool: { id: string; rarity: Rarity }[] }): string[] {
+  if (banner.featuredIds.length) return banner.featuredIds;
+  const rank = (r: Rarity) => RARITY_ORDER_ASC.indexOf(r);
+  return [...banner.pool].sort((a, b) => rank(b.rarity) - rank(a.rarity)).slice(0, 6).map(t => t.id);
+}
+
 // Bannières masquées depuis le configurateur : ni affichées, ni restaurées.
 const VISIBLE_BANNERS = GACHA_BANNERS.filter(b => !b.hidden);
 const BANNER_IDS: BannerId[] = [...VISIBLE_BANNERS.map(b => b.id), 'featured'];
@@ -197,7 +205,7 @@ export function GachaPage() {
           boxShadow:`0 0 32px ${theme.glow}, 0 8px 32px rgba(0,0,0,0.5)`,
         }}>
           <div style={{ position:'relative', aspectRatio:'1000 / 300', minHeight:150, background:`radial-gradient(ellipse at 50% 35%, ${theme.deep} 0%, ${theme.dark} 70%)`, overflow:'hidden' }}>
-            {banner.featuredIds.map((id, i, all) => {
+            {featuredOf(banner).map((id, i, all) => {
               const tpl = getCharacterById(id);
               if (!tpl) return null;
               const k = i - (all.length - 1) / 2; // -2.5 … 2.5 : position dans l'éventail

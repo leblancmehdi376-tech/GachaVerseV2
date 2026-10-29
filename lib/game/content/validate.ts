@@ -38,5 +38,28 @@ export function validateDraft(c: ContentOverrides, base: BaseInfo): ValidationRe
     if (!list.some(e => e.isBoss) && list.length === ENEMIES_PER_PALIER) warnings.push(`Palier ${id} : aucun ennemi marqué boss (le 10e le sera par défaut).`);
   }
 
+  // Persos : un nouveau perso doit être complet (sinon il serait ignoré au démarrage).
+  const allCharacters = new Set([...base.characterIds, ...Object.keys(c.characters)]);
+  for (const [id, ch] of Object.entries(c.characters)) {
+    if (base.characterIds.has(id)) continue;
+    const missing = [
+      !ch.name && 'nom', !ch.rarity && 'rareté', ch.baseDps === undefined && 'DPS', !ch.universe && 'univers',
+      !ch.gender && 'genre', !ch.forms?.[0]?.image && 'image de la première forme',
+    ].filter(Boolean);
+    if (missing.length) errors.push(`Perso « ${ch.name ?? id} » : ${missing.join(', ')} manquant(s).`);
+  }
+
+  // Bannières : persos existants, et au moins un perso pour une nouvelle bannière.
+  for (const [id, b] of Object.entries(c.banners)) {
+    const unknown = (b.characterIds ?? []).filter(x => !allCharacters.has(x));
+    if (unknown.length) errors.push(`Bannière « ${b.title ?? id} » : perso(s) inconnu(s) ${unknown.join(', ')}.`);
+    if (!base.bannerIds.has(id)) {
+      if (!b.title) errors.push(`Bannière « ${id} » : titre manquant.`);
+      if (!b.characterIds?.length) errors.push(`Bannière « ${b.title ?? id} » : aucun perso.`);
+    }
+    const lostFeatured = (b.featuredIds ?? []).filter(x => !allCharacters.has(x));
+    if (lostFeatured.length) warnings.push(`Bannière « ${b.title ?? id} » : perso(s) vedette(s) inconnu(s) ignoré(s) : ${lostFeatured.join(', ')}.`);
+  }
+
   return { errors, warnings };
 }

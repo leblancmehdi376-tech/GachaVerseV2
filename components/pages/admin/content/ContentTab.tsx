@@ -3,20 +3,23 @@ import { useEffect, useState } from 'react';
 import { PALIERS } from '@/lib/game/paliers';
 import { CHARACTER_POOL } from '@/lib/game/characters';
 import { GACHA_BANNERS } from '@/lib/game/gacha';
-import { collectContentImages, type ContentOverrides } from '@/lib/game/content/schema';
+import { collectContentImages, emptyContent, type ContentOverrides } from '@/lib/game/content/schema';
 import { prepareContentImages } from '@/lib/game/content/images';
-import { loadContentForEditing, saveDraft, publishContent, isLocalContentMode } from '@/lib/game/content/store';
+import { loadContentForEditing, saveDraft, publishContent, restoreVersion, isLocalContentMode, summarizeContent } from '@/lib/game/content/store';
 import { validateDraft, type ValidationResult } from '@/lib/game/content/validate';
 import { Button, Card, Feedback, Segmented, SectionHeader } from '../ui';
 import { PaliersEditor } from './PaliersEditor';
 import { EnemiesEditor } from './EnemiesEditor';
+import { CharactersEditor } from './CharactersEditor';
+import { BannersEditor } from './BannersEditor';
+import { HistoryPanel } from './HistoryPanel';
 
 // Configurateur de contenu : on modifie un BROUILLON (paliers, ennemis...), puis
 // on le publie — les joueurs le reçoivent au prochain lancement du jeu (voir
 // lib/game/content). Cette page lit toujours les données du CODE (elle ne passe
 // pas par ContentGate) : le brouillon ne contient que les écarts avec elles.
 
-type Section = 'paliers' | 'enemies';
+type Section = 'paliers' | 'enemies' | 'characters' | 'banners' | 'history';
 
 const BASE_INFO = {
   paliersCount: PALIERS.length,
@@ -26,7 +29,11 @@ const BASE_INFO = {
 
 export function ContentTab() {
   const [draft, setDraft] = useState<ContentOverrides | null>(null);
-  const [liveVersion, setLiveVersion] = useState(0);
+  const [live, setLive] = useState<ContentOverrides | null>(null);
+  const liveVersion = live?.version ?? 0;
+  // Change quand le brouillon est remplacé d'un bloc (publication, abandon,
+  // restauration) : les éditeurs repartent alors de ce nouveau brouillon.
+  const [generation, setGeneration] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [section, setSection] = useState<Section>('paliers');
   const [busy, setBusy] = useState<string | null>(null);
@@ -41,7 +48,7 @@ export function ContentTab() {
         await prepareContentImages([...collectContentImages(draft), ...(live ? collectContentImages(live) : [])]);
         if (cancelled) return;
         setDraft(draft);
-        setLiveVersion(live?.version ?? 0);
+        setLive(live);
       })
       .catch(e => { if (!cancelled) setMsg(`❌ Chargement impossible : ${e instanceof Error ? e.message : e}`); });
     return () => { cancelled = true; };
@@ -79,11 +86,37 @@ export function ContentTab() {
     if (!window.confirm(`Publier la version ${liveVersion + 1} ? Les joueurs la recevront à leur prochain lancement du jeu.`)) return;
     const published = await publishContent(draft, liveVersion);
     setDraft(published);
-    setLiveVersion(published.version);
+    setLive(published);
+    setGeneration(g => g + 1);
     setDirty(false);
     setMsg(local
       ? `✅ Version ${published.version} publiée dans ce navigateur : recharge le jeu (localhost:3000) pour la voir.`
       : `✅ Version ${published.version} publiée.`);
+  });
+
+  // Repart de la version en ligne : toutes les modifications non publiées sont perdues.
+  const discard = () => run('discard', async () => {
+    if (!window.confirm('Abandonner toutes les modifications non publiées du brouillon ?')) return;
+    const fresh = structuredClone(live ?? emptyContent());
+    await saveDraft(fresh);
+    setDraft(fresh);
+    setGeneration(g => g + 1);
+    setDirty(false);
+    setCheck(null);
+    setMsg('✅ Brouillon remis sur la version en ligne.');
+  });
+
+  const restore = (old: ContentOverrides, label: string) => run('restore', async () => {
+    if (!window.confirm(`Restaurer : ${label} ?
+Cela remplace la version en ligne, et le brouillon actuel sera perdu.`)) return;
+    await prepareContentImages(collectContentImages(old));
+    const published = await restoreVersion(old, liveVersion);
+    setDraft(published);
+    setLive(published);
+    setGeneration(g => g + 1);
+    setDirty(false);
+    setCheck(null);
+    setMsg(`✅ Version ${published.version} publiée — restauration : ${label}.`);
   });
 
   return (
@@ -99,8 +132,9 @@ export function ContentTab() {
 
       <Card>
         <SectionHeader icon="🧩" title="Contenu du jeu"
-          subtitle={`Version publiée : ${liveVersion || 'aucune (contenu du code)'} · ${dirty ? 'brouillon modifié, non enregistré' : 'brouillon enregistré'}`}
+          subtitle={`Version publiée : ${liveVersion || 'aucune (contenu du code)'} · Brouillon : ${summarizeContent(draft)} · ${dirty ? 'non enregistré' : 'enregistré'}`}
           right={<>
+            <Button tone="red" onClick={discard} disabled={!!busy} title="Repartir de la version en ligne">↺ Abandonner</Button>
             <Button tone="neutral" onClick={save} disabled={!dirty || !!busy}>{busy === 'save' ? 'Enregistrement…' : '💾 Enregistrer le brouillon'}</Button>
             <Button tone="green" onClick={publish} disabled={!!busy}>{busy === 'publish' ? 'Publication…' : '🚀 Publier'}</Button>
           </>} />
@@ -112,9 +146,16 @@ export function ContentTab() {
           </ul>
         )}
         <Segmented label="Type de contenu" value={section} onChange={setSection} className="mb-4"
-          options={[{ id: 'paliers', label: '🗺️ Paliers' }, { id: 'enemies', label: '👾 Ennemis' }]} />
-        {section === 'paliers' && <PaliersEditor draft={draft} onChange={change} />}
-        {section === 'enemies' && <EnemiesEditor draft={draft} onChange={change} />}
+          options={[
+            { id: 'paliers', label: '🗺️ Paliers' }, { id: 'enemies', label: '👾 Ennemis' },
+            { id: 'characters', label: '🃏 Persos' }, { id: 'banners', label: '🎰 Bannières' },
+            { id: 'history', label: '🕘 Historique' },
+          ]} />
+        {section === 'paliers' && <PaliersEditor key={generation} draft={draft} onChange={change} />}
+        {section === 'enemies' && <EnemiesEditor key={generation} draft={draft} onChange={change} />}
+        {section === 'characters' && <CharactersEditor key={generation} draft={draft} onChange={change} />}
+        {section === 'banners' && <BannersEditor key={generation} draft={draft} onChange={change} />}
+        {section === 'history' && <HistoryPanel liveVersion={liveVersion} busy={!!busy} onRestore={restore} />}
       </Card>
     </div>
   );
