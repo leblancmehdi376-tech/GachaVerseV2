@@ -124,7 +124,7 @@ export function PaliersEditor({ draft, onChange, onEditing }: EditorProps) {
                     <TextInput value={form.bgGradient} onChange={e => set('bgGradient', e.target.value)} />
                   </Field>
                   <Field label="Image de fond (1600 × 900 conseillé)" className="sm:col-span-2 lg:col-span-4">
-                    <ImagePicker value={form.bgImage} onChange={ref => set('bgImage', ref)} maxW={1600} maxH={900} size={72}
+                    <ImagePicker value={form.bgImage} onChange={ref => set('bgImage', ref)} maxW={1600} maxH={900} size={72} aspect={16 / 9} aspectLabel="Écran 16:9"
                       fallback={id <= PALIERS.length ? buildImageCandidates(`/backgrounds/bg_palier_${id}`) : []} label="Changer le fond" />
                   </Field>
                   <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-4">

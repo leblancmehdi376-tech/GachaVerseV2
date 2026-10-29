@@ -10,6 +10,7 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { CONTENT_IMAGE_PREFIX, isContentImageRef } from './schema';
+import { cropFromFractions, croppedSize, roundCrop, type CropRect } from './crop';
 
 const CACHE_NAME = 'gv-content-images-v1';
 const cacheKey = (id: string) => `/__content-img/${id}`;
@@ -83,13 +84,16 @@ async function sha256Hex(blob: Blob): Promise<string> {
   return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
 }
 
-async function toWebp(file: Blob, maxW: number, maxH: number, quality: number): Promise<Blob> {
+async function toWebp(file: Blob, maxW: number, maxH: number, quality: number, crop?: CropRect): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxW / bitmap.width, maxH / bitmap.height);
+  const W = bitmap.width;
+  const H = bitmap.height;
+  const zone = crop ? roundCrop(cropFromFractions(crop, W, H), W, H) : { x: 0, y: 0, w: W, h: H };
+  const size = croppedSize(zone, maxW, maxH);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  canvas.width = size.w;
+  canvas.height = size.h;
+  canvas.getContext('2d')!.drawImage(bitmap, zone.x, zone.y, zone.w, zone.h, 0, 0, size.w, size.h);
   bitmap.close();
   const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/webp', quality));
   if (!blob) throw new Error('Conversion en .webp impossible');
@@ -97,16 +101,17 @@ async function toWebp(file: Blob, maxW: number, maxH: number, quality: number): 
 }
 
 /**
- * Convertit l'image en .webp (redimensionnée à maxW × maxH, qualité réduite si
+ * Convertit l'image en .webp (recadrée sur `crop` — en fractions de l'image,
+ * voir crop.ts — puis redimensionnée à maxW × maxH, qualité réduite si
  * besoin pour tenir dans un document), l'enregistre dans Firestore si elle n'y
  * est pas déjà, et renvoie sa référence content-img. Sans Firebase (mode local
  * du configurateur), l'image reste seulement dans le cache de ce navigateur.
  */
-export async function uploadContentImage(file: Blob, maxW: number, maxH: number): Promise<string> {
+export async function uploadContentImage(file: Blob, maxW: number, maxH: number, crop?: CropRect): Promise<string> {
   let blob: Blob | null = null;
   let b64 = '';
   for (const q of [0.88, 0.78, 0.66, 0.52, 0.4]) {
-    blob = await toWebp(file, maxW, maxH, q);
+    blob = await toWebp(file, maxW, maxH, q, crop);
     b64 = await blobToBase64(blob);
     if (b64.length <= MAX_IMAGE_BASE64) break;
   }

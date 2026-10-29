@@ -243,6 +243,7 @@ export function CharactersEditor({ draft, onChange, onEditing }: EditorProps) {
           <div key={i} className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 px-3 py-2">
             <span className="w-6 text-sm font-bold tabular-nums text-white/60">{i + 1}</span>
             <ImagePicker value={f.image} onChange={ref => setFormAt(i, { image: ref })} maxW={CARD_MAX_W} maxH={CARD_MAX_H} size={72}
+              aspect={CARD_MAX_W / CARD_MAX_H} aspectLabel="Format carte"
               fallback={base ? getCardImageCandidates(base, i) : []} rounded="rounded-md" />
             <TextInput value={f.name} onChange={e => setFormAt(i, { name: e.target.value })} className="min-w-40 flex-1"
               placeholder={i === 0 ? `Nom de la forme (par défaut : ${form.name || 'nom du perso'})` : 'Nom de la forme'} />
