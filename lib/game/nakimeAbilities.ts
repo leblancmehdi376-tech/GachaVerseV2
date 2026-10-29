@@ -106,7 +106,7 @@ export const ABILITIES: Record<string, AbilityDef> = Object.fromEntries([
   a('e_inferno',  'Ultime démoniaque',  '🌋', 'enemies', 4, [{ k: 'dmg', mult: 1.1 }, { k: 'status', s: 'burn', turns: 2, power: 0.4 }]),
 ].map(x => [x.id, x]));
 
-const ROLE_KITS: Record<NakimeRole, { skills: string[]; ult: string }> = {
+export const ROLE_KITS: Record<NakimeRole, { skills: string[]; ult: string }> = {
   assaillant: { skills: ['as_slash', 'as_charge', 'as_cry', 'as_whirl'], ult: 'as_ult' },
   gardien:    { skills: ['gd_taunt', 'gd_wall', 'gd_bash', 'gd_crush'], ult: 'gd_ult' },
   soigneur:   { skills: ['hl_heal', 'hl_prayer', 'hl_regen', 'hl_purify'], ult: 'hl_ult' },

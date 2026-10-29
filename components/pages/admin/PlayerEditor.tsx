@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   getPlayerDetail, correctPlayerBalance, correctPlayerProgress, correctPlayerPrestige, resetPlayerRaidQuests,
   removePlayerCharacter, addPlayerCharacter, setPlayerCharacterLevel, sortOwnedCharacters,
   addPlayerItem, addPlayerEquipment, sortOwnedEquipment,
   PlayerSaveSummary, PlayerDetail, OwnedCharacterSummary, OwnedItemSummary, OwnedEquipmentSummary,
 } from '@/lib/firebase/adminTools';
-import { CHARACTER_POOL, getCharacterById } from '@/lib/game/characters';
+import { adminCharacterById, adminCharacterList, useAdminCatalogVersion } from '@/lib/game/content/adminCatalog';
 import { ITEM_DEFS, EQUIPMENT_DEFS } from '@/lib/game/items';
 import { RARITY_CONFIG } from '@/types/game';
 import { EDITION_CONFIG, EDITION_ORDER, type CardEdition } from '@/lib/game/editions';
@@ -19,7 +19,6 @@ import { Button, Card, Empty, Feedback, Field, SectionHeader, Segmented, SelectI
 // Listes proposables à l'ajout (les héros ne vivent pas dans `collection`,
 // donc exclus) — calculées une fois, réutilisées pour les suggestions d'id
 // qui se rétrécissent au fur et à mesure de la saisie (datalist natif).
-const ADDABLE_CHARACTERS = CHARACTER_POOL.filter(t => !t.isHero);
 const ADDABLE_ITEMS = Object.values(ITEM_DEFS);
 const ADDABLE_EQUIPMENT = Object.values(EQUIPMENT_DEFS);
 
@@ -118,7 +117,11 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
   // Résolu à chaque frappe pour peupler le sélecteur de forme avec les
   // VRAIES formes du personnage tapé (sinon vide/désactivé — la plupart des
   // persos n'ont pas d'évolution).
-  const resolvedNewCharTpl = useMemo(() => getCharacterById(newCharId.trim()), [newCharId]);
+  // Persos du code + persos publiés depuis le configurateur (voir adminCatalog) ;
+  // l'abonnement re-rend la fiche quand la version en ligne arrive.
+  useAdminCatalogVersion();
+  const addableCharacters = adminCharacterList();
+  const resolvedNewCharTpl = adminCharacterById(newCharId.trim());
   const newCharForms = resolvedNewCharTpl?.forms ?? [];
 
   useEffect(() => {
@@ -500,7 +503,7 @@ export function PlayerEditor({ uid, initialSave, onSaveUpdate }: PlayerEditorPro
                   {/* Suggestions natives du navigateur, filtrées automatiquement au
                       fur et à mesure de la saisie — pas de dropdown custom à gérer. */}
                   <datalist id="admin-char-id-suggestions">
-                    {ADDABLE_CHARACTERS.map(t => (
+                    {addableCharacters.map(t => (
                       <option key={t.id} value={t.id} label={`${t.name} — ${RARITY_CONFIG[t.rarity].label}`} />
                     ))}
                   </datalist>

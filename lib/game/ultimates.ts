@@ -1,4 +1,6 @@
 import { getCharacterById } from './characters';
+import { applyUltimateContent } from './content/apply';
+import { getLoadedContent } from './content/runtime';
 
 export interface UltimateEffect {
   dpsMultiplier?:              number;
@@ -1042,6 +1044,10 @@ function generateUltimate(templateId: string): UltimateDef | undefined {
     animDuration: arch.anim,
   };
 }
+
+// Ultimes nommés depuis le configurateur (contenu en ligne) — après le
+// barème par rareté, dont ils peuvent reprendre la puissance.
+applyUltimateContent(ULTIMATE_DEFS, generateUltimate, getLoadedContent());
 
 // Cache des ultis résolus (def explicite, ou généré par rareté).
 const _ultCache: Record<string, UltimateDef | undefined> = {};

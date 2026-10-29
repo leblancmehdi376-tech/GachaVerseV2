@@ -12,6 +12,8 @@ import type { PalierConfig } from '@/lib/game/paliers';
 import type { EnemyDef } from '@/lib/game/enemies';
 import type { Gender } from '@/lib/game/characterGenders';
 import type { GachaBanner } from '@/lib/game/gacha';
+import type { CharacterKit } from '@/lib/game/nakimeKits';
+import type { UltimateDef } from '@/lib/game/ultimates';
 import type { ContentOverrides, CharacterInput } from './schema';
 
 const DEFAULT_PALIER: Omit<PalierConfig, 'id' | 'name' | 'universe' | 'arc' | 'subtitle'> = {
@@ -105,6 +107,32 @@ export function applyCharacterContent(
     }
     if (input.excludeFromGacha) excludedFromGacha.add(id);
     if (input.bannerOnly) bannerOnly.add(id);
+  }
+}
+
+// Techniques du Château de Nakime (la cohérence avec la rareté est vérifiée
+// avant publication, voir validate.ts).
+export function applyKitContent(kits: Map<string, CharacterKit>, c: ContentOverrides | null): void {
+  if (!c) return;
+  for (const [id, input] of Object.entries(c.characters)) {
+    if (input.kit) kits.set(id, { role: input.kit.role, moves: input.kit.moves.map(m => ({ ...m })) });
+  }
+}
+
+// Ultime en combat : nom choisi, puissance reprise d'un autre perso (ou de la
+// rareté via `fallback`). Doit tourner une fois ULTIMATE_DEFS et le barème
+// par rareté définis.
+export function applyUltimateContent(
+  defs: Record<string, UltimateDef>,
+  fallback: (id: string) => UltimateDef | undefined,
+  c: ContentOverrides | null,
+): void {
+  if (!c) return;
+  for (const [id, input] of Object.entries(c.characters)) {
+    if (!input.ultimate) continue;
+    const source = (input.ultimate.from && defs[input.ultimate.from]) || defs[id] || fallback(id);
+    if (!source) { warn(`ultime de « ${id} » ignoré (perso introuvable)`); continue; }
+    defs[id] = { ...source, effect: { ...source.effect }, templateId: id, name: input.ultimate.name };
   }
 }
 

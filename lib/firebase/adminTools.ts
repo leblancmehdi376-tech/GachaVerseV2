@@ -1,6 +1,8 @@
 import { doc, getDoc, updateDoc, deleteField, FieldPath } from 'firebase/firestore';
 import { db } from './config';
-import { getCharacterById, getCharFormName } from '@/lib/game/characters';
+import { getCharFormName } from '@/lib/game/characters';
+// Persos du code ET persos publiés depuis le configurateur.
+import { adminCharacterById as getCharacterById } from '@/lib/game/content/adminCatalog';
 import { parseInstanceKey, EDITION_CONFIG, type CardEdition } from '@/lib/game/editions';
 import { getItemDef, getEquipmentDef } from '@/lib/game/items';
 import { generateEnemy } from '@/lib/game/enemies';

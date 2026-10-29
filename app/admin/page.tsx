@@ -13,6 +13,8 @@ import { MarketplaceTab } from '@/components/pages/admin/MarketplaceTab';
 import { ContentTab } from '@/components/pages/admin/content/ContentTab';
 import { isLocalContentMode } from '@/lib/game/content/store';
 import { isContentStale } from '@/lib/game/content/runtime';
+import { loadLiveContent } from '@/lib/game/content/loader';
+import { setAdminLiveContent } from '@/lib/game/content/adminCatalog';
 import { Button, Card, Feedback, Segmented, StatTile } from '@/components/pages/admin/ui';
 
 type AdminTab = 'requests' | 'players' | 'marketplace' | 'content';
@@ -138,6 +140,8 @@ export default function AdminPage() {
   // les lectures Firestore à chaque fois. Le bouton "Actualiser" force une
   // vraie relecture quand besoin.
   useEffect(() => { if (isAdmin && accountsCache === null) getAllUsers().then(applyAccounts); }, [isAdmin]);
+  // Persos publiés depuis le configurateur : connus de la fiche « Joueurs ».
+  useEffect(() => { if (isAdmin) loadLiveContent().then(setAdminLiveContent).catch(() => {}); }, [isAdmin]);
   // Premier chargement en cours : jamais chargé mais déjà admin (le bouton
   // "Actualiser" l'affiche comme une actualisation).
   const loadingAccounts = refreshing || (isAdmin && loadedAt === null);

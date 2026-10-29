@@ -4,7 +4,9 @@ import { GACHA_EXCLUDED_IDS, getCharacterById } from '@/lib/game/characters';
 import { getCharacterGender, GENDER_CONFIG, type Gender } from '@/lib/game/characterGenders';
 import { getCardImageCandidates } from '@/lib/game/cardAssets';
 import { RARITY_CONFIG, RARITY_ORDER_ASC, type Rarity } from '@/types/game';
-import { isValidContentId, type CharacterInput, type ContentOverrides } from '@/lib/game/content/schema';
+import { isValidContentId, type CharacterInput, type ContentOverrides, type KitInput } from '@/lib/game/content/schema';
+import { getCharacterKit } from '@/lib/game/nakimeKits';
+import { CombatFields, codeUltimateName, fitKit, initialKit } from './CombatFields';
 import { draftCharacters, editableBanners, setBannerMember } from '@/lib/game/content/draftView';
 import { resolveContentImage } from '@/lib/game/content/images';
 import { useFallbackImage } from '@/lib/image-fallback';
@@ -29,6 +31,9 @@ interface FormState {
   excludeFromGacha: boolean;
   bannerOnly: boolean;
   forms: { name: string; image?: string }[];
+  ultName: string;
+  ultFrom: string;
+  kit: KitInput;
 }
 
 function formFor(draft: ContentOverrides, id: string | null): FormState {
@@ -46,6 +51,9 @@ function formFor(draft: ContentOverrides, id: string | null): FormState {
     excludeFromGacha: !!input.excludeFromGacha || (!!base && GACHA_EXCLUDED_IDS.has(base.id)),
     bannerOnly: !!input.bannerOnly,
     forms: input.forms ? input.forms.map(f => ({ ...f })) : baseForms,
+    ultName: input.ultimate?.name ?? (base ? codeUltimateName(base.id) : ''),
+    ultFrom: input.ultimate?.from ?? '',
+    kit: input.kit ? structuredClone(input.kit) : initialKit(id ?? ''),
   };
 }
 
@@ -68,6 +76,15 @@ function toInput(form: FormState): CharacterInput {
   const formsChanged = !base || form.forms.length !== baseNames.length
     || form.forms.some((f, i) => f.image || formName(form, i) !== baseNames[i]);
   if (formsChanged) input.forms = form.forms.map((f, i) => ({ name: formName(form, i), ...(f.image && { image: f.image }) }));
+  // Ultime : seulement s'il change du code (nom ou puissance reprise d'un autre perso).
+  const ultName = form.ultName.trim();
+  if (ultName && (!base || ultName !== codeUltimateName(base.id) || form.ultFrom)) {
+    input.ultimate = { name: ultName, ...(form.ultFrom && { from: form.ultFrom }) };
+  }
+  // Château : kit ramené à la rareté, gardé seulement s'il diffère de celui du code.
+  const kit = fitKit(form.kit, form.rarity);
+  const codeKit = base ? getCharacterKit(base.id) : undefined;
+  if (!codeKit || JSON.stringify(kit) !== JSON.stringify(fitKit(codeKit, form.rarity))) input.kit = kit;
   return input;
 }
 
@@ -133,6 +150,8 @@ export function CharactersEditor({ draft, onChange, onEditing }: EditorProps) {
     idTaken && 'identifiant déjà utilisé',
     isNew && !form.forms[0]?.image && 'image de la première forme manquante',
     form.forms.some((_, i) => !formName(form, i)) && 'une forme d’évolution n’a pas de nom',
+    fitKit(form.kit, form.rarity).moves.some(m => !m.name.trim()) && 'une technique du Château n’a pas de nom',
+    !!form.ultFrom && !rows.some(r => r.id === form.ultFrom) && 'ultime repris d’un perso inconnu',
   ].filter(Boolean) as string[];
 
   const save = () => {
@@ -238,6 +257,10 @@ export function CharactersEditor({ draft, onChange, onEditing }: EditorProps) {
           </Button>
         )}
       </div>
+
+      <CombatFields rarity={form.rarity} kit={form.kit} onKit={kit => set('kit', kit)}
+        ultName={form.ultName} onUltName={v => set('ultName', v)} ultFrom={form.ultFrom} onUltFrom={v => set('ultFrom', v)}
+        characterNames={rows} />
 
       {problems.length > 0 && <p className="text-sm text-amber-300 sm:col-span-2 lg:col-span-4">À compléter : {problems.join(', ')}.</p>}
       <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">

@@ -271,3 +271,50 @@ describe('vue du brouillon et relecture', () => {
     ]));
   });
 });
+
+describe('ultime, Château de Nakime et fiche Joueurs', () => {
+  it('lit un kit et un ultime valides, ignore les mécaniques mal formées', () => {
+    const { content: c } = parseContent({ schema: CONTENT_SCHEMA, characters: { neuf: {
+      kit: { role: 'mage', moves: [{ name: 'Feu', ability: 'mg_fire', icon: '🔥' }, { name: 'X', ability: 'BAD ID' }] },
+      ultimate: { name: 'Big Bang', from: 'goku' },
+    } } });
+    expect(c?.characters.neuf.kit).toEqual({ role: 'mage', moves: [{ name: 'Feu', ability: 'mg_fire', icon: '🔥' }] });
+    expect(c?.characters.neuf.ultimate).toEqual({ name: 'Big Bang', from: 'goku' });
+  });
+
+  it('applique kit et ultime (puissance reprise d’un autre perso)', async () => {
+    const { applyKitContent, applyUltimateContent } = await import('./apply');
+    const kits = new Map();
+    applyKitContent(kits, content({ characters: { neuf: { kit: { role: 'mage', moves: [{ name: 'Feu', ability: 'mg_fire' }] } } } }));
+    expect(kits.get('neuf')).toEqual({ role: 'mage', moves: [{ name: 'Feu', ability: 'mg_fire' }] });
+    const defs = { goku: { templateId: 'goku', name: 'Genkidama', description: 'x3', duration: 10, cooldown: 110, effect: { dpsMultiplier: 3 }, animDuration: 1 } };
+    applyUltimateContent(defs as never, () => undefined, content({ characters: { neuf: { ultimate: { name: 'Big Bang', from: 'goku' } } } }));
+    expect((defs as Record<string, { name: string; templateId: string; effect: object }>).neuf).toMatchObject({ name: 'Big Bang', templateId: 'neuf', effect: { dpsMultiplier: 3 } });
+    expect(defs.goku.name).toBe('Genkidama');
+  });
+
+  it('impose le bon nombre de techniques selon la rareté, l’ultime en 3e', async () => {
+    const { kitProblems } = await import('./validate');
+    expect(kitProblems([{ name: 'A', ability: 'as_slash' }], 'C')).toEqual([]);
+    expect(kitProblems([{ name: 'A', ability: 'as_slash' }], 'T')[0]).toContain('1 technique(s) au lieu de 3');
+    expect(kitProblems([{ name: 'A', ability: 'as_slash' }, { name: 'B', ability: 'as_charge' }, { name: 'C', ability: 'as_whirl' }], 'T'))
+      .toContain('la 3e technique doit être un ultime');
+    expect(kitProblems([{ name: 'A', ability: 'e_bite' }], 'C')).toEqual(['mécanique « e_bite » inconnue']);
+  });
+
+  it('la fiche Joueurs connaît les persos publiés, sans modifier ceux du code', async () => {
+    const { setAdminLiveContent, adminCharacterById, adminCharacterList } = await import('./adminCatalog');
+    const { getCharacterById } = await import('@/lib/game/characters');
+    const before = getCharacterById('goku')!.name;
+    setAdminLiveContent(content({ characters: {
+      goku: { name: 'Goku (en ligne)' },
+      angel: { name: 'Angel', rarity: 'T', baseDps: 104, universe: 'Chill&Cool', gender: 'female', forms: [{ name: 'Angel', image: IMG }] },
+    } }));
+    expect(adminCharacterById('angel')?.name).toBe('Angel');
+    expect(adminCharacterById('goku')?.name).toBe('Goku (en ligne)');
+    expect(getCharacterById('goku')!.name).toBe(before);
+    expect(adminCharacterList().some(t => t.id === 'angel')).toBe(true);
+    setAdminLiveContent(null);
+    expect(adminCharacterById('angel')).toBeUndefined();
+  });
+});

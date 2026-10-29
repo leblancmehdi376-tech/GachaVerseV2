@@ -1,6 +1,8 @@
 // Vérification complète d'un brouillon AVANT publication (configurateur) :
 // contrairement à parseContent (forme seulement), elle connaît le contenu de
 // base du code. Une erreur bloque la publication ; un avertissement non.
+import { RARITY_CONFIG, type Rarity } from '@/types/game';
+import { ABILITIES, BASIC_ATTACK, abilityCount } from '@/lib/game/nakimeAbilities';
 import type { ContentOverrides } from './schema';
 import { ENEMIES_PER_PALIER } from './apply';
 
@@ -9,6 +11,21 @@ export interface BaseInfo {
   characterIds: Set<string>;      // persos du code
   bannerIds: Set<string>;         // bannières du code
   codeBannerMemberIds?: Set<string>; // persos des bannières du code autres que la Vol.1
+  characterRarities?: Map<string, Rarity>; // rareté des persos du code (kits du Château)
+}
+
+/** Problèmes d'un kit du Château de Nakime pour cette rareté (vide si tout va bien). */
+export function kitProblems(moves: { name: string; ability: string }[], rarity: Rarity): string[] {
+  const out: string[] = [];
+  const n = abilityCount(rarity);
+  if (moves.length !== n) out.push(`${moves.length} technique(s) au lieu de ${n} pour la rareté ${RARITY_CONFIG[rarity].label}`);
+  moves.forEach((m, i) => {
+    const def = ABILITIES[m.ability];
+    if (!def || m.ability === BASIC_ATTACK || m.ability.startsWith('e_')) out.push(`mécanique « ${m.ability} » inconnue`);
+    else if (!!def.ult !== (i === 2)) out.push(i === 2 ? 'la 3e technique doit être un ultime' : `« ${m.name} » ne peut pas être un ultime`);
+  });
+  if (new Set(moves.map(m => m.ability)).size !== moves.length) out.push('mécanique utilisée deux fois');
+  return out;
 }
 
 export interface ValidationResult { errors: string[]; warnings: string[] }
@@ -60,6 +77,13 @@ export function validateDraft(c: ContentOverrides, base: BaseInfo, live: Content
   }
   for (const id of Object.keys(live?.paliers ?? {}).map(Number)) {
     if (id > base.paliersCount && !c.paliers[id]) warnings.push(`Palier ${id} : déjà publié. Les joueurs qui l'avaient atteint reverront le décor d'un palier précédent.`);
+  }
+
+  // Château de Nakime et ultime.
+  for (const [id, ch] of Object.entries(c.characters)) {
+    const rarity = ch.rarity ?? base.characterRarities?.get(id);
+    if (ch.kit && rarity) for (const p of kitProblems(ch.kit.moves, rarity)) errors.push(`Perso « ${ch.name ?? id} », Château : ${p}.`);
+    if (ch.ultimate?.from && !allCharacters.has(ch.ultimate.from)) errors.push(`Perso « ${ch.name ?? id} » : ultime repris d'un perso inconnu (${ch.ultimate.from}).`);
   }
 
   // Persos limités : sans bannière, ils ne seraient plus obtenables.

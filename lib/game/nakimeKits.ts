@@ -8,6 +8,8 @@
 // emplacement des cartes Stellaires et + doit être un ultime). Un personnage
 // absent d'ici retombe sur le kit générique de son rôle.
 import type { NakimeRole } from './nakimeContent';
+import { applyKitContent } from './content/apply';
+import { getLoadedContent } from './content/runtime';
 
 const K: Record<string, string> = {
   // ── Attaque des Titans ──
@@ -498,6 +500,9 @@ for (const [id, raw] of Object.entries(K)) {
     }),
   });
 }
+
+// Kits ajoutés ou modifiés depuis le configurateur (contenu en ligne).
+applyKitContent(parsed, getLoadedContent());
 
 /** Kit nommé d'un personnage (rôle + techniques), s'il en a un. */
 export function getCharacterKit(templateId: string): CharacterKit | undefined {

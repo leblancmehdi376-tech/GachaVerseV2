@@ -8,6 +8,7 @@ import { prepareContentImages } from '@/lib/game/content/images';
 import { loadContentForEditing, saveDraft, publishContent, restoreVersion, isLocalContentMode, summarizeContent } from '@/lib/game/content/store';
 import { validateDraft, type ValidationResult } from '@/lib/game/content/validate';
 import { diffContent, type ContentChange } from '@/lib/game/content/draftView';
+import { setAdminLiveContent } from '@/lib/game/content/adminCatalog';
 import { Button, Card, Feedback, Segmented, SectionHeader } from '../ui';
 import { PaliersEditor } from './PaliersEditor';
 import { EnemiesEditor } from './EnemiesEditor';
@@ -39,6 +40,7 @@ const BASE_INFO = {
   characterIds: new Set(CHARACTER_POOL.map(c => c.id)),
   bannerIds: new Set(GACHA_BANNERS.map(b => b.id)),
   codeBannerMemberIds: new Set(GACHA_BANNERS.filter(b => b.id !== 'vol1').flatMap(b => b.pool.map(t => t.id))),
+  characterRarities: new Map(CHARACTER_POOL.map(c => [c.id, c.rarity])),
 };
 
 const AUTOSAVE_MS = 1200;
@@ -76,6 +78,7 @@ export function ContentTab() {
         if (cancelled) return;
         setDraft(draft);
         setLive(live);
+        setAdminLiveContent(live);
       })
       .catch(e => { if (!cancelled) setMsg(`❌ Chargement impossible : ${e instanceof Error ? e.message : e}`); });
     return () => { cancelled = true; };
@@ -129,6 +132,7 @@ export function ContentTab() {
   const publish = () => run('publish', async () => {
     const published = await publishContent(draft, liveVersion);
     setLive(published);
+    setAdminLiveContent(published);
     replaceDraft(published);
     setMsg(local
       ? `✅ Version ${published.version} publiée dans ce navigateur : recharge le jeu (localhost:3000) pour la voir.`
@@ -149,6 +153,7 @@ export function ContentTab() {
     await prepareContentImages(collectContentImages(old));
     const published = await restoreVersion(old, liveVersion);
     setLive(published);
+    setAdminLiveContent(published);
     replaceDraft(published);
     setMsg(`✅ Version ${published.version} publiée — restauration : ${label}.`);
   });

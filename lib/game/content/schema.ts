@@ -10,6 +10,7 @@
 // il est chargé avant elles.
 import type { Rarity } from '@/types/game';
 import type { Gender } from '@/lib/game/characterGenders';
+import type { NakimeRole } from '@/lib/game/nakimeContent';
 
 export const CONTENT_SCHEMA = 1;
 
@@ -41,6 +42,20 @@ export interface CharacterFormInput {
   image?: string;          // référence content-img
 }
 
+// Techniques au Château de Nakime : rôle + 1 à 3 techniques selon la rareté
+// (la 3e est un ultime). `ability` = id d'une mécanique de nakimeAbilities.ts.
+export interface KitInput {
+  role: NakimeRole;
+  moves: { name: string; ability: string; icon?: string }[];
+}
+
+// Ultime en combat : nom, et puissance reprise d'un autre perso (`from`), sinon
+// celle de sa rareté (voir ultimates.ts).
+export interface UltimateInput {
+  name: string;
+  from?: string;
+}
+
 // Perso existant : tous les champs sont optionnels (seuls ceux fournis
 // remplacent la valeur du code). Nouveau perso : name, rarity, baseDps,
 // universe, gender et l'image de la première forme sont obligatoires.
@@ -54,6 +69,8 @@ export interface CharacterInput {
   excludeFromGacha?: boolean;   // absent de TOUT le gacha (perso de Forge / raid, ou retiré)
   bannerOnly?: boolean;         // perso limité : seulement dans ses bannières (ni Vol.1, ni Vedette)
   forms?: CharacterFormInput[];
+  kit?: KitInput;
+  ultimate?: UltimateInput;
 }
 
 export interface BannerThemeInput {
@@ -93,6 +110,7 @@ export const emptyContent = (): ContentOverrides => ({
 
 const RARITIES: readonly Rarity[] = ['C', 'U', 'R', 'E', 'L', 'M', 'S', 'CO', 'P', 'T'];
 const GENDERS: readonly Gender[] = ['male', 'female', 'mixed', 'other'];
+const ROLES: readonly NakimeRole[] = ['assaillant', 'gardien', 'soigneur', 'assassin', 'mage'];
 const ID_RE = /^[a-z0-9_]{2,40}$/;
 export const isValidContentId = (id: string) => ID_RE.test(id);
 
@@ -128,6 +146,20 @@ function parseEnemy(v: unknown): EnemyInput | null {
   return compact({ name, sprite, hpMult: num(v.hpMult, 0.1, 1000), isBoss: v.isBoss === true ? true : undefined });
 }
 
+function parseKit(v: unknown): KitInput | undefined {
+  if (!isObj(v) || !ROLES.includes(v.role as NakimeRole) || !Array.isArray(v.moves)) return undefined;
+  const moves = v.moves.flatMap(m => {
+    if (!isObj(m) || !str(m.name, 60) || typeof m.ability !== 'string' || !/^[a-z_]{2,30}$/.test(m.ability)) return [];
+    return [compact({ name: m.name as string, ability: m.ability, icon: str(m.icon, 8) })];
+  });
+  return moves.length >= 1 && moves.length <= 3 ? { role: v.role as NakimeRole, moves } : undefined;
+}
+
+function parseUltimate(v: unknown): UltimateInput | undefined {
+  if (!isObj(v) || !str(v.name, 60)) return undefined;
+  return compact({ name: v.name as string, from: typeof v.from === 'string' && isValidContentId(v.from) ? v.from : undefined });
+}
+
 function parseCharacter(v: unknown): CharacterInput | null {
   if (!isObj(v)) return null;
   const forms = Array.isArray(v.forms)
@@ -143,6 +175,8 @@ function parseCharacter(v: unknown): CharacterInput | null {
     excludeFromGacha: v.excludeFromGacha === true ? true : undefined,
     bannerOnly: v.bannerOnly === true ? true : undefined,
     forms: forms && forms.length ? forms.slice(0, 8) : undefined,
+    kit: parseKit(v.kit),
+    ultimate: parseUltimate(v.ultimate),
   });
 }
 
