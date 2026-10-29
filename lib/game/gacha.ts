@@ -1,5 +1,7 @@
 import { CharacterTemplate, Rarity } from '@/types/game';
-import { BANNER_POOL, BANNER_POOL_VOL2 } from './characters';
+import { BANNER_POOL, BANNER_POOL_VOL2, GACHA_EXCLUDED_IDS, getCharacterById } from './characters';
+import { applyBannerContent } from './content/apply';
+import { getLoadedContent } from './content/runtime';
 
 export const GACHA_COSTS = { single: 10, multi10: 95, multi100: 900 };
 
@@ -9,7 +11,8 @@ export const GACHA_COSTS = { single: 10, multi10: 95, multi100: 900 };
 // personnages compris), Vol.2 uniquement les personnages de la Bannière Vol.2.
 // La bannière vedette reprend le pool de la Vol.1 avec un univers mis en
 // avant chaque jour (voir lib/game/featuredBanner.ts).
-export type BannerId = 'vol1' | 'vol2' | 'featured';
+// 'vol1' | 'vol2' | 'featured', plus les bannières ajoutées depuis le configurateur (vol3...).
+export type BannerId = string;
 
 // Couleurs propres à chaque bannière (onglet, visuel, bandeau, boutons).
 export interface BannerTheme {
@@ -33,6 +36,8 @@ export interface GachaBanner {
   featuredForms?: Partial<Record<string, number>>;
   // Affiche un badge "NEW" sur l'onglet de la bannière.
   isNew?: boolean;
+  // Retirée du Gacha depuis le configurateur (sans rien supprimer).
+  hidden?: boolean;
   theme:  BannerTheme;
 }
 
@@ -51,6 +56,9 @@ export const GACHA_BANNERS: GachaBanner[] = [
     theme: { accent: '#d9468f', hi: '#f9a8d4', dark: '#1a0512', deep: '#6b0f45', glow: 'rgba(217,70,143,0.35)' },
   },
 ];
+
+// Bannières modifiées ou ajoutées depuis le configurateur (contenu en ligne).
+applyBannerContent(GACHA_BANNERS, getCharacterById, t => !t.isHero && !GACHA_EXCLUDED_IDS.has(t.id), getLoadedContent());
 
 // Partie fixe de la bannière vedette : sous-titre et cartes vedettes
 // dépendent du jour (voir getFeaturedBanner).

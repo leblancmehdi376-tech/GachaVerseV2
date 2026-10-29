@@ -1,9 +1,13 @@
 // ── Paliers ───────────────────────────────────────────────────────────────
 // Contenu (données) des paliers du jeu — extrait de types/game.ts pour séparer
 // la table de contenu des définitions de types.
+import { applyPalierContent } from './content/apply';
+import { getLoadedContent } from './content/runtime';
+
 export interface PalierConfig {
   id: number; name: string; universe: string; arc: string; subtitle: string;
   bgGradient: string; accentColor: string; bossTimerSeconds: number; monstersPerPalier: number;
+  bgImage?: string; // fond ajouté depuis le configurateur (référence content-img)
 }
 
 export const PALIERS: PalierConfig[] = [
@@ -73,6 +77,9 @@ export const PALIERS: PalierConfig[] = [
   { id:64, name:'SHIBUSEN',          universe:'Soul Eater',                   arc:"L'Académie Shibusen",         subtitle:'La folie du Kishin se répand',          bgGradient:'linear-gradient(180deg,#1a0a00,#0d0500)', accentColor:'#f97316', bossTimerSeconds:90,  monstersPerPalier:10 },
   { id:65, name:'ARC CHIMÈRES',      universe:'Hunter x Hunter',              arc:'Les Fourmis Chimères',        subtitle:'Le Roi est né',                         bgGradient:'linear-gradient(180deg,#0a1a0a,#050d05)', accentColor:'#34d399', bossTimerSeconds:90,  monstersPerPalier:10 },
 ];
+
+// Modifications et nouveaux paliers du configurateur (contenu en ligne).
+applyPalierContent(PALIERS, getLoadedContent());
 
 // Au-delà du dernier palier défini, on cycle sur les mondes précédents (le
 // thème/décor se répète) — seules les STATS des mobs continuent de monter

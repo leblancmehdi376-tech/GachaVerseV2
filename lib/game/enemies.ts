@@ -1,6 +1,9 @@
 import { Enemy } from '@/types/game';
 import { type BigNum, bnMulScalar, bnPow } from './bignum';
 import { PALIERS } from './paliers';
+import { applyEnemyContent } from './content/apply';
+import { getLoadedContent } from './content/runtime';
+import { isContentImageRef } from './content/schema';
 
 export const COIN_BASE = 60;
 export const COIN_GROWTH = 1.13;
@@ -14,7 +17,7 @@ function baseHpForGlobal(global: number): BigNum {
   return bnMulScalar(bnPow(HP_GROWTH, global - 1), HP_BASE);
 }
 
-interface EnemyDef {
+export interface EnemyDef {
   name:    string;
   sprite:  string;
   hpMult?: number;
@@ -900,9 +903,15 @@ const PALIER_ENEMIES: Record<number, EnemyDef[]> = {
 // Roster d'ennemis d'un monde (10 vagues, boss en dernier) — réutilisé par le
 // Château de Nakime (lib/game/nakimeContent.ts) pour peupler ses actes.
 export interface EnemyRosterEntry { name: string; sprite: string; isBoss: boolean }
+// Ennemis modifiés ou ajoutés depuis le configurateur (contenu en ligne).
+applyEnemyContent(PALIER_ENEMIES, PALIERS.length, getLoadedContent());
+
+// Image du configurateur (content-img) telle quelle, sinon chemin public absolu.
+const spritePathOf = (sprite: string) => (isContentImageRef(sprite) ? sprite : `/${sprite}`);
+
 export const ENEMY_ROSTER_PALIERS: number[] = Object.keys(PALIER_ENEMIES).map(Number).sort((a, b) => a - b);
 export function getPalierEnemyRoster(palier: number): EnemyRosterEntry[] {
-  return (PALIER_ENEMIES[palier] ?? []).map((d, i) => ({ name: d.name, sprite: `/${d.sprite}`, isBoss: d.isBoss ?? i === 9 }));
+  return (PALIER_ENEMIES[palier] ?? []).map((d, i) => ({ name: d.name, sprite: spritePathOf(d.sprite), isBoss: d.isBoss ?? i === 9 }));
 }
 
 export function getPalierBossHp(palier: number): BigNum {
@@ -942,7 +951,7 @@ export function generateEnemy(wave: number, palier: number, maxPalierReached: nu
     id:    `p${palier}_w${wave}`,
     name:  isBoss ? `★ BOSS — ${def.name}` : def.name,
     wave, palier, maxHp, currentHp: maxHp,
-    spritePath: `/${def.sprite}`,
+    spritePath: spritePathOf(def.sprite),
     pixelCoinsReward: pixelCoins,
     gemsReward,
     isBoss,

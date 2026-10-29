@@ -1,6 +1,7 @@
 'use client';
 import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
-import { PALIERS } from '@/lib/game/paliers';
+import { PALIERS, getPalierConfig } from '@/lib/game/paliers';
+import { resolveContentImage } from '@/lib/game/content/images';
 
 // Les visuels de fond n'existent que pour les paliers définis dans PALIERS — au-delà, on
 // réutilise le visuel du palier cyclé (même thème/mobs que getPalierConfig).
@@ -11,7 +12,13 @@ import { PALIERS } from '@/lib/game/paliers';
 const BG_VERSION = 2;
 export function getPalierBgCandidates(palier: number): string[] {
   const cycledPalier = ((palier - 1) % PALIERS.length) + 1;
-  return buildImageCandidates(`/backgrounds/bg_palier_${cycledPalier}`).map(src => `${src}?v=${BG_VERSION}`);
+  // Fond ajouté depuis le configurateur en priorité.
+  const ref = getPalierConfig(palier).bgImage;
+  const content = ref ? resolveContentImage(ref) : null;
+  return [
+    ...(content ? [content] : []),
+    ...buildImageCandidates(`/backgrounds/bg_palier_${cycledPalier}`).map(src => `${src}?v=${BG_VERSION}`),
+  ];
 }
 
 export function PalierBg({ palier, gradient }: { palier: number; gradient: string }) {

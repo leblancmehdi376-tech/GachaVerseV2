@@ -1,9 +1,9 @@
 'use client';
 
 import { Rarity, RARITY_CONFIG, RARITY_FRAME_SRC, RARITY_FRAME_RATIO, CardEdition } from '@/types/game';
-import { useFallbackImage, buildImageCandidates } from '@/lib/image-fallback';
+import { useFallbackImage } from '@/lib/image-fallback';
 import { getCharacterById } from '@/lib/game/characters';
-import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
+import { getCardImageCandidates } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { EDITION_CONFIG } from '@/lib/game/editions';
 import { EditionLogo, OFFICIAL_EDITION_LOGO } from '@/components/ui/EditionLogo';
@@ -76,22 +76,9 @@ export function CharacterCardThumb({
   const universe = tpl?.universe ?? '';
   const safeFormIndex = getSafeFormIndex(universe, formIndex);
 
-  // Convention "NomDuPerso_Synergie_EvoN".
-  const cardBaseName = tpl ? getCardBaseName(tpl, safeFormIndex) : null;
-
-  const candidates = [
-    ...(cardBaseName
-      ? buildImageCandidates(
-          `/sprites/new_cards_processed/${cardBaseName}`
-        ).map(c => `${c}?v=${NEW_CARDS_ASSET_VERSION}`)
-      : []),
-    // Visuel d'évolution pas encore dessiné : on retombe sur l'art de base (Evo0).
-    ...(tpl && safeFormIndex > 0
-      ? buildImageCandidates(
-          `/sprites/new_cards_processed/${getCardBaseName(tpl, 0)}`
-        ).map(c => `${c}?v=${NEW_CARDS_ASSET_VERSION}`)
-      : []),
-  ];
+  // Convention "NomDuPerso_Synergie_EvoN", ou image du configurateur ; repli
+  // sur l'art de base (Evo0) si le visuel d'évolution n'est pas encore dessiné.
+  const candidates = tpl ? getCardImageCandidates(tpl, safeFormIndex) : [];
 
   const { src, failed, onError } = useFallbackImage(candidates);
 

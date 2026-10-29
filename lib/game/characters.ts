@@ -1,4 +1,6 @@
 import { CharacterTemplate, EvoForm } from '@/types/game';
+import { applyCharacterContent } from './content/apply';
+import { getLoadedContent } from './content/runtime';
 
 // ── Stub héros (conservé pour compatibilité gameStore — Kael supprimé) ────
 export const HERO_TEMPLATE: CharacterTemplate = {
@@ -1045,6 +1047,19 @@ export const CHARACTER_POOL: CharacterTemplate[] = [
   c('elfuzzion', 'ElFuZzion',                   'M', 62, 'Chill&Cool'),
 ];
 
+// Personnages obtenables UNIQUEMENT via la Forge ou les Boss de Raid —
+// ne doivent jamais apparaître au gacha, sinon leur exclusivité n'a plus de sens.
+export const GACHA_EXCLUDED_IDS = new Set([
+  // Récompenses de recettes de Forge (lib/game/expeditions.ts)
+  'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks', 'elfuzzion', 'benimaru_ts',
+  // Drops de boss de raid (lib/game/raidBoss.ts)
+  'jinwoo', 'arthur_leywin', 'cid_kagenou', 'rokoul_ayro',
+]);
+
+// Persos modifiés ou ajoutés depuis le configurateur (contenu en ligne) —
+// avant l'index ci-dessous et tout ce qui dérive du roster.
+applyCharacterContent(CHARACTER_POOL, GACHA_EXCLUDED_IDS, getLoadedContent());
+
 // Index id → template, construit une seule fois. Évite un scan linéaire sur les
 // ~400 personnages à CHAQUE appel (fonction appelée en boucle : combat chaque
 // seconde, rendu de la collection, synergies, équipe...).
@@ -1055,15 +1070,6 @@ const CHARACTER_BY_ID: Map<string, CharacterTemplate> = new Map(
 export function getCharacterById(id: string): CharacterTemplate | undefined {
   return CHARACTER_BY_ID.get(id);
 }
-
-// Personnages obtenables UNIQUEMENT via la Forge ou les Boss de Raid —
-// ne doivent jamais apparaître au gacha, sinon leur exclusivité n'a plus de sens.
-export const GACHA_EXCLUDED_IDS = new Set([
-  // Récompenses de recettes de Forge (lib/game/expeditions.ts)
-  'vegeto', 'gogeta', 'aizen_t', 'yoriichi', 'brunhilde', 'chara', 'shanks', 'elfuzzion', 'benimaru_ts',
-  // Drops de boss de raid (lib/game/raidBoss.ts)
-  'jinwoo', 'arthur_leywin', 'cid_kagenou', 'rokoul_ayro',
-]);
 
 export const BANNER_POOL = CHARACTER_POOL.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id));
 

@@ -133,6 +133,14 @@ export interface CharacterTemplate {
   // achetés en Boutique avec les pièces du boss) suffisent seuls à faire évoluer —
   // pas besoin de farmer des Pierres d'Évolution en plus.
   noEvoStones?: boolean;
+  // Images ajoutées depuis le configurateur (références content-img, une par
+  // forme) : remplacent le fichier public/sprites/new_cards_processed de la
+  // forme correspondante. Voir lib/game/content et getCardImageCandidates.
+  images?: (string | undefined)[];
+  // Nom et univers d'origine (code) quand le configurateur les a changés : les
+  // fichiers de cartes restent nommés d'après eux (voir getCardBaseName).
+  artName?: string;
+  artUniverse?: string;
 }
 
 // ── Personnage possédé ────────────────────────────────────────────────────

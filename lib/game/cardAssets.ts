@@ -1,4 +1,6 @@
 import type { CharacterTemplate } from '@/types/game';
+import { buildImageCandidates } from '@/lib/image-fallback';
+import { resolveContentImage } from './content/images';
 
 // Les fichiers de public/sprites/new_cards_processed sont chargés via une
 // URL fixe (basée sur le nom du perso, pas un hash de contenu) : sans ce
@@ -24,8 +26,31 @@ export function getCardFormCount(tpl: Pick<CharacterTemplate, 'forms'>): number 
   return tpl.forms && tpl.forms.length > 0 ? tpl.forms.length : 1;
 }
 
-export function getCardBaseName(tpl: Pick<CharacterTemplate, 'name' | 'universe'>, formIndex: number): string {
-  const name = sanitizeForFilename(tpl.name);
-  const synergie = sanitizeForFilename(tpl.universe ?? '');
+export function getCardBaseName(tpl: Pick<CharacterTemplate, 'name' | 'universe' | 'artName' | 'artUniverse'>, formIndex: number): string {
+  // Nom/univers d'origine si le configurateur les a renommés (le fichier, lui, ne change pas).
+  const name = sanitizeForFilename(tpl.artName ?? tpl.name);
+  const synergie = sanitizeForFilename(tpl.artUniverse ?? tpl.universe ?? '');
   return `${name}_${synergie}_Evo${formIndex}`;
+}
+
+const cardFileCandidates = (tpl: Pick<CharacterTemplate, 'name' | 'universe' | 'artName' | 'artUniverse'>, formIndex: number) =>
+  buildImageCandidates(`/sprites/new_cards_processed/${getCardBaseName(tpl, formIndex)}`).map(c => `${c}?v=${NEW_CARDS_ASSET_VERSION}`);
+
+/**
+ * Visuels à essayer, dans l'ordre, pour la forme `formIndex` d'un perso :
+ * image du configurateur s'il y en a une, sinon le fichier du projet ; puis
+ * la forme de base (visuel d'évolution pas encore dessiné). `formIndex` doit
+ * déjà tenir compte de l'anti-spoil (getSafeFormIndex).
+ */
+export function getCardImageCandidates(tpl: Pick<CharacterTemplate, 'name' | 'universe' | 'artName' | 'artUniverse' | 'images'>, formIndex: number): string[] {
+  const content = (i: number) => {
+    const ref = tpl.images?.[i];
+    const url = ref ? resolveContentImage(ref) : null;
+    return url ? [url] : [];
+  };
+  return [
+    ...content(formIndex),
+    ...cardFileCandidates(tpl, formIndex),
+    ...(formIndex > 0 ? [...content(0), ...cardFileCandidates(tpl, 0)] : []),
+  ];
 }

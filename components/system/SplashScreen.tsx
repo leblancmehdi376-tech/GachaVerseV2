@@ -1,7 +1,10 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { GAME_VERSION } from '@/lib/game/version';
+import { rollSplashClue } from '@/lib/game/guideSplashClue';
 
+// Affiché AVANT le chargement du code du jeu (voir ContentGate) : ne doit
+// importer ni le store ni aucune donnée de jeu.
 interface Props {
   onComplete: () => void;
 }
@@ -21,6 +24,13 @@ export function SplashScreen({ onComplete }: Props) {
   const [phase, setPhase]             = useState<'loading' | 'done'>('loading');
   const [fadeOut, setFadeOut]         = useState(false);
   const pctRef = useRef<HTMLSpanElement>(null);
+  // Indice rare de NekoZ-guide à côté de la version. Tiré après le montage :
+  // le HTML pré-rendu ne doit pas dépendre du hasard ni de la sauvegarde.
+  const [versionClue, setVersionClue] = useState<string | null>(null);
+  useEffect(() => {
+    const clue = rollSplashClue();
+    if (clue) queueMicrotask(() => setVersionClue(clue));
+  }, []);
 
   // Apparition des lettres du logo et du sous-titre : animations CSS
   // (splashLetterIn / splashSubIn dans globals.css) plutôt que des setTimeout,
@@ -194,7 +204,7 @@ export function SplashScreen({ onComplete }: Props) {
         color: 'rgba(255,255,255,0.55)',
         letterSpacing: 2,
       }}>
-        v{GAME_VERSION} · GACHAVERSE
+        v{GAME_VERSION}{versionClue && ` — ${versionClue}`} · GACHAVERSE
       </div>
 
     </div>

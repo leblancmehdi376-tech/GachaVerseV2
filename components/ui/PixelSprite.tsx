@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { Rarity, RARITY_CONFIG } from '@/types/game';
 import { useFallbackImage, buildImageCandidates, stripKnownExtension } from '@/lib/image-fallback';
+import { CONTENT_IMAGE_PREFIX } from '@/lib/game/content/schema';
+import { resolveContentImage } from '@/lib/game/content/images';
 
 interface Props {
   src: string; alt: string; size?: number;
@@ -33,6 +35,11 @@ function Placeholder({ size, rarity, alt }: { size: number; rarity?: Rarity; alt
 // Liste d'URL candidates (cascade d'extensions + ?v=) — partagée avec le
 // préchargement du sprite ennemi pendant le splash (GameLayout).
 export function getSpriteCandidates(src: string, assetVersion?: number): string[] {
+  // Image du configurateur (ennemi ajouté en ligne) : déjà chargée, sans variante.
+  if (src.startsWith(CONTENT_IMAGE_PREFIX)) {
+    const url = resolveContentImage(src);
+    return url ? [url] : [];
+  }
   const lower = src.toLowerCase();
   const skipCascade = lower.endsWith('.gif') || lower.endsWith('.svg');
   const base = skipCascade ? [src] : buildImageCandidates(stripKnownExtension(src));

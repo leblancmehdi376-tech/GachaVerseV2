@@ -5,6 +5,9 @@
 // IMPORTANT : tout nouveau personnage doit être ajouté ici (un test vérifie
 // que chaque personnage de CHARACTER_POOL a un genre).
 
+import { applyGenderContent } from './content/apply';
+import { getLoadedContent } from './content/runtime';
+
 export type Gender = 'male' | 'female' | 'mixed' | 'other';
 
 export const GENDER_CONFIG: Record<Gender, { label: string; icon: string; color: string }> = {
@@ -265,6 +268,9 @@ export const CHARACTER_GENDERS: Record<string, Gender> = Object.fromEntries([
   ...MIXED.map(id => [id, 'mixed'] as const),
   ...OTHER.map(id => [id, 'other'] as const),
 ]);
+
+// Genre des persos ajoutés ou modifiés depuis le configurateur.
+applyGenderContent(CHARACTER_GENDERS, getLoadedContent());
 
 export function getCharacterGender(id: string): Gender {
   return CHARACTER_GENDERS[id] ?? 'other';

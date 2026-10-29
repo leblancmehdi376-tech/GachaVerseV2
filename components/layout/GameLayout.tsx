@@ -165,7 +165,8 @@ const NAV: NavItem[] = [...NAV_GROUPS.flatMap(g => g.items), ...NAV_MOBILE_EXTRA
 // Pages qui affichent la zone de combat (pas de panel central)
 const COMBAT_PAGES: Page[] = ['home'];
 
-export function GameLayout() {
+// skipSplash : l'écran de chargement est déjà affiché par ContentGate, par-dessus le jeu.
+export function GameLayout({ skipSplash = false }: { skipSplash?: boolean } = {}) {
   useDpsTick();
   // Veille automatique quand la fenêtre perd le focus (2e écran, autre jeu).
   useAutoSleep();
@@ -191,7 +192,7 @@ export function GameLayout() {
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
-  const [splashDone,    setSplashDone]    = useState(false);
+  const [splashDone,    setSplashDone]    = useState(skipSplash);
   const isMobile = useIsMobile();
   // Palier intermédiaire (desktop resserré) : la barre du haut (logo + avatar
   // + ressources + fil d'ariane + 4 icônes labellisées) ne tient plus sur une

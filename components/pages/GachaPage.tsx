@@ -9,7 +9,7 @@ import { getCharacterById } from '@/lib/game/characters';
 import { getDynamicRates, getRateUpShare, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, FEATURED_RATE_UP, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
 import { getFeaturedBanner, SPARK_COSTS } from '@/lib/game/featuredBanner';
 import { msUntilNextDailyReset } from '@/lib/game/shop';
-import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
+import { getCardImageCandidates } from '@/lib/game/cardAssets';
 import { useSpoilerStore, getSafeFormIndex } from '@/store/spoilerStore';
 import { useNow } from '@/hooks/useNow';
 import { RARITY_CONFIG, Rarity } from '@/types/game';
@@ -22,7 +22,9 @@ import type { Res } from './gacha/gachaTypes';
 // Dernier volume de gacha sélectionné, mémorisé en local uniquement (pas
 // dans la sauvegarde cloud) pour réatterrir dessus en revenant sur la page.
 const BANNER_STORAGE_KEY = 'gv_gacha_banner';
-const BANNER_IDS: BannerId[] = [...GACHA_BANNERS.map(b => b.id), 'featured'];
+// Bannières masquées depuis le configurateur : ni affichées, ni restaurées.
+const VISIBLE_BANNERS = GACHA_BANNERS.filter(b => !b.hidden);
+const BANNER_IDS: BannerId[] = [...VISIBLE_BANNERS.map(b => b.id), 'featured'];
 function loadBannerId(): BannerId {
   try {
     const saved = localStorage.getItem(BANNER_STORAGE_KEY);
@@ -93,7 +95,7 @@ export function GachaPage() {
   const now = useNow(60_000);
   const featuredBanner = getFeaturedBanner();
   const featuredUniverse = featuredBanner.subtitle;
-  const banners = [...GACHA_BANNERS, featuredBanner];
+  const banners = [...VISIBLE_BANNERS, featuredBanner];
   const isFeatured = bannerId === 'featured';
   const banner = isFeatured ? featuredBanner : getBanner(bannerId);
   const theme  = banner.theme;
@@ -209,7 +211,7 @@ export function GachaPage() {
                     '--rot': `${k * 5}deg`, '--delay': `${-i * 0.55}s`,
                   } as React.CSSProperties}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/sprites/new_cards_processed/${getCardBaseName(tpl, form)}.webp?v=${NEW_CARDS_ASSET_VERSION}`} alt={tpl.name}
+                  <img src={getCardImageCandidates(tpl, form)[0]} alt={tpl.name}
                     style={{
                       display:'block', width:'100%', aspectRatio:'300 / 355', objectFit:'cover', objectPosition:'center top',
                       borderRadius:8, border:'2px solid rgba(255,255,255,0.22)',

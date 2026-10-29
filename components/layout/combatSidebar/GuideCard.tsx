@@ -5,7 +5,7 @@ import { useGameStore } from '@/store/gameStore';
 import { currentGuideQuest, nextGuideLine, partSpeaker, partText, pendingGuideLine, type GuideLine } from '@/lib/game/nekozGuide';
 import { formatNumber } from '@/lib/game/format';
 import { getCharacterById } from '@/lib/game/characters';
-import { getCardBaseName, NEW_CARDS_ASSET_VERSION } from '@/lib/game/cardAssets';
+import { getCardImageCandidates } from '@/lib/game/cardAssets';
 import { getSafeFormIndex } from '@/store/spoilerStore';
 
 // NekoZ-guide : personnage cliquable sous les quêtes. Chaque clic fait avancer
@@ -80,7 +80,7 @@ export function GuideCard() {
     ? getSafeFormIndex(speaker.universe ?? '', useGameStore.getState().collection[speaker.id]?.currentForm ?? 0)
     : 0;
   const portrait = speaker
-    ? `/sprites/new_cards_processed/${getCardBaseName(speaker, speakerForm)}.webp?v=${NEW_CARDS_ASSET_VERSION}`
+    ? getCardImageCandidates(speaker, speakerForm)[0]
     : '/sprites/guide/nekoz_guide.webp';
   const moreParts = !!line && part < line.parts.length - 1;
   const notify = hasPending || !!questInfo?.claimable;

@@ -62,5 +62,26 @@ service cloud.firestore {
     match /apologies/{uid} {
       allow read, write: if isOwner(uid) || isAdmin();
     }
+    // Contenu en ligne du configurateur (voir lib/game/content) : la version
+    // publiée est lue par tous au démarrage (même hors connexion), le
+    // brouillon et l'historique ne concernent que l'admin.
+    match /content/live {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /content/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /contentHistory/{versionId} {
+      allow read, write: if isAdmin();
+    }
+    // Images du configurateur (.webp en base64, une par document).
+    match /contentImages/{imageId} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 1000000;
+      allow delete: if isAdmin();
+    }
   }
 }
