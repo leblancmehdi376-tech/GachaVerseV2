@@ -38,6 +38,12 @@ export interface GachaBanner {
   isNew?: boolean;
   // Retirée du Gacha depuis le configurateur (sans rien supprimer).
   hidden?: boolean;
+  // Bannière temporaire (configurateur) : visible de startsAt à endsAt (ms).
+  startsAt?: number;
+  endsAt?:   number;
+  // Persos vedettes ×FEATURED_RATE_UP à rareté égale (configurateur).
+  rateUp?:   boolean;
+  order?:    number;
   theme:  BannerTheme;
 }
 
@@ -58,7 +64,24 @@ export const GACHA_BANNERS: GachaBanner[] = [
 ];
 
 // Bannières modifiées ou ajoutées depuis le configurateur (contenu en ligne).
+// Les persos limités (BANNER_ONLY_IDS) y sont admis : c'est justement leur place.
 applyBannerContent(GACHA_BANNERS, getCharacterById, t => !t.isHero && !GACHA_EXCLUDED_IDS.has(t.id), getLoadedContent());
+
+// Une bannière est tirable si elle n'est pas masquée et qu'on est dans sa
+// période (bannière temporaire). La Bannière Vedette l'est toujours.
+export function isBannerActive(b: Pick<GachaBanner, 'hidden' | 'startsAt' | 'endsAt'>, now: number): boolean {
+  return !b.hidden && (!b.startsAt || now >= b.startsAt) && (!b.endsAt || now < b.endsAt);
+}
+
+export function getActiveBanners(now: number): GachaBanner[] {
+  return GACHA_BANNERS.filter(b => isBannerActive(b, now));
+}
+
+export function canPullOnBanner(id: BannerId, now: number): boolean {
+  if (id === 'featured') return true;
+  const b = GACHA_BANNERS.find(x => x.id === id);
+  return !!b && isBannerActive(b, now);
+}
 
 // Partie fixe de la bannière vedette : sous-titre et cartes vedettes
 // dépendent du jour (voir getFeaturedBanner).
@@ -172,13 +195,16 @@ export function rollRarity(maxPalier = 1, bannerId?: BannerId): Rarity {
  * affichés restent exacts.
  */
 export function rollCharacter(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID, rateUpUniverse?: string): string {
-  const bannerPool = getBanner(bannerId).pool;
+  const banner = getBanner(bannerId);
+  const bannerPool = banner.pool;
   const rarity = rollRarity(maxPalier, bannerId);
   const pool   = bannerPool.filter(c => c.rarity === rarity);
   // Ne peut arriver que si aucune rareté débloquée n'existe dans la bannière.
   const source = pool.length > 0 ? pool : bannerPool;
-  if (!rateUpUniverse) return source[Math.floor(Math.random() * source.length)].id;
-  const weight = (c: CharacterTemplate) => (c.universe === rateUpUniverse ? FEATURED_RATE_UP : 1);
+  // Bannière à taux augmenté (configurateur) : ses persos vedettes pèsent plus.
+  const rateUpIds = banner.rateUp && banner.featuredIds.length ? new Set(banner.featuredIds) : null;
+  if (!rateUpUniverse && !rateUpIds) return source[Math.floor(Math.random() * source.length)].id;
+  const weight = (c: CharacterTemplate) => (c.universe === rateUpUniverse || rateUpIds?.has(c.id) ? FEATURED_RATE_UP : 1);
   let r = Math.random() * source.reduce((sum, c) => sum + weight(c), 0);
   for (const c of source) {
     r -= weight(c);

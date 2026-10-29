@@ -60,7 +60,7 @@ describe('application aux tables de base', () => {
     const goku = tpl('goku', { forms: [{ formId: 'g0', name: 'Goku', description: 'Goku', dpsFormMult: 1, requiredItemIds: ['x'] }] });
     const pool = [goku];
     const excluded = new Set<string>();
-    applyCharacterContent(pool, excluded, content({ characters: {
+    applyCharacterContent(pool, excluded, new Set(), content({ characters: {
       goku: { baseDps: 99, forms: [{ name: 'Goku !' }, { name: 'Goku SSJ', image: IMG }] },
       neuf: { name: 'Neuf', rarity: 'T', baseDps: 120, universe: 'Nouveau', gender: 'female', excludeFromGacha: true, forms: [{ name: 'Neuf', image: IMG }] },
       incomplet: { name: 'Sans image', rarity: 'C', baseDps: 1, universe: 'U' },
@@ -99,8 +99,8 @@ describe('application aux tables de base', () => {
 
   it("garde le nom d'origine pour retrouver le fichier de la carte après un renommage", () => {
     const goku = tpl('goku', { name: 'Goku', universe: 'Dragon Ball Z' });
-    applyCharacterContent([goku], new Set(), content({ characters: { goku: { name: 'Son Goku' } } }));
-    applyCharacterContent([goku], new Set(), content({ characters: { goku: { name: 'Kakarot' } } }));
+    applyCharacterContent([goku], new Set(), new Set(), content({ characters: { goku: { name: 'Son Goku' } } }));
+    applyCharacterContent([goku], new Set(), new Set(), content({ characters: { goku: { name: 'Kakarot' } } }));
     expect(goku).toMatchObject({ name: 'Kakarot', artName: 'Goku' });
     expect(goku.artUniverse).toBeUndefined();
   });
@@ -172,5 +172,102 @@ describe('validateDraft — persos et bannières', () => {
     const { validateDraft } = await import('./validate');
     const r = validateDraft(content({ banners: { vol3: { title: 'V3', characterIds: [] }, vol2: { characterIds: ['fantome'] } } }), base);
     expect(r.errors).toEqual(['Bannière « V3 » : aucun perso.', 'Bannière « vol2 » : perso(s) inconnu(s) fantome.']);
+  });
+});
+
+describe('bannières temporaires, taux augmenté et ordre', () => {
+  it('une bannière est tirable seulement pendant sa période, et jamais masquée', async () => {
+    const { isBannerActive } = await import('@/lib/game/gacha');
+    const b = { startsAt: 1000, endsAt: 2000 };
+    expect(isBannerActive(b, 999)).toBe(false);
+    expect(isBannerActive(b, 1000)).toBe(true);
+    expect(isBannerActive(b, 2000)).toBe(false);
+    expect(isBannerActive({ hidden: true }, 1500)).toBe(false);
+    expect(isBannerActive({}, 0)).toBe(true);
+  });
+
+  it('refuse un tirage sur une bannière terminée ou inconnue, jamais sur la Vedette', async () => {
+    const { canPullOnBanner } = await import('@/lib/game/gacha');
+    expect(canPullOnBanner('featured', 0)).toBe(true);
+    expect(canPullOnBanner('vol1', Date.now())).toBe(true);
+    expect(canPullOnBanner('inexistante', Date.now())).toBe(false);
+  });
+
+  it('les vedettes d’une bannière à taux augmenté tombent bien plus souvent', async () => {
+    const { GACHA_BANNERS, rollCharacter, FEATURED_RATE_UP } = await import('@/lib/game/gacha');
+    const pool = [tpl('star'), tpl('b'), tpl('c'), tpl('d')];
+    const theme = { accent: '#000', hi: '#000', dark: '#000', deep: '#000', glow: 'x' };
+    GACHA_BANNERS.push({ id: 'test_rateup', title: 'T', subtitle: '', pool, featuredIds: ['star'], rateUp: true, theme });
+    try {
+      let hits = 0;
+      for (let i = 0; i < 4000; i++) if (rollCharacter(1, 'test_rateup') === 'star') hits++;
+      // Attendu : 3 / (3 + 1 + 1 + 1) = 50 % (contre 25 % sans taux augmenté).
+      expect(hits / 4000).toBeGreaterThan(0.42);
+      expect(FEATURED_RATE_UP).toBe(3);
+    } finally {
+      GACHA_BANNERS.splice(GACHA_BANNERS.findIndex(b => b.id === 'test_rateup'), 1);
+    }
+  });
+
+  it('applique dates, taux, ordre des onglets et persos limités', () => {
+    const pool = [tpl('a'), tpl('limite')];
+    const byId = (id: string) => pool.find(t => t.id === id);
+    const theme = { accent: '#000', hi: '#000', dark: '#000', deep: '#000', glow: 'x' };
+    const banners: GachaBanner[] = [
+      { id: 'vol1', title: 'V1', subtitle: '', pool: [pool[0]], featuredIds: [], theme },
+      { id: 'vol2', title: 'V2', subtitle: '', pool: [pool[0]], featuredIds: [], theme },
+    ];
+    const bannerOnly = new Set<string>();
+    applyCharacterContent(pool, new Set(), bannerOnly, content({ characters: { limite: { bannerOnly: true } } }));
+    expect(bannerOnly.has('limite')).toBe(true);
+    applyBannerContent(banners, byId, () => true, content({ banners: {
+      event: { title: 'ÉVÉNEMENT', characterIds: ['limite'], startsAt: 10, endsAt: 20, rateUp: true, order: -1 },
+    } }));
+    expect(banners.map(b => b.id)).toEqual(['event', 'vol1', 'vol2']);
+    expect(banners[0]).toMatchObject({ startsAt: 10, endsAt: 20, rateUp: true });
+  });
+});
+
+describe('vue du brouillon et relecture', () => {
+  it('liste ce qui est ajouté, modifié ou supprimé par rapport à la version en ligne', async () => {
+    const { diffContent } = await import('./draftView');
+    const live = content({ banners: { vol9: { title: 'ANCIENNE', characterIds: ['goku'] } }, characters: { goku: { baseDps: 5 } } });
+    const draft = content({
+      characters: { goku: { baseDps: 6 }, neuf: { name: 'Neuf' } },
+      paliers: { '1': { name: 'X' } },
+    });
+    const changes = diffContent(live, draft).map(c => `${c.kind} ${c.category} ${c.label}`);
+    expect(changes).toEqual(expect.arrayContaining([
+      'modified Palier #1 X', 'modified Perso Goku', 'added Perso Neuf', 'removed Bannière ANCIENNE',
+    ]));
+    expect(changes).toHaveLength(4);
+  });
+
+  it('range la Vol.3 où on veut et retire les persos limités de la Vol.1', async () => {
+    const { editableBanners, reorderBanners } = await import('./draftView');
+    let draft = content({
+      characters: { limite: { name: 'Limité', rarity: 'T', baseDps: 1, universe: 'U', gender: 'other', bannerOnly: true, forms: [{ name: 'L', image: IMG }] } },
+      banners: { vol3: { title: 'VOL.3', characterIds: ['limite'] } },
+    });
+    draft = reorderBanners(draft, ['vol3', 'vol1', 'vol2']);
+    const banners = editableBanners(draft);
+    expect(banners.map(b => b.id)).toEqual(['vol3', 'vol1', 'vol2']);
+    expect(banners[0].memberIds).toEqual(['limite']);
+    expect(banners[1].memberIds).not.toContain('limite');
+    // Retour à l'ordre d'origine : les bannières du code ne sont plus « modifiées ».
+    const back = reorderBanners(draft, ['vol1', 'vol2', 'vol3']);
+    expect(back.banners.vol1).toBeUndefined();
+    expect(back.banners.vol3).toEqual({ title: 'VOL.3', characterIds: ['limite'] });
+  });
+
+  it('refuse de supprimer un perso déjà publié, et vérifie les dates', async () => {
+    const { validateDraft } = await import('./validate');
+    const base = { paliersCount: 2, characterIds: new Set(['goku']), bannerIds: new Set(['vol1', 'vol2']) };
+    const live = content({ characters: { neuf: { name: 'Neuf' } } });
+    const r = validateDraft(content({ banners: { vol3: { title: 'V3', characterIds: ['goku'], startsAt: 20, endsAt: 10 } } }), base, live);
+    expect(r.errors).toEqual(expect.arrayContaining([
+      'Perso « Neuf » : déjà publié, des joueurs l\'ont peut-être. Coche plutôt « Retiré du gacha ».',
+      'Bannière « V3 » : la fin doit être après le début.',
+    ]));
   });
 });

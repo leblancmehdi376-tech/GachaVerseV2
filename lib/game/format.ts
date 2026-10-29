@@ -9,5 +9,7 @@ export function formatNumber(n: number | BigNum): string {
 export function formatTimeLeft(ms: number): string {
   const totalMin = Math.max(1, Math.ceil(ms / 60_000));
   const hours = Math.floor(totalMin / 60);
+  // Longues durées (bannières temporaires) : en jours, à l'heure près.
+  if (hours >= 48) return `${Math.floor(hours / 24)} j ${hours % 24} h`;
   return hours > 0 ? `${hours} h ${String(totalMin % 60).padStart(2, '0')} min` : `${totalMin} min`;
 }

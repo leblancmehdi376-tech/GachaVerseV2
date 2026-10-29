@@ -8,11 +8,13 @@ export interface BaseInfo {
   paliersCount: number;           // paliers définis dans le code
   characterIds: Set<string>;      // persos du code
   bannerIds: Set<string>;         // bannières du code
+  codeBannerMemberIds?: Set<string>; // persos des bannières du code autres que la Vol.1
 }
 
 export interface ValidationResult { errors: string[]; warnings: string[] }
 
-export function validateDraft(c: ContentOverrides, base: BaseInfo): ValidationResult {
+// `live` : version en ligne, pour repérer ce qui a déjà été publié.
+export function validateDraft(c: ContentOverrides, base: BaseInfo, live: ContentOverrides | null = null): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -49,6 +51,25 @@ export function validateDraft(c: ContentOverrides, base: BaseInfo): ValidationRe
     if (missing.length) errors.push(`Perso « ${ch.name ?? id} » : ${missing.join(', ')} manquant(s).`);
   }
 
+  // Un perso ajouté puis publié a pu être obtenu par des joueurs : on ne le
+  // supprime jamais (leurs sauvegardes y font référence), on le retire du gacha.
+  for (const [id, ch] of Object.entries(live?.characters ?? {})) {
+    if (!base.characterIds.has(id) && !c.characters[id]) {
+      errors.push(`Perso « ${ch.name ?? id} » : déjà publié, des joueurs l'ont peut-être. Coche plutôt « Retiré du gacha ».`);
+    }
+  }
+  for (const id of Object.keys(live?.paliers ?? {}).map(Number)) {
+    if (id > base.paliersCount && !c.paliers[id]) warnings.push(`Palier ${id} : déjà publié. Les joueurs qui l'avaient atteint reverront le décor d'un palier précédent.`);
+  }
+
+  // Persos limités : sans bannière, ils ne seraient plus obtenables.
+  const inSomeBanner = new Set([...(base.codeBannerMemberIds ?? []), ...Object.values(c.banners).flatMap(b => b.characterIds ?? [])]);
+  for (const [id, ch] of Object.entries(c.characters)) {
+    if (ch.bannerOnly && !ch.excludeFromGacha && !inSomeBanner.has(id)) {
+      warnings.push(`Perso « ${ch.name ?? id} » : exclusif à ses bannières, mais dans aucune (introuvable au gacha).`);
+    }
+  }
+
   // Bannières : persos existants, et au moins un perso pour une nouvelle bannière.
   for (const [id, b] of Object.entries(c.banners)) {
     const unknown = (b.characterIds ?? []).filter(x => !allCharacters.has(x));
@@ -57,6 +78,8 @@ export function validateDraft(c: ContentOverrides, base: BaseInfo): ValidationRe
       if (!b.title) errors.push(`Bannière « ${id} » : titre manquant.`);
       if (!b.characterIds?.length) errors.push(`Bannière « ${b.title ?? id} » : aucun perso.`);
     }
+    if (b.startsAt && b.endsAt && b.endsAt <= b.startsAt) errors.push(`Bannière « ${b.title ?? id} » : la fin doit être après le début.`);
+    if (b.rateUp && !(b.featuredIds?.length)) warnings.push(`Bannière « ${b.title ?? id} » : taux augmenté sans perso vedette (aucun effet).`);
     const lostFeatured = (b.featuredIds ?? []).filter(x => !allCharacters.has(x));
     if (lostFeatured.length) warnings.push(`Bannière « ${b.title ?? id} » : perso(s) vedette(s) inconnu(s) ignoré(s) : ${lostFeatured.join(', ')}.`);
   }

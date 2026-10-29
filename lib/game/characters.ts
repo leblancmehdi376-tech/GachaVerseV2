@@ -1056,9 +1056,13 @@ export const GACHA_EXCLUDED_IDS = new Set([
   'jinwoo', 'arthur_leywin', 'cid_kagenou', 'rokoul_ayro',
 ]);
 
+// Persos limités (configurateur) : tirables seulement dans leurs bannières,
+// jamais sur la Vol.1 ni la Bannière Vedette.
+export const BANNER_ONLY_IDS = new Set<string>();
+
 // Persos modifiés ou ajoutés depuis le configurateur (contenu en ligne) —
 // avant l'index ci-dessous et tout ce qui dérive du roster.
-applyCharacterContent(CHARACTER_POOL, GACHA_EXCLUDED_IDS, getLoadedContent());
+applyCharacterContent(CHARACTER_POOL, GACHA_EXCLUDED_IDS, BANNER_ONLY_IDS, getLoadedContent());
 
 // Index id → template, construit une seule fois. Évite un scan linéaire sur les
 // ~400 personnages à CHAQUE appel (fonction appelée en boucle : combat chaque
@@ -1071,7 +1075,7 @@ export function getCharacterById(id: string): CharacterTemplate | undefined {
   return CHARACTER_BY_ID.get(id);
 }
 
-export const BANNER_POOL = CHARACTER_POOL.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id));
+export const BANNER_POOL = CHARACTER_POOL.filter(c => !c.isHero && !GACHA_EXCLUDED_IDS.has(c.id) && !BANNER_ONLY_IDS.has(c.id));
 
 // Bannière Vol.2 : uniquement les nouveaux personnages (ils restent aussi
 // tirables sur la bannière Vol.1, dont le pool couvre tout le roster).

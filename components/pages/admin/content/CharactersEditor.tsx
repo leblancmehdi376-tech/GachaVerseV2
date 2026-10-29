@@ -1,20 +1,22 @@
 'use client';
-import { useMemo, useState } from 'react';
-import { CHARACTER_POOL, GACHA_EXCLUDED_IDS, getCharacterById } from '@/lib/game/characters';
+import { useEffect, useMemo, useState } from 'react';
+import { GACHA_EXCLUDED_IDS, getCharacterById } from '@/lib/game/characters';
 import { getCharacterGender, GENDER_CONFIG, type Gender } from '@/lib/game/characterGenders';
 import { getCardImageCandidates } from '@/lib/game/cardAssets';
 import { RARITY_CONFIG, RARITY_ORDER_ASC, type Rarity } from '@/types/game';
 import { isValidContentId, type CharacterInput, type ContentOverrides } from '@/lib/game/content/schema';
+import { draftCharacters, editableBanners, setBannerMember } from '@/lib/game/content/draftView';
 import { resolveContentImage } from '@/lib/game/content/images';
 import { useFallbackImage } from '@/lib/image-fallback';
 import { Button, Field, SelectInput, TextInput } from '../ui';
 import { ImagePicker } from './ImagePicker';
-import { editableBanners, setBannerMember } from './BannersEditor';
+import type { EditorProps } from './ContentTab';
 
 // Taille des visuels de carte envoyés (les fichiers du jeu font 300 × 355).
 const CARD_MAX_W = 600;
 const CARD_MAX_H = 710;
 const PAGE = 40;
+const RARITIES_DESC = [...RARITY_ORDER_ASC].reverse();
 
 interface FormState {
   id: string;
@@ -25,33 +27,8 @@ interface FormState {
   description: string;
   gender: Gender;
   excludeFromGacha: boolean;
+  bannerOnly: boolean;
   forms: { name: string; image?: string }[];
-}
-
-export interface CharacterRow {
-  id: string;
-  name: string;
-  rarity: Rarity;
-  universe: string;
-  isNew: boolean;
-  modified: boolean;
-  image?: string;   // content-img de la forme de base, si changée
-}
-
-// Tous les persos, tels que le jeu les verra avec le brouillon.
-export function draftCharacters(draft: ContentOverrides): CharacterRow[] {
-  const rows: CharacterRow[] = CHARACTER_POOL.filter(t => !t.isHero).map(t => {
-    const input = draft.characters[t.id];
-    return {
-      id: t.id, name: input?.name ?? t.name, rarity: input?.rarity ?? t.rarity, universe: input?.universe ?? t.universe ?? '',
-      isNew: false, modified: !!input, image: input?.forms?.[0]?.image,
-    };
-  });
-  for (const [id, input] of Object.entries(draft.characters)) {
-    if (getCharacterById(id)) continue;
-    rows.push({ id, name: input.name ?? id, rarity: input.rarity ?? 'C', universe: input.universe ?? '', isNew: true, modified: true, image: input.forms?.[0]?.image });
-  }
-  return rows;
 }
 
 function formFor(draft: ContentOverrides, id: string | null): FormState {
@@ -66,7 +43,8 @@ function formFor(draft: ContentOverrides, id: string | null): FormState {
     universe: input.universe ?? base?.universe ?? '',
     description: input.description ?? (base && base.description !== base.name ? base.description : ''),
     gender: input.gender ?? (base ? getCharacterGender(base.id) : 'male'),
-    excludeFromGacha: input.excludeFromGacha ?? (base ? GACHA_EXCLUDED_IDS.has(base.id) : false),
+    excludeFromGacha: !!input.excludeFromGacha || (!!base && GACHA_EXCLUDED_IDS.has(base.id)),
+    bannerOnly: !!input.bannerOnly,
     forms: input.forms ? input.forms.map(f => ({ ...f })) : baseForms,
   };
 }
@@ -84,7 +62,8 @@ function toInput(form: FormState): CharacterInput {
   if (!base || form.universe !== base.universe) input.universe = form.universe.trim();
   if (form.description.trim() && form.description !== base?.description) input.description = form.description.trim();
   if (!base || form.gender !== getCharacterGender(base.id)) input.gender = form.gender;
-  if (!base && form.excludeFromGacha) input.excludeFromGacha = true;
+  if (form.excludeFromGacha && !(base && GACHA_EXCLUDED_IDS.has(base.id))) input.excludeFromGacha = true;
+  if (form.bannerOnly && !form.excludeFromGacha) input.bannerOnly = true;
   const baseNames = base?.forms?.length ? base.forms.map(f => f.name) : base ? [base.name] : [];
   const formsChanged = !base || form.forms.length !== baseNames.length
     || form.forms.some((f, i) => f.image || formName(form, i) !== baseNames[i]);
@@ -95,12 +74,13 @@ function toInput(form: FormState): CharacterInput {
 const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
 
-function CardThumb({ id, image }: { id: string; image?: string }) {
+// Vignette de carte : image du brouillon, sinon visuel actuel du jeu.
+export function CardThumb({ id, image, className = 'h-12 w-10' }: { id: string; image?: string; className?: string }) {
   const tpl = getCharacterById(id);
   const own = image ? resolveContentImage(image) : null;
   const { src, failed, onError } = useFallbackImage(own ? [own] : tpl ? getCardImageCandidates(tpl, 0) : []);
   return (
-    <div className="h-12 w-10 shrink-0 overflow-hidden rounded-md border border-white/20 bg-black/40">
+    <div className={`${className} shrink-0 overflow-hidden rounded-md border border-white/20 bg-black/40`}>
       {src && !failed
         // eslint-disable-next-line @next/next/no-img-element
         ? <img src={src} alt="" loading="lazy" onError={onError} className="h-full w-full object-cover object-top" />
@@ -109,7 +89,15 @@ function CardThumb({ id, image }: { id: string; image?: string }) {
   );
 }
 
-export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides; onChange: (d: ContentOverrides) => void }) {
+export function Badge({ tone, children }: { tone: 'green' | 'amber' | 'red' | 'cyan' | 'neutral'; children: string }) {
+  const cls = {
+    green: 'bg-emerald-400/15 text-emerald-300', amber: 'bg-amber-400/15 text-amber-300', red: 'bg-red-400/15 text-red-300',
+    cyan: 'bg-cyan-400/15 text-cyan-300', neutral: 'bg-white/10 text-white/75',
+  }[tone];
+  return <span className={`rounded-full px-2 py-0.5 text-sm font-bold ${cls}`}>{children}</span>;
+}
+
+export function CharactersEditor({ draft, onChange, onEditing }: EditorProps) {
   const [query, setQuery] = useState('');
   const [rarity, setRarity] = useState<Rarity | ''>('');
   const [onlyChanged, setOnlyChanged] = useState(false);
@@ -117,6 +105,7 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
   const [editing, setEditing] = useState<string | null>(null); // id, ou '' pour un nouveau perso
   const [form, setForm] = useState<FormState>(() => formFor(draft, null));
   const [members, setMembers] = useState<Record<string, boolean>>({});
+  useEffect(() => { onEditing(editing !== null); }, [editing, onEditing]);
 
   const rows = useMemo(() => draftCharacters(draft), [draft]);
   const universes = useMemo(() => [...new Set(rows.map(r => r.universe).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr')), [rows]);
@@ -128,14 +117,15 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
     && (!rarity || r.rarity === rarity) && (!onlyChanged || r.modified));
 
   const open = (id: string | null) => {
-    const f = formFor(draft, id);
-    setForm(f);
+    setForm(formFor(draft, id));
     setEditing(id ?? '');
-    setMembers(Object.fromEntries(editableBanners(draft).map(b => [b.id, !!id && b.memberIds.includes(id)])));
+    setMembers(Object.fromEntries(banners.map(b => [b.id, !!id && b.memberIds.includes(id)])));
   };
 
-  const isNew = editing === '' || (!!editing && !getCharacterById(editing));
-  const idTaken = isNew && editing === '' && (!!getCharacterById(form.id) || !!draft.characters[form.id]);
+  const base = getCharacterById(form.id);
+  const isNew = editing === '' || (!!editing && !base);
+  const codeExcluded = !!base && GACHA_EXCLUDED_IDS.has(base.id);
+  const idTaken = editing === '' && (!!getCharacterById(form.id) || !!draft.characters[form.id]);
   const problems = [
     !form.name.trim() && 'nom manquant',
     !form.universe.trim() && 'univers manquant',
@@ -156,18 +146,19 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
     setEditing(null);
   };
 
-  const revert = (id: string) => {
+  const revert = (id: string, isNewChar: boolean) => {
+    if (isNewChar && !window.confirm('Supprimer ce perso du brouillon ? (S’il est déjà publié, la publication sera refusée : coche plutôt « Retiré du gacha ».)')) return;
     const characters = { ...draft.characters };
     delete characters[id];
     let next: ContentOverrides = { ...draft, characters };
-    if (!getCharacterById(id)) for (const b of banners) next = setBannerMember(next, b.id, id, false);
+    if (isNewChar) for (const b of banners) next = setBannerMember(next, b.id, id, false);
     onChange(next);
   };
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm(f => ({ ...f, [k]: v }));
   const setFormAt = (i: number, patch: Partial<FormState['forms'][number]>) =>
     setForm(f => ({ ...f, forms: f.forms.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
-  const baseFormCount = getCharacterById(form.id)?.forms?.length ?? 1;
+  const baseFormCount = base?.forms?.length ?? 1;
 
   const editor = (
     <div className="grid grid-cols-1 gap-3 border-t border-white/10 bg-black/25 px-3 py-4 sm:grid-cols-2 sm:px-4 lg:grid-cols-4">
@@ -180,7 +171,7 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
       </Field>
       <Field label="Rareté">
         <SelectInput value={form.rarity} onChange={e => set('rarity', e.target.value as Rarity)}>
-          {[...RARITY_ORDER_ASC].reverse().map(r => <option key={r} value={r}>{RARITY_CONFIG[r].label}</option>)}
+          {RARITIES_DESC.map(r => <option key={r} value={r}>{RARITY_CONFIG[r].label}</option>)}
         </SelectInput>
       </Field>
       <Field label="DPS de base">
@@ -198,30 +189,49 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
         <TextInput value={form.description} onChange={e => set('description', e.target.value)} placeholder="Facultatif" />
       </Field>
 
-      {isNew && (
-        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white/85 sm:col-span-2 lg:col-span-4">
-          <input type="checkbox" className="h-5 w-5 accent-violet-500" checked={form.excludeFromGacha} onChange={e => set('excludeFromGacha', e.target.checked)} />
-          Absent du gacha (perso de Forge ou de raid)
+      <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-4">
+        <span className="text-sm font-semibold text-white/75">Où l&apos;obtenir</span>
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-white/85">
+          <input type="checkbox" className="h-5 w-5 shrink-0 accent-violet-500" checked={form.excludeFromGacha} disabled={codeExcluded}
+            onChange={e => set('excludeFromGacha', e.target.checked)} />
+          <span><b>Retiré du gacha</b> : plus tirable nulle part (perso de Forge ou de raid, ou qu&apos;on ne veut plus distribuer). Ceux qui l&apos;ont le gardent.</span>
         </label>
-      )}
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-white/85">
+          <input type="checkbox" className="h-5 w-5 shrink-0 accent-violet-500" checked={form.bannerOnly && !form.excludeFromGacha} disabled={form.excludeFromGacha}
+            onChange={e => set('bannerOnly', e.target.checked)} />
+          <span><b>Exclusif à ses bannières</b> : perso limité, absent de la Vol.1 et de la Bannière Vedette.</span>
+        </label>
+        {!form.excludeFromGacha && banners.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4">
+            <span className="text-sm text-white/75">Bannières :</span>
+            {banners.map(b => {
+              const locked = b.lockedIds.includes(form.id);
+              return (
+                <label key={b.id} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white/85">
+                  <input type="checkbox" className="h-5 w-5 accent-violet-500" checked={locked || !!members[b.id]} disabled={locked}
+                    onChange={e => setMembers(m => ({ ...m, [b.id]: e.target.checked }))} />
+                  {b.title}
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-4">
-        <span className="text-sm font-semibold text-white/75">Formes d&apos;évolution (forme 1 = base, ×1 DPS ; forme 2 = ×2…)</span>
-        {form.forms.map((f, i) => {
-          const tpl = getCharacterById(form.id);
-          return (
-            <div key={i} className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 px-3 py-2">
-              <span className="w-6 text-sm font-bold tabular-nums text-white/60">{i + 1}</span>
-              <ImagePicker value={f.image} onChange={ref => setFormAt(i, { image: ref })} maxW={CARD_MAX_W} maxH={CARD_MAX_H} size={64}
-                fallback={tpl ? getCardImageCandidates(tpl, i) : []} rounded="rounded-md" />
-              <TextInput value={f.name} onChange={e => setFormAt(i, { name: e.target.value })} className="min-w-40 flex-1"
-                placeholder={i === 0 ? `Nom de la forme (par défaut : ${form.name || 'nom du perso'})` : 'Nom de la forme'} />
-              {i > 0 && i === form.forms.length - 1 && i >= (isNew ? 1 : baseFormCount) && (
-                <Button size="sm" tone="red" onClick={() => setForm(x => ({ ...x, forms: x.forms.slice(0, -1) }))}>Retirer</Button>
-              )}
-            </div>
-          );
-        })}
+        <span className="text-sm font-semibold text-white/75">Formes d&apos;évolution (forme 1 = base ×1 DPS, forme 2 = ×2…) · images 600 × 710 conseillé</span>
+        {form.forms.map((f, i) => (
+          <div key={i} className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 px-3 py-2">
+            <span className="w-6 text-sm font-bold tabular-nums text-white/60">{i + 1}</span>
+            <ImagePicker value={f.image} onChange={ref => setFormAt(i, { image: ref })} maxW={CARD_MAX_W} maxH={CARD_MAX_H} size={72}
+              fallback={base ? getCardImageCandidates(base, i) : []} rounded="rounded-md" />
+            <TextInput value={f.name} onChange={e => setFormAt(i, { name: e.target.value })} className="min-w-40 flex-1"
+              placeholder={i === 0 ? `Nom de la forme (par défaut : ${form.name || 'nom du perso'})` : 'Nom de la forme'} />
+            {i > 0 && i === form.forms.length - 1 && i >= (isNew ? 1 : baseFormCount) && (
+              <Button size="sm" tone="red" onClick={() => setForm(x => ({ ...x, forms: x.forms.slice(0, -1) }))}>Retirer</Button>
+            )}
+          </div>
+        ))}
         {form.forms.length < 8 && (
           <Button size="sm" className="self-start" onClick={() => setForm(x => ({ ...x, forms: [...x.forms, { name: `${x.name} — Évolution ${x.forms.length}` }] }))}>
             + Ajouter une forme
@@ -229,23 +239,9 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
         )}
       </div>
 
-      {!form.excludeFromGacha && banners.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:col-span-2 lg:col-span-4">
-          <span className="text-sm font-semibold text-white/75">Bannières (la Vol.1 contient toujours tout le monde) :</span>
-          {banners.map(b => (
-            <label key={b.id} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white/85">
-              <input type="checkbox" className="h-5 w-5 accent-violet-500" checked={!!members[b.id]}
-                disabled={b.lockedIds.includes(form.id)}
-                onChange={e => setMembers(m => ({ ...m, [b.id]: e.target.checked }))} />
-              {b.title}
-            </label>
-          ))}
-        </div>
-      )}
-
       {problems.length > 0 && <p className="text-sm text-amber-300 sm:col-span-2 lg:col-span-4">À compléter : {problems.join(', ')}.</p>}
       <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
-        <Button tone="purple" onClick={save} disabled={problems.length > 0}>Enregistrer</Button>
+        <Button tone="purple" onClick={save} disabled={problems.length > 0}>Valider</Button>
         <Button onClick={() => setEditing(null)}>Annuler</Button>
       </div>
     </div>
@@ -261,7 +257,7 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
         <Field label="Rareté" className="w-full sm:w-44">
           <SelectInput value={rarity} onChange={e => { setRarity(e.target.value as Rarity | ''); setShown(PAGE); }}>
             <option value="">Toutes</option>
-            {[...RARITY_ORDER_ASC].reverse().map(r => <option key={r} value={r}>{RARITY_CONFIG[r].label}</option>)}
+            {RARITIES_DESC.map(r => <option key={r} value={r}>{RARITY_CONFIG[r].label}</option>)}
           </SelectInput>
         </Field>
         <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white/85">
@@ -290,13 +286,15 @@ export function CharactersEditor({ draft, onChange }: { draft: ContentOverrides;
                   <div className="truncate text-sm text-white/70">{r.universe}</div>
                 </div>
                 <span className="text-sm font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
-                {r.isNew && <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-sm font-bold text-emerald-300">Nouveau</span>}
-                {!r.isNew && r.modified && <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-sm font-bold text-amber-300">Modifié</span>}
+                {r.isNew && <Badge tone="green">Nouveau</Badge>}
+                {!r.isNew && r.modified && <Badge tone="amber">Modifié</Badge>}
+                {r.excluded && <Badge tone="red">Hors gacha</Badge>}
+                {!r.excluded && r.bannerOnly && <Badge tone="cyan">Limité</Badge>}
                 {editing !== r.id && (
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => open(r.id)} disabled={editing !== null}>Modifier</Button>
                     {r.modified && (
-                      <Button size="sm" tone="red" onClick={() => revert(r.id)} disabled={editing !== null}>{r.isNew ? 'Retirer' : 'Rétablir'}</Button>
+                      <Button size="sm" tone="red" onClick={() => revert(r.id, r.isNew)} disabled={editing !== null}>{r.isNew ? 'Supprimer' : 'Rétablir'}</Button>
                     )}
                   </div>
                 )}

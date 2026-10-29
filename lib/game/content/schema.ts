@@ -51,7 +51,8 @@ export interface CharacterInput {
   universe?: string;
   description?: string;
   gender?: Gender;
-  excludeFromGacha?: boolean;   // perso de Forge / raid : absent du gacha
+  excludeFromGacha?: boolean;   // absent de TOUT le gacha (perso de Forge / raid, ou retiré)
+  bannerOnly?: boolean;         // perso limité : seulement dans ses bannières (ni Vol.1, ni Vedette)
   forms?: CharacterFormInput[];
 }
 
@@ -70,6 +71,10 @@ export interface BannerInput {
   theme?: BannerThemeInput;
   isNew?: boolean;
   hidden?: boolean;             // bannière retirée du Gacha (sans rien supprimer)
+  startsAt?: number;            // bannière temporaire : visible à partir de… (ms)
+  endsAt?: number;              // … et jusqu'à (ms, exclu)
+  rateUp?: boolean;             // persos vedettes ×3 à rareté égale
+  order?: number;               // position de l'onglet (plus petit = plus à gauche)
 }
 
 export interface ContentOverrides {
@@ -136,6 +141,7 @@ function parseCharacter(v: unknown): CharacterInput | null {
     baseDps: num(v.baseDps, 0, 1e6), universe: str(v.universe, 80), description: str(v.description, 300),
     gender: GENDERS.includes(v.gender as Gender) ? (v.gender as Gender) : undefined,
     excludeFromGacha: v.excludeFromGacha === true ? true : undefined,
+    bannerOnly: v.bannerOnly === true ? true : undefined,
     forms: forms && forms.length ? forms.slice(0, 8) : undefined,
   });
 }
@@ -150,6 +156,8 @@ function parseBanner(v: unknown): BannerInput | null {
     title: str(v.title, 60), subtitle: str(v.subtitle, 120), featuredIds: strList(v.featuredIds),
     characterIds: strList(v.characterIds), theme, isNew: v.isNew === true ? true : undefined,
     hidden: v.hidden === true ? true : undefined,
+    startsAt: num(v.startsAt, 1, 1e14), endsAt: num(v.endsAt, 1, 1e14),
+    rateUp: v.rateUp === true ? true : undefined, order: num(v.order, -1000, 1000),
   });
 }
 

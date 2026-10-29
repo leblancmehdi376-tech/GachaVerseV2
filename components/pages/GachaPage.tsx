@@ -6,7 +6,7 @@ import { RarityBadge } from '@/components/ui/RarityBadge';
 import { EditionBadge } from '@/components/ui/EditionBadge';
 import { CharacterCardThumb } from '@/components/ui/CharacterCardThumb';
 import { getCharacterById } from '@/lib/game/characters';
-import { getDynamicRates, getRateUpShare, RARITY_GATES, GACHA_BANNERS, DEFAULT_BANNER_ID, FEATURED_RATE_UP, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
+import { getDynamicRates, getRateUpShare, getActiveBanners, RARITY_GATES, DEFAULT_BANNER_ID, FEATURED_RATE_UP, getBanner, type BannerId, type BannerTheme } from '@/lib/game/gacha';
 import { getFeaturedBanner, SPARK_COSTS } from '@/lib/game/featuredBanner';
 import { msUntilNextDailyReset } from '@/lib/game/shop';
 import { getCardImageCandidates } from '@/lib/game/cardAssets';
@@ -30,15 +30,10 @@ function featuredOf(banner: { featuredIds: string[]; pool: { id: string; rarity:
   return [...banner.pool].sort((a, b) => rank(b.rarity) - rank(a.rarity)).slice(0, 6).map(t => t.id);
 }
 
-// Bannières masquées depuis le configurateur : ni affichées, ni restaurées.
-const VISIBLE_BANNERS = GACHA_BANNERS.filter(b => !b.hidden);
-const BANNER_IDS: BannerId[] = [...VISIBLE_BANNERS.map(b => b.id), 'featured'];
+// Dernière bannière choisie (vérifiée au rendu : une bannière temporaire
+// terminée ou masquée entre-temps retombe sur la Vol.1).
 function loadBannerId(): BannerId {
-  try {
-    const saved = localStorage.getItem(BANNER_STORAGE_KEY);
-    if (saved && BANNER_IDS.includes(saved as BannerId)) return saved as BannerId;
-  } catch {}
-  return DEFAULT_BANNER_ID;
+  try { return localStorage.getItem(BANNER_STORAGE_KEY) || DEFAULT_BANNER_ID; } catch { return DEFAULT_BANNER_ID; }
 }
 
 // 1 Jeton d'Anomalie tous les 100 tirages gacha cumulés (voir gachaSlice.ts).
@@ -88,7 +83,7 @@ export function GachaPage() {
   const [pulling,     setPulling]     = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [showPool,    setShowPool]    = useState(false);
-  const [bannerId,    setBannerIdState] = useState<BannerId>(loadBannerId);
+  const [savedBannerId, setBannerIdState] = useState<BannerId>(loadBannerId);
   // Abonnement au store anti-spoil : la bannière se met à jour quand on coche un univers.
   useSpoilerStore(s => s.protectedUniverses);
   const setBannerId = (id: BannerId) => {
@@ -103,7 +98,10 @@ export function GachaPage() {
   const now = useNow(60_000);
   const featuredBanner = getFeaturedBanner();
   const featuredUniverse = featuredBanner.subtitle;
-  const banners = [...VISIBLE_BANNERS, featuredBanner];
+  // Bannières masquées, programmées ou terminées (configurateur) : absentes.
+  const activeBanners = getActiveBanners(now);
+  const banners = [...activeBanners, featuredBanner];
+  const bannerId = savedBannerId === 'featured' || activeBanners.some(b => b.id === savedBannerId) ? savedBannerId : DEFAULT_BANNER_ID;
   const isFeatured = bannerId === 'featured';
   const banner = isFeatured ? featuredBanner : getBanner(bannerId);
   const theme  = banner.theme;
@@ -193,6 +191,9 @@ export function GachaPage() {
                 <span style={{ fontFamily:'var(--f-ui)', fontSize:14, color:active?t.hi:'var(--text-muted)' }}>
                   {b.id === 'featured' ? `✦ ${b.subtitle}` : `${b.subtitle} · ${b.pool.length}`}
                 </span>
+                {b.endsAt && (
+                  <span style={{ fontFamily:'var(--f-ui)', fontWeight:700, fontSize:14, color:active?'#fde68a':'var(--text-muted)' }}>⏳ {formatTimeLeft(b.endsAt - now)}</span>
+                )}
               </button>
             );
           })}
@@ -237,11 +238,15 @@ export function GachaPage() {
               <div style={{ fontFamily:'var(--f-ui)', fontSize:14, color:`${theme.hi}bb` }}>
                 {isFeatured
                   ? <>{featuredUniverse} à l&apos;honneur · chances ×{FEATURED_RATE_UP} · change dans {formatTimeLeft(msUntilNextDailyReset(now))}</>
-                  : `${banner.pool.length} personnages · 10 raretés · cartes shiny`}
+                  : <>
+                      {banner.pool.length} personnages · 10 raretés · cartes shiny
+                      {banner.rateUp && banner.featuredIds.length > 0 && <> · vedettes ×{FEATURED_RATE_UP}</>}
+                      {banner.endsAt && <> · fin dans {formatTimeLeft(banner.endsAt - now)}</>}
+                    </>}
               </div>
             </div>
             <div style={{ fontFamily:'var(--f-ui)', fontSize:14, fontWeight:700, color:theme.hi, letterSpacing:2, border:`1px solid ${theme.accent}77`, borderRadius:20, padding:'4px 12px', background:'rgba(0,0,0,0.3)' }}>
-              {isFeatured ? '✦ UNIVERS DU JOUR' : '✦ BANNIÈRE EXCLUSIVE'}
+              {isFeatured ? '✦ UNIVERS DU JOUR' : banner.endsAt ? '⏳ DURÉE LIMITÉE' : '✦ BANNIÈRE EXCLUSIVE'}
             </div>
           </div>
         </div>

@@ -1,64 +1,22 @@
 'use client';
-import { useState } from 'react';
-import { GACHA_BANNERS } from '@/lib/game/gacha';
-import { GACHA_EXCLUDED_IDS, getCharacterById } from '@/lib/game/characters';
-import type { BannerInput, BannerThemeInput, ContentOverrides } from '@/lib/game/content/schema';
+import { useEffect, useState } from 'react';
+import { GACHA_BANNERS, FEATURED_RATE_UP } from '@/lib/game/gacha';
+import { RARITY_ORDER_ASC } from '@/types/game';
+import type { BannerInput, BannerThemeInput } from '@/lib/game/content/schema';
+import {
+  DEFAULT_BANNER_THEME, bannerStatus, draftCharacters, editableBanners, isTirableIn, reorderBanners,
+  type BannerStatus, type EditableBanner,
+} from '@/lib/game/content/draftView';
+import { formatTimeLeft } from '@/lib/game/format';
+import { useNow } from '@/hooks/useNow';
 import { Button, Field, TextInput } from '../ui';
-import { draftCharacters } from './CharactersEditor';
+import { Badge, CardThumb } from './CharactersEditor';
+import type { EditorProps } from './ContentTab';
 
-export interface EditableBanner {
-  id: string;
-  title: string;
-  subtitle: string;
-  theme: BannerThemeInput;
-  isNew: boolean;
-  hidden: boolean;
-  featuredIds: string[];
-  inCode: boolean;       // vol1, vol2 : bannières du code
-  memberIds: string[];   // persos tirables sur cette bannière, brouillon compris
-  lockedIds: string[];   // persos du code, qu'on ne peut pas retirer d'une bannière du code
-}
-
-const DEFAULT_THEME: BannerThemeInput = { accent: '#22d3ee', hi: '#a5f3fc', dark: '#04161c', deep: '#0e5466', glow: 'rgba(34,211,238,0.35)' };
-
-const isTirable = (draft: ContentOverrides, id: string) =>
-  !GACHA_EXCLUDED_IDS.has(id) && !draft.characters[id]?.excludeFromGacha && !getCharacterById(id)?.isHero;
-
-// Bannières telles que le jeu les verra avec le brouillon.
-export function editableBanners(draft: ContentOverrides): EditableBanner[] {
-  const tirable = draftCharacters(draft).filter(r => isTirable(draft, r.id)).map(r => r.id);
-  const known = new Set(tirable);
-  const fromCode = GACHA_BANNERS.map(b => {
-    const input = draft.banners[b.id] ?? {};
-    const base = b.pool.map(t => t.id);
-    const extra = (input.characterIds ?? []).filter(id => known.has(id) && !base.includes(id));
-    return {
-      id: b.id, title: input.title ?? b.title, subtitle: input.subtitle ?? b.subtitle, theme: input.theme ?? b.theme,
-      isNew: input.isNew ?? !!b.isNew, hidden: input.hidden ?? !!b.hidden, featuredIds: input.featuredIds ?? b.featuredIds,
-      inCode: true, memberIds: b.id === 'vol1' ? tirable : [...base, ...extra], lockedIds: b.id === 'vol1' ? tirable : base,
-    };
-  });
-  const added = Object.entries(draft.banners).filter(([id]) => !GACHA_BANNERS.some(b => b.id === id)).map(([id, input]) => ({
-    id, title: input.title ?? id, subtitle: input.subtitle ?? '', theme: input.theme ?? DEFAULT_THEME,
-    isNew: !!input.isNew, hidden: !!input.hidden, featuredIds: input.featuredIds ?? [],
-    inCode: false, memberIds: (input.characterIds ?? []).filter(id2 => known.has(id2)), lockedIds: [],
-  }));
-  return [...fromCode, ...added];
-}
-
-/** Ajoute ou retire un perso d'une bannière dans le brouillon (sans effet sur la Vol.1, qui contient tout). */
-export function setBannerMember(draft: ContentOverrides, bannerId: string, charId: string, member: boolean): ContentOverrides {
-  if (bannerId === 'vol1') return draft;
-  const codePool = GACHA_BANNERS.find(b => b.id === bannerId)?.pool.map(t => t.id) ?? [];
-  if (codePool.includes(charId)) return draft; // déjà dans la bannière du code
-  const input: BannerInput = { ...(draft.banners[bannerId] ?? {}) };
-  const ids = new Set(input.characterIds ?? []);
-  if (member) ids.add(charId); else ids.delete(charId);
-  if (ids.size === (input.characterIds ?? []).length && [...ids].every(id => input.characterIds?.includes(id))) return draft;
-  input.characterIds = [...ids];
-  if (!member) input.featuredIds = input.featuredIds?.filter(f => f !== charId);
-  return { ...draft, banners: { ...draft.banners, [bannerId]: input } };
-}
+const STATUS: Record<BannerStatus, { label: string; tone: 'green' | 'cyan' | 'neutral' | 'red' }> = {
+  live: { label: 'En cours', tone: 'green' }, scheduled: { label: 'Programmée', tone: 'cyan' },
+  ended: { label: 'Terminée', tone: 'neutral' }, hidden: { label: 'Masquée', tone: 'red' },
+};
 
 const glowOf = (hex: string) => {
   const n = parseInt(hex.slice(1, 7), 16);
@@ -70,32 +28,58 @@ const COLOR_FIELDS: { key: keyof Omit<BannerThemeInput, 'glow'>; label: string }
   { key: 'deep', label: 'Fond saturé' }, { key: 'dark', label: 'Fond sombre' },
 ];
 
-export function BannersEditor({ draft, onChange }: { draft: ContentOverrides; onChange: (d: ContentOverrides) => void }) {
+// <input type="datetime-local"> travaille en heure locale, sans fuseau.
+const pad = (n: number) => String(n).padStart(2, '0');
+function toLocalInput(ms?: number): string {
+  if (!ms) return '';
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+const fromLocalInput = (s: string): number | undefined => (s ? new Date(s).getTime() : undefined);
+const formatDate = (ms: number) => new Date(ms).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+
+export function BannersEditor({ draft, onChange, onEditing }: EditorProps) {
+  const now = useNow(60_000);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<EditableBanner | null>(null);
   const [adding, setAdding] = useState('');
+  useEffect(() => { onEditing(editing !== null); }, [editing, onEditing]);
+
   const banners = editableBanners(draft);
   const rows = draftCharacters(draft);
-  const nameOf = (id: string) => rows.find(r => r.id === id)?.name ?? id;
-  const tirable = rows.filter(r => isTirable(draft, r.id));
+  const rowOf = new Map(rows.map(r => [r.id, r]));
+  const nameOf = (id: string) => rowOf.get(id)?.name ?? id;
+
+  // Visuel : vedettes choisies, sinon les 6 persos de plus haute rareté (comme en jeu).
+  const visualIds = (b: EditableBanner) => {
+    if (b.featuredIds.length) return b.featuredIds;
+    const rank = (id: string) => RARITY_ORDER_ASC.indexOf(rowOf.get(id)?.rarity ?? 'C');
+    return [...b.memberIds].sort((x, y) => rank(y) - rank(x)).slice(0, 6);
+  };
 
   const open = (b: EditableBanner) => { setEditing(b.id); setForm(structuredClone(b)); setAdding(''); };
   const create = () => {
     let n = 3;
     while (banners.some(b => b.id === `vol${n}`)) n++;
-    open({ id: `vol${n}`, title: `GACHA VERSE VOL.${n}`, subtitle: 'Nouveaux personnages', theme: DEFAULT_THEME, isNew: true, hidden: false,
-      featuredIds: [], inCode: false, memberIds: [], lockedIds: [] });
+    open({
+      id: `vol${n}`, title: `GACHA VERSE VOL.${n}`, subtitle: 'Nouveaux personnages', theme: DEFAULT_BANNER_THEME, isNew: true,
+      hidden: false, rateUp: false, featuredIds: [], inCode: false, memberIds: [], lockedIds: [],
+    });
   };
 
   const save = () => {
     if (!form) return;
     const code = GACHA_BANNERS.find(b => b.id === form.id);
-    const input: BannerInput = {};
+    const prev = draft.banners[form.id] ?? {};
+    const input: BannerInput = { ...(prev.order !== undefined && { order: prev.order }) };
     if (!code || form.title !== code.title) input.title = form.title.trim();
     if (!code || form.subtitle !== code.subtitle) input.subtitle = form.subtitle.trim();
     if (!code || JSON.stringify(form.theme) !== JSON.stringify(code.theme)) input.theme = form.theme;
     if (!code || form.isNew !== !!code.isNew) input.isNew = form.isNew;
-    if (form.hidden !== !!code?.hidden) input.hidden = form.hidden;
+    if (form.hidden) input.hidden = true;
+    if (form.startsAt) input.startsAt = form.startsAt;
+    if (form.endsAt) input.endsAt = form.endsAt;
+    if (form.rateUp) input.rateUp = true;
     if (!code || JSON.stringify(form.featuredIds) !== JSON.stringify(code.featuredIds)) input.featuredIds = form.featuredIds;
     const extra = form.memberIds.filter(id => !form.lockedIds.includes(id));
     if (form.id !== 'vol1' && (!code || extra.length)) input.characterIds = extra;
@@ -105,65 +89,106 @@ export function BannersEditor({ draft, onChange }: { draft: ContentOverrides; on
     setEditing(null);
   };
 
-  const revert = (id: string) => {
+  const remove = (b: EditableBanner) => {
+    const msg = b.inCode
+      ? `Rétablir « ${b.title} » telle qu'elle est dans le code ?`
+      : `Supprimer la bannière « ${b.title} » ? Elle disparaîtra du Gacha à la prochaine publication (les persos obtenus restent).`;
+    if (!window.confirm(msg)) return;
     const next = { ...draft.banners };
-    delete next[id];
+    delete next[b.id];
     onChange({ ...draft, banners: next });
+  };
+
+  const move = (i: number, d: -1 | 1) => {
+    const ids = banners.map(b => b.id);
+    [ids[i], ids[i + d]] = [ids[i + d], ids[i]];
+    onChange(reorderBanners(draft, ids));
   };
 
   const setTheme = (key: keyof BannerThemeInput, v: string) =>
     setForm(f => f && ({ ...f, theme: { ...f.theme, [key]: v, ...(key === 'accent' && { glow: glowOf(v) }) } }));
-  const addMember = () => {
-    const r = tirable.find(x => x.id === adding || x.name === adding);
-    // Vol.1 : tout le monde y est déjà, « Ajouter » sert à choisir un perso vedette.
-    if (r && form?.id === 'vol1') { if (!form.featuredIds.includes(r.id)) toggleFeatured(r.id); }
-    else if (r && form && !form.memberIds.includes(r.id)) setForm({ ...form, memberIds: [...form.memberIds, r.id] });
-    setAdding('');
-  };
   const toggleFeatured = (id: string) => setForm(f => {
     if (!f) return f;
     const on = f.featuredIds.includes(id);
     if (!on && f.featuredIds.length >= 6) return f;
     return { ...f, featuredIds: on ? f.featuredIds.filter(x => x !== id) : [...f.featuredIds, id] };
   });
+  const addMember = () => {
+    if (!form) return;
+    const r = rows.find(x => (x.id === adding || x.name === adding) && isTirableIn(x, form.id));
+    // Vol.1 : tout le monde y est déjà, « Ajouter » sert à choisir un perso vedette.
+    if (r && form.id === 'vol1') { if (!form.featuredIds.includes(r.id)) toggleFeatured(r.id); }
+    else if (r && !form.memberIds.includes(r.id)) setForm({ ...form, memberIds: [...form.memberIds, r.id] });
+    setAdding('');
+  };
 
   const problems = form ? [
     !form.title.trim() && 'titre manquant',
     form.id !== 'vol1' && form.memberIds.length === 0 && 'aucun perso',
+    form.startsAt && form.endsAt && form.endsAt <= form.startsAt && 'la fin doit être après le début',
   ].filter(Boolean) as string[] : [];
+
+  const list = [...banners, ...(form && editing && !banners.some(b => b.id === editing) ? [form] : [])];
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-white/75">{banners.length} bannière(s), plus la Bannière Vedette (automatique)</p>
+        <p className="text-sm text-white/75">{banners.length} bannière(s) dans cet ordre d&apos;onglets, plus la Bannière Vedette (automatique, toujours à droite)</p>
         <Button tone="green" onClick={create} disabled={editing !== null}>+ Nouvelle bannière</Button>
       </div>
-      <datalist id="gv-tirable">{tirable.map(r => <option key={r.id} value={r.name}>{r.universe}</option>)}</datalist>
+      {form && (
+        <datalist id="gv-tirable">
+          {rows.filter(r => isTirableIn(r, form.id)).map(r => <option key={r.id} value={r.name}>{r.universe}</option>)}
+        </datalist>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-white/15">
-        {[...banners, ...(form && editing && !banners.some(b => b.id === editing) ? [form] : [])].map(b => {
+        {list.map((b, i) => {
           const shown = editing === b.id && form ? form : b;
+          const status = bannerStatus(shown, now);
           return (
             <div key={b.id} className="border-b border-white/10 last:border-b-0">
               <div className="flex flex-wrap items-center gap-3 px-3 py-2.5 sm:px-4">
+                {editing === null && (
+                  <div className="flex shrink-0 flex-col">
+                    <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Onglet vers la gauche"
+                      className="min-h-6 min-w-10 cursor-pointer text-white/60 hover:text-white disabled:cursor-default disabled:opacity-25">▲</button>
+                    <button type="button" onClick={() => move(i, 1)} disabled={i === banners.length - 1} aria-label="Onglet vers la droite"
+                      className="min-h-6 min-w-10 cursor-pointer text-white/60 hover:text-white disabled:cursor-default disabled:opacity-25">▼</button>
+                  </div>
+                )}
                 <span className="h-10 w-10 shrink-0 rounded-lg border border-white/20" style={{ background: `linear-gradient(135deg, ${shown.theme.deep}, ${shown.theme.dark})`, boxShadow: `0 0 12px ${shown.theme.glow}` }} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-base font-bold" style={{ color: shown.theme.hi }}>{shown.title}</div>
-                  <div className="truncate text-sm text-white/70">{shown.subtitle || '—'} · {shown.memberIds.length} persos</div>
+                  <div className="truncate text-sm text-white/70">
+                    {shown.subtitle || '—'} · {shown.memberIds.length} persos
+                    {status === 'scheduled' && shown.startsAt && <> · ouvre le {formatDate(shown.startsAt)}</>}
+                    {status === 'live' && shown.endsAt && <> · fin dans {formatTimeLeft(shown.endsAt - now)}</>}
+                  </div>
                 </div>
-                {!b.inCode && <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-sm font-bold text-emerald-300">Nouvelle</span>}
-                {b.inCode && draft.banners[b.id] && <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-sm font-bold text-amber-300">Modifiée</span>}
-                {shown.hidden && <span className="rounded-full bg-white/10 px-2 py-0.5 text-sm font-bold text-white/70">Masquée</span>}
+                <Badge tone={STATUS[status].tone}>{STATUS[status].label}</Badge>
+                {!b.inCode && <Badge tone="green">Ajoutée</Badge>}
+                {b.inCode && draft.banners[b.id] && <Badge tone="amber">Modifiée</Badge>}
+                {shown.rateUp && <Badge tone="amber">{`Vedettes ×${FEATURED_RATE_UP}`}</Badge>}
                 {editing !== b.id && (
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => open(b)} disabled={editing !== null}>Modifier</Button>
-                    {draft.banners[b.id] && <Button size="sm" tone="red" onClick={() => revert(b.id)} disabled={editing !== null}>{b.inCode ? 'Rétablir' : 'Retirer'}</Button>}
+                    {(!b.inCode || draft.banners[b.id]) && (
+                      <Button size="sm" tone="red" onClick={() => remove(b)} disabled={editing !== null}>{b.inCode ? 'Rétablir' : 'Supprimer'}</Button>
+                    )}
                   </div>
                 )}
               </div>
 
               {editing === b.id && form && (
                 <div className="grid grid-cols-1 gap-3 border-t border-white/10 bg-black/25 px-3 py-4 sm:grid-cols-2 sm:px-4 lg:grid-cols-4">
+                  {/* Aperçu du visuel, comme en jeu */}
+                  <div className="flex min-h-28 items-end justify-center gap-2 overflow-hidden rounded-xl border px-3 pt-3 sm:col-span-2 lg:col-span-4"
+                    style={{ borderColor: `${form.theme.accent}99`, background: `radial-gradient(ellipse at 50% 35%, ${form.theme.deep} 0%, ${form.theme.dark} 70%)`, boxShadow: `0 0 18px ${form.theme.glow}` }}>
+                    {visualIds(form).length === 0 && <span className="self-center text-sm text-white/60">Ajoute des persos pour voir le visuel</span>}
+                    {visualIds(form).map(id => <CardThumb key={id} id={id} image={rowOf.get(id)?.image} className="h-24 w-20" />)}
+                  </div>
+
                   <Field label="Titre" className="sm:col-span-2"><TextInput value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></Field>
                   <Field label="Sous-titre" className="sm:col-span-2"><TextInput value={form.subtitle} onChange={e => setForm({ ...form, subtitle: e.target.value })} /></Field>
                   {COLOR_FIELDS.map(c => (
@@ -175,10 +200,40 @@ export function BannersEditor({ draft, onChange }: { draft: ContentOverrides; on
                       </div>
                     </Field>
                   ))}
+
+                  {form.id !== 'vol1' && <>
+                  <Field label="Début (vide = tout de suite)" className="sm:col-span-2">
+                    <div className="flex gap-2">
+                      <TextInput type="datetime-local" value={toLocalInput(form.startsAt)} onChange={e => setForm({ ...form, startsAt: fromLocalInput(e.target.value) })} />
+                      {form.startsAt && <Button onClick={() => setForm({ ...form, startsAt: undefined })}>✕</Button>}
+                    </div>
+                  </Field>
+                  <Field label="Fin (vide = permanente)" className="sm:col-span-2">
+                    <div className="flex gap-2">
+                      <TextInput type="datetime-local" value={toLocalInput(form.endsAt)} onChange={e => setForm({ ...form, endsAt: fromLocalInput(e.target.value) })} />
+                      {form.endsAt && <Button onClick={() => setForm({ ...form, endsAt: undefined })}>✕</Button>}
+                    </div>
+                  </Field>
+                  {!form.endsAt && (
+                    <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-4">
+                      <span className="text-sm text-white/75">Durée rapide :</span>
+                      {[3, 7, 14, 30].map(d => (
+                        <Button key={d} size="sm" onClick={() => setForm({ ...form, endsAt: (form.startsAt ?? Date.now()) + d * 86_400_000 })}>
+                          {d} jours
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  </>}
+
                   <div className="flex flex-wrap gap-x-5 sm:col-span-2 lg:col-span-4">
                     <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white/85">
                       <input type="checkbox" className="h-5 w-5 accent-violet-500" checked={form.isNew} onChange={e => setForm({ ...form, isNew: e.target.checked })} />
                       Badge « NEW »
+                    </label>
+                    <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white/85">
+                      <input type="checkbox" className="h-5 w-5 accent-violet-500" checked={form.rateUp} onChange={e => setForm({ ...form, rateUp: e.target.checked })} />
+                      Taux augmenté : vedettes ×{FEATURED_RATE_UP} à rareté égale
                     </label>
                     {form.id !== 'vol1' && (
                       <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white/85">
@@ -190,7 +245,7 @@ export function BannersEditor({ draft, onChange }: { draft: ContentOverrides; on
 
                   <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-4">
                     <span className="text-sm font-semibold text-white/75">
-                      Persos {form.id === 'vol1' ? '(la Vol.1 contient automatiquement tous les persos tirables)' : `(${form.memberIds.length})`} — ⭐ = mis en avant sur le visuel ({form.featuredIds.length}/6)
+                      Persos {form.id === 'vol1' ? '(la Vol.1 contient automatiquement tous les persos tirables, sauf les persos limités)' : `(${form.memberIds.length})`} — ⭐ = vedette du visuel ({form.featuredIds.length}/6)
                     </span>
                     <div className="flex flex-wrap gap-2">
                       <TextInput value={adding} onChange={e => setAdding(e.target.value)} list="gv-tirable" className="min-w-0 flex-1 basis-56"
@@ -202,15 +257,14 @@ export function BannersEditor({ draft, onChange }: { draft: ContentOverrides; on
                       {(form.id === 'vol1' ? form.memberIds.filter(id => form.featuredIds.includes(id) || !!draft.characters[id]) : form.memberIds).map(id => {
                         const featured = form.featuredIds.includes(id);
                         return (
-                          <span key={id} className="flex min-h-10 items-center gap-1 rounded-lg border border-white/15 bg-white/[0.03] pl-2 text-sm text-white/85">
-                            <button type="button" onClick={() => toggleFeatured(id)} title="Mettre en avant"
-                              className={featured ? 'min-h-10 cursor-pointer px-1 text-amber-300' : 'min-h-10 cursor-pointer px-1 text-white/40 hover:text-white/80'}>⭐</button>
+                          <span key={id} className="flex min-h-10 items-center gap-1 rounded-lg border border-white/15 bg-white/[0.03] pl-1 text-sm text-white/85">
+                            <button type="button" onClick={() => toggleFeatured(id)} title="Vedette du visuel"
+                              className={featured ? 'min-h-10 min-w-10 cursor-pointer text-amber-300' : 'min-h-10 min-w-10 cursor-pointer text-white/35 hover:text-white/80'}>⭐</button>
                             {nameOf(id)}
-                            {!form.lockedIds.includes(id) && (
-                              <button type="button" onClick={() => setForm({ ...form, memberIds: form.memberIds.filter(x => x !== id), featuredIds: form.featuredIds.filter(x => x !== id) })}
-                                className="min-h-10 min-w-10 cursor-pointer text-red-300 hover:text-red-200" aria-label={`Retirer ${nameOf(id)}`}>✕</button>
-                            )}
-                            {form.lockedIds.includes(id) && <span className="w-2" />}
+                            {form.lockedIds.includes(id)
+                              ? <span className="w-3" />
+                              : <button type="button" onClick={() => setForm({ ...form, memberIds: form.memberIds.filter(x => x !== id), featuredIds: form.featuredIds.filter(x => x !== id) })}
+                                  className="min-h-10 min-w-10 cursor-pointer text-red-300 hover:text-red-200" aria-label={`Retirer ${nameOf(id)}`}>✕</button>}
                           </span>
                         );
                       })}
@@ -220,7 +274,7 @@ export function BannersEditor({ draft, onChange }: { draft: ContentOverrides; on
 
                   {problems.length > 0 && <p className="text-sm text-amber-300 sm:col-span-2 lg:col-span-4">À compléter : {problems.join(', ')}.</p>}
                   <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
-                    <Button tone="purple" onClick={save} disabled={problems.length > 0}>Enregistrer</Button>
+                    <Button tone="purple" onClick={save} disabled={problems.length > 0}>Valider</Button>
                     <Button onClick={() => setEditing(null)}>Annuler</Button>
                   </div>
                 </div>

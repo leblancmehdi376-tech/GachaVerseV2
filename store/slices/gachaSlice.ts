@@ -2,7 +2,8 @@
 // Extrait de gameStore.ts (voir Phase 2 du refacto).
 import type { StateCreator } from 'zustand';
 import { defaultEquippedItems } from '@/types/game';
-import { rollCharacter, rollMulti, rollMulti100, GACHA_COSTS, DEFAULT_BANNER_ID, type BannerId } from '@/lib/game/gacha';
+import { rollCharacter, rollMulti, rollMulti100, canPullOnBanner, GACHA_COSTS, DEFAULT_BANNER_ID, type BannerId } from '@/lib/game/gacha';
+import { correctedNow } from '@/lib/firebase/clockOffset';
 import { getFeaturedUniverse, canExchangeForCharacter, SPARK_COSTS } from '@/lib/game/featuredBanner';
 import { getCharacterById } from '@/lib/game/characters';
 import { getVoidOrbsForCharacter } from '@/lib/game/shop';
@@ -59,6 +60,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
 
   // ─── Gacha ────────────────────────────────────────────────────────
   pullSingle: (bannerId = DEFAULT_BANNER_ID) => {
+    if (!canPullOnBanner(bannerId, correctedNow())) return null; // bannière terminée ou masquée
     const cost = get().getGachaCosts().single;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
@@ -74,6 +76,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     return { templateId: id, edition };
   },
   pullMulti: (bannerId = DEFAULT_BANNER_ID) => {
+    if (!canPullOnBanner(bannerId, correctedNow())) return null;
     const cost = get().getGachaCosts().multi10;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));
@@ -89,6 +92,7 @@ export const createGachaSlice: StateCreator<GameStore, [], [], GachaActions> = (
     return results;
   },
   pullMulti100: (bannerId = DEFAULT_BANNER_ID) => {
+    if (!canPullOnBanner(bannerId, correctedNow())) return null;
     const cost = get().getGachaCosts().multi100;
     if (get().nekoGems < cost) return null;
     set(s => ({ nekoGems: s.nekoGems - cost, totalGemsSpent: (s.totalGemsSpent ?? 0) + cost }));

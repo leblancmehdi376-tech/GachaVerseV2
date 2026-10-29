@@ -67,6 +67,7 @@ function contentForms(input: CharacterInput, base: EvoForm[] | undefined, id: st
 export function applyCharacterContent(
   pool: CharacterTemplate[],
   excludedFromGacha: Set<string>,
+  bannerOnly: Set<string>,
   c: ContentOverrides | null,
 ): void {
   if (!c) return;
@@ -103,6 +104,7 @@ export function applyCharacterContent(
       byId.set(id, tpl);
     }
     if (input.excludeFromGacha) excludedFromGacha.add(id);
+    if (input.bannerOnly) bannerOnly.add(id);
   }
 }
 
@@ -112,7 +114,8 @@ export function applyGenderContent(genders: Record<string, Gender>, c: ContentOv
 }
 
 // `banners` contient déjà vol1 et vol2 (pools du code). Les pools des
-// bannières ajoutées sont construits ici à partir de `characterIds`.
+// bannières ajoutées sont construits ici à partir de `characterIds`. L'ordre
+// des onglets suit `order` (bannières du code d'abord, à défaut).
 export function applyBannerContent(
   banners: GachaBanner[],
   getById: (id: string) => CharacterTemplate | undefined,
@@ -122,6 +125,7 @@ export function applyBannerContent(
   if (!c) return;
   const resolve = (ids: string[] | undefined) =>
     (ids ?? []).map(getById).filter((t): t is CharacterTemplate => !!t && isTirable(t));
+  const codeIndex = new Map(banners.map((b, i) => [b.id, i]));
   for (const [id, input] of Object.entries(c.banners)) {
     const existing = banners.find(b => b.id === id);
     const meta = {
@@ -131,6 +135,10 @@ export function applyBannerContent(
       ...(input.theme && { theme: input.theme }),
       ...(input.isNew !== undefined && { isNew: input.isNew }),
       ...(input.hidden !== undefined && { hidden: input.hidden }),
+      ...(input.startsAt !== undefined && { startsAt: input.startsAt }),
+      ...(input.endsAt !== undefined && { endsAt: input.endsAt }),
+      ...(input.rateUp !== undefined && { rateUp: input.rateUp }),
+      ...(input.order !== undefined && { order: input.order }),
     };
     if (existing) {
       Object.assign(existing, meta);
@@ -148,9 +156,12 @@ export function applyBannerContent(
       banners.push({
         id, title: input.title, subtitle: input.subtitle ?? '', pool,
         featuredIds: (input.featuredIds ?? []).filter(f => getById(f)),
-        isNew: input.isNew, hidden: input.hidden,
         theme: input.theme ?? { accent: '#22d3ee', hi: '#a5f3fc', dark: '#04161c', deep: '#0e5466', glow: 'rgba(34,211,238,0.35)' },
+        ...meta,
       });
     }
   }
+  // Tri stable : `order` choisi dans le configurateur, sinon position du code, puis ajout.
+  const rank = (b: GachaBanner) => b.order ?? codeIndex.get(b.id) ?? 1000;
+  banners.sort((a, b) => rank(a) - rank(b));
 }
