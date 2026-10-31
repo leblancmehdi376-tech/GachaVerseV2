@@ -27,6 +27,8 @@ import type { GoldGainBreakdown } from './gameStoreHelpers';
 import type { PeripleDaily, PeripleStats } from '@/lib/game/periple';
 import type { PeripleLoot, PeriplePending, PeripleRollResult, PeripleChanceResult, PeripleWheelResult } from './slices/peripleSlice';
 import type { Medal } from '@/lib/game/periple';
+import type { PlinkoDaily, PlinkoHistoryEntry, PlinkoStats, PlinkoUpgradeId, PlinkoUpgradeLevels } from '@/lib/game/plinko';
+import type { PlinkoDropResult } from './slices/plinkoSlice';
 import type { NakimeRun, NakimeMetaLevels, MetaUpgradeId } from '@/lib/game/nakime';
 import type { GuideState } from '@/lib/game/nekozGuide';
 import type { NakimeNodeOutcome, NakimeRunEnd, NakimeHistoryEntry, NakimeTotals, NakimeBattleOutcome, NakimeGachaResult } from './slices/nakimeSlice';
@@ -416,6 +418,26 @@ export interface PeripleActions {
 }
 export type PeripleSlice = PeripleState & PeripleActions;
 
+export interface PlinkoState {
+  plinkoEventId: string;                // édition de l'événement des champs ci-dessous
+  plinkoDaily: PlinkoDaily;             // billes utilisées aujourd'hui
+  plinkoTokens: number;                 // monnaie de la boutique d'améliorations
+  plinkoUpgrades: PlinkoUpgradeLevels;  // niveaux achetés (toute l'édition)
+  plinkoHistory: PlinkoHistoryEntry[];  // derniers lancers, le plus récent en tête
+  plinkoDrops: number;                  // lancers de l'édition
+  plinkoStats: PlinkoStats;             // compteurs des quêtes de l'événement
+  plinkoQuestsClaimed: string[];        // quêtes de l'événement réclamées
+}
+export interface PlinkoActions {
+  ensurePlinko: () => void;
+  // Lance une bille : case tirée et récompense créditée immédiatement.
+  dropPlinko: () => PlinkoDropResult | null;
+  buyPlinkoUpgrade: (id: PlinkoUpgradeId) => boolean;
+  /** Gemmes gagnées, ou null si la quête n'est pas réclamable. */
+  claimPlinkoQuest: (id: string) => number | null;
+}
+export type PlinkoSlice = PlinkoState & PlinkoActions;
+
 // ─── Château de Nakime (roguelike infini, jamais reset au Prestige) ───────────
 export interface NakimeState {
   nakimeRun: NakimeRun | null;          // run en cours (sauvegardée : pas de reroll au refresh)
@@ -620,6 +642,7 @@ export type GameStore = GameState
   & AnomalySlice
   & GachaDleSlice
   & PeripleSlice
+  & PlinkoSlice
   & NakimeSlice
   & GuideSlice
   & {

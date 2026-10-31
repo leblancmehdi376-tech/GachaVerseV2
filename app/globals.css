@@ -2767,6 +2767,104 @@ html, body {
 @keyframes ppHuntIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
 @keyframes ppHuntHit { to { opacity: 0; transform: scale(1.15); } }
 
+/* ════════════════════════════════════════════════════════════════
+   PLINKO MULTIVERSEL — événement mensuel
+   (components/pages/PlinkoPage.tsx et components/pages/plinko/*).
+   Reprend la mise en page du Périple (.pp-*) ; seuls le plateau et
+   les cases sont propres au Plinko.
+   ════════════════════════════════════════════════════════════════ */
+.plk-banner { background: linear-gradient(120deg, #1e1b4b 0%, #4c1d95 40%, #831843 80%, #7c2d12 100%); }
+.plk-frame {
+  border-radius: 22px; padding: 14px 10px 10px;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(168,85,247,0.28), transparent 70%),
+    linear-gradient(180deg, rgba(30,20,70,0.95), rgba(10,6,28,0.98));
+  border: 2px solid rgba(196,181,253,0.4);
+  box-shadow: 0 10px 34px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.plk-board { width: 100%; max-width: 640px; margin: 0 auto; }
+.plk-board__svg { display: block; width: 100%; height: auto; overflow: visible; }
+.plk-peg { transform-box: fill-box; transform-origin: center; }
+.plk-peg.is-hit { animation: plkPegHit 0.35s ease-out; }
+.plk-ball { filter: drop-shadow(0 0 6px rgba(251,191,36,0.85)); }
+@keyframes plkPegHit { 0% { transform: scale(1.9); filter: drop-shadow(0 0 6px #fde68a); } 100% { transform: scale(1); } }
+
+.plk-slots { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 3px; margin-top: 2px; }
+.plk-slot {
+  min-height: 52px; min-width: 0; padding: 4px 0; border-radius: 0 0 10px 10px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: linear-gradient(180deg, rgba(139,92,246,0.18), rgba(76,29,149,0.45));
+  border: 1px solid rgba(196,181,253,0.3); border-top: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.plk-slot__icon { font-size: 20px; line-height: 1; }
+.plk-slot__amount { font-family: var(--f-num); font-weight: 800; font-size: 14px; color: #fff; line-height: 1; }
+.plk-slot--tokens { background: linear-gradient(180deg, rgba(251,191,36,0.16), rgba(146,64,14,0.45)); }
+.plk-slot--crowns { background: linear-gradient(180deg, rgba(244,63,94,0.16), rgba(136,19,55,0.45)); }
+.plk-slot--chestRare, .plk-slot--chestEpic { background: linear-gradient(180deg, rgba(56,189,248,0.16), rgba(12,74,110,0.5)); }
+.plk-slot.is-rare { border-color: rgba(244,114,182,0.7); box-shadow: inset 0 0 12px rgba(236,72,153,0.35); }
+.plk-slot--booster { background: linear-gradient(180deg, rgba(236,72,153,0.3), rgba(131,24,67,0.6)); }
+.plk-slot--goldBooster {
+  background: linear-gradient(180deg, #fde68a, #f59e0b 55%, #92400e);
+  border-color: #fde68a; box-shadow: 0 0 14px rgba(251,191,36,0.7);
+}
+.plk-slot.is-selected { outline: 2px solid #fff; outline-offset: -2px; }
+.plk-slot.is-landed { animation: plkLand 0.9s ease-out; transform: translateY(2px); box-shadow: 0 0 18px rgba(253,230,138,0.9); }
+@keyframes plkLand { 0% { transform: translateY(8px) scale(1.12); filter: brightness(1.8); } 100% { transform: translateY(2px); } }
+
+.plk-detail {
+  min-height: 44px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; text-align: center;
+  font-family: var(--f-ui); font-weight: 600; font-size: 14px; color: var(--text-sub);
+}
+.plk-detail b { color: #fff; }
+.plk-balls { display: flex; gap: 8px; flex-wrap: wrap; }
+.plk-balls span {
+  width: 40px; height: 40px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.22); background: rgba(255,255,255,0.04);
+}
+@media (max-width: 480px) { .plk-balls span { width: 32px; height: 32px; } }
+.plk-quests { margin-top: 16px; }
+.plk-balls span.is-full {
+  border: 2px solid rgba(253,230,138,0.8);
+  background: radial-gradient(circle at 35% 30%, #fff, #fde68a 45%, #f59e0b);
+  box-shadow: 0 0 12px rgba(251,191,36,0.55);
+}
+.plk-note { margin-top: 10px; font-family: var(--f-ui); font-weight: 600; font-size: 14px; color: var(--text-sub); }
+.plk-last {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px;
+  font-family: var(--f-ui); font-size: 18px; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+}
+.plk-last.is-gold { background: linear-gradient(90deg, rgba(251,191,36,0.35), rgba(146,64,14,0.3)); border-color: #fde68a; box-shadow: 0 0 18px rgba(251,191,36,0.45); }
+.plk-history { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.plk-history span {
+  padding: 4px 10px; border-radius: 999px; font-family: var(--f-num); font-weight: 700; font-size: 14px; color: var(--text);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+}
+.plk-upgrade {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px; border-radius: 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+}
+.plk-upgrade__icon { font-size: 32px; line-height: 1; flex-shrink: 0; }
+.plk-upgrade__name { font-family: var(--f-game); font-size: 18px; color: #fff; letter-spacing: 0.5px; }
+.plk-upgrade__name span { margin-left: 6px; font-family: var(--f-ui); font-weight: 700; font-size: 14px; color: var(--text-sub); }
+.plk-upgrade__desc { margin-top: 4px; font-family: var(--f-ui); font-weight: 600; font-size: 14px; color: var(--text-sub); }
+.plk-pips { display: flex; gap: 4px; margin-top: 6px; }
+.plk-pips span { flex: 1; max-width: 40px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); }
+.plk-pips span.is-on { background: linear-gradient(90deg, #22c55e, #86efac); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+.plk-burst--gold { filter: drop-shadow(0 0 24px rgba(251,191,36,0.8)); }
+/* Mobile : 15 cases sur ~340 px, le montant ne tient plus (il reste
+   visible en touchant la case, voir .plk-detail). */
+@media (max-width: 640px) {
+  .plk-frame { padding: 10px 4px 6px; border-radius: 16px; }
+  .plk-slots { gap: 2px; }
+  .plk-slot { min-height: 46px; }
+  .plk-slot__icon { font-size: 16px; }
+  .plk-slot__amount { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plk-peg.is-hit, .plk-slot.is-landed { animation: none; }
+}
+
 body.pp-modal-open .pp-page .pp-loop,
 body.pp-modal-open .pp-page .pp-loop::before,
 body.pp-modal-open .pp-page .pp-loop::after { animation-play-state: paused; }

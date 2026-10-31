@@ -15,9 +15,11 @@ import { EnemiesEditor } from './EnemiesEditor';
 import { CharactersEditor } from './CharactersEditor';
 import { BannersEditor } from './BannersEditor';
 import { HistoryPanel } from './HistoryPanel';
+import { ReleasePanel, releaseError } from './ReleasePanel';
 
-// Configurateur de contenu : on modifie un BROUILLON (enregistré tout seul),
-// puis on le relit et on le publie — les joueurs le reçoivent au prochain
+// Configurateur de contenu : on crée une MAJ (numéro de version + notes), on
+// modifie le BROUILLON (enregistré tout seul) pour y mettre son contenu, puis
+// on la relit et on la pousse — les joueurs le reçoivent au prochain
 // lancement du jeu (voir lib/game/content). Cette page lit toujours les
 // données du CODE (elle ne passe pas par ContentGate) : le brouillon ne
 // contient que les écarts avec elles.
@@ -125,24 +127,28 @@ export function ContentTab() {
   };
 
   const openReview = () => {
-    setReview({ check: validateDraft(draft, BASE_INFO, live), changes: diffContent(live, draft) });
+    const check = validateDraft(draft, BASE_INFO, live);
+    const relErr = releaseError(draft.release, live);
+    setReview({ check: relErr ? { ...check, errors: [relErr, ...check.errors] } : check, changes: diffContent(live, draft) });
     setMsg(null);
   };
 
   const publish = () => run('publish', async () => {
-    const published = await publishContent(draft, liveVersion);
+    const published = await publishContent(draft, live);
+    const pushed = draft.release?.version;
     setLive(published);
     setAdminLiveContent(published);
     replaceDraft(published);
     setMsg(local
-      ? `✅ Version ${published.version} publiée dans ce navigateur : recharge le jeu (localhost:3000) pour la voir.`
-      : `✅ Version ${published.version} publiée. Les joueurs la reçoivent à leur prochain lancement du jeu.`);
+      ? `✅ Maj v${pushed} publiée dans ce navigateur : recharge le jeu (localhost:3000) pour la voir.`
+      : `✅ Maj v${pushed} publiée. Les joueurs la reçoivent à leur prochain lancement du jeu.`);
   });
 
   // Repart de la version en ligne : toutes les modifications non publiées sont perdues.
   const discard = () => run('discard', async () => {
     if (!window.confirm('Abandonner toutes les modifications non publiées du brouillon ?')) return;
     const fresh = structuredClone(live ?? emptyContent());
+    if (draft.release) fresh.release = draft.release; // la maj en préparation reste, vide
     await saveDraft(fresh);
     replaceDraft(fresh);
     setMsg('✅ Brouillon remis sur la version en ligne.');
@@ -151,14 +157,15 @@ export function ContentTab() {
   const restore = (old: ContentOverrides, label: string) => run('restore', async () => {
     if (!window.confirm(`Restaurer : ${label} ?\nCela remplace la version en ligne, et le brouillon actuel sera perdu.`)) return;
     await prepareContentImages(collectContentImages(old));
-    const published = await restoreVersion(old, liveVersion);
+    const published = await restoreVersion(old, live);
     setLive(published);
     setAdminLiveContent(published);
     replaceDraft(published);
     setMsg(`✅ Version ${published.version} publiée — restauration : ${label}.`);
   });
 
-  const pendingChanges = diffContent(live, draft).length;
+  const draftChanges = diffContent(live, draft);
+  const pendingChanges = draftChanges.length;
   const saveStatus = saveError ? `⚠️ Brouillon non enregistré (${saveError})`
     : edits !== savedEdits ? 'Enregistrement du brouillon…' : 'Brouillon enregistré';
 
@@ -176,11 +183,13 @@ export function ContentTab() {
       <Card>
         <SectionHeader icon="🧩" title="Contenu du jeu"
           subtitle={<>
-            Version en ligne : <b>{liveVersion || 'aucune (contenu du code)'}</b> · {pendingChanges ? `${pendingChanges} changement(s) non publié(s)` : 'rien à publier'} · <span className={saveError ? 'text-amber-300' : ''}>{saveStatus}</span>
+            En ligne : <b>{live?.releases?.[0] ? `maj v${live.releases[0].version}` : liveVersion ? `version ${liveVersion}` : 'aucune (contenu du code)'}</b> · {pendingChanges ? `${pendingChanges} changement(s) non publié(s)` : 'rien à publier'} · <span className={saveError ? 'text-amber-300' : ''}>{saveStatus}</span>
           </>}
           right={<>
             <Button tone="red" onClick={discard} disabled={!!busy || pendingChanges === 0} title="Repartir de la version en ligne">↺ Abandonner</Button>
-            <Button tone="green" onClick={openReview} disabled={!!busy || editingSections.length > 0}>🚀 Publier…</Button>
+            <Button tone="green" onClick={openReview} disabled={!!busy || editingSections.length > 0 || !draft.release}>
+              🚀 {draft.release ? `Pousser la maj v${draft.release.version}…` : 'Publier…'}
+            </Button>
           </>} />
         {editingSections.length > 0 && (
           <p className="mb-3 text-sm text-amber-300">
@@ -191,7 +200,9 @@ export function ContentTab() {
 
         {review && (
           <div className="mb-4 flex flex-col gap-3 rounded-xl border border-emerald-400/30 bg-emerald-400/[0.04] p-3 sm:p-4">
-            <div className="text-base font-extrabold text-white">Relecture avant publication de la version {liveVersion + 1}</div>
+            <div className="text-base font-extrabold text-white">
+              Relecture avant de pousser la maj v{draft.release?.version}{draft.release?.title ? ` — ${draft.release.title}` : ''}
+            </div>
             {review.changes.length === 0
               ? <p className="text-sm text-white/75">Aucun changement par rapport à la version en ligne.</p>
               : (
@@ -206,11 +217,16 @@ export function ContentTab() {
             <p className="text-sm text-white/70">Brouillon : {summarizeContent(draft)}.</p>
             <div className="flex flex-wrap gap-2">
               <Button tone="green" onClick={publish} disabled={!!busy || review.check.errors.length > 0 || review.changes.length === 0}>
-                {busy === 'publish' ? 'Publication…' : '✅ Confirmer la publication'}
+                {busy === 'publish' ? 'Envoi…' : `✅ Pousser la maj v${draft.release?.version ?? ''}`}
               </Button>
               <Button onClick={() => setReview(null)}>Retour</Button>
             </div>
           </div>
+        )}
+
+        {!review && (
+          <ReleasePanel key={generation} draft={draft} live={live} changes={draftChanges} onChange={change}
+            onPush={openReview} busy={!!busy || editingSections.length > 0} />
         )}
 
         <Segmented label="Type de contenu" value={section} onChange={setSection} className="mb-4"

@@ -13,6 +13,7 @@ import { coerceBonusLevels } from '@/lib/game/prestige';
 import type { Quest } from '@/store/gameStore.types';
 import { ACHIEVEMENT_BY_ID, type CharMastery } from '@/lib/game/achievements';
 import { emptyPeripleDaily, type PeripleStats } from '@/lib/game/periple';
+import { emptyPlinkoDaily, type PlinkoDaily, type PlinkoStats, type PlinkoUpgradeLevels } from '@/lib/game/plinko';
 import { initialGuideState, mergeGuideState, type GuideState } from '@/lib/game/nekozGuide';
 
 // Logique pure/orchestration de la synchro cloud (indépendante de React) —
@@ -164,6 +165,16 @@ export function getSerializableState() {
     periplePending:      s.periplePending ?? null,
     peripleStats:        s.peripleStats ?? {},
     peripleQuestsClaimed: s.peripleQuestsClaimed ?? [],
+    // Plinko Multiversel — billes du jour, jetons et améliorations suivent le
+    // joueur d'un appareil à l'autre.
+    plinkoEventId:  s.plinkoEventId ?? '',
+    plinkoDaily:    s.plinkoDaily ?? emptyPlinkoDaily(),
+    plinkoTokens:   s.plinkoTokens ?? 0,
+    plinkoUpgrades: s.plinkoUpgrades ?? {},
+    plinkoHistory:  s.plinkoHistory ?? [],
+    plinkoDrops:    s.plinkoDrops ?? 0,
+    plinkoStats:    s.plinkoStats ?? {},
+    plinkoQuestsClaimed: s.plinkoQuestsClaimed ?? [],
     // Château de Nakime — run en cours, record et entrées du jour suivent le
     // joueur d'un appareil à l'autre.
     nakimeRun:          s.nakimeRun ?? null,
@@ -218,6 +229,8 @@ export function mergeMonotonicState(
   achievementStats: Record<string, number>; charMastery: Record<string, CharMastery>;
   dleQuestsClaimed: string[];
   peripleQuestsClaimed: string[]; peripleTiersClaimed: number[]; peripleStats: PeripleStats;
+  plinkoDaily: PlinkoDaily; plinkoUpgrades: PlinkoUpgradeLevels; plinkoDrops: number;
+  plinkoStats: PlinkoStats; plinkoQuestsClaimed: string[];
   nakimeMilestones: number[];
   nekozGuide: GuideState;
 } {
@@ -304,6 +317,36 @@ export function mergeMonotonicState(
     }
   }
 
+  // Plinko Multiversel (même édition seulement) : billes utilisées du jour,
+  // niveaux d'amélioration et nombre de lancers ne font que grandir — sinon
+  // un appareil en retard rendrait rejouables des billes déjà lancées (ou
+  // réclamable une quête déjà payée). Compteurs des quêtes au max par clé.
+  const plinkoDaily: PlinkoDaily = { ...(current.plinkoDaily ?? emptyPlinkoDaily()) };
+  const plinkoUpgrades: PlinkoUpgradeLevels = { ...(current.plinkoUpgrades ?? {}) };
+  let plinkoDrops = current.plinkoDrops ?? 0;
+  const plinkoStats: PlinkoStats = { ...(current.plinkoStats ?? {}) };
+  const plinkoQuestsClaimed = new Set<string>(current.plinkoQuestsClaimed ?? []);
+  if (remote && remote.plinkoEventId === current.plinkoEventId) {
+    const rd = remote.plinkoDaily as Partial<PlinkoDaily> | undefined;
+    if (rd && typeof rd.day === 'string' && typeof rd.used === 'number') {
+      if (rd.day > plinkoDaily.day) { plinkoDaily.day = rd.day; plinkoDaily.used = rd.used; }
+      else if (rd.day === plinkoDaily.day) plinkoDaily.used = Math.max(plinkoDaily.used, rd.used);
+    }
+    const ru = remote.plinkoUpgrades as Record<string, unknown> | undefined;
+    if (ru) for (const [k, v] of Object.entries(ru)) {
+      const key = k as keyof PlinkoUpgradeLevels;
+      if (typeof v === 'number' && Number.isFinite(v) && v > (plinkoUpgrades[key] ?? 0)) plinkoUpgrades[key] = v;
+    }
+    if (typeof remote.plinkoDrops === 'number' && remote.plinkoDrops > plinkoDrops) plinkoDrops = remote.plinkoDrops;
+    const rs = remote.plinkoStats as Record<string, unknown> | undefined;
+    if (rs) for (const [k, v] of Object.entries(rs)) {
+      const key = k as keyof PlinkoStats;
+      if (typeof v === 'number' && Number.isFinite(v) && v > (plinkoStats[key] ?? 0)) plinkoStats[key] = v;
+    }
+    const rq = remote.plinkoQuestsClaimed as string[] | undefined;
+    if (Array.isArray(rq)) for (const id of rq) if (typeof id === 'string') plinkoQuestsClaimed.add(id);
+  }
+
   // Château de Nakime : un palier de record réclamé ne doit jamais redevenir
   // réclamable (sinon ses gemmes pourraient être touchées deux fois).
   const nakimeMilestones = new Set<number>(current.nakimeMilestones ?? []);
@@ -322,6 +365,7 @@ export function mergeMonotonicState(
     peripleQuestsClaimed: Array.from(peripleQuestsClaimed),
     peripleTiersClaimed: Array.from(peripleTiersClaimed).sort((a, b) => a - b),
     peripleStats,
+    plinkoDaily, plinkoUpgrades, plinkoDrops, plinkoStats, plinkoQuestsClaimed: Array.from(plinkoQuestsClaimed),
   };
 }
 
@@ -380,6 +424,13 @@ function applyRemoteState(rawData: Record<string, unknown>) {
     delete data.peripleQuestsClaimed;
     delete data.peripleTiersClaimed;
     delete data.peripleStats;
+  }
+  if (data.plinkoEventId === useGameStore.getState().plinkoEventId) {
+    delete data.plinkoDaily;
+    delete data.plinkoUpgrades;
+    delete data.plinkoDrops;
+    delete data.plinkoStats;
+    delete data.plinkoQuestsClaimed;
   }
 
   // Migration BigNum : une sauvegarde cloud écrite par une version antérieure

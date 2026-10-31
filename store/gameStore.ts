@@ -38,6 +38,8 @@ import { createAnomalySlice } from './slices/anomalySlice';
 import { createGachaDleSlice } from './slices/gachaDleSlice';
 import { createPeripleSlice } from './slices/peripleSlice';
 import { emptyPeripleDaily } from '@/lib/game/periple';
+import { createPlinkoSlice } from './slices/plinkoSlice';
+import { emptyPlinkoDaily } from '@/lib/game/plinko';
 import { createNakimeSlice, emptyNakimeTotals } from './slices/nakimeSlice';
 import { migrateAnomalies } from '@/lib/game/anomalies';
 import { createGuideSlice } from './slices/guideSlice';
@@ -168,6 +170,16 @@ const makeInitial = () => ({
   periplePending: null as GameStore['periplePending'],
   peripleStats: {} as GameStore['peripleStats'],
   peripleQuestsClaimed: [] as string[],
+  // ── Plinko Multiversel (jamais reset au Prestige) ──
+  // plinkoEventId vide : ensurePlinko() initialise l'édition en cours.
+  plinkoEventId: '',
+  plinkoDaily: emptyPlinkoDaily(),
+  plinkoTokens: 0,
+  plinkoUpgrades: {} as GameStore['plinkoUpgrades'],
+  plinkoHistory: [] as GameStore['plinkoHistory'],
+  plinkoDrops: 0,
+  plinkoStats: {} as GameStore['plinkoStats'],
+  plinkoQuestsClaimed: [] as string[],
   // ── Château de Nakime (jamais reset au Prestige) ──
   nakimeRun: null as GameStore['nakimeRun'],
   nakimeBestFloor: 0,
@@ -274,6 +286,7 @@ export const useGameStore = create<GameStore>()(
       ...createAnomalySlice(set, get, api),
       ...createGachaDleSlice(set, get, api),
       ...createPeripleSlice(set, get, api),
+      ...createPlinkoSlice(set, get, api),
       ...createNakimeSlice(set, get, api),
       ...createGuideSlice(set, get, api),
 
@@ -472,6 +485,10 @@ export const useGameStore = create<GameStore>()(
         periplePoints:s.periplePoints ?? 0, peripleTiersClaimed:s.peripleTiersClaimed ?? [],
         peripleShopBought:s.peripleShopBought ?? {}, peripleDaily:s.peripleDaily ?? emptyPeripleDaily(),
         periplePending:s.periplePending ?? null, peripleStats:s.peripleStats ?? {}, peripleQuestsClaimed:s.peripleQuestsClaimed ?? [],
+        // Plinko Multiversel — jamais reset au Prestige.
+        plinkoEventId:s.plinkoEventId ?? '', plinkoDaily:s.plinkoDaily ?? emptyPlinkoDaily(), plinkoTokens:s.plinkoTokens ?? 0,
+        plinkoUpgrades:s.plinkoUpgrades ?? {}, plinkoHistory:s.plinkoHistory ?? [], plinkoDrops:s.plinkoDrops ?? 0,
+        plinkoStats:s.plinkoStats ?? {}, plinkoQuestsClaimed:s.plinkoQuestsClaimed ?? [],
         // Château de Nakime — jamais reset au Prestige ; la run en cours est
         // persistée pour qu'un refresh ne permette pas de rejouer un combat.
         nakimeRun:s.nakimeRun ?? null, nakimeBestFloor:s.nakimeBestFloor ?? 0, nakimeRunsPlayed:s.nakimeRunsPlayed ?? 0,

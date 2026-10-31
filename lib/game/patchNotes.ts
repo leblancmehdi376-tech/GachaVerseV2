@@ -21,9 +21,26 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    date: '24/10/2026',
+    date: '01/11/2026',
     title: `Maj v${GAME_VERSION}`,
     sections: [
+      {
+        icon: '🎯',
+        title: 'Plinko Multiversel',
+        changes: [
+          "Nouvel **événement du mois** dans l'onglet Événements, jusqu'au **1er décembre à 2 h** : le **Plinko Multiversel**.",
+          "Chaque jour, **5 billes** offertes (jusqu'à **8** avec les améliorations), renouvelées à 2 h. Les billes non jouées ne sont pas reportées.",
+          "Lâche une bille : elle rebondit sur les picots et tombe dans l'une des **15 cases** (gemmes, couronnes, coffres, jetons Plinko…).",
+          "Case **Booster classique** : **5 cartes**, dont une **Stellaire ou mieux** garantie.",
+          "Case **Booster doré**, la plus rare du plateau : **5 cartes**, dont une **Primordiale ou mieux** garantie.",
+          "Si tu n'as pas encore débloqué cette rareté, la carte garantie est de la **meilleure rareté** que tu peux tirer.",
+          "Touche une case pour voir sa récompense et sa **probabilité exacte**.",
+          "Les **jetons Plinko** achètent 4 améliorations à plusieurs niveaux : **Stock de billes**, **Chance**, **Gains** et **Gros boosters**.",
+          "Les améliorations durent tout l'événement et sont remises à zéro à la fin.",
+          "**12 quêtes de l'événement** à accomplir jusqu'à la fin du Plinko, pour **15 000 gemmes** au total.",
+          "Le **Grand Périple** se termine et quitte l'onglet Événements.",
+        ],
+      },
       {
         icon: '😼',
         title: "Quelqu'un vous observe",
@@ -36,6 +53,13 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
           "Sa progression n'est **jamais remise à zéro** par le Prestige, et elle te suit d'un appareil à l'autre.",
           "De **nouveaux secrets** se sont glissés dans le jeu, dont un **Lien légendaire** caché. Ouvre l'œil.",
           "Merci d'être restés. — ???",
+        ],
+      },
+      {
+        icon: '📋',
+        title: 'Patch Notes',
+        changes: [
+          "Les **nouvelles majs** (persos, paliers, ennemis, bannières) peuvent maintenant arriver **sans mise à jour du jeu** : elles s'affichent ici dès ton prochain lancement.",
         ],
       },
     ],

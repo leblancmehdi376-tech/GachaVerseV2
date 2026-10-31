@@ -9,7 +9,7 @@
 // (voir loader.ts), donc le jeu local l'utilise au prochain chargement.
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { parseContent, emptyContent, type ContentOverrides } from './schema';
+import { parseContent, emptyContent, RELEASES_LIMIT, type ContentOverrides } from './schema';
 
 const LOCAL_DRAFT_KEY = 'gv-content-draft-v1';
 const LOCAL_LIVE_KEY = 'gv-content-live-v1'; // même clé que loader.ts
@@ -48,9 +48,17 @@ export async function saveDraft(draft: ContentOverrides): Promise<void> {
   await setDoc(doc(db, 'content', 'draft'), draft);
 }
 
-/** Publie le brouillon : nouvelle version, archivée. Renvoie la version publiée. */
-export async function publishContent(draft: ContentOverrides, liveVersion: number): Promise<ContentOverrides> {
-  const published: ContentOverrides = { ...structuredClone(draft), version: liveVersion + 1, publishedAt: Date.now() };
+/**
+ * Publie le brouillon : nouvelle version, archivée. Renvoie la version publiée.
+ * La maj en préparation du brouillon (`release`) rejoint la liste des majs
+ * publiées ; les majs déjà publiées sont toujours gardées, même en restaurant
+ * une ancienne version.
+ */
+export async function publishContent(draft: ContentOverrides, live: ContentOverrides | null): Promise<ContentOverrides> {
+  const now = Date.now();
+  const { release, ...rest } = structuredClone(draft);
+  const releases = [...(release ? [{ ...release, publishedAt: now }] : []), ...(live?.releases ?? [])].slice(0, RELEASES_LIMIT);
+  const published: ContentOverrides = { ...rest, releases, version: (live?.version ?? 0) + 1, publishedAt: now };
   if (isLocalContentMode()) {
     localStorage.setItem(LOCAL_LIVE_KEY, JSON.stringify(published));
     localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(published));
@@ -85,8 +93,9 @@ export async function listHistory(): Promise<ContentOverrides[]> {
  * NOUVEAU numéro (l'historique n'est jamais réécrit, et les joueurs voient
  * bien un changement de version).
  */
-export function restoreVersion(old: ContentOverrides, liveVersion: number): Promise<ContentOverrides> {
-  return publishContent(old, liveVersion);
+export function restoreVersion(old: ContentOverrides, live: ContentOverrides | null): Promise<ContentOverrides> {
+  const { release: _release, ...rest } = old;
+  return publishContent(rest, live);
 }
 
 /** Résumé court d'un contenu : « 2 paliers · 10 ennemis · 3 persos · 1 bannière ». */

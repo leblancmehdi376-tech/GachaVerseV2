@@ -40,6 +40,7 @@ export function HistoryPanel({ liveVersion, busy, onRestore }: {
             <div className="min-w-0 flex-1">
               <div className="text-base font-bold text-white">
                 Version {v.version}
+                {v.releases?.[0]?.publishedAt === v.publishedAt && <> · maj v{v.releases[0].version}{v.releases[0].title ? ` — ${v.releases[0].title}` : ''}</>}
                 {v.version === liveVersion && <span className="ml-2 rounded-full bg-emerald-400/15 px-2 py-0.5 text-sm font-bold text-emerald-300">En ligne</span>}
               </div>
               <div className="text-sm text-white/70">{formatDate(v.publishedAt)} · {summarizeContent(v)}</div>

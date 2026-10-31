@@ -1,5 +1,5 @@
 'use client';
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, type ReactNode } from 'react';
 import { useNow } from '@/hooks/useNow';
 import {
   PERIPLE_MAX_DICE, PERIPLE_TIERS, PERIPLE_MISSIONS, PERIPLE_MAX_POINTS, TILE_INFO,
@@ -202,10 +202,20 @@ const fmtNum = (n: number) => n.toLocaleString('fr-FR');
 export const EventQuestsCard = memo(function EventQuestsCard({ stats, tiersClaimed, claimed, onClaim }: {
   stats: PeripleStats; tiersClaimed: number; claimed: string[]; onClaim: (id: string) => void;
 }) {
-  const rows = PERIPLE_QUESTS.map(q => {
-    const cur = getPeripleQuestProgress(q, stats, tiersClaimed);
+  const quests = PERIPLE_QUESTS.map(q => ({ ...q, cur: getPeripleQuestProgress(q, stats, tiersClaimed), icon: <QuestIcon stat={q.stat} /> }));
+  return <QuestListCard quests={quests} totalGems={PERIPLE_QUESTS_TOTAL_GEMS} claimed={claimed} onClaim={onClaim} />;
+});
+
+/** Quête d'événement à afficher (Périple, Plinko...) : progression déjà calculée. */
+export interface QuestListItem { id: string; label: string; target: number; gems: number; cur: number; icon: ReactNode }
+
+/** Carte « Quêtes de l'événement », commune aux événements. */
+export const QuestListCard = memo(function QuestListCard({ quests, totalGems, claimed, onClaim }: {
+  quests: QuestListItem[]; totalGems: number; claimed: string[]; onClaim: (id: string) => void;
+}) {
+  const rows = quests.map(q => {
     const done = claimed.includes(q.id);
-    return { q, cur, done, ready: !done && cur >= q.target };
+    return { q, cur: q.cur, done, ready: !done && q.cur >= q.target };
   });
   // Réclamables d'abord, puis les plus avancées, les réclamées en dernier.
   const order = (r: typeof rows[number]) => (r.ready ? 0 : r.done ? 2 : 1);
@@ -221,15 +231,15 @@ export const EventQuestsCard = memo(function EventQuestsCard({ stats, tiersClaim
       <div className="pp-quest-pot">
         <RewardIcon kind="gems" size={40} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="pp-quest-pot__total">{fmtNum(PERIPLE_QUESTS_TOTAL_GEMS)} gemmes à gagner</div>
-          <div className="pp-bar" style={{ height: 12, marginTop: 4 }}><div className="pp-bar__fill" style={{ width: `${(earned / PERIPLE_QUESTS_TOTAL_GEMS) * 100}%` }} /></div>
+          <div className="pp-quest-pot__total">{fmtNum(totalGems)} gemmes à gagner</div>
+          <div className="pp-bar" style={{ height: 12, marginTop: 4 }}><div className="pp-bar__fill" style={{ width: `${(earned / totalGems) * 100}%` }} /></div>
           <div className="pp-quest-pot__sub">{fmtNum(earned)} gagnées · valables jusqu&apos;à la fin de l&apos;événement</div>
         </div>
       </div>
       <div className="pp-quest-list">
         {rows.map(({ q, cur, done, ready: isReady }) => (
           <div key={q.id} className={`pp-mission${done ? ' is-done' : isReady ? ' is-ready' : ''}`}>
-            <QuestIcon stat={q.stat} />
+            {q.icon}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)', lineHeight: 1.2 }}>{q.label}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>

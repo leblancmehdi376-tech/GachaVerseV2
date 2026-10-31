@@ -2,27 +2,32 @@
 import { useState } from 'react';
 import { NAV_ICONS } from '@/components/ui/NavIcons';
 import { isPeripleActive } from '@/lib/game/periple';
+import { isPlinkoActive } from '@/lib/game/plinko';
 import { PeriplePage } from './PeriplePage';
+import { PlinkoPage } from './PlinkoPage';
 import { GachaDlePage } from './GachaDlePage';
 
-// Onglet « Événements » (rubrique Activités) : regroupe le Grand Périple
-// (événement temporaire) et le GachaDle (défi quotidien) derrière deux
-// sous-onglets. Chaque sous-page garde son propre défilement.
-type EventTab = 'periple' | 'gachadle';
+// Onglet « Événements » (rubrique Activités) : l'événement du mois (Plinko
+// Multiversel), le Grand Périple tant qu'il dure, et le GachaDle (défi
+// quotidien). Chaque sous-page garde son propre défilement.
+type EventTab = 'plinko' | 'periple' | 'gachadle';
 
-const TABS: { id: EventTab; label: string; tag: string; accent: string }[] = [
+const ALL_TABS: { id: EventTab; label: string; tag: string; accent: string }[] = [
+  { id: 'plinko',   label: 'Plinko',        tag: 'Du mois',    accent: '#f472b6' },
   { id: 'periple',  label: 'Grand Périple', tag: 'Temporaire', accent: '#fb923c' },
   { id: 'gachadle', label: 'GachaDle',      tag: 'Quotidien',  accent: '#38bdf8' },
 ];
+// Le Périple disparaît une fois terminé (son code reste, pour une prochaine édition).
+const visibleTabs = () => ALL_TABS.filter(t => t.id !== 'periple' || isPeripleActive());
 
 // Dernier sous-onglet ouvert, mémorisé sur cet appareil.
 const TAB_KEY = 'gv_events_tab';
 function loadTab(): EventTab {
   try {
     const v = localStorage.getItem(TAB_KEY);
-    if (v === 'periple' || v === 'gachadle') return v;
+    if (visibleTabs().some(t => t.id === v)) return v as EventTab;
   } catch { /* stockage indisponible */ }
-  return isPeripleActive() ? 'periple' : 'gachadle';
+  return isPlinkoActive() || !isPeripleActive() ? 'plinko' : 'periple';
 }
 
 export function EventsPage() {
@@ -35,7 +40,7 @@ export function EventsPage() {
   return (
     <div className="ev-page">
       <div className="ev-tabs" role="tablist" aria-label="Événements">
-        {TABS.map(t => {
+        {visibleTabs().map(t => {
           const Icon = NAV_ICONS[t.id];
           const active = tab === t.id;
           return (
@@ -49,7 +54,7 @@ export function EventsPage() {
         })}
       </div>
       <div className="ev-content">
-        {tab === 'periple' ? <PeriplePage /> : <GachaDlePage />}
+        {tab === 'plinko' ? <PlinkoPage /> : tab === 'periple' ? <PeriplePage /> : <GachaDlePage />}
       </div>
     </div>
   );

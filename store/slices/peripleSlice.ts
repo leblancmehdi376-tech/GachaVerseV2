@@ -9,10 +9,8 @@
 // par finishPeripleGame (adresse), playPeripleChance (cartes) ou
 // spinPeripleWheel (roue), qui créditent la récompense et libèrent le dé suivant.
 import type { StateCreator } from 'zustand';
-import type { CardEdition } from '@/types/game';
 import { rollCharacter, DEFAULT_BANNER_ID } from '@/lib/game/gacha';
 import { getTodayDayKey, getGoldPackCoins } from '@/lib/game/shop';
-import { rollEquipmentChest } from '@/lib/game/items';
 import { bnAdd } from '@/lib/game/bignum';
 import {
   PERIPLE_EVENT, PERIPLE_MAX_DICE, PERIPLE_DICE_HARD_CAP, PERIPLE_PASS_START_TOKENS, PERIPLE_POINTS_PER_PIP,
@@ -22,10 +20,12 @@ import {
   type PeripleDaily, type PeripleReward, type TileKind, type Medal, type ChanceCard, type PeripleStat,
 } from '@/lib/game/periple';
 import { toast } from '@/hooks/useToast';
+import { creditEventPulls, creditEventChests } from './eventRewards';
 import { broadcastLocalState, requestUrgentSave, runPeakPalierOf, getGoldChestMultiplier } from '../gameStoreHelpers';
 import type { GameStore, PeripleActions } from '../gameStore.types';
 
-export interface PeriplePull { templateId: string; edition: CardEdition }
+export type { EventPull as PeriplePull } from './eventRewards';
+import type { EventPull as PeriplePull } from './eventRewards';
 
 /** Ce qu'une récompense a concrètement donné (pour l'affichage). */
 export interface PeripleLoot {
@@ -82,21 +82,8 @@ function mergeLoot(a: PeripleLoot, b: PeripleLoot): PeripleLoot {
 
 export const createPeripleSlice: StateCreator<GameStore, [], [], PeripleActions> = (set, get) => {
   // Invocations offertes : même tirage que pullSingle, sans coût en gemmes.
-  const freePulls = (count: number): PeriplePull[] => {
-    if (count <= 0) return [];
-    const ids = Array.from({ length: count }, () => rollCharacter(runPeakPalierOf(get()), DEFAULT_BANNER_ID));
-    const results = ids.map(id => ({ templateId: id, edition: get().addToCollection(id) }));
-    get().recordGachaResults(ids, false);
-    get().bumpQuestProgress('d_gacha', ids.length);
-    get().bumpQuestProgress('w_gacha', ids.length);
-    // Même Jeton d'Anomalie tous les 100 tirages cumulés que pullSingle.
-    set(s => {
-      const before = s.totalGachaPulls ?? 0;
-      const total = before + ids.length;
-      return { totalGachaPulls: total, anomalyTokens: s.anomalyTokens + Math.floor(total / 100) - Math.floor(before / 100) };
-    });
-    return results;
-  };
+  const freePulls = (count: number): PeriplePull[] =>
+    creditEventPulls(set, get, Array.from({ length: Math.max(0, count) }, () => rollCharacter(runPeakPalierOf(get()), DEFAULT_BANNER_ID)));
 
   // Crédite une liste de récompenses et renvoie ce qu'elles ont donné.
   const grant = (rewards: PeripleReward[]): PeripleLoot => {
@@ -113,11 +100,7 @@ export const createPeripleSlice: StateCreator<GameStore, [], [], PeripleActions>
         case 'pulls':   loot.pulls.push(...freePulls(amount)); break;
         case 'chestRare':
         case 'chestEpic':
-          for (let i = 0; i < amount; i++) {
-            const itemId = rollEquipmentChest(kind === 'chestRare' ? 'rare' : 'epic');
-            loot.equipment.push(itemId);
-            set(s => ({ equipmentInventory: { ...s.equipmentInventory, [itemId]: (s.equipmentInventory[itemId] ?? 0) + 1 } }));
-          }
+          loot.equipment.push(...creditEventChests(set, kind === 'chestRare' ? 'rare' : 'epic', amount));
           break;
         case 'boost': {
           const ms = amount * 60_000;

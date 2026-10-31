@@ -94,6 +94,42 @@ export interface BannerInput {
   order?: number;               // position de l'onglet (plus petit = plus à gauche)
 }
 
+// Mise à jour (« maj ») : regroupe tout ce qui est ajouté ou modifié dans le
+// brouillon sous un numéro de version, publié d'un coup. Les notes s'affichent
+// dans les Patch Notes des joueurs (voir PatchNotesModal.tsx).
+export interface ReleaseInput {
+  version: string;         // ex : 2.9.0
+  title?: string;
+  notes: string[];         // une ligne par changement, **mot** en gras
+}
+
+export interface PublishedRelease extends ReleaseInput {
+  publishedAt: number;
+}
+
+export const RELEASES_LIMIT = 30;
+const RELEASE_VERSION_RE = /^\d{1,3}(\.\d{1,3}){1,4}$/;
+export const isValidReleaseVersion = (v: string) => RELEASE_VERSION_RE.test(v);
+
+/** Version suivante : dernier nombre + 1 (2.8.2.14 → 2.8.2.15). */
+export function bumpReleaseVersion(v: string): string {
+  const parts = v.split('.');
+  const last = Number(parts[parts.length - 1]);
+  if (!isValidReleaseVersion(v) || !Number.isFinite(last)) return v;
+  parts[parts.length - 1] = String(last + 1);
+  return parts.join('.');
+}
+
+/** Compare deux numéros de version (négatif si a < b). */
+export function compareReleaseVersions(a: string, b: string): number {
+  const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d) return d;
+  }
+  return 0;
+}
+
 export interface ContentOverrides {
   schema: number;
   version: number;
@@ -102,6 +138,8 @@ export interface ContentOverrides {
   enemies: Record<string, EnemyInput[]>;    // clé = id du palier, 10 ennemis
   characters: Record<string, CharacterInput>; // clé = id du perso
   banners: Record<string, BannerInput>;     // clé = id de la bannière
+  release?: ReleaseInput;                   // brouillon : maj en préparation
+  releases?: PublishedRelease[];            // majs publiées, la plus récente en tête
 }
 
 export const emptyContent = (): ContentOverrides => ({
@@ -195,6 +233,21 @@ function parseBanner(v: unknown): BannerInput | null {
   });
 }
 
+function parseRelease(v: unknown): ReleaseInput | undefined {
+  if (!isObj(v) || typeof v.version !== 'string' || !isValidReleaseVersion(v.version)) return undefined;
+  const notes = Array.isArray(v.notes) ? v.notes.filter((x): x is string => typeof x === 'string' && !!x.trim() && x.length <= 400).slice(0, 60) : [];
+  return compact({ version: v.version, title: str(v.title, 80), notes });
+}
+
+function parseReleases(v: unknown): PublishedRelease[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  return v.flatMap(x => {
+    const r = parseRelease(x);
+    const at = isObj(x) ? num(x.publishedAt, 1, 1e14) : undefined;
+    return r && at ? [{ ...r, publishedAt: at }] : [];
+  }).slice(0, RELEASES_LIMIT);
+}
+
 function parseRecord<T>(v: unknown, parse: (x: unknown) => T | null, keyOk: (k: string) => boolean, errors: string[], label: string): Record<string, T> {
   const out: Record<string, T> = {};
   if (!isObj(v)) return out;
@@ -229,6 +282,7 @@ export function parseContent(raw: unknown): { content: ContentOverrides | null; 
       enemies,
       characters: parseRecord(raw.characters, parseCharacter, isValidContentId, errors, 'Perso'),
       banners: parseRecord(raw.banners, parseBanner, isValidContentId, errors, 'Bannière'),
+      ...compact({ release: parseRelease(raw.release), releases: parseReleases(raw.releases) }),
     },
     errors,
   };

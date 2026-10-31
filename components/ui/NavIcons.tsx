@@ -278,6 +278,21 @@ export function IconDice({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
+export function IconPlinko({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
+      {/* Plateau de picots et bille (événement Plinko Multiversel) */}
+      <circle cx="10" cy="3.6" r="1.6" fill={color} />
+      <circle cx="7" cy="8" r="0.9" fill={color} />
+      <circle cx="13" cy="8" r="0.9" fill={color} />
+      <circle cx="4" cy="12" r="0.9" fill={color} />
+      <circle cx="10" cy="12" r="0.9" fill={color} />
+      <circle cx="16" cy="12" r="0.9" fill={color} />
+      <path d="M2.5 16.5h15M6.5 16.5v-1.6M10 16.5v-1.6M13.5 16.5v-1.6" />
+    </svg>
+  );
+}
+
 export function IconScales({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" {...base} stroke={color} strokeWidth={1.6}>
@@ -319,6 +334,7 @@ export const NAV_ICONS: Record<string, (props: IconProps) => ReactElement> = {
   anomalie:     IconAnomaly,
   gachadle:     IconQuestion,
   periple:      IconDice,
+  plinko:       IconPlinko,
   events:       IconEvents,
   nakime:       IconCastle,
   leaderboard:  IconTrophy,

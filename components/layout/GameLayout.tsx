@@ -35,7 +35,7 @@ import { getPalierConfig } from '@/lib/game/paliers';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { WelcomeBackModal } from '@/components/game/WelcomeBackModal';
 import { DailyRewardsModal } from '@/components/game/DailyRewardsModal';
-import { GAME_VERSION } from '@/lib/game/version';
+import { getDisplayedVersion } from '@/lib/game/content/runtime';
 
 import { NAV_ICONS } from '@/components/ui/NavIcons';
 import { getSpriteCandidates } from '@/components/ui/PixelSprite';
@@ -184,11 +184,12 @@ export function GameLayout({ skipSplash = false }: { skipSplash?: boolean } = {}
   // Titre connu d'emblée (la dernière entrée porte toujours la version
   // courante, voir AGENTS.md) ; la date arrive avec le chunk des patch notes,
   // chargé juste après le premier rendu pour que la popup s'ouvre sans délai.
-  const [latestPatchNote, setLatestPatchNote] = useState<{ title: string; date: string }>({ title: `Maj v${GAME_VERSION}`, date: '' });
+  const [latestPatchNote, setLatestPatchNote] = useState<{ title: string; date: string }>(() => ({ title: `Maj v${getDisplayedVersion()}`, date: '' }));
   useEffect(() => {
     let cancelled = false;
-    loadPatchNotes().then(({ PATCH_NOTES }) => {
-      if (!cancelled) setLatestPatchNote({ title: PATCH_NOTES[0].title, date: PATCH_NOTES[0].date });
+    loadPatchNotes().then(({ getPatchNotes }) => {
+      const [latest] = getPatchNotes();
+      if (!cancelled) setLatestPatchNote({ title: latest.title, date: latest.date });
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);

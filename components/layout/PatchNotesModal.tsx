@@ -1,10 +1,23 @@
 'use client';
-import { PATCH_NOTES } from '@/lib/game/patchNotes';
+import { PATCH_NOTES as CODE_PATCH_NOTES, type PatchNoteEntry } from '@/lib/game/patchNotes';
+import { getLoadedReleases } from '@/lib/game/content/runtime';
+import { compareReleaseVersions } from '@/lib/game/content/schema';
 
-// Ré-exporté pour que GameLayout lise la dernière entrée via CE module
-// (chargé à part) : un import séparé de lib/game/patchNotes dupliquerait les
-// données dans un second chunk.
-export { PATCH_NOTES };
+const entryVersion = (e: PatchNoteEntry) => e.title.match(/v(\d+(?:\.\d+)+)/)?.[1] ?? '0';
+const formatDate = (t: number) => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+// Notes du code + majs publiées depuis le configurateur (page admin), de la
+// plus récente à la plus ancienne. Calculé à l'appel : le contenu en ligne
+// est chargé avant que le jeu ne s'affiche.
+export function getPatchNotes(): PatchNoteEntry[] {
+  const releases: PatchNoteEntry[] = getLoadedReleases().map(r => ({
+    date: formatDate(r.publishedAt),
+    title: r.title ? `Maj v${r.version} — ${r.title}` : `Maj v${r.version}`,
+    changes: r.notes,
+  }));
+  if (!releases.length) return CODE_PATCH_NOTES;
+  return [...releases, ...CODE_PATCH_NOTES].sort((a, b) => compareReleaseVersions(entryVersion(b), entryVersion(a)));
+}
 
 // Rend **mot** en gras.
 function RichText({ text }: { text: string }) {
@@ -50,7 +63,7 @@ export function PatchNotesModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {PATCH_NOTES.map((entry, i) => (
+          {getPatchNotes().map((entry, i) => (
             <div key={i} style={{ borderRadius: 10, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', padding: '12px 14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 10 }}>
                 <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{entry.title}</div>

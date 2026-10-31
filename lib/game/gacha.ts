@@ -1,4 +1,4 @@
-import { CharacterTemplate, Rarity } from '@/types/game';
+import { CharacterTemplate, Rarity, RARITY_ORDER_ASC } from '@/types/game';
 import { BANNER_POOL, BANNER_POOL_VOL2, GACHA_EXCLUDED_IDS, getCharacterById } from './characters';
 import { applyBannerContent } from './content/apply';
 import { getLoadedContent } from './content/runtime';
@@ -195,9 +195,14 @@ export function rollRarity(maxPalier = 1, bannerId?: BannerId): Rarity {
  * affichés restent exacts.
  */
 export function rollCharacter(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID, rateUpUniverse?: string): string {
+  return pickCharacterOfRarity(bannerId, rollRarity(maxPalier, bannerId), rateUpUniverse);
+}
+
+// Choisit un perso de la rareté donnée dans la bannière (avec le taux augmenté
+// des vedettes / de l'univers vedette s'il y en a un).
+function pickCharacterOfRarity(bannerId: BannerId, rarity: Rarity, rateUpUniverse?: string): string {
   const banner = getBanner(bannerId);
   const bannerPool = banner.pool;
-  const rarity = rollRarity(maxPalier, bannerId);
   const pool   = bannerPool.filter(c => c.rarity === rarity);
   // Ne peut arriver que si aucune rareté débloquée n'existe dans la bannière.
   const source = pool.length > 0 ? pool : bannerPool;
@@ -219,6 +224,26 @@ export function getRateUpShare(rarity: Rarity, rateUpUniverse: string, bannerId:
   const featured = pool.filter(c => c.universe === rateUpUniverse).length;
   const total = pool.length + featured * (FEATURED_RATE_UP - 1);
   return total > 0 ? (featured * FEATURED_RATE_UP) / total : 0;
+}
+
+/**
+ * Tire un perso de rareté `minRarity` ou mieux (cartes garanties des boosters
+ * du Plinko), avec les mêmes proportions entre ces raretés qu'une invocation
+ * normale. Si aucune n'est encore débloquée à ce palier, la carte est de la
+ * meilleure rareté débloquée : la progression par palier est respectée.
+ */
+export function rollCharacterAtLeast(maxPalier: number, minRarity: Rarity, bannerId: BannerId = DEFAULT_BANNER_ID): string {
+  const rates = getDynamicRates(maxPalier, bannerId);
+  const minIndex = RARITY_ORDER_ASC.indexOf(minRarity);
+  const unlocked = RARITY_ORDER.filter(r => (rates[r] ?? 0) > 0);
+  const eligible = unlocked.filter(r => RARITY_ORDER_ASC.indexOf(r) >= minIndex);
+  if (eligible.length === 0) return pickCharacterOfRarity(bannerId, unlocked[0] ?? 'C');
+  let rand = Math.random() * eligible.reduce((sum, r) => sum + rates[r]!, 0);
+  for (const r of eligible) {
+    rand -= rates[r]!;
+    if (rand < 0) return pickCharacterOfRarity(bannerId, r);
+  }
+  return pickCharacterOfRarity(bannerId, eligible[eligible.length - 1]);
 }
 
 export function rollMulti(maxPalier = 1, bannerId: BannerId = DEFAULT_BANNER_ID, rateUpUniverse?: string): string[] {

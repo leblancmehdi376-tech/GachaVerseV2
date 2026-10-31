@@ -12,7 +12,7 @@ import { formatSyncStatus, type CloudSyncStatus } from '@/lib/firebase/cloudSave
 import { updatePlayerScore } from '@/lib/firebase/leaderboard';
 import { bnAdd, bnFromNumber } from '@/lib/game/bignum';
 import { PlayerAvatar } from '@/components/layout/PlayerAvatar';
-import { GAME_VERSION } from '@/lib/game/version';
+import { getDisplayedVersion } from '@/lib/game/content/runtime';
 import { CreditsModal } from '@/components/pages/CreditsModal';
 
 export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForceSave?: () => Promise<boolean>; syncStatus?: CloudSyncStatus; lastSyncedAt?: number | null }) {
@@ -462,7 +462,7 @@ export function SettingsPage({ onForceSave, syncStatus, lastSyncedAt }: { onForc
         </div>
 
         <div style={{ textAlign:'center', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-muted)', lineHeight:1.8 }}>
-          <div>GACHA VERSE — Version {GAME_VERSION}</div>
+          <div>GACHA VERSE — Version {getDisplayedVersion()}</div>
           <button onClick={() => setShowCredits(true)}
             style={{ marginTop:'4px', minHeight:'44px', padding:'0 14px', background:'none', border:'none', fontFamily:'var(--f-ui)', fontSize:'14px', color:'var(--text-dim)', cursor:'pointer', textDecoration:'underline', textUnderlineOffset:'3px' }}>
             Crédits : <strong style={{ color:'var(--text)' }}>NekoZ</strong> &amp; <strong style={{ color:'var(--text)' }}>Kiloudu14</strong>
