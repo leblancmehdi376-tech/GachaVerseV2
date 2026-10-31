@@ -122,7 +122,7 @@ export const GUIDE_QUESTS: GuideQuestDef[] = [
   {
     id: 'g8_ouchuu', icon: '☄️', label: "Vaincre 500 monstres avec Ouchuu dans l'équipe", metric: 'ouchuuKills', target: 500, reward: 200,
     intro: { id: 'quest:g8', parts: ['Elle. Dans ton équipe.', 'Fais-la combattre. Beaucoup.', '… Pour les dégâts. Évidemment.'] },
-    outro: { id: 'done:g8', parts: ['Elle a tenu.', 'Ne la laisse jamais porter tout le poids toute seule.', "… Les météores, c'est lourd."] },
+    outro: { id: 'done:g8', parts: ['Elle a réussi.', 'Tant mieux.'] },
   },
   {
     id: 'g9_bond', icon: '🔗', label: 'Découvrir un nouveau Lien légendaire', metric: 'bonds', target: 1, reward: 200,
@@ -158,7 +158,7 @@ export const GUIDE_QUESTS: GuideQuestDef[] = [
   {
     id: 'g15_name', icon: '👑', label: "Placer Ouchuu et NekoZ ensemble dans l'équipe", metric: 'ouchuuNekozTeam', target: 1, reward: 300,
     intro: { id: 'quest:g15', parts: ['Mets-les ensemble. Elle, et lui.', 'Juste… pour voir.'] },
-    outro: { id: 'done:g15', parts: ['…', 'Ouchuu.', "Je connaissais quelqu'un qui s'appelait comme ça. La reine d'un monde.", "Je ne viens pas d'ici. Tu t'en doutais, non ?"] },
+    outro: { id: 'done:g15', parts: ['…', "Je ne viens pas d'ici. Tu t'en doutais, non ?"] },
   },
   {
     id: 'g16_prestige', icon: '⭐', label: 'Faire un Prestige', metric: 'prestige', target: 1, reward: 400,
@@ -255,7 +255,6 @@ const VETERAN_LINES: GuideLine[] = [
   { id: 'v2', parts: ['Pas trop vite.', "… S'il te plaît."] },
 ];
 
-const OUCHUU_TEAM_LINE: GuideLine = { id: 'o1', parts: ['Elle dort bien, en ce moment ?', '… Pour rien.'] };
 const NEKOZ_TEAM_LINE: GuideLine = { id: 'n1', parts: ['Il rit beaucoup, celui-là.', "… C'est bien. Qu'il continue."] };
 // Acte 2 : des souvenirs lui échappent. Toujours sans dire « Ouchuu » ni « dernier Prestige ».
 const ACT_2_LINES: GuideLine[] = [
@@ -347,7 +346,6 @@ export function nextGuideLine(v: GuideView, previousId: string | null, rnd: () =
   if (v.nekozGuide.questIndex >= ACT_2_FIRST_QUEST) pool.push(...ACT_2_LINES);
   if (v.nekozGuide.questIndex >= ACT_3_FIRST_QUEST) pool.push(...echoLines(v));
   if (v.nekozGuide.questIndex >= ACT_2_FIRST_QUEST && now.getHours() < 5) pool.push(NIGHT_LINE);
-  if (hasInTeam(v, 'ouchuu')) pool.push(OUCHUU_TEAM_LINE);
   if (hasInTeam(v, 'nekoz')) pool.push(NEKOZ_TEAM_LINE);
   const choices = pool.filter(l => l.id !== previousId);
   return choices[Math.floor(rnd() * choices.length)] ?? pool[0];

@@ -23,6 +23,13 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     date: '01/11/2026',
     title: `Maj v${GAME_VERSION}`,
+    changes: [
+      "Quelques répliques du **mystérieux personnage** de l'accueil ont été retouchées.",
+    ],
+  },
+  {
+    date: '01/11/2026',
+    title: 'Maj v2.8.2.14',
     sections: [
       {
         icon: '🎯',
