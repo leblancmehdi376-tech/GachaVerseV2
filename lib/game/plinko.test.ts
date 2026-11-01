@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   PLINKO_EVENT, PLINKO_SLOTS, PLINKO_SLOT_COUNT, PLINKO_ROWS, PLINKO_DAILY_BALLS, PLINKO_UPGRADES, PLINKO_BOOSTERS,
   plinkoOdds, plinkoPath, rollPlinkoSlot, plinkoSlotReward, plinkoBoosterSize, plinkoBallsLeft, nextPlinkoUpgradeCost,
-  plinkoDailyBalls, PLINKO_QUESTS, PLINKO_QUESTS_TOTAL_GEMS,
+  plinkoDailyBalls, PLINKO_QUESTS, PLINKO_QUESTS_TOTAL_GEMS, PLINKO_TITLE,
 } from './plinko';
 import { rollCharacterAtLeast } from './gacha';
 import { getCharacterById } from './characters';
@@ -10,6 +10,7 @@ import { getTodayDayKey } from './shop';
 import { RARITY_ORDER_ASC, type Rarity } from '@/types/game';
 import { mergeMonotonicState } from '@/lib/firebase/cloudSaveSync';
 import { useGameStore } from '@/store/gameStore';
+import { TITLE_GOLD_BONUS_PCT } from './titles';
 
 const rank = (r: Rarity) => RARITY_ORDER_ASC.indexOf(r);
 const rarityOf = (id: string) => getCharacterById(id)!.rarity;
@@ -161,6 +162,18 @@ describe('plinkoSlice', () => {
     expect(useGameStore.getState().claimPlinkoQuest(q.id)).toBe(q.gems);
     expect(useGameStore.getState().nekoGems).toBeGreaterThanOrEqual(q.gems);
     expect(useGameStore.getState().claimPlinkoQuest(q.id)).toBeNull();
+  });
+
+  it('donne le bonus de la quête : Notes de Biwa, Orbes du Néant ou titre', () => {
+    useGameStore.setState({ nakimeNotes: 0, voidOrbs: 0, unlockedTitles: [], plinkoStats: { days: 28 }, plinkoDrops: 25 });
+    useGameStore.getState().claimPlinkoQuest('pq_days_7');
+    useGameStore.getState().claimPlinkoQuest('pq_drops_25');
+    useGameStore.getState().claimPlinkoQuest('pq_days_28');
+    const s = useGameStore.getState();
+    expect(s.nakimeNotes).toBe(PLINKO_QUESTS.find(x => x.id === 'pq_days_7')!.bonus!.amount);
+    expect(s.voidOrbs).toBe(PLINKO_QUESTS.find(x => x.id === 'pq_drops_25')!.bonus!.amount);
+    expect(s.unlockedTitles).toEqual([PLINKO_TITLE]);
+    expect(TITLE_GOLD_BONUS_PCT[PLINKO_TITLE]).toBeGreaterThan(0);
   });
 
   it('remet tout à zéro à la nouvelle édition', () => {

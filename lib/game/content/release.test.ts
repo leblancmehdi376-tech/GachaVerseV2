@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseContent, bumpReleaseVersion, compareReleaseVersions, CONTENT_SCHEMA } from './schema';
+import { firestoreSafe } from './store';
 
 describe('majs du configurateur', () => {
   it('incrémente le dernier nombre', () => {
@@ -23,8 +24,14 @@ describe('majs du configurateur', () => {
     expect(content?.releases).toEqual([{ version: '2.8.3', notes: ['a'], publishedAt: 1000 }]);
   });
 
-  it('ignore une maj au numéro invalide', () => {
-    const { content } = parseContent({ schema: CONTENT_SCHEMA, release: { version: 'v2', notes: [] } });
-    expect(content && 'release' in content).toBe(false);
+  it('garde une maj en préparation au numéro en cours de saisie, mais pas une maj publiée invalide', () => {
+    const { content } = parseContent({ schema: CONTENT_SCHEMA, release: { version: '2.9.', notes: [] }, releases: [{ version: 'v2', notes: [], publishedAt: 5 }] });
+    expect(content?.release?.version).toBe('2.9.');
+    expect(content?.releases).toEqual([]);
+  });
+
+  it('retire les champs undefined avant l’envoi à Firestore', () => {
+    const safe = firestoreSafe({ banners: { b: { name: 'x', startsAt: undefined } }, enemies: { 1: [{ name: 'e', hpMult: undefined }] } });
+    expect(safe).toEqual({ banners: { b: { name: 'x' } }, enemies: { 1: [{ name: 'e' }] } });
   });
 });

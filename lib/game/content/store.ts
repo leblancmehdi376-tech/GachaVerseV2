@@ -16,6 +16,15 @@ const LOCAL_LIVE_KEY = 'gv-content-live-v1'; // même clé que loader.ts
 const LOCAL_HISTORY_KEY = 'gv-content-history-v1';
 const HISTORY_LIMIT = 20;
 
+/**
+ * Copie sans les champs `undefined` (un champ vidé dans un éditeur, ex. la
+ * date de début d'une bannière) : Firestore refuse tout le document s'il en
+ * contient un, alors que le mode local (JSON) les ignorait sans rien dire.
+ */
+export function firestoreSafe<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 export function isLocalContentMode(): boolean {
   if (db || typeof window === 'undefined') return false;
   const h = window.location.hostname;
@@ -45,7 +54,7 @@ export async function loadContentForEditing(): Promise<{ live: ContentOverrides 
 export async function saveDraft(draft: ContentOverrides): Promise<void> {
   if (isLocalContentMode()) { localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(draft)); return; }
   if (!db) throw new Error('Firebase indisponible');
-  await setDoc(doc(db, 'content', 'draft'), draft);
+  await setDoc(doc(db, 'content', 'draft'), firestoreSafe(draft));
 }
 
 /**
@@ -58,7 +67,7 @@ export async function publishContent(draft: ContentOverrides, live: ContentOverr
   const now = Date.now();
   const { release, ...rest } = structuredClone(draft);
   const releases = [...(release ? [{ ...release, publishedAt: now }] : []), ...(live?.releases ?? [])].slice(0, RELEASES_LIMIT);
-  const published: ContentOverrides = { ...rest, releases, version: (live?.version ?? 0) + 1, publishedAt: now };
+  const published: ContentOverrides = firestoreSafe({ ...rest, releases, version: (live?.version ?? 0) + 1, publishedAt: now });
   if (isLocalContentMode()) {
     localStorage.setItem(LOCAL_LIVE_KEY, JSON.stringify(published));
     localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(published));

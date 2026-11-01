@@ -24,6 +24,15 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '01/11/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Quêtes du Plinko** : chaque quête donne maintenant un **bonus** en plus de ses gemmes.",
+      "Au total : **1 350 🔮 Orbes du Néant** et **250 🎵 Notes de Biwa** pour le Château de Nakime.",
+      "La quête **Jouer au Plinko 28 jours** offre le titre **🎯 Maître du Plinko** (**+12 %** d'or).",
+    ],
+  },
+  {
+    date: '01/11/2026',
+    title: 'Maj v2.8.2.16',
+    changes: [
       "**Château de Nakime** un peu moins difficile :",
       "Les ennemis se renforcent **moins vite** d'un étage à l'autre : environ **11 %** plus faibles à l'étage 10, **19 %** à l'étage 50.",
       "**Boss** : **−23 %** de PV et **−12 %** d'attaque.",

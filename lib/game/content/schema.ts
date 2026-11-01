@@ -233,8 +233,12 @@ function parseBanner(v: unknown): BannerInput | null {
   });
 }
 
-function parseRelease(v: unknown): ReleaseInput | undefined {
-  if (!isObj(v) || typeof v.version !== 'string' || !isValidReleaseVersion(v.version)) return undefined;
+// `draft` : maj en préparation, dont le numéro peut être en cours de saisie
+// (« 2.9. ») — gardée telle quelle pour ne pas disparaître au rechargement ;
+// le configurateur bloque la publication tant qu'il est invalide.
+function parseRelease(v: unknown, draft = false): ReleaseInput | undefined {
+  if (!isObj(v) || typeof v.version !== 'string') return undefined;
+  if (draft ? v.version.length > 20 : !isValidReleaseVersion(v.version)) return undefined;
   const notes = Array.isArray(v.notes) ? v.notes.filter((x): x is string => typeof x === 'string' && !!x.trim() && x.length <= 400).slice(0, 60) : [];
   return compact({ version: v.version, title: str(v.title, 80), notes });
 }
@@ -282,7 +286,7 @@ export function parseContent(raw: unknown): { content: ContentOverrides | null; 
       enemies,
       characters: parseRecord(raw.characters, parseCharacter, isValidContentId, errors, 'Perso'),
       banners: parseRecord(raw.banners, parseBanner, isValidContentId, errors, 'Bannière'),
-      ...compact({ release: parseRelease(raw.release), releases: parseReleases(raw.releases) }),
+      ...compact({ release: parseRelease(raw.release, true), releases: parseReleases(raw.releases) }),
     },
     errors,
   };

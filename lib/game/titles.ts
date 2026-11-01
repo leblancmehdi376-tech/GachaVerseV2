@@ -36,6 +36,9 @@ export const TITLE_GOLD_BONUS_PCT: Record<string, number> = {
   // ── Le Grand Périple du Multivers — dernier palier (voir PERIPLE_TITLE) ──
   '🗺️ Grand Voyageur du Multivers': 15,
 
+  // ── Plinko Multiversel — quête « Jouer 28 jours » (voir PLINKO_TITLE) ───
+  '🎯 Maître du Plinko': 12,
+
   // ── Château de Nakime — paliers de record (voir NAKIME_MILESTONES) ─────
   '🪕 Résonance du Biwa':          10,
   '🏯 Seigneur du Château Infini': 20,

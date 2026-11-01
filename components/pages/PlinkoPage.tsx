@@ -5,7 +5,7 @@ import { useGameStore } from '@/store/gameStore';
 import type { PlinkoDropResult } from '@/store/slices/plinkoSlice';
 import { getTodayDayKey } from '@/lib/game/shop';
 import {
-  PLINKO_EVENT, PLINKO_UPGRADES, PLINKO_REWARD_ICON, PLINKO_QUESTS, PLINKO_QUESTS_TOTAL_GEMS, formatPlinkoReward, isPlinkoActive,
+  PLINKO_EVENT, PLINKO_UPGRADES, PLINKO_REWARD_ICON, PLINKO_QUESTS, PLINKO_QUESTS_TOTAL_GEMS, formatPlinkoReward, formatPlinkoQuestBonus, isPlinkoActive,
   isPlinkoUpcoming, plinkoBallsLeft, plinkoDailyBalls, plinkoOdds, plinkoSlotReward, plinkoUpgradeLevel, getPlinkoQuestProgress,
   type PlinkoUpgradeId,
 } from '@/lib/game/plinko';
@@ -89,6 +89,7 @@ export function PlinkoPage() {
     ...q,
     cur: getPlinkoQuestProgress(q, { stats: fresh ? s.stats ?? {} : {}, drops: (fresh ? s.drops ?? 0 : 0) - (pending ? 1 : 0), levels }),
     icon: <span className="pp-mission__icon" style={{ fontSize: 28 }} aria-hidden>{q.icon}</span>,
+    extra: q.bonus && formatPlinkoQuestBonus(q.bonus),
   }));
 
   const odds = plinkoOdds(levels);

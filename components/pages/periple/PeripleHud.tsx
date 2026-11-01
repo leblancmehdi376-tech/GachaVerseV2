@@ -207,7 +207,7 @@ export const EventQuestsCard = memo(function EventQuestsCard({ stats, tiersClaim
 });
 
 /** Quête d'événement à afficher (Périple, Plinko...) : progression déjà calculée. */
-export interface QuestListItem { id: string; label: string; target: number; gems: number; cur: number; icon: ReactNode }
+export interface QuestListItem { id: string; label: string; target: number; gems: number; cur: number; icon: ReactNode; extra?: string }
 
 /** Carte « Quêtes de l'événement », commune aux événements. */
 export const QuestListCard = memo(function QuestListCard({ quests, totalGems, claimed, onClaim }: {
@@ -242,6 +242,7 @@ export const QuestListCard = memo(function QuestListCard({ quests, totalGems, cl
             {q.icon}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text)', lineHeight: 1.2 }}>{q.label}</div>
+              {q.extra && <div style={{ fontFamily: 'var(--f-ui)', fontWeight: 700, fontSize: 14, color: '#c4b5fd', marginTop: 2 }}>+ {q.extra}</div>}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                 <div className="pp-bar pp-bar--green" style={{ flex: 1, height: 12 }}><div className="pp-bar__fill" style={{ width: `${(cur / q.target) * 100}%` }} /></div>
                 <span style={{ fontFamily: 'var(--f-num)', fontWeight: 700, fontSize: 14, color: 'var(--text-sub)', flexShrink: 0 }}>{fmtNum(cur)}/{fmtNum(q.target)}</span>

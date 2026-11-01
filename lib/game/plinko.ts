@@ -219,9 +219,15 @@ export interface PlinkoHistoryEntry {
 // ─── Quêtes de l'événement (sur toute sa durée) ──────────────────────────────
 // Compteurs cumulés depuis le début de l'édition (remis à zéro avec elle).
 // Calibrées pour un joueur qui lance ses billes tous les jours : ~150 à 200
-// lancers sur le mois selon le Stock de billes. Récompense en gemmes.
+// lancers sur le mois selon le Stock de billes. Récompense en gemmes, plus un
+// bonus par quête : Orbes du Néant, Notes de Biwa (Château de Nakime) ou,
+// pour la plus longue, le titre de l'événement.
 export type PlinkoStat = 'days' | 'rare' | 'chests' | 'boosters' | 'tokens' | 'upgrades';
 export type PlinkoStats = Partial<Record<PlinkoStat, number>>;
+
+export const PLINKO_TITLE = '🎯 Maître du Plinko';
+
+export interface PlinkoQuestBonus { kind: 'orbs' | 'notes' | 'title'; amount: number }
 
 export interface PlinkoQuest {
   id: string;
@@ -230,21 +236,27 @@ export interface PlinkoQuest {
   stat: PlinkoStat | 'drops' | 'maxUpgrade';   // 'drops' = billes lancées ; 'maxUpgrade' = améliorations au niveau max
   target: number;
   gems: number;
+  bonus?: PlinkoQuestBonus;
+}
+
+export function formatPlinkoQuestBonus(b: PlinkoQuestBonus): string {
+  if (b.kind === 'title') return `Titre « ${PLINKO_TITLE} »`;
+  return b.kind === 'orbs' ? `${b.amount} 🔮 Orbes du Néant` : `${b.amount} 🎵 Notes de Biwa`;
 }
 
 export const PLINKO_QUESTS: PlinkoQuest[] = [
-  { id: 'pq_drops_25',    icon: '⚪', label: 'Lancer 25 billes',                         stat: 'drops',      target: 25,   gems: 500 },
-  { id: 'pq_drops_75',    icon: '⚪', label: 'Lancer 75 billes',                         stat: 'drops',      target: 75,   gems: 1000 },
-  { id: 'pq_drops_150',   icon: '⚪', label: 'Lancer 150 billes',                        stat: 'drops',      target: 150,  gems: 2000 },
-  { id: 'pq_days_7',      icon: '📅', label: 'Jouer au Plinko 7 jours',                  stat: 'days',       target: 7,    gems: 500 },
-  { id: 'pq_days_20',     icon: '📅', label: 'Jouer au Plinko 20 jours',                 stat: 'days',       target: 20,   gems: 1500 },
-  { id: 'pq_days_28',     icon: '📅', label: 'Jouer au Plinko 28 jours',                 stat: 'days',       target: 28,   gems: 2000 },
-  { id: 'pq_rare_15',     icon: '✨', label: 'Tomber 15 fois dans une case rare',        stat: 'rare',       target: 15,   gems: 1500 },
-  { id: 'pq_chests_10',   icon: '📦', label: 'Gagner 10 coffres',                        stat: 'chests',     target: 10,   gems: 1000 },
-  { id: 'pq_booster_1',   icon: '🃏', label: 'Gagner un booster',                        stat: 'boosters',   target: 1,    gems: 1000 },
-  { id: 'pq_tokens_1000', icon: '🪙', label: 'Gagner 1 000 jetons Plinko',               stat: 'tokens',     target: 1000, gems: 1500 },
-  { id: 'pq_upgrades_6',  icon: '🛒', label: "Acheter 6 niveaux d'amélioration",         stat: 'upgrades',   target: 6,    gems: 1500 },
-  { id: 'pq_max_1',       icon: '⭐', label: 'Monter une amélioration au niveau max',    stat: 'maxUpgrade', target: 1,    gems: 1000 },
+  { id: 'pq_drops_25',    icon: '⚪', label: 'Lancer 25 billes',                         stat: 'drops',      target: 25,   gems: 500,  bonus: { kind: 'orbs',  amount: 150 } },
+  { id: 'pq_drops_75',    icon: '⚪', label: 'Lancer 75 billes',                         stat: 'drops',      target: 75,   gems: 1000, bonus: { kind: 'notes', amount: 40 } },
+  { id: 'pq_drops_150',   icon: '⚪', label: 'Lancer 150 billes',                        stat: 'drops',      target: 150,  gems: 2000, bonus: { kind: 'orbs',  amount: 400 } },
+  { id: 'pq_days_7',      icon: '📅', label: 'Jouer au Plinko 7 jours',                  stat: 'days',       target: 7,    gems: 500,  bonus: { kind: 'notes', amount: 30 } },
+  { id: 'pq_days_20',     icon: '📅', label: 'Jouer au Plinko 20 jours',                 stat: 'days',       target: 20,   gems: 1500, bonus: { kind: 'orbs',  amount: 300 } },
+  { id: 'pq_days_28',     icon: '📅', label: 'Jouer au Plinko 28 jours',                 stat: 'days',       target: 28,   gems: 2000, bonus: { kind: 'title', amount: 1 } },
+  { id: 'pq_rare_15',     icon: '✨', label: 'Tomber 15 fois dans une case rare',        stat: 'rare',       target: 15,   gems: 1500, bonus: { kind: 'notes', amount: 60 } },
+  { id: 'pq_chests_10',   icon: '📦', label: 'Gagner 10 coffres',                        stat: 'chests',     target: 10,   gems: 1000, bonus: { kind: 'orbs',  amount: 200 } },
+  { id: 'pq_booster_1',   icon: '🃏', label: 'Gagner un booster',                        stat: 'boosters',   target: 1,    gems: 1000, bonus: { kind: 'notes', amount: 30 } },
+  { id: 'pq_tokens_1000', icon: '🪙', label: 'Gagner 1 000 jetons Plinko',               stat: 'tokens',     target: 1000, gems: 1500, bonus: { kind: 'orbs',  amount: 300 } },
+  { id: 'pq_upgrades_6',  icon: '🛒', label: "Acheter 6 niveaux d'amélioration",         stat: 'upgrades',   target: 6,    gems: 1500, bonus: { kind: 'notes', amount: 50 } },
+  { id: 'pq_max_1',       icon: '⭐', label: 'Monter une amélioration au niveau max',    stat: 'maxUpgrade', target: 1,    gems: 1000, bonus: { kind: 'notes', amount: 40 } },
 ];
 
 export const PLINKO_QUESTS_TOTAL_GEMS = PLINKO_QUESTS.reduce((s, q) => s + q.gems, 0);

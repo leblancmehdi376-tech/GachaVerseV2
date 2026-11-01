@@ -11,7 +11,7 @@ import type { StateCreator } from 'zustand';
 import { rollCharacter, rollCharacterAtLeast, DEFAULT_BANNER_ID } from '@/lib/game/gacha';
 import { getTodayDayKey } from '@/lib/game/shop';
 import {
-  PLINKO_EVENT, PLINKO_BOOSTERS, PLINKO_HISTORY_LIMIT, PLINKO_SLOTS, PLINKO_QUESTS, emptyPlinkoDaily, isPlinkoActive, plinkoBallsLeft,
+  PLINKO_EVENT, PLINKO_BOOSTERS, PLINKO_HISTORY_LIMIT, PLINKO_SLOTS, PLINKO_QUESTS, PLINKO_TITLE, formatPlinkoQuestBonus, emptyPlinkoDaily, isPlinkoActive, plinkoBallsLeft,
   plinkoDailyBalls, rollPlinkoSlot, plinkoPath, plinkoSlotReward, plinkoBoosterSize, plinkoUpgradeLevel, nextPlinkoUpgradeCost,
   getPlinkoUpgrade, getPlinkoQuestProgress, type PlinkoReward, type PlinkoStats, type PlinkoUpgradeId,
 } from '@/lib/game/plinko';
@@ -130,11 +130,18 @@ export const createPlinkoSlice: StateCreator<GameStore, [], [], PlinkoActions> =
       const claimed = s.plinkoQuestsClaimed ?? [];
       if (!q || claimed.includes(id)) return null;
       if (getPlinkoQuestProgress(q, { stats: s.plinkoStats ?? {}, drops: s.plinkoDrops ?? 0, levels: s.plinkoUpgrades }) < q.target) return null;
-      // Quête marquée réclamée dans le même set() que les gemmes données.
-      set(st => ({ plinkoQuestsClaimed: [...claimed, id], nekoGems: st.nekoGems + q.gems }));
+      // Quête marquée réclamée dans le même set() que les gemmes et le bonus donnés.
+      const b = q.bonus;
+      set(st => ({
+        plinkoQuestsClaimed: [...claimed, id],
+        nekoGems: st.nekoGems + q.gems,
+        ...(b?.kind === 'orbs' && { voidOrbs: st.voidOrbs + b.amount, totalVoidOrbsEarned: (st.totalVoidOrbsEarned ?? 0) + b.amount }),
+        ...(b?.kind === 'notes' && { nakimeNotes: (st.nakimeNotes ?? 0) + b.amount }),
+        ...(b?.kind === 'title' && !st.unlockedTitles.includes(PLINKO_TITLE) && { unlockedTitles: [...st.unlockedTitles, PLINKO_TITLE] }),
+      }));
       broadcastLocalState();
       requestUrgentSave('plinko_quest');
-      if (!get().suppressToasts) toast.quest('🏆 Quête du Plinko', `${q.label} : +${q.gems} 💎`);
+      if (!get().suppressToasts) toast.quest('🏆 Quête du Plinko', `${q.label} : +${q.gems} 💎${b ? ` · ${formatPlinkoQuestBonus(b)}` : ''}`);
       return q.gems;
     },
   };
