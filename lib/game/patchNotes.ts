@@ -24,6 +24,16 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     date: '01/11/2026',
     title: `Maj v${GAME_VERSION}`,
     changes: [
+      "**Château de Nakime** un peu moins difficile :",
+      "Les ennemis se renforcent **moins vite** d'un étage à l'autre : environ **11 %** plus faibles à l'étage 10, **19 %** à l'étage 50.",
+      "**Boss** : **−23 %** de PV et **−12 %** d'attaque.",
+      "**Élites** : **−17 %** de PV et **−10 %** d'attaque.",
+    ],
+  },
+  {
+    date: '01/11/2026',
+    title: 'Maj v2.8.2.15',
+    changes: [
       "Quelques répliques du **mystérieux personnage** de l'accueil ont été retouchées.",
     ],
   },

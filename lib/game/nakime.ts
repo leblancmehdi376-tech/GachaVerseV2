@@ -332,13 +332,14 @@ export function shardReward(kind: NakimeNodeKind, floor: number, relics: readonl
 
 // ── Ennemis d'un nœud ────────────────────────────────────────────────────
 /** Multiplicateur de puissance des ennemis à un étage (croissance infinie). */
-export const NAKIME_GROWTH_RATE = 0.105;
+export const NAKIME_GROWTH_RATE = 0.095;
 export const NAKIME_GROWTH_POW = 2.6;
 
 export function floorScale(floor: number): number {
-  // Courbe polynomiale, douce au début et raide en fin de partie. Calibrée pour
-  // qu'une équipe de 5 Transcendants prismatiques avec toute la Mémoire du
-  // Château plafonne vers l'étage 100, et que rien de moins n'y arrive.
+  // Courbe polynomiale, douce au début et raide en fin de partie. Calibrée à
+  // l'origine (taux 0,105) pour qu'une équipe de 5 Transcendants prismatiques
+  // avec toute la Mémoire du Château plafonne vers l'étage 100 ; adoucie en
+  // v2.8.2.16 (taux 0,095 : ennemis ~11 % plus faibles à l'étage 10, ~19 % au 50).
   return Math.pow(1 + NAKIME_GROWTH_RATE * (floor - 1), NAKIME_GROWTH_POW);
 }
 
@@ -353,9 +354,9 @@ export function buildEnemies(seed: number, act: number, floor: number, col: numb
     affinity: getAffinityForId(e.name), abilities: [BASIC_ATTACK, ...enemyAbilities(ek, e.name)],
   });
   const mob = () => world.mobs[Math.floor(rng() * world.mobs.length)];
-  if (kind === 'boss') return [make(world.boss, 0, 'boss', 3.9, 1.2), make(mob(), 1, 'mob', 1, 1), make(mob(), 2, 'mob', 1, 1)];
+  if (kind === 'boss') return [make(world.boss, 0, 'boss', 3.0, 1.05), make(mob(), 1, 'mob', 1, 1), make(mob(), 2, 'mob', 1, 1)];
   if (kind === 'elite') {
-    const out = [make(world.elites[Math.floor(rng() * world.elites.length)], 0, 'elite', 3.6, 1.5)];
+    const out = [make(world.elites[Math.floor(rng() * world.elites.length)], 0, 'elite', 3.0, 1.35)];
     const extra = 1 + Math.floor(rng() * 2);
     for (let i = 0; i < extra; i++) out.push(make(mob(), i + 1, 'mob', 1, 1));
     return out;
